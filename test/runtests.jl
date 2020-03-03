@@ -1,18 +1,26 @@
-using CGP
-using Base.Test
+# Run in CGP.jl/src
+include("../src/CGP.jl")
+using Main.CGP
+#using Base.Test
 
-const numinputs = 2
-const numoutputs = 1
+const numinputs = 3
+const numoutputs = 4
 const nodearity = 2
-const numperlevel = 1
-const numlevels = 10
-const numlevelsback = 10
+const numinteriors =  4
+const numlevelsback = 2
+if numinputs == 2
+  const context = [0xC, 0xA]
+elseif numinputs == 3
+  const context = [0xF0, 0xCC, 0xAA]
+end
+
 
 funcs = default_funcs()
-p = Parameters(numinputs, numoutputs, nodearity, numperlevel, numlevels, numlevelsback)
+p = Parameters(numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
 
-for _ = 1:100
+#for _ = 1:100
     c = random_chromosome(p, funcs)
+    print_chromosome( c )
     # Executing on these inputs tests all possible bit combinations for inputs
-    execute_chromosome(c, [0xC, 0xA])
-end
+    println(execute_chromosome(c, context))
+#end

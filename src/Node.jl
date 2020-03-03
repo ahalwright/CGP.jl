@@ -1,10 +1,11 @@
-export NodePosition, Node, InputNode, InteriorNode, OutputNode
+export Integer, Node, InputNode, InteriorNode, OutputNode
 
-typealias NodePosition (Integer, Integer)
 
-abstract Node
+#abstract Node     # Needed for julia v5
+abstract type Node end    # Needed for julia v6
 
-type InputNode <: Node
+
+mutable struct InputNode <: Node
     index::Integer
     active::Bool
 end
@@ -13,16 +14,16 @@ function InputNode(index::Integer)
     return InputNode(index, false)
 end
 
-type InteriorNode <: Node
+mutable struct InteriorNode <: Node
     func::Func
-    inputs::Vector{NodePosition}
+    inputs::Vector{Integer}
     active::Bool
 end
 
-function InteriorNode(func::Func, inputs::Vector{NodePosition})
+function InteriorNode(func::Func, inputs::Vector{Integer})
     return InteriorNode(func, inputs, false)
 end
 
-type OutputNode <: Node
-    input::NodePosition
+mutable struct OutputNode <: Node
+    input::Integer
 end
