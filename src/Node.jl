@@ -3,6 +3,12 @@ export Integer, Node, InputNode, InteriorNode, OutputNode
 
 #abstract Node     # Needed for julia v5
 abstract type Node end    # Needed for julia v6
+mutable struct Func
+    func::Function
+    arity::Integer
+    name::AbstractString
+end
+Func(f::Function, a::Integer) = Func(f, a, string(f)) 
 
 
 mutable struct InputNode <: Node

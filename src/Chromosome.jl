@@ -1,6 +1,6 @@
 import Base.getindex
 
-export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome
+export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome, hamming
 
 mutable struct Chromosome
     params::Parameters
@@ -19,6 +19,7 @@ function Chromosome(p::Parameters)
 end
 
 function random_chromosome(p::Parameters, funcs::Vector{Func})
+    #println("Creating random Chromosome")
     c = Chromosome(p)
 
     for index = 1:p.numinputs
@@ -41,13 +42,12 @@ function random_chromosome(p::Parameters, funcs::Vector{Func})
 
     minindex = max(1,p.numinputs + p.numinteriors - p.numlevelsback + 1)
     maxindex = p.numinputs + p.numinteriors
-    println("output (minindex, maxindex): ",(minindex,maxindex))
+    #println("output (minindex, maxindex): ",(minindex,maxindex))
     for i = 1:length(c.outputs)
         index = rand(minindex:maxindex)
         c.outputs[i] = OutputNode(index)
         c[index].active = true
     end
-
     return c
 end
 
@@ -116,7 +116,6 @@ function mutate_chromosome( c::Chromosome, funcs::Vector{Func} )
   end
   c
 end
-  
 
 function print_chromosome( c::Chromosome )
   for i = 1:(c.params.numinputs + c.params.numinteriors + c.params.numoutputs)
@@ -134,5 +133,16 @@ function getindex(c::Chromosome, index::Integer)
     end
 
     return c.interiors[index-c.params.numinputs]
+end
+
+function hamming( x::MyInt, y::MyInt )
+  xr = xor( x, y )
+  result = 0
+  my_one = convert(MyInt,1)
+  while xr != convert(MyInt,0)
+    result +=  xr & my_one
+    xr >>= 1
+  end
+  result
 end
 

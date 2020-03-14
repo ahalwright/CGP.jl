@@ -5,7 +5,6 @@ struct Parameters
     lambda::Integer
     mutrate::Real
     targetfitness::Real
-    mask::Integer
 
     numinputs::Integer
     numoutputs::Integer
@@ -20,11 +19,16 @@ function Parameters(numinputs, numoutputs, nodearity, numinteriors, numlevelsbac
     lambda = 4
     mutrate = 0.05
     targetfitness = 0.0
-    mask = 0x1
-    for i = 0:nodearity-1
-      mask = mask | (mask << 2^i)
-    end
 
-    return Parameters(mu, lambda, mutrate, targetfitness, mask, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
+    return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
+end
+
+function print_parameters( p::Parameters )
+  println("MyInt: ",MyInt)
+  println("numinputs: ",p.numinputs)
+  println("numoutputs: ",p.numoutputs)
+  println("numinteriors: ",p.numinteriors)
+  println("numlevelsback: ",p.numlevelsback)
+  println("nodearity: ",p.nodearity)
 end
 
