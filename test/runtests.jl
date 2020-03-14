@@ -3,6 +3,7 @@
 include("../src/CGP.jl")
 
 # Note that the parameters are set in the file ../src/SetParams.jl
+# The default functions are defined in ../src/Func.jl
 # The type  MyInt is defined in CGP.jl
 
 #using Base.Test
@@ -13,6 +14,8 @@ using Main.CGP
 funcs = default_funcs()
 const context = construct_contexts(Main.CGP.numinputs)[Main.CGP.numinputs]
 
+# Generate random circuits and count the logic functions that are computed.
+# Similar to results of Raman and Wagner 2011 to generate their Figure 2b.
 #num_iterations = 50
 num_iterations = 500000
 println("num_iterations: ",num_iterations)
