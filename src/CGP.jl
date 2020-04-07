@@ -9,14 +9,19 @@ perfectly suitable for other applications as well.
 
 
 module CGP
-const MyInt = UInt16   # Type of bit string integers used in bit functions
+const MyInt = UInt8     # Type of bit string integers used in bit functions
 const MyFunc = UInt128  # Type of concatenated output representation of functions
 include("Contexts.jl")
 include("Parameters.jl")
 include("SetParams.jl")
+#const numinputs = 2
+#const context = construct_contexts(numinputs)[numinputs]
 include("Node.jl")
 include("Chromosome.jl")
+include("Goals.jl")
+include("Evolve.jl")
 include("Execute.jl")
 include("Func.jl")
+include("Experiments.jl")
 
 end

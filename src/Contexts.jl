@@ -21,7 +21,7 @@
 #   strings for each output, or by the concatenation of these bit strings into 
 #   a single bit string.
 
-export construct_ones, construct_contexts
+export construct_ones, construct_contexts, get_bits
 
 #const MyInt  = UInt8
 
@@ -48,3 +48,21 @@ function construct_contexts( numinputs::Integer )
   end
   Contexts
 end 
+
+function get_bits( context::Vector{MyInt}, numinputs::Integer )
+  result = zeros(MyInt,2^numinputs)
+  reverse_context = reverse(context)
+  mask = 1
+  mask_shift = 0
+  for i = 1:2^numinputs
+    shift = 0
+    for j = 1:length(context)
+      result[i] |= (reverse_context[j] & mask) >> (mask_shift - shift)
+      shift += 1
+    end
+    mask <<= 1
+    mask_shift += 1
+  end
+  result
+end
+  

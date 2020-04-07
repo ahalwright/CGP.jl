@@ -10,38 +10,38 @@ include("../src/CGP.jl")
 using Printf
 using Main.CGP
 
+
 funcs = default_funcs()
 const context = construct_contexts(Main.CGP.numinputs)[Main.CGP.numinputs]
-#p = Parameters( Main.CGP.numinputs, Main.CGP.numoutputs, Main.CGP.nodearity, Main.CGP.numinteriors, Main.CGP.numlevelsback)
 
 # Generate random circuits and count the logic functions that are computed.
 # Similar to results of Raman and Wagner 2011 to generate their Figure 2b.
 #num_iterations = 50
-num_iterations = 500000
-#println("num_iterations: ",num_iterations)
+num_iterations = 50000
+println("num_iterations: ",num_iterations)
 counts = create_count_function_hash( p.numinputs, p.numoutputs )
-#for _ = 1:num_iterations
+for _ = 1:num_iterations
     c = random_chromosome(p, funcs)
     #print_chromosome( c )
     # Executing on these inputs tests all possible bit combinations for inputs
     outputs = execute_chromosome(c, context)
-  
+  #= 
     print("outputs: ",outputs)
     if length(outputs) > 1
       println("   hamming: ",hamming(outputs[1],outputs[2]))
     else
       println()
     end
-  
-    #concat_outputs = concatenate_outputs(p.numinputs, outputs)
+  =#
+    concat_outputs = concatenate_outputs(p.numinputs, outputs)
     #print("concat:  ")
     #Printf.@printf("0x%2x\n",concat_outputs)
-    #increment_count_function_hash(concat_outputs, counts )
+    increment_count_function_hash(concat_outputs, counts )
     outputs
-#end
-#=
-if num_iterations <= 50
-  print_count_function_hash(counts)
 end
-print_count_function_summary(counts)
-=#
+
+#if num_iterations <= 50
+  Main.CGP.print_count_function_hash(counts)
+#end
+#Main.CGP.print_count_function_summary(counts)
+

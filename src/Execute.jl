@@ -21,20 +21,37 @@ end
 function evaluate_node(c::Chromosome, node::InputNode, context::Vector)
     #println("eval input node: ",node)
     #print("context[node.index]:")
-    #Printf.@printf("0x0%4x\n",context[node.index])
+    #Printf.@printf("0x0%4x\n",context[node.index]) 
+    if node.active
+      return node.cache
+    end
+    node.active = true
+    node.cache = context[node.index]
     return context[node.index]
 end
 
 function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
     #println("eval interior node: ",node)
+    prev_cache = node.cache
     func = node.func
+    if node.active
+      return node.cache
+    end
     args = map(node.inputs[1:func.arity]) do position
         index = position
+        #println("position: ",position)
         evaluate_node(c, c[index], context)
     end
+    #println("args: ",args)
     result = apply(func.func, args) 
+    #result = 0
     #print("func: ",func,"  args: ",args,"  result: ")
     #Printf.@printf("0x%2x\n",result)
+    if node.active 
+      @assert result == node.cache 
+    end
+    node.active = true
+    node.cache = result
     return result
 end
 
@@ -57,6 +74,7 @@ end
 
 function execute_chromosome(c::Chromosome, context::Vector)
     #println("Executing chromosome")
+    #print_chromosome(c)
     return [evaluate_node(c, node, context) for node = c.outputs]
 end
 
@@ -97,10 +115,11 @@ function print_count_function_hash( counts::Dict{MyFunc,Int64} )
   println("function count")
   counts_list = [(k,counts[k]) for k in keys(counts) ]
   sort!( counts_list, by=x->x[2], rev=true )
-  for c in counts_list
+  for c in counts_list[1:50]
     Printf.@printf("0x%04x   %d\n",c[1],c[2])
     #println(k,": ",counts[k])
   end
+  [map(x->convert(UInt8,x[1]),counts_list[20:29])]
 end
 
 function print_count_function_summary( counts::Dict{MyFunc,Int64} )

@@ -10,9 +10,9 @@ include("../src/CGP.jl")
 using Printf
 using Main.CGP
 
+
 funcs = default_funcs()
 const context = construct_contexts(Main.CGP.numinputs)[Main.CGP.numinputs]
-#p = Parameters( Main.CGP.numinputs, Main.CGP.numoutputs, Main.CGP.nodearity, Main.CGP.numinteriors, Main.CGP.numlevelsback)
 
 # Generate random circuits and count the logic functions that are computed.
 # Similar to results of Raman and Wagner 2011 to generate their Figure 2b.

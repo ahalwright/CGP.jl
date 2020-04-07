@@ -1,4 +1,5 @@
-export Parameters, default_parameters
+
+export Parameters, default_parameters, print_parameters
 
 struct Parameters
     mu::Integer
