@@ -1,4 +1,5 @@
 export Func, default_funcs, eval_func, Ones, AND, OR, XOR, Nand, NAND, Nor, NOR, NOT, Zero, ZERO, One, ONE
+export func_names
 using Main.CGP
 
 mutable struct Func
@@ -11,8 +12,8 @@ Func(f::Function, a::Integer) = Func(f, a, string(f))
 
 #println("Func: p: ",p)
 #println("Func: p: ",Main.CGP.p)
-numinputs = Main.CGP.numinputs
-Ones = Main.CGP.construct_ones(numinputs)[numinputs]
+#numinputs = Main.CGP.numinputs
+#Ones = Main.CGP.construct_ones(numinputs)[numinputs]
 #println("Func:  Ones: ",Ones)
 const AND = Func(&, 2)
 const OR = Func(|, 2)
@@ -25,16 +26,20 @@ Not(x) = (~x) & Ones
 const NOT = Func(Not, 1, "NOT")
 Zero() = MyInt(0)
 const ZERO = Func(Zero, 0, "0")
+#One() = Ones
+#const ONE = Func(One, 0, "1")
 One() = Ones
-const ONE = Func(One, 0, "1")
 
-function default_funcs()
-     return [NAND ]   # Macia's gate set
+function default_funcs( numinputs::Int64 )
+  Ones = Main.CGP.construct_ones(numinputs)[numinputs]
+  ONE = Func(One, 0, "1")
+  global Ones
+#     return [NAND ]   # Macia's gate set
 #    return [AND, OR, XOR ]
 #    return [AND, OR, NOT, ZERO, ONE]
 #    return [ZERO, ONE]
-#     return [AND, OR, XOR, NAND, NOR, NOT, ZERO, ONE]
-#     return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
+#    return [AND, OR, XOR, NAND, NOR, NOT, ZERO, ONE]
+     return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
 end
 
 # Evaluate a Func for debugging purposes
@@ -44,3 +49,6 @@ function eval_func( f::Func )
     Main.CGP.apply( f.func, [context[i] for i = 1:f.arity ] )
 end
 
+function func_names( funcs::Vector{Func} )
+  [ f.name for f in funcs ]
+end

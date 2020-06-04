@@ -21,7 +21,7 @@
 #   strings for each output, or by the concatenation of these bit strings into 
 #   a single bit string.
 
-export construct_ones, construct_contexts, get_bits
+export construct_ones, construct_contexts, construct_context, get_bits
 
 #const MyInt  = UInt8
 
@@ -49,15 +49,31 @@ function construct_contexts( numinputs::Integer )
   Contexts
 end 
 
-function get_bits( context::Vector{MyInt}, numinputs::Integer )
+function construct_context( numinputs::Integer )
+  construct_contexts( numinputs )[numinputs]
+end
+
+# v is a vector of outputs from a subset of a circuit
+# The length of v is the number of gates in the circuit
+# Each element of v is interpreted as a bitstring of length numinputs
+# The result is a vector of bitstrings of length 2^numinputs
+#   where result[i][j] is
+# Example:   let v = [0xe, 0x5, 0xa] = [1110, 0101, 1010]
+# get_bits(v,2) = [0x2, 0x5, 0x6, 0x5] = [0010, 0101, 0110, 0101]
+# get_bits can be interpreted as a transpose operation on the bit matrix:
+#    1110
+#    0101
+#    1010
+# The columns of this matrix are the reversed result           
+function get_bits( v::Vector{MyInt}, numinputs::Integer )
   result = zeros(MyInt,2^numinputs)
-  reverse_context = reverse(context)
+  reverse_v = reverse(v)
   mask = 1
   mask_shift = 0
   for i = 1:2^numinputs
     shift = 0
-    for j = 1:length(context)
-      result[i] |= (reverse_context[j] & mask) >> (mask_shift - shift)
+    for j = 1:length(v)
+      result[i] |= (reverse_v[j] & mask) >> (mask_shift - shift)
       shift += 1
     end
     mask <<= 1
@@ -65,4 +81,3 @@ function get_bits( context::Vector{MyInt}, numinputs::Integer )
   end
   result
 end
-  

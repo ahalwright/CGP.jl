@@ -24,6 +24,14 @@ function Parameters(numinputs, numoutputs, nodearity, numinteriors, numlevelsbac
     return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
 end
 
+function Parameters( ; numinputs=2, numoutputs=2, nodearity=2, numinteriors=4, numlevelsback=3 )
+    mu = 1
+    lambda = 4
+    mutrate = 0.05
+    targetfitness = 0.0
+    return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
+end
+
 function print_parameters( p::Parameters )
   println("MyInt: ",MyInt)
   println("numinputs: ",p.numinputs)

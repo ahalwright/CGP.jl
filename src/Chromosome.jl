@@ -1,7 +1,8 @@
 import Base.getindex
-export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, hamming
+export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, hamming, hamming_distance
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
-export number_active, number_active_old
+export output_values, number_active, number_active_old
+export copy_chromosome!, mutational_robustness
 
 mutable struct Chromosome
     params::Parameters
@@ -33,7 +34,7 @@ function random_chromosome(p::Parameters, funcs::Vector{Func})
         minindex = max(1,index-p.numlevelsback)
         #println("index: ",index,"  minindex: ",minindex,"  maxindex: ",maxindex)
         func = funcs[rand(1:end)]
-        inputs = Array{Integer}(undef, func.arity)
+        inputs = Array{Int64}(undef, func.arity)
         for i = 1:func.arity
             inputs[i] = rand(minindex:maxindex)
             #println("i: ",i,"  inputs[i]: ",inputs[i])
@@ -46,7 +47,7 @@ function random_chromosome(p::Parameters, funcs::Vector{Func})
     for i = 1:length(c.outputs)
         #index = rand(minindex:maxindex)
         index = p.numinputs + p.numinteriors + i - p.numoutputs   # use the last numoutputs interiors
-        println("output ",i," index: ",index)
+        #println("output ",i," index: ",index)
         c.outputs[i] = OutputNode(index)
         c[index].active = true  #  Output nodes are always active
     end
@@ -55,15 +56,16 @@ function random_chromosome(p::Parameters, funcs::Vector{Func})
 end
 
 function set_active_to_false( c::Chromosome )
-    for index = 1:(c.params.numinputs+c.params.numinteriors)
-      c[index].active = false   
-      c[index].cache = MyInt(0)
-    end
+  for index = 1:(c.params.numinputs+c.params.numinteriors)
+    c[index].active = false   
+    c[index].cache = MyInt(0)
+  end
 end
 
 # mutates chromosome c by changing a random node or function
 # if length(funcs) == 1, then only connections are mutated
-function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location::Integer=0 )
+# Returns new chromosome c and Bool active which is true if the node mutated was active
+function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location::Int64=0 )
   num_mutate_locs = num_mutate_locations( c, funcs )
   if mutate_location == 0 
     mutate_location = rand(1:num_mutate_locs)
@@ -74,7 +76,7 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
   num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
   if mutate_location <= num_funcs_to_mutate   # mutate a func
     #println("mutate a func ml:",mutate_location)
-    #active = c[mutate_location].active
+    active = c[mutate_location].active
     new_func_index = rand(1:length(funcs))
     #println("new_funct_index: ",new_func_index,"  funcs[new_func_index]: ",funcs[new_func_index])
     #println("  c.interiors[mutate_location].func: ",c.interiors[mutate_location].func)
@@ -87,7 +89,7 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
     old_func_arity = c.interiors[mutate_location].func.arity
     old_inputs = c.interiors[mutate_location].inputs
     new_func = funcs[new_func_index]
-    new_inputs = Array{Integer}(undef, new_func.arity)
+    new_inputs = Array{Int64}(undef, new_func.arity)
     for i = 1:new_func.arity
       if i <= length(old_inputs)
         new_inputs[i] = old_inputs[i]
@@ -113,7 +115,8 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
       num_inputs_sum += num_inputs_list[i]
       #println("i: ",i,"  num_inputs_sum: ",num_inputs_sum)
     end
-    #active = c[i].active
+    #println("i: ",i,"  c.interiors[i]: ",c.interiors[i])
+    active = c.interiors[i].active
     j  = num_inputs_sum - interior_mutate_location + 1  # j is the index of the input to mutate
     #println("(i,j): ",(i,j),"  num_inputs_sum: ",num_inputs_sum)
     maxindex = i + c.params.numinputs -1
@@ -150,7 +153,7 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
   end
   #println("active: ",active)
   set_active_to_false(c)
-  c
+  (c,active)
 end
 
 function num_mutate_locations( c::Chromosome, funcs::Vector{Func} )
@@ -211,37 +214,95 @@ function number_active( c::Chromosome )
 end
 
 function node_values( c::Chromosome )
+  output_values = [c[c.outputs[i].input].cache for i = 1:length(c.outputs)]
   input_values = [c.inputs[i].cache for i = 1:length(c.inputs)]
-  interior_values = [c.interiors[i].cache for i = 1:(length(c.interiors)-length(c.outputs))]
-  output_values = [c.interiors[i].cache for i = (length(c.interiors)-length(c.outputs)+1):length(c.interiors)]
+  interior_values = [c.interiors[i].cache for i = 1:(length(c.interiors))]
+  #output_values = [c.interiors[i].cache for i = (length(c.interiors)-length(c.outputs)+1):length(c.interiors)]
   (input_values,interior_values,output_values)
 end
 
+function output_values( c::Chromosome )
+  if !c[c.outputs[1].input].active   # if chromosome has not been executed
+    context = construct_context(c.params.numinputs)
+    return execute_chromosome(c,context)
+  else
+    return [c[c.outputs[i].input].cache for i = 1:length(c.outputs)]
+  end
+end
 
 function fraction_active( c::Chromosome )
   number_active(c)/(c.params.numinputs+c.params.numinteriors)
 end
 
 function getindex(c::Chromosome, index::Integer)
-    if index <= c.params.numinputs
+    if index <= c.params.numinputs   # input node
         return c.inputs[index]
     end
 
-    if index > c.params.numinteriors + c.params.numinputs
+    if index > c.params.numinteriors + c.params.numinputs  # output node
         return c.outputs[index - c.params.numinteriors - c.params.numinputs]
     end
 
-    return c.interiors[index-c.params.numinputs]
+    return c.interiors[index-c.params.numinputs]  # interior node
 end
 
+# Number of bits where x and y differ.  x and y are interpreted as bit strings
 function hamming( x::MyInt, y::MyInt )
   xr = xor( x, y )
   result = 0
   my_one = convert(MyInt,1)
-  while xr != convert(MyInt,0)
+  my_zero = convert(MyInt,0)
+  while xr != my_zero
     result +=  xr & my_one
     xr >>= 1
   end
   result
 end
 
+# Hamming distance which is between 0 and 1.
+# If hamming(x,y) >= 2^numinputs/2, then hamming_distance(x,y,numinputs) = 1.0
+function hamming_distance( x::MyInt, y::MyInt, numinputs::Int64 )
+  result = hamming(x,y)/2^numinputs
+end
+
+# Change the fields of chromosome c to be the fields of chromosom c_to_copy
+function copy_chromosome!( c::Chromosome, c_to_copy::Chromosome )
+  c.params = c_to_copy.params
+  c.inputs = c_to_copy.inputs
+  c.interiors = c_to_copy.interiors
+  c.outputs = c_to_copy.outputs
+  c.interiors = c_to_copy.interiors
+end
+
+# Computes the fraction of mutations that do not change the output
+# If active_only==true, then only mutations that change active nodes are considered
+# If active_only==false, then all mutations are considered
+# Note that results are partially random since the result of mutations at a specific location can be different.
+function mutational_robustness( c::Chromosome, funcs::Vector{Func}; active_only::Bool=false ) 
+  context = construct_context( c.params.numinputs )
+  prev_out = execute_chromosome( c, context )  
+  count_no_change = 0
+  count_no_change = 0.0
+  num_mut_locs = 0
+  for j = 1:num_mutate_locations( c, funcs )
+    cc = deepcopy(c)
+    (cc,active) = mutate_chromosome!( cc, funcs, j )
+    out_c = execute_chromosome( cc, context )
+    #println("j: ",j,"  active: ",active)
+    #print_chromosome( cc )
+    if !active_only || active # consider all mutations if !active_only, only active mutations if active_only
+      #out_c = execute_chromosome( cc, context )
+      count_no_change += ((out_c == prev_out) ? 1 : 0)
+      if active_only && active
+        num_mut_locs += 1
+      end
+    end
+    #println("j: ",j,"  active: ",active,"  no_change: ",(out_c == prev_out),"  count_no_change: ",count_no_change)
+  end
+  #println("num_mut_locs: ",num_mut_locs,"  num_mutate_locations(): ",num_mutate_locations(c,funcs),"  count_no_change: ",count_no_change)
+  #@assert num_mut_locs == num_mutate_locations(c,funcs)
+  if !active_only
+    num_mut_locs = num_mutate_locations( c, funcs )
+  end
+  count_no_change/num_mut_locs
+end

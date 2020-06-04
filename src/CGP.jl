@@ -7,21 +7,25 @@ nothing specific to that application in the library so it is (will be)
 perfectly suitable for other applications as well.
 =#
 
-
+using Combinatorics
 module CGP
-const MyInt = UInt8     # Type of bit string integers used in bit functions
+const MyInt = UInt16     # Type of bit string integers used in bit functions
 const MyFunc = UInt128  # Type of concatenated output representation of functions
+include("aliases.jl")
 include("Contexts.jl")
 include("Parameters.jl")
-include("SetParams.jl")
-#const numinputs = 2
-#const context = construct_contexts(numinputs)[numinputs]
+#include("SetParams.jl")
 include("Node.jl")
 include("Chromosome.jl")
 include("Goals.jl")
 include("Evolve.jl")
+#include("Chrome_result.jl")
 include("Execute.jl")
 include("Func.jl")
-include("Experiments.jl")
-
+include("Entropy.jl")
+include("nextc.jl")
+#include("Avg_mut_robustness.jl")
+include("InfTheory.jl")
+include("Subgoal_evolution.jl")
 end
+using Main.CGP

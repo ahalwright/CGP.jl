@@ -26,6 +26,10 @@ mutable struct InteriorNode <: Node
     cache::MyInt
 end
 
+function InteriorNode(func::Func, inputs::Vector{Int64})
+    return InteriorNode(func, inputs, false, 0 )
+end
+
 function InteriorNode(func::Func, inputs::Vector{Integer})
     return InteriorNode(func, inputs, false, 0 )
 end

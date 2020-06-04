@@ -31,8 +31,19 @@ function goal_check( testgoal::Goal, goallist::GoalList )
 end
 
 # Returns the number of components of testGoal that are equal to the corresponding component of goal.
-function my_test_goal( testGoal::Goal, goal::Goal )
-  length( filter( x -> x == 0, testGoal .⊻ goal ))
+#function my_test_goal( testGoal::Goal, goal::Goal )
+#  length( filter( x -> x == 0, testGoal .⊻ goal ))
+#end
+function my_test_goal( testGoal::Goal, goallist::GoalList )
+  achieved = 0
+  for g in goallist
+    ga = length( filter( x -> x == 0, testGoal .⊻ g ))
+    if ga > achieved
+      achieved = ga
+    end
+    println("my_test_goal: achieved: ",achieved)
+  end
+  achieved
 end
 
 # Test if at least numsubgoals components of testgoal match a component of goal (in any order)
