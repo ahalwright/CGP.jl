@@ -2,7 +2,7 @@
 #  or uncomment the following line
 include("../src/CGP.jl")
 
-# Note that the parameters are set in the file ../src/SetParams.jl
+# Note that the parameters are set below
 # The default functions are defined in ../src/Func.jl
 # The type  MyInt is defined in CGP.jl
 
@@ -10,9 +10,13 @@ include("../src/CGP.jl")
 using Printf
 using Main.CGP
 
-funcs = default_funcs()
-const context = construct_contexts(Main.CGP.numinputs)[Main.CGP.numinputs]
-#p = Parameters( Main.CGP.numinputs, Main.CGP.numoutputs, Main.CGP.nodearity, Main.CGP.numinteriors, Main.CGP.numlevelsback)
+numinputs = 2
+numoutputs = 2
+numinteriors = 5
+numlevelsback = numinteriors
+funcs = default_funcs(numinputs)
+const context = construct_contexts(numinputs)[numinputs]
+p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback )
 
 # Generate random circuits and count the logic functions that are computed.
 # Similar to results of Raman and Wagner 2011 to generate their Figure 2b.

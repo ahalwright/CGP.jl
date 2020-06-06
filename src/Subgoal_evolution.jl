@@ -35,6 +35,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
     levelsback::AbstractRange, csvfile::String; hamming_sel::Bool=true, base::Float64=2.0, active_only::Bool=false )
   maxints_for_degen = 20
   nodearity = 2
+  robust_sel = false
   run_result_list = run_result_type[]
   df = DataFrame() 
   df.numinputs=Int64[]
@@ -64,8 +65,8 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
           println("numinputs: ",num_inputs,"  numoutputs: ",num_outputs,"  numints: ",num_interiors,"  numgoals: ",num_goals)
           gl = randgoallist(num_goals,num_inputs,num_outputs)
           for levsback = levelsback
-            for hamming_sel = [true,false]
-              for robust_sel = [true,false]
+            #for hamming_sel = [true,false]
+              #for robust_sel = [true,false]
                 for active_only = [false]
                   println("hamming_sel: ",hamming_sel,"  robust_sel: ",robust_sel,"  active_only: ",active_only)
                   for max_steps = maxsteps
@@ -79,8 +80,8 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
                       #=
                       #print_parameters( p )
                       c = random_chromosome( p, funcs )
-                      #(steps,worse,same,better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,max_steps,hamming_sel=hamming_sel)
-                      (steps,worse,same,better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,max_steps,hamming_sel=hamming_sel,robust_select=robust_sel,active_only=active_only)
+                      (steps,worse,same,better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,max_steps,hamming_sel=hamming_sel)
+                      #(steps,worse,same,better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,max_steps,hamming_sel=hamming_sel,robust_select=robust_sel,active_only=active_only)
                       nactive = number_active(c)
                       redund = redundancy( c, base=base )
                       complexity = num_interiors <= maxints_for_degen ? complexity5( c, base=base ) : 0.0
@@ -94,14 +95,15 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
                     end
                   end
                 end
-              end
-            end
+              #end
+            #end
           end
         end
       end
     end
   end
   new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,base=base),run_result_list)
+  #new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,base=base),run_result_list)
   for r = new_run_result_list
      new_row = run_result_to_tuple(r)
      Base.push!( df, new_row )
@@ -125,7 +127,8 @@ function run_mut_evolve!( rr::run_result_type; maxints_for_degen::Int64, base::F
   gl = randgoallist(rr.ngoals,rr.numinputs,rr.numoutputs)
   funcs = default_funcs(rr.numinputs) 
   c = random_chromosome( p, funcs )
-  (rr.steps,rr.worse,rr.same,rr.better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,robust_select=rr.robust_sel,active_only=rr.active_only)
+  #(rr.steps,rr.worse,rr.same,rr.better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,robust_select=rr.robust_sel,active_only=rr.active_only)
+  (rr.steps,rr.worse,rr.same,rr.better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel)
   rr.nactive = number_active( c )
   rr.redundancy = redundancy( c, base=base )
   rr.complexity = rr.numints <= maxints_for_degen ? complexity5( c, base=base ) : 0.0

@@ -114,8 +114,9 @@ function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numin
   (best_score,best_score_list) = findmaxall( goallist_scores )
   (best_score, best_score_list, matched_goals[best_score_list])
 end
-#=
-function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, component_score::Float64=0;
+
+# Removed robust_sel and active_only keyword args on 6/6/20
+function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0;
       hamming_sel::Bool=true )
   context = construct_context(c.params.numinputs)
   new_c = deepcopy(c)
@@ -123,40 +124,42 @@ function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}
   output = execute_chromosome(new_c,context)
   #println("output: ",output)
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
-  ( new_component_score, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs)
-  if new_component_score >= component_score
+  ( new_fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs)
+  if new_fitness >= fitness
     #copy_chromosome!( c, new_c )  # This is like making c a pass-by-reference parameter
-    return ( new_c, new_component_score, matched_goals, matched_goals_list )
+    return ( new_c, new_fitness, matched_goals, matched_goals_list )
   else
-    return ( c, new_component_score, matched_goals, matched_goals_list )
+    return ( c, new_fitness, matched_goals, matched_goals_list )
   end
 end
-=#
+
 
 # Does single-individual neutral evolution.  
 # Does subgoal evolution where the number of matched components of a goal is maximized if exact=true
 # Does Hammingl evolution where the Hamming distance of matched components of a goal is minimized if exact=false
+# Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
-      hamming_sel::Bool=true, robust_select::Bool=true, active_only::Bool=false )
+      hamming_sel::Bool=true )
   #orig_c = deepcopy(c)
   #output = output_values(c)   # Executes c if it has not already been executed
   #goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
-  #( component_score, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
-  #println("initial component_score: ",component_score)
+  #( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
+  #println("initial fitness: ",fitness)
   fitness = 0.0
   robustness = 0.0
   step = 0
   worse = 0
   same = 0
   better = 0
-  (c, new_fitness, new_robustness, matched_goals_list ) = Next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, robust_select=robust_select ) 
+  #(c, new_fitness, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel ) 
+  (c, new_fitness, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel ) 
   #println("(new_fitness, new_robustness, matched_goals_list ): ",(new_fitness, new_robustness, matched_goals_list) )
   output = output_values(c)   # Executes c if it has not already been executed
-  #while step < max_steps && new_component_score < c.params.numoutputs
+  #while step < max_steps && new_fitness < c.params.numoutputs
   while step < max_steps && new_fitness < c.params.numoutputs
     #println("step: ",step,"  output: ",output,"   ")
-    #if new_component_score > component_score
-    if (new_fitness,new_robustness) > (fitness,robustness)
+    if new_fitness > fitness
+    #if (new_fitness,new_robustness) > (fitness,robustness)
       #println("(fitness,robutsness) improved from ",(fitness,robustness)," to ",(new_fitness,new_robustness) )
       (fitness,robustness) = (new_fitness,new_robustness) 
       worse = 0
@@ -170,8 +173,8 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       worse += 1
     end
     step += 1
-    #(c, new_component_score, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, component_score, hamming_sel=hamming_sel ) 
-    (c, new_fitness, new_robustness, matched_goals_list ) = Next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, robust_select=robust_select, active_only=active_only ) 
+    (c, new_fitness, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel ) 
+    #(c, new_fitness, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, robust_select=robust_select, active_only=active_only ) 
     output = output_values(c)   # Executes c if it has not already been executed
   end
   if step == max_steps
