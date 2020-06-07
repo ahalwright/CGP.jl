@@ -293,8 +293,17 @@ function randgoal(numinputs, numoutputs)
   end
 end
 
-# generate a random goallist of length len  assuming that MyInt = UInt8
-randgoallist(len,numinputs,numoutputs) = [randgoal(numinputs,numoutputs) for _ = 1:len]
+# generate a random goallist of length len  
+function randgoallist(len,numinputs,numoutputs; repetitions::Int64=1) 
+  result = Vector{MyInt}[]
+  for i = 1:repetitions:len
+    rg = randgoal(numinputs,numoutputs)
+    for j = 1:repetitions
+      push!(result,rg)
+    end
+  end
+  result
+end
 
 #=
 # This is a test function but is included here for convenience

@@ -32,7 +32,8 @@ run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, goallistleng
 
 function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64}, numoutputs::AbstractRange{Int64}, 
     numinteriors::AbstractRange{Int64}, goallistlength::AbstractRange{Int64}, maxsteps::AbstractRange{Int64},
-    levelsback::AbstractRange, csvfile::String; hamming_sel::Bool=true, base::Float64=2.0, active_only::Bool=false )
+    levelsback::AbstractRange, csvfile::String; 
+    hamming_sel::Bool=true, base::Float64=2.0, active_only::Bool=false, gl_repetitions::Int64=1 )
   maxints_for_degen = 20
   nodearity = 2
   robust_sel = false
@@ -63,7 +64,6 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
       for num_interiors = numinteriors
         for num_goals = goallistlength
           println("numinputs: ",num_inputs,"  numoutputs: ",num_outputs,"  numints: ",num_interiors,"  numgoals: ",num_goals)
-          gl = randgoallist(num_goals,num_inputs,num_outputs)
           for levsback = levelsback
             #for hamming_sel = [true,false]
               #for robust_sel = [true,false]
@@ -102,8 +102,8 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
       end
     end
   end
-  new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,base=base),run_result_list)
-  #new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,base=base),run_result_list)
+  new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base),run_result_list)
+  #new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base),run_result_list)
   for r = new_run_result_list
      new_row = run_result_to_tuple(r)
      Base.push!( df, new_row )
@@ -113,6 +113,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
     println(f,"funcs: ", Main.CGP.default_funcs(numinputs[end]))
     println(f,"nodearity: ",nodearity)
     #println(f,"active_only: ",active_only)
+    println(f,"gl_repetitions: ",gl_repetitions)
     println(f,"max_steps",maxsteps)
     CSV.write( f, df, append=true, writeheader=true )
   end
@@ -120,11 +121,12 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
   df
 end
 
-function run_mut_evolve!( rr::run_result_type; maxints_for_degen::Int64, base::Float64=2.0 )
+function run_mut_evolve!( rr::run_result_type; maxints_for_degen::Int64, gl_repetitions::Int64=1, base::Float64=2.0 )
   nodearity = 2   # built-in default
   p = Parameters( numinputs=rr.numinputs, numoutputs=rr.numoutputs, numinteriors=rr.numints, numlevelsback=rr.levelsback )
   #print_parameters( p )
-  gl = randgoallist(rr.ngoals,rr.numinputs,rr.numoutputs)
+  gl = randgoallist(rr.ngoals,rr.numinputs,rr.numoutputs,repetitions=gl_repetitions)
+  #println("gl: ",gl)
   funcs = default_funcs(rr.numinputs) 
   c = random_chromosome( p, funcs )
   #(rr.steps,rr.worse,rr.same,rr.better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,robust_select=rr.robust_sel,active_only=rr.active_only)
