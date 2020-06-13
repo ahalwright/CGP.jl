@@ -10,14 +10,18 @@ mutable struct Chromosome
     interiors::Vector{InteriorNode}
     outputs::Vector{OutputNode}
     fitness::Real
+    robustness::Real
 end
+
+CPopulation = Vector{Chromosome}
 
 function Chromosome(p::Parameters)
     inputs = Array{InputNode}( undef, p.numinputs)
     interiors = Array{InteriorNode}( undef, p.numinteriors )
     outputs = Array{OutputNode}( undef, p.numoutputs)
     fitness = 0.0
-    return Chromosome(p, inputs, interiors, outputs, fitness)
+    robustness = 0.0
+    return Chromosome(p, inputs, interiors, outputs, fitness, robustness )
 end
 
 function random_chromosome(p::Parameters, funcs::Vector{Func})

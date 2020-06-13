@@ -96,6 +96,7 @@ end
 #  goals_matched(output,goallist) = (1, [2, 3], Array{Tuple{UInt8,Int64,Int64},1}[[(0x07, 1, 2)], [(0x07, 1, 1)]])
 #    which says that at most 1 component of output matches with a goal, and this is achieved for goal[2] and goal[3].
 #    See the comments for components_matched() for the interpreation of the third component of the result triple.
+# Note that fitness does not take robustness into account
 function goals_matched_exact( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64 )
   #println("exact")
   matched_goals = map( g->components_matched(output,g), goallist )
@@ -105,6 +106,7 @@ function goals_matched_exact( output::Vector{MyInt}, goallist::GoalList, numinpu
   (Float64(fm[1]), fm[2], matched_goals[fm[2]])
 end
 
+# Note that fitness does not take robustness into account
 function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64 )
   #println("hamming")
   goallist_scores = map( g->match_score(output,g,numinputs), goallist )
@@ -116,8 +118,8 @@ function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numin
 end
 
 # Removed robust_sel and active_only keyword args on 6/6/20
-function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0;
-      hamming_sel::Bool=true )
+function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; use_robustness::Bool=false,
+      hamming_sel::Bool=true, active_only::Bool=false )
   context = construct_context(c.params.numinputs)
   new_c = deepcopy(c)
   mutate_chromosome!( new_c, funcs )
@@ -125,65 +127,74 @@ function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}
   #println("output: ",output)
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
   ( new_fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs)
-  if new_fitness >= fitness
-    #copy_chromosome!( c, new_c )  # This is like making c a pass-by-reference parameter
-    return ( new_c, new_fitness, matched_goals, matched_goals_list )
-  else
-    return ( c, new_fitness, matched_goals, matched_goals_list )
+  #println("new fitness: ",new_fitness)
+  new_c = new_fitness >= fitness ? new_c : c
+  if use_robustness
+    mut_robust = mutational_robustness( new_c, funcs, active_only=active_only )
+    new_c.robustness = mut_robust
+    println("new_fitness: ",new_fitness,"  n_mut_robust: ",mut_robust)
   end
+  new_c.fitness = new_fitness
+  return ( new_c, matched_goals, matched_goals_list )
 end
-
 
 # Does single-individual neutral evolution.  
 # Does subgoal evolution where the number of matched components of a goal is maximized if exact=true
 # Does Hammingl evolution where the Hamming distance of matched components of a goal is minimized if exact=false
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
-      hamming_sel::Bool=true )
-  #orig_c = deepcopy(c)
-  #output = output_values(c)   # Executes c if it has not already been executed
-  #goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
-  #( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
+      hamming_sel::Bool=true, use_robustness::Bool=false )
+  orig_c = deepcopy(c)
+  #println("use_robustness: ",use_robustness,"  orig_c.fitness: ",orig_c.fitness)
+  output = output_values(c)   # Executes c if it has not already been executed
+  goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
+  ( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
   #println("initial fitness: ",fitness)
-  fitness = 0.0
+  fitness = c.fitness
   robustness = 0.0
   step = 0
   worse = 0
   same = 0
   better = 0
-  #(c, new_fitness, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel ) 
-  (c, new_fitness, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel ) 
-  #println("(new_fitness, new_robustness, matched_goals_list ): ",(new_fitness, new_robustness, matched_goals_list) )
+  sav_c = deepcopy(c)
+  #(c, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel ) 
+  (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness ) 
   output = output_values(c)   # Executes c if it has not already been executed
   #while step < max_steps && new_fitness < c.params.numoutputs
-  while step < max_steps && new_fitness < c.params.numoutputs
+  while step < max_steps && trunc(c.fitness) < c.params.numoutputs
     #println("step: ",step,"  output: ",output,"   ")
-    if new_fitness > fitness
-    #if (new_fitness,new_robustness) > (fitness,robustness)
-      #println("(fitness,robutsness) improved from ",(fitness,robustness)," to ",(new_fitness,new_robustness) )
-      (fitness,robustness) = (new_fitness,new_robustness) 
+    if c.fitness > fitness
+      #println("fitness improved from ",fitness," to ",c.fitness )
+      fitness = c.fitness 
       worse = 0
       same = 0
       better += 1
-    elseif (new_fitness,new_robustness) == (fitness,robustness) 
-      #println("new chromosome with (fitness,robustness): ",(fitness,robustness) )
+    elseif c.fitness == fitness 
+      #println("new chromosome with fitness: ",fitness )
       same += 1
     else
-      #println("discarded chromosome with (new_fitness,new_robustness): ",(new_fitness,new_robustness))
+      #println("discarded chromosome with new_fitness: ",c.fitness)
+      c = sav_c
       worse += 1
     end
     step += 1
-    (c, new_fitness, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel ) 
-    #(c, new_fitness, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, robust_select=robust_select, active_only=active_only ) 
-    output = output_values(c)   # Executes c if it has not already been executed
+    if step < max_steps
+      sav_c = c
+      (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, use_robustness=use_robustness ) 
+      output = output_values(c)   # Executes c if it has not already been executed
+    end
   end
   if step == max_steps
-    #println("mut_evolve finished at step limit ",max_steps)
+    #println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
   else
-    #println("mut_evolve finished in ",step," steps with (new_fitness,new_robustness)? ",(new_fitness,new_robustness) )
+    #println("mut_evolve finished in ",step," steps with fitness: ", c.fitness )
+  end
+  if orig_c.fitness > c.fitness
+    println("(orig_c.fitness,c.fitness): ",(orig_c.fitness,c.fitness)) 
+    return (orig_c, c )
   end
   ##println("worse: ",worse,"  same: ",same,"  better: ",better)
-  (step,worse,same,better,c,output,matched_goals_list)
+  (c,step,worse,same,better,output,matched_goals_list)
 end     
 
 # Change the fields of chromosome c to be the fields of chromosom c_to_copy
@@ -281,40 +292,34 @@ end
 
 # generate a random goal assuming that MyInt is set correctly for numinputs
 # Creates an inexacterror if conversion to MyInt doesn't work
-function randgoal(numinputs, numoutputs) 
-  if  numinputs == 2
-    [rand(collect(0x0:convert(MyInt,0xf))) for _ in 1:numoutputs]  
+function randgoal(numinputs::Int64, numoutputs::Int64; repetitions::Int64=1 ) 
+  if numinputs == 2
+    goaltype = collect(0x00:0x0f)
   elseif numinputs == 3
-    [rand(collect(0x0:convert(MyInt,0xff))) for _ in 1:numoutputs]  
+    goaltype = collect(0x00:0xff)
   elseif numinputs == 4
-    [rand(collect(0x0:convert(MyInt,0xffff))) for _ in 1:numoutputs]  
-  elseif numinputs > 4
-    error("randgoal doesn't work for numinputs > 4")
+    goaltype = UInt16
+  elseif numinputs == 5
+    goaltype = UInt32
+  elseif numinputs == 6
+    goaltype = UInt64
+  elseif numinputs > 6
+    error("randgoal doesn't work for numinputs > 6")
   end
-end
-
-# generate a random goallist of length len  
-function randgoallist(len,numinputs,numoutputs; repetitions::Int64=1) 
-  result = Vector{MyInt}[]
-  for i = 1:repetitions:len
-    rg = randgoal(numinputs,numoutputs)
-    for j = 1:repetitions
-      push!(result,rg)
+  result = zeros(MyInt,numoutputs)
+  # fixes the case where repetitons is not a factor of numoutputs
+  reps = div(numoutputs,Int(round(numoutputs/repetitions,Base.Rounding.RoundUp)))
+  for i = 1:reps:numoutputs
+    component = rand(goaltype)
+    for j = 1:reps
+      result[i+j-1] = component
     end
   end
   result
 end
 
-#=
-# This is a test function but is included here for convenience
-function mut_evolve(p,funcs,max_steps,goallist_length)
-  #goallist_length = 3
-  println("goallist_length: ",goallist_length)
-  c = random_chromosome(p,funcs)
-  gl = randgoallist(goallist_length,c.params.numinputs,c.params.numoutputs)
-  (worse,same,c,output,matched_goals,matched_goals_list) = mut_evolve( c, gl, funcs, max_steps )
-  @assert output == output_values(c) 
-  #println("(output,outv): ",(output,outv))
-  ((worse,same),c,gl,output,matched_goals,matched_goals_list)
+# generate a random goallist of length len  
+function randgoallist(len::Int64, numinputs::Int64, numoutputs::Int64; repetitions::Int64=1) 
+  [ randgoal( numinputs, numoutputs, repetitions=repetitions ) for _ =1:len ]
 end
-=#
+

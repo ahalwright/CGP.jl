@@ -20,6 +20,7 @@ const PopVect = Union{Vector{Vector{Int64}},Vector{Vector{MyInt}},Vector{Vector{
 #const MIPopulation = Array{MyInt,1}
 #const SPopulation = Array{String,1}
 const FPopulation = Array{Float64,1}
+#const CPopulation = Vector{Chromosome}   # population of chromosomes
 
 mutable struct run_result_type
   numinputs::Int64
@@ -28,7 +29,7 @@ mutable struct run_result_type
   levelsback::Int64
   ngoals::Int64
   hamming_sel::Bool
-  robust_sel::Bool
+  #robust_sel::Bool
   active_only::Bool
   maxsteps::Int64
   steps::Int64
