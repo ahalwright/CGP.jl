@@ -1,4 +1,4 @@
-export Population 
+export Population, indiv_result_type, pop_result_type
 
 using Distributions
 using DataFrames
@@ -22,7 +22,7 @@ const PopVect = Union{Vector{Vector{Int64}},Vector{Vector{MyInt}},Vector{Vector{
 const FPopulation = Array{Float64,1}
 #const CPopulation = Vector{Chromosome}   # population of chromosomes
 
-mutable struct run_result_type
+mutable struct indiv_result_type
   numinputs::Int64
   numoutputs::Int64
   numints::Int64
@@ -36,6 +36,28 @@ mutable struct run_result_type
   same::Int64
   worse::Int64
   better::Int64
+  nactive::Int64
+  redundancy::Float64
+  complexity::Float64
+  degeneracy::Float64
+  sdegeneracy::Float64   
+end
+
+mutable struct pop_result_type
+  numinputs::Int64
+  numoutputs::Int64
+  numints::Int64
+  levelsback::Int64
+  ngoals::Int64
+  popsize::Int64
+  max_pop_gens::Int64
+  max_indiv_steps::Int64
+  hamming_sel::Bool
+  robust_sel::Bool
+  all_max_sel::Bool
+  active_only::Bool
+  maxfit::Float64
+  maxrobust::Float64
   nactive::Int64
   redundancy::Float64
   complexity::Float64

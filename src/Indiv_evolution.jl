@@ -11,7 +11,7 @@ using DataFrames
 using CSV
 using Statistics
 using Distributions
-run_result_type = Main.CGP.run_result_type
+indiv_result_type = Main.CGP.indiv_result_type
 #=
 iterations = 4
 numinputs = 2:2
@@ -36,7 +36,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
     base::Float64=2.0, active_only::Bool=false, gl_repetitions::Int64=1 )
   maxints_for_degen = 20
   nodearity = 2
-  run_result_list = run_result_type[]
+  run_result_list = indiv_result_type[]
   df = DataFrame() 
   df.numinputs=Int64[]
   df.numoutputs=Int64[]
@@ -84,8 +84,8 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
       end
     end
   end
-  new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base),run_result_list)
-  #new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base),run_result_list)
+  #new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base),run_result_list)
+  new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base),run_result_list)
   for r = new_run_result_list
      new_row = run_result_to_tuple(r)
      Base.push!( df, new_row )
@@ -103,7 +103,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64
   df
 end
 
-function run_mut_evolve!( rr::run_result_type; maxints_for_degen::Int64, gl_repetitions::Int64=1, base::Float64=2.0 )
+function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_repetitions::Int64=1, base::Float64=2.0 )
   nodearity = 2   # built-in default
   p = Parameters( numinputs=rr.numinputs, numoutputs=rr.numoutputs, numinteriors=rr.numints, numlevelsback=rr.levelsback )
   #print_parameters( p )
@@ -111,8 +111,8 @@ function run_mut_evolve!( rr::run_result_type; maxints_for_degen::Int64, gl_repe
   #println("gl: ",gl)
   funcs = default_funcs(rr.numinputs) 
   c = random_chromosome( p, funcs )
-  #(rr.steps,rr.worse,rr.same,rr.better,c,output,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,active_only=rr.active_only)
-  (c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel)
+  #(rr.steps,rr.worse,rr.same,rr.better,c,output,goals_matched,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,active_only=rr.active_only)
+  (c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel)
   rr.nactive = number_active( c )
   rr.redundancy = redundancy( c, base=base )
   rr.complexity = rr.numints <= maxints_for_degen ? complexity5( c, base=base ) : 0.0
@@ -122,9 +122,9 @@ function run_mut_evolve!( rr::run_result_type; maxints_for_degen::Int64, gl_repe
 end
 
 function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_only::Bool, max_steps::Int64 )
-  run_result_type(p.numinputs,p.numoutputs,p.numinteriors,p.numlevelsback,num_goals,hamming_sel,active_only,max_steps,0,0,0,0,0, 0.0,0.0,0.0,0.0,)
+  indiv_result_type(p.numinputs,p.numoutputs,p.numinteriors,p.numlevelsback,num_goals,hamming_sel,active_only,max_steps,0,0,0,0,0, 0.0,0.0,0.0,0.0,)
 end
 
-function run_result_to_tuple( rr::run_result_type )
+function run_result_to_tuple( rr::indiv_result_type )
   (rr.numinputs,rr.numoutputs,rr.numints,rr.levelsback,rr.ngoals,rr.hamming_sel,rr.active_only,rr.maxsteps,rr.steps,rr.same,rr.worse,rr.better,rr.nactive,rr.redundancy,rr.complexity,rr.degeneracy,rr.sdegeneracy)
 end

@@ -18,6 +18,7 @@ export match_score, randgoallist, findmaxall, findminall, findmaxall_1, findmina
 # Thus, match_score(output,goal,ni) returns 1.75
 function match_score( output::Vector{MyInt}, goal::Vector{MyInt},numinputs::Int64)
   nc = length(output)  # number of components
+  #println("output: ",output,"  goal: ",goal)
   @assert nc == length(goal)
   H = [ hamming_distance(output[i],goal[j],numinputs) for i = 1:nc, j=1:nc]  
   #println("H: ",H)
@@ -144,19 +145,20 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
       hamming_sel::Bool=true, use_robustness::Bool=false )
-  orig_c = deepcopy(c)
   #println("use_robustness: ",use_robustness,"  orig_c.fitness: ",orig_c.fitness)
   output = output_values(c)   # Executes c if it has not already been executed
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
   ( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
-  #println("initial fitness: ",fitness)
   fitness = c.fitness
+  orig_c = deepcopy(c)
+  #println("initial fitness: ",fitness)
   robustness = 0.0
   step = 0
   worse = 0
   same = 0
   better = 0
-  sav_c = deepcopy(c)
+  prev_c = deepcopy(c)  # previous generation c
+  @assert output_values(prev_c) == output_values(orig_c)
   #(c, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel ) 
   (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness ) 
   output = output_values(c)   # Executes c if it has not already been executed
@@ -174,12 +176,15 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       same += 1
     else
       #println("discarded chromosome with new_fitness: ",c.fitness)
-      c = sav_c
+      c = prev_c
       worse += 1
     end
+    if prev_c.fitness < orig_c.fitness
+      println("step: ",step,"  prev_c.fitness: ",prev_c.fitness,"  orig_c.fitness: ",orig_c.fitness)
+    end
     step += 1
+    prev_c = deepcopy(c)
     if step < max_steps
-      sav_c = c
       (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, use_robustness=use_robustness ) 
       output = output_values(c)   # Executes c if it has not already been executed
     end
@@ -191,11 +196,17 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   end
   if orig_c.fitness > c.fitness
     println("(orig_c.fitness,c.fitness): ",(orig_c.fitness,c.fitness)) 
-    return (orig_c, c )
+    output = output_values(orig_c)
+    ( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
+    return(orig_c,step,0,0,0,output,matched_goals,matched_goals_list)
   end
   ##println("worse: ",worse,"  same: ",same,"  better: ",better)
-  (c,step,worse,same,better,output,matched_goals_list)
-end     
+  #println("matched_goals: ",matched_goals)
+  if step < max_steps
+    @assert sort(output) == sort(goallist[matched_goals[1]])
+  end
+  (c,step,worse,same,better,output,matched_goals,matched_goals_list)
+end 
 
 # Change the fields of chromosome c to be the fields of chromosom c_to_copy
 function copy_chromosome!( c::Chromosome, c_to_copy::Chromosome )
@@ -294,32 +305,48 @@ end
 # Creates an inexacterror if conversion to MyInt doesn't work
 function randgoal(numinputs::Int64, numoutputs::Int64; repetitions::Int64=1 ) 
   if numinputs == 2
-    goaltype = collect(0x00:0x0f)
+    component_type = collect(0x00:0x0f)
   elseif numinputs == 3
-    goaltype = collect(0x00:0xff)
+    component_type = collect(0x00:0xff)
   elseif numinputs == 4
-    goaltype = UInt16
+    component_type = UInt16
   elseif numinputs == 5
-    goaltype = UInt32
+    component_type = UInt32
   elseif numinputs == 6
-    goaltype = UInt64
+    component_type = UInt64
   elseif numinputs > 6
     error("randgoal doesn't work for numinputs > 6")
   end
-  result = zeros(MyInt,numoutputs)
-  # fixes the case where repetitons is not a factor of numoutputs
-  reps = div(numoutputs,Int(round(numoutputs/repetitions,Base.Rounding.RoundUp)))
-  for i = 1:reps:numoutputs
-    component = rand(goaltype)
-    for j = 1:reps
-      result[i+j-1] = component
+  rand(component_type,numoutputs)
+end
+
+# generate a random goallist of length ngoals
+function randgoallist(ngoals::Int64, numinputs::Int64, numoutputs::Int64; repetitions::Int64=1)
+  if numinputs == 2
+    component_type = collect(0x00:0x0f)
+  elseif numinputs == 3
+    component_type = collect(0x00:0xff)
+  elseif numinputs == 4
+    component_type = UInt16
+  elseif numinputs == 5
+    component_type = UInt32
+  elseif numinputs == 6
+    component_type = UInt64
+  elseif numinputs > 6
+    error("randgoal doesn't work for numinputs > 6")
+  end
+  result = Vector{MyInt}[]
+  if ngoals % repetitions != 0
+    error("ngoals=",ngoals," must be a multiple of repetitions=",repetitions," in randgoallist")
+  end
+  #println("  collect(1:repetitions.ngoals): ",collect(1:repetitions:ngoals))
+  for i = 1:repetitions:ngoals
+    goal = rand(component_type,numoutputs)
+    for j = 1:repetitions
+      #println("(i,j): ",(i,j)," i+j-1: ",i+j-1)
+      #result[i+j-1] = goal
+      push!(result,goal)
     end
   end
   result
-end
-
-# generate a random goallist of length len  
-function randgoallist(len::Int64, numinputs::Int64, numoutputs::Int64; repetitions::Int64=1) 
-  [ randgoal( numinputs, numoutputs, repetitions=repetitions ) for _ =1:len ]
-end
-
+end     
