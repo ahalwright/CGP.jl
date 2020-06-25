@@ -28,5 +28,7 @@ include("Entropy.jl")
 include("InfTheory.jl")
 include("Indiv_evolution.jl")
 include("Pop_evolution.jl")
+include("Mut_pop_evolve.jl")
 end
 using Main.CGP
+MyInt=Main.CGP.MyInt
