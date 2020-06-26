@@ -3,7 +3,7 @@ Functions to implement proportional selection.
 Returns a new population where the individuals are selected in proportion to their fitness.
 =#
 
-export  propsel, propsel!
+export  propsel, propsel!, tournsel!
 @doc """ function propsel( pop::Population, fitness::Function )
 Apply proportional selection to Population pop using fitness, 
 and return the result.  
@@ -43,6 +43,47 @@ function propsel( pop::Population, n::Int64, dfe::Function, fitness_table::Dict{
     end
   end
   new_pop
+end
+
+
+@doc """function propsel!(p::Population, fitness::Vector{Float64} )
+Conduct proportional selection in-place.
+"""
+function propsel!( pop::Vector{Chromosome}, fitness::Vector{Float64}; maxfit::Float64=0.0  )
+  if maxfit == 0.0
+    maxfit = maximum(fitness)
+    if maxfit == 0.0
+      # all elements have fitness zero
+      return
+    end
+  end
+  n = length(pop)
+  selected = zeros(Int64, n)
+  k = 0
+  while k < n
+    i = rand(1:n)
+    w = pop[i].fitness / maxfit
+    if rand() < w
+      selected[k + 1] = i
+      k += 1
+    end
+  end
+  pop[:] = [ pop[selected[i]] for i = 1:n ]
+end 
+
+# If the function is used to select on population fitness, fitness_vector should be [ pop[i].fitness for i=1:popsize ]
+# If the function is used to select on population robustness, fitness_vector should be [ pop[i].robustness for i=1:popsize ]
+function tournsel!( pop::Vector{Chromosome}, fitness_vector::Vector{Float64}, tournsize::Int64=2 )
+  popsize = length(pop)
+  orig_pop = deepcopy(pop)
+  for k = 1:popsize
+    indices = rand(1:popsize,tournsize)
+    #println("fits: ",[(ind,fitness_vector[ind]) for ind in indices])
+    (max,index) = findmax( [(fitness_vector[i],i) for i in indices] )
+    #println("(max,index): ",(max,index))
+    pop[k] = deepcopy(orig_pop[max[2]])
+    #push!(newpop,deepcopy(pop[max[2]]))
+  end
 end
 
 #=
@@ -136,4 +177,3 @@ function propsel_alt( pop::Population, dfe::Function)
   end
   new_pop
 end
-

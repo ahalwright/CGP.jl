@@ -1,7 +1,7 @@
 # An evolution that first does mutational evolution using goal fitness and then 
 #    population evolultion using mutational robustness as fitness
 
-export mut_pop_evolve, run_mut_pop_evolve!, run_mut_pop_evolve_df
+export mut_pop_evolve, run_mut_pop_evolve!, run_mut_pop_evolve_df, round2, round3
 
 using DataFrames
 using CSV
@@ -11,7 +11,7 @@ using Distributed
 
 # Note that selection on robustness is always done, and population evolution is not started until
 #   popsize individuals have been found that achieve maximum goal fitness.
-# Thus, max_pop_gens should be set to a very large value
+# Thus, pop_gens should be set to a very large value
 function mut_pop_evolve( nreps::Int64, params::Parameters, popsize::Int64, pop_gens::Int64, indiv_steps::Int64,
     goallist::GoalList, funcs::Vector{Func}, csvfile::String; tourn_size::Int64=0,  # 0 means use prosel
     uniform_start::Bool=false, hamming_sel::Bool=true, active_only::Bool=false )
@@ -93,9 +93,9 @@ function mut_pop_evolve( nreps::Int64, params::Parameters, popsize::Int64, pop_g
       #println("  na: ",[na for na in nactive_vector],"  ")
       #println( "mean: ",round2(mean_robustness[g]),"  max: ",round2(max_robustness[g]))
       if tourn_size == 0
-        propsel!( pop, robustness_vector, maxfit=df.max_robustness[g])
+        propsel!( npop, robustness_vector, maxfit=df.max_robustness[g])
       else
-        tournsel!( pop, robustness_vector, tourn_size)
+        tournsel!( npop, robustness_vector, tourn_size)
       end
     end
   end
