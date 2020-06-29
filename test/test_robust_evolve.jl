@@ -15,12 +15,12 @@ p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numints
 context = construct_context(numinputs)
 popsize = 5
 max_pop_gens = 50000
-indiv_steps = 100
-robust_steps = 10
-fit_steps = 10
+indiv_steps = 30
+robust_steps = 7
+fit_steps = 7
 ngoals = 8   # number goals in goallist
 tourn_size = 0  
-csvfile = "../data/6_26/robust_evolve6_26A.csv"
+csvfile = "../data/6_29/robust_evolve6_29T.csv"
 gl = randgoallist(ngoals,p.numinputs,p.numoutputs)
 run_robust_evolve( nreps, p, popsize, max_pop_gens, indiv_steps, robust_steps,fit_steps, gl,tourn_size, csvfile )
 

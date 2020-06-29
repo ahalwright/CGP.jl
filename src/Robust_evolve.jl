@@ -22,18 +22,32 @@ function run_robust_evolve( nreps::Int64, p::Parameters, popsize::Int64, max_pop
   df.robust_sel = fill(false,2*robust_steps)
   df.mean_robfit = zeros(Float64,2*robust_steps)
   df.max_robfit = zeros(Float64,2*robust_steps)
-  df.nactive = zeros(Float64,2*robust_steps)
-  df.complexity = zeros(Float64,2*robust_steps)
-  df.degeneracy = zeros(Float64,2*robust_steps)          
-  df_init = fill(deepcopy(df),nreps)
+  df.mean_nactive = zeros(Float64,2*robust_steps)
+  df.var_nactive = zeros(Float64,2*robust_steps)
+  df.mean_complexity = zeros(Float64,2*robust_steps)
+  df.var_complexity = zeros(Float64,2*robust_steps)
+  df.mean_degeneracy = zeros(Float64,2*robust_steps)          
+  df.var_degeneracy = zeros(Float64,2*robust_steps)          
+  df_init = [ deepcopy(df) for _ = 1:nreps]
   df_results = pmap( ddf->robust_evolve(ddf,p, popsize, max_pop_gens, indiv_steps, robust_steps, fit_steps, goallist, tourn_size ), df_init)
   #df_results = map( ddf->robust_evolve(ddf,p, popsize, max_pop_gens, indiv_steps, robust_steps, fit_steps, goallist, tourn_size ), df_init)
+  #println("df_results.mean_complexity: ",[df_results[i].mean_complexity for i = 1:nreps])
+  #println("df_results.mean_complexity: ",[d.mean_complexity for d in df_results])
   df.robust_sel = df_results[1].robust_sel
-  df.mean_robfit = sum([d.mean_robfit for d in df_results])/nreps 
-  df.max_robfit = sum([d.max_robfit for d in df_results])/nreps 
-  df.nactive = sum([d.nactive for d in df_results])/nreps 
-  df.complexity = sum([d.complexity for d in df_results])/nreps 
-  df.degeneracy = sum([d.degeneracy for d in df_results])/nreps 
+  # Note that df.mean_robfit is a vector over reps of vectors over generations
+  df.mean_robfit = mean([d.mean_robfit for d in df_results]) 
+  df.max_robfit = mean([d.max_robfit for d in df_results])
+  # Note that df.mean_nactive is a vector over reps of vectors over generations
+  # the mean() function computes the mean over reps for each generation
+  # the var() function computes the sample variance over reps for each generation
+  df.mean_nactive = mean([d.mean_nactive for d in df_results])
+  @assert df.mean_nactive == sum([d.mean_nactive for d in df_results])/nreps
+  df.var_nactive = var([d.mean_nactive for d in df_results])
+  df.mean_complexity = mean([d.mean_complexity for d in df_results])
+  df.var_complexity = var([d.mean_complexity for d in df_results])
+  #println("df.var_complexity: ",df.var_complexity)
+  df.mean_degeneracy = mean([d.mean_degeneracy for d in df_results])
+  df.var_degeneracy = var([d.mean_degeneracy for d in df_results])
   open( csvfile, "w" ) do f
     println(f,"MyInt: ",Main.CGP.MyInt)
     println(f,"funcs: ",funcs)
@@ -96,15 +110,20 @@ function robust_evolve( df::DataFrame, p::Parameters, popsize::Int64, max_pop_ge
       nactive_vector = [ number_active( pop[i] ) for i = 1:popsize ]
       complexity_vector = [ complexity5( pop[i] ) for i = 1:popsize ]
       degeneracy_vector = [ degeneracy( pop[i] ) for i = 1:popsize ]
-      df.mean_robfit[gr] += mean(robfit_vector)
-      df.max_robfit[gr] += maximum(robfit_vector)
-      df.nactive[gr] += mean(nactive_vector)
-      df.complexity[gr] += mean(complexity_vector)
-      df.degeneracy[gr] += mean(degeneracy_vector)    
+      df.mean_robfit[gr] = mean(robfit_vector)
+      df.max_robfit[gr] = maximum(robfit_vector)
+      df.mean_nactive[gr] = mean(nactive_vector)
+      df.mean_complexity[gr] = mean(complexity_vector)
+      df.mean_degeneracy[gr] = mean(degeneracy_vector)    
       #println("robfit after selection: ", [ round2(v) for v in robfit_vector] )
-      #println("gr: ",gr,"  max robust: ",maximum(robfit_vector))
+      #=
+      if gr==7 || gr==14
+        println("gr: ",gr,"  complexity: ",complexity_vector,"  mean compleixty: ",mean(complexity_vector))
+      end
+      =#
     end
     #robfit_vector = [ pop[i].robfit for i = 1:popsize ]
   end
+  println("robust_evolve finished")
   df
 end
