@@ -16,6 +16,7 @@ function run_inf_alleles( nreps::Int64,
   #df.gl = Vector{Goal}[]
   df.ngoals = Int64[]
   df.popsize = Int64[] 
+  df.max_pop_gens = Int64[]
   df.tournsize = Int64[] 
   df.func_evals=Int64[]
   df.fitness = Float64[]
@@ -111,15 +112,16 @@ end
 
 function inf_alleles_to_tuple( ia::inf_alleles_result_type )
   (
-    ia.numinputs ,
-    ia.numoutputs ,
-    ia.numints ,
-    ia.levsback ,
-    length(ia.gl) ,
-    ia.popsize ,
-    ia.tourn_size ,
-    ia.func_evals ,
-    ia.fitness ,
+    ia.numinputs,
+    ia.numoutputs,
+    ia.numints,
+    ia.levsback,
+    length(ia.gl),
+    ia.popsize,
+    ia.max_pop_gens,
+    ia.tourn_size,
+    ia.func_evals,
+    ia.fitness,
     ia.gen_finished 
   )
 end
