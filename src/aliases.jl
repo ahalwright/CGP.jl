@@ -4,8 +4,10 @@ using Distributions
 using DataFrames
 using Random
 using QuadGK
+using CSV
 using Distributed
 import Random.seed!
+export MyInt, DIST_TYPE, Population, PopVect, IPopulation, IntRange
 
 if !@isdefined(MyInt)
   const MyInt = UInt8
@@ -21,7 +23,11 @@ const PopVect = Union{Vector{Vector{Int64}},Vector{Vector{MyInt}},Vector{Vector{
 #const SPopulation = Array{String,1}
 const FPopulation = Array{Float64,1}
 #const CPopulation = Vector{Chromosome}   # population of chromosomes
+const IntRange = Union{Integer, AbstractRange}
+const Goal =  Vector{MyInt}
+const GoalList = Vector{Goal}
 
+# indiv_result_type is used to parallelize population evolution in Indiv_evolution.jl
 mutable struct indiv_result_type
   numinputs::Int64
   numoutputs::Int64
@@ -43,6 +49,7 @@ mutable struct indiv_result_type
   sdegeneracy::Float64   
 end
 
+# pop_result_type is used to parallelize population evolution in Pop_evolution.jl
 mutable struct pop_result_type
   numinputs::Int64
   numoutputs::Int64
@@ -63,5 +70,20 @@ mutable struct pop_result_type
   complexity::Float64
   degeneracy::Float64
   sdegeneracy::Float64   
+end
+
+# pop_result_type is used to parallelize population evolution in Inf_alleles.jl
+mutable struct inf_alleles_result_type
+  numinputs::Int64
+  numoutputs::Int64
+  numints::Int64
+  levsback::Int64
+  gl::Vector{Goal}
+  popsize::Int64
+  max_pop_gens::Int64
+  tourn_size::Int64
+  func_evals::Int64
+  fitness::Float64
+  gen_finished::Int64
 end
 

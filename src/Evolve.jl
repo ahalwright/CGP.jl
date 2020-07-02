@@ -1,5 +1,5 @@
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, randgoal
-export match_score, randgoallist, findmaxall, findminall, findmaxall_1, findminall_1
+export match_score, randgoallist, findmaxall, findminall, findmaxall_1, findminall_1 
 
 # 5/21: To test:
 # ni = 2, nc = 4

@@ -2,8 +2,9 @@
 
 export Goal, GoalList, goal_count, goal_check, my_test_goal
 
-const Goal =  Vector{MyInt}
-const GoalList = Vector{Goal}
+# Moved these to aliases.jl
+#const Goal =  Vector{MyInt}
+#const GoalList = Vector{Goal}
 
 #=
 goal1 = MyInt[ 0xb, 0xe ]
