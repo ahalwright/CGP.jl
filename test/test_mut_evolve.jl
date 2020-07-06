@@ -6,7 +6,7 @@ MyInt = Main.CGP.MyInt
 
 # This is a test function but is included here for convenience
 function test_mut_evolve(p::Parameters,funcs,max_steps::Int64,ngoals::Int64; use_robustness::Bool=false)
-  println("ngoals: ",ngoals)
+  #println("ngoals: ",ngoals)
   c = random_chromosome(p,funcs)
   gl = randgoallist(ngoals,c.params.numinputs,c.params.numoutputs)
   (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, gl, funcs, max_steps,  use_robustness=use_robustness)

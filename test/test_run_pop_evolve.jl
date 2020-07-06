@@ -1,3 +1,4 @@
+# include("../src/CGP.jl")
 iterations = 4
 numinputs = 2:2
 numoutputs = 2:2
@@ -13,4 +14,4 @@ popsize_rng=5:5
 hamming_rng = true:true
 robust_rng = true:true
 run_pop_evolve_df( iterations, numinputs, numoutputs, numinteriors, ngoals, levelsback,
-    max_pop_gens_rng, max_indiv_steps_rng, popsize_rng, hamming_rng, robust_rng, "testdata.csv" )
+    max_pop_gens_rng, max_indiv_steps_rng, popsize_rng, hamming_rng, robust_rng, "../test/data/run_pop_evolve.csv" )

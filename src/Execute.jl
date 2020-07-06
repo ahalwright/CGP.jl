@@ -78,25 +78,19 @@ function execute_chromosome(c::Chromosome, context::Vector)
     return [evaluate_node(c, node, context) for node = c.outputs]
 end
 
-function concatenate_outputs( numinputs::Integer, outputs::Vector{Main.CGP.MyInt}  )
-  shift = 2^numinputs
-  result = convert(MyFunc,outputs[1])
-  for i = 2:length(outputs)
-    result = convert(MyFunc,outputs[i]) | result << 2^numinputs
-  end
-  result
-end
-
-function create_count_function_list( numinputs::Integer, numoutputs::Integer )
-  return fill( convert(MyFunc,0), 2^(numoutputs*2^numinputs ))
-end
-
 function print_function_list( function_list::Vector{MyFunc} )
   for i = convert(MyFunc,1):length(function_list)
     if function_list[i] > 0
       Printf.@printf("0x%0x  %d\n",i-1,function_list[i])
     end
   end
+end
+
+# The purpose of the remaining functions in this file is to
+#      generate random circuits and count the logic functions that are computed.
+# Similar to results of Raman and Wagner 2011 to generate their Figure 2b.      
+function create_count_function_list( numinputs::Integer, numoutputs::Integer )
+  return fill( convert(MyFunc,0), 2^(numoutputs*2^numinputs ))
 end
 
 function increment_count_function_list( funct::MyFunc, function_list::Vector{MyFunc} )
@@ -111,32 +105,65 @@ function increment_count_function_hash( funct::MyFunc, counts::Dict{MyFunc,Int64
   counts[funct] = get!( counts, funct, 0 ) + 1
 end
 
-function print_count_function_hash( counts::Dict{MyFunc,Int64} )
-  println("function count")
+function concatenate_outputs( numinputs::Integer, outputs::Vector{Main.CGP.MyInt}  )
+  shift = 2^numinputs
+  result = convert(MyFunc,outputs[1])
+  for i = 2:length(outputs)
+    result = convert(MyFunc,outputs[i]) | result << 2^numinputs
+  end
+  result
+end
+ 
+function print_count_function_hash( f::IOStream, counts::Dict{MyFunc,Int64} )
+  length_counts_list_max_for_printing = 50
+  println(f,"function count")
   counts_list = [(k,counts[k]) for k in keys(counts) ]
   sort!( counts_list, by=x->x[2], rev=true )
-  for c in counts_list[1:50]
-    Printf.@printf("0x%04x   %d\n",c[1],c[2])
-    #println(k,": ",counts[k])
+  len = length(counts_list)
+  sum = 0
+  for c in counts_list[1:len]
+    if len <= length_counts_list_max_for_printing
+      Printf.@printf(f,"0x%04x   %d\n",c[1],c[2])
+    end
+    sum += c[2]
   end
-  [map(x->convert(UInt8,x[1]),counts_list[20:29])]
+  println(f,"length counts list: ",len,"  sum: ",sum)
 end
 
-function print_count_function_summary( counts::Dict{MyFunc,Int64} )
-  println("count function hash: ")
-  println("funct freq  count")
+function print_count_function_hash( counts::Dict{MyFunc,Int64} )
+  print_count_function_hash( Base.stdout, counts )
+end
+
+function print_count_function_summary( f::IOStream,  counts::Dict{MyFunc,Int64} )
+  length_print_count_max_for_printing = 150
+  println(f,"count function hash: ")
   counts_list = [(k,counts[k]) for k in keys(counts) ]
   sort!( counts_list, by=x->x[2] )
   current_count = counts_list[1][2]
   accum_count = 1
+  accum_sum = 0
+  print_count = 0
+  println(f,"funct freq  count")
   for i = 2:length(counts_list)
     if counts_list[i][2] == current_count
       accum_count += 1
     else
-      println("     ",current_count,":      ",accum_count)
+      if print_count <= length_print_count_max_for_printing 
+        println(f,"     ",current_count,":      ",accum_count)
+      end
+      print_count += 1
+      accum_sum += current_count*accum_count
       current_count = counts_list[i][2]
       accum_count = 1
     end
   end
-  println("     ",current_count,":      ",accum_count)
+  accum_sum += current_count*accum_count
+  if print_count <= length_print_count_max_for_printing 
+    println(f,"     ",current_count,":      ",accum_count)
+  end
+  println(f,"print_count: ",print_count,"  accum_sum: ",accum_sum)
+end
+
+function print_count_function_summary( counts::Dict{MyFunc,Int64} )
+  print_count_function_summary( f, counts )
 end

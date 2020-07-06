@@ -32,12 +32,17 @@ function Parameters( ; numinputs=2, numoutputs=2, nodearity=2, numinteriors=4, n
     return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
 end
 
-function print_parameters( p::Parameters )
-  println("MyInt: ",MyInt)
-  println("numinputs: ",p.numinputs)
-  println("numoutputs: ",p.numoutputs)
-  println("numinteriors: ",p.numinteriors)
-  println("numlevelsback: ",p.numlevelsback)
-  println("nodearity: ",p.nodearity)
+function print_parameters(f:: IOStream, p::Parameters )
+  println(f,"MyInt: ",MyInt)
+  println(f,"numinputs: ",p.numinputs)
+  println(f,"numoutputs: ",p.numoutputs)
+  println(f,"numinteriors: ",p.numinteriors)
+  println(f,"numlevelsback: ",p.numlevelsback)
+  println(f,"nodearity: ",p.nodearity)
+end
+
+function print_parameters(p::Parameters )
+  f = Base.stdout
+  print_parameters(f,p)
 end
 

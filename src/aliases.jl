@@ -9,8 +9,11 @@ using Distributed
 import Random.seed!
 export MyInt, DIST_TYPE, Population, PopVect, IPopulation, IntRange
 
-if !@isdefined(MyInt)
+if !@isdefined(MyInt)  # MyInt should be defined in CGP.jl
   const MyInt = UInt8
+end
+if !@isdefined(MyFunc)  # MyFunc should be defined in CGP.jl
+  const MyFunc = UInt128
 end
 const elt_type = Union{Int64,MyInt,String,Float64}
 const DIST_TYPE = Dict{Any,Float64}
@@ -23,7 +26,7 @@ const PopVect = Union{Vector{Vector{Int64}},Vector{Vector{MyInt}},Vector{Vector{
 #const SPopulation = Array{String,1}
 const FPopulation = Array{Float64,1}
 #const CPopulation = Vector{Chromosome}   # population of chromosomes
-const IntRange = Union{Integer, AbstractRange}
+const IntRange = Union{Integer, Bool, AbstractRange{Int64}, AbstractRange{Bool}}
 const Goal =  Vector{MyInt}
 const GoalList = Vector{Goal}
 

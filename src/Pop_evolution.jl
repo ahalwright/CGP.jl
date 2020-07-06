@@ -29,11 +29,11 @@ run_pop_evolve_df( iterations, numinputs, numoutputs, numinteriors, ngoals, leve
 #iterations = 20
 #print_parameters(p)
 
-function run_pop_evolve_df( numiterations::Int64, numinputs::AbstractRange{Int64}, numoutputs::AbstractRange{Int64}, 
-    numinteriors::AbstractRange{Int64}, ngoals_rng::AbstractRange{Int64}, 
-    levelsback::AbstractRange, max_pop_gens_rng::AbstractRange{Int64}, max_indiv_steps_rng::AbstractRange{Int64},
-    popsize_rng::AbstractRange{Int64},
-    hamming_rng::AbstractRange{Bool}, robust_rng::AbstractRange{Bool}, csvfile::String; 
+function run_pop_evolve_df( numiterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
+    numinteriors::IntRange, ngoals_rng::IntRange, 
+    levelsback::IntRange, max_pop_gens_rng::IntRange, max_indiv_steps_rng::IntRange,
+    popsize_rng::IntRange,
+    hamming_rng::IntRange, robust_rng::IntRange, csvfile::String; 
     base::Float64=2.0, active_only::Bool=false, gl_repetitions::Int64=1 )
   maxints_for_degen = 20
   all_max_sel=true
@@ -140,7 +140,7 @@ end
 function pop_evolve( params::Parameters, popsize::Int64, max_pop_gens::Int64, max_indiv_steps::Int64,
     goallist::GoalList, funcs::Vector{Func}; uniform_start::Bool=false, hamming_sel::Bool=true,
     robust_sel::Bool=true, all_max_sel::Bool=false, active_only::Bool=false )
-  println("pop evolve: hamming_sel: ",hamming_sel, "  robust_sel: ",robust_sel,"  all_max_sel: ",all_max_sel)
+  #println("pop evolve: hamming_sel: ",hamming_sel, "  robust_sel: ",robust_sel,"  all_max_sel: ",all_max_sel)
   if uniform_start
     c = random_chromosome(params,funcs)
     pop = fill( c, popsize )
@@ -153,10 +153,10 @@ function pop_evolve( params::Parameters, popsize::Int64, max_pop_gens::Int64, ma
   max_gen_robust_chrome = Chromosome[]
   for g = 1:max_pop_gens
     using_robustness = false  # Note if all_max_sel is not true, the maximum fitness individual may be lost in robustness selection
-    println("gen: ",g,"  fitnesses: ",[pop[i].fitness for i =1:popsize]," robustnesses: ",[Base.round(pop[i].robustness,digits=2) for i =1:popsize])
+    #println("gen: ",g,"  fitnesses: ",[pop[i].fitness for i =1:popsize]," robustnesses: ",[Base.round(pop[i].robustness,digits=2) for i =1:popsize])
     for i = 1:popsize
       (pop[i],step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( pop[i], goallist, funcs, max_indiv_steps, hamming_sel=hamming_sel )
-      println("(g,i): ",(g,i),"  pop[i].fitness: ",pop[i].fitness,"  pop[i].robustness: ",pop[i].robustness)
+      #println("(g,i): ",(g,i),"  pop[i].fitness: ",pop[i].fitness,"  pop[i].robustness: ",pop[i].robustness)
     end
     # Do proportional selection
     fitness_vector = [ pop[i].fitness for i = 1:popsize ]
@@ -168,19 +168,19 @@ function pop_evolve( params::Parameters, popsize::Int64, max_pop_gens::Int64, ma
       #println("gen: ",g,"  max robust before selection: ",maxrobust,"  pop indices: ",maxrobust_indices)
     end
     if (!robust_sel && !all_max_sel && maxfit == params.numoutputs)
-      println("found single individual optimum so break out of generation loop")
+      #println("found single individual optimum so break out of generation loop")
       fitness_vector = [ pop[i].fitness for i = 1:popsize ]
       (max_gen_fitness[g],maxfit_indices) = findmaxall(fitness_vector)
       push!(max_gen_fit_chrome,pop[maxfit_indices[1]])
       break  # found single individual optimum so break out of loop
     elseif (!robust_sel && all_max_sel && maxfit == params.numoutputs && length(maxfit_indices) == popsize)
-      println("found optimum in entire population so break out of generation loop")
+      #println("found optimum in entire population so break out of generation loop")
       fitness_vector = [ pop[i].fitness for i = 1:popsize ]
       (max_gen_fitness[g],maxfit_indices) = findmaxall(fitness_vector)
       push!(max_gen_fit_chrome,pop[maxfit_indices[1]])
       break  # found optimum in entire population so break out of loop
     elseif robust_sel && maxfit == params.numoutputs && ( !all_max_sel || (all_max_sel && length(maxfit_indices) == popsize))
-      println("doing robustness selection")
+      #println("doing robustness selection")
       using_robustness = true
       for i = 1:popsize
         pop[i].robustness = mutational_robustness( pop[i], funcs, active_only=active_only )
@@ -188,27 +188,27 @@ function pop_evolve( params::Parameters, popsize::Int64, max_pop_gens::Int64, ma
       robustness_vector = [ pop[i].robustness for i = 1:popsize ]
       propsel!( pop, robustness_vector, maxfit=findmax(robustness_vector)[1] ) 
     else
-      println("propsel")
+      #println("propsel")
       propsel!( pop, fitness_vector, maxfit=findmax(fitness_vector)[1] ) 
     end 
     fitness_vector = [ pop[i].fitness for i = 1:popsize ]
     (max_gen_fitness[g],maxfit_indices) = findmaxall(fitness_vector)
     push!(max_gen_fit_chrome,pop[maxfit_indices[1]])
-    println("gen: ",g,"  max fit after selection: ",max_gen_fitness[g],"  at index: ",maxfit_indices)
+    #println("gen: ",g,"  max fit after selection: ",max_gen_fitness[g],"  at index: ",maxfit_indices)
     robustness_vector = [ pop[i].robustness for i = 1:popsize ]
     (max_gen_robustness[g],maxrobust_indices) = findmaxall(robustness_vector)
     push!(max_gen_robust_chrome,pop[maxrobust_indices[1]])
     #push!(max_gen_fit_chrome, pop[maxfit_indices[1]])
     if using_robustness
-      println("gen: ",g,"  max robust after selection: ",max_gen_robustness[g],"  at index: ",maxrobust_indices)
+      #println("gen: ",g,"  max robust after selection: ",max_gen_robustness[g],"  at index: ",maxrobust_indices)
     end
   end
-  println("length(max_gen_fit_chrome): ",length(max_gen_fit_chrome))
-  println("length(max_gen_robust_chrome): ",length(max_gen_robust_chrome))
+  #println("length(max_gen_fit_chrome): ",length(max_gen_fit_chrome))
+  #println("length(max_gen_robust_chrome): ",length(max_gen_robust_chrome))
   (max_fit_all_gens, max_fit_all_gens_ind) = findmax(max_gen_fitness)
   #push!(max_gen_fit_chrome, max_gen_fit_chrome[max_fit_all_gens_ind])
   (max_robust_all_gens, max_robust_all_gens_ind) = findmax(max_gen_robustness)
-  println("max fit all gens: ",max_fit_all_gens,"  max robust all gens: ",max_robust_all_gens)
+  #println("max fit all gens: ",max_fit_all_gens,"  max robust all gens: ",max_robust_all_gens)
   maxfit_gen_chromosome = length(max_gen_fit_chrome) > 0 ? max_gen_fit_chrome[max_fit_all_gens_ind] : nothing
   maxrobust_gen_chromosome = length(max_gen_robust_chrome) > 0 ? max_gen_robust_chrome[max_robust_all_gens_ind] : nothing
   return (max_fit_all_gens,maxfit_gen_chromosome,

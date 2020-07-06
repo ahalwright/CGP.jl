@@ -30,9 +30,9 @@ run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, goallistleng
 #iterations = 20
 #print_parameters(p)
 
-function run_mut_evolution( numiterations::Int64, numinputs::AbstractRange{Int64}, numoutputs::AbstractRange{Int64}, 
-    numinteriors::AbstractRange{Int64}, goallistlength::AbstractRange{Int64}, maxsteps::AbstractRange{Int64},
-    levelsback::AbstractRange, hamming_rng::AbstractRange{Bool}, csvfile::String; 
+function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
+    numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange,
+    levelsback::IntRange, hamming_rng::IntRange, csvfile::String; 
     base::Float64=2.0, active_only::Bool=false, gl_repetitions::Int64=1 )
   maxints_for_degen = 20
   nodearity = 2

@@ -1,51 +1,12 @@
-# Run after including ../src/CGP.jl
-#  or uncomment the following line
-include("../src/CGP.jl")
+# This file can be run by the following command run in the folder CGP.jl/test/
+# test>  julia -p 4 -L ../src/CGP.jl runtests.jl
+println("test/runtests.jl")
+include("test_Entropy.jl")
+include("test_degen_complexity.jl")
+include("test_inf_alleles.jl")
+include("test_mut_evolve.jl")
+include("test_pop_evolve.jl")
+include("test_robust_evolve.jl")
+include("test_run_mut_evolution.jl")
+include("test_generate_random_functions.jl")
 
-# Note that the parameters are set below
-# The default functions are defined in ../src/Func.jl
-# The type  MyInt is defined in CGP.jl
-
-#using Base.Test
-using Printf
-using Main.CGP
-
-numinputs = 2
-numoutputs = 2
-numinteriors = 5
-numlevelsback = numinteriors
-funcs = default_funcs(numinputs)
-const context = construct_contexts(numinputs)[numinputs]
-p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback )
-
-# Generate random circuits and count the logic functions that are computed.
-# Similar to results of Raman and Wagner 2011 to generate their Figure 2b.
-#num_iterations = 50
-num_iterations = 500000
-#println("num_iterations: ",num_iterations)
-counts = create_count_function_hash( p.numinputs, p.numoutputs )
-#for _ = 1:num_iterations
-    c = random_chromosome(p, funcs)
-    #print_chromosome( c )
-    # Executing on these inputs tests all possible bit combinations for inputs
-    outputs = execute_chromosome(c, context)
-  
-    print("outputs: ",outputs)
-    if length(outputs) > 1
-      println("   hamming: ",hamming(outputs[1],outputs[2]))
-    else
-      println()
-    end
-  
-    #concat_outputs = concatenate_outputs(p.numinputs, outputs)
-    #print("concat:  ")
-    #Printf.@printf("0x%2x\n",concat_outputs)
-    #increment_count_function_hash(concat_outputs, counts )
-    outputs
-#end
-#=
-if num_iterations <= 50
-  print_count_function_hash(counts)
-end
-print_count_function_summary(counts)
-=#

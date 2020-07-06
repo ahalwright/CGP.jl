@@ -1,8 +1,11 @@
+# Run conventional GA (or infinite alleles) algorithm to optimize digital circuits.
 export run_inf_alleles, inf_alleles, inf_alleles_to_tuple
 
 using DataFrames
 using CSV
 
+# This is the top-level function to run multiple simulations in parallel using pmap.
+# Parameters of type IntRange can be Int64s or Bools or AbstractRanges{Int64} or AbstractRanges{Bool}.
 function run_inf_alleles( nreps::Int64, 
     numinputs::IntRange, numoutputs::IntRange, numinteriors::IntRange, ngoals_rng::IntRange, levelsback::IntRange,
     popsize_rng::IntRange, max_pop_gens_rng::IntRange, tournsize::Int64, csvfile::String )

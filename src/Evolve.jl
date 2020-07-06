@@ -133,7 +133,7 @@ function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}
   if use_robustness
     mut_robust = mutational_robustness( new_c, funcs, active_only=active_only )
     new_c.robustness = mut_robust
-    println("new_fitness: ",new_fitness,"  n_mut_robust: ",mut_robust)
+    #println("new_fitness: ",new_fitness,"  n_mut_robust: ",mut_robust)
   end
   new_c.fitness = new_fitness
   return ( new_c, matched_goals, matched_goals_list )
@@ -180,7 +180,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       worse += 1
     end
     if prev_c.fitness < orig_c.fitness
-      println("step: ",step,"  prev_c.fitness: ",prev_c.fitness,"  orig_c.fitness: ",orig_c.fitness)
+      #println("step: ",step,"  prev_c.fitness: ",prev_c.fitness,"  orig_c.fitness: ",orig_c.fitness)
     end
     step += 1
     prev_c = deepcopy(c)
@@ -195,7 +195,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     #println("mut_evolve finished in ",step," steps with fitness: ", c.fitness )
   end
   if orig_c.fitness > c.fitness
-    println("(orig_c.fitness,c.fitness): ",(orig_c.fitness,c.fitness)) 
+    #println("(orig_c.fitness,c.fitness): ",(orig_c.fitness,c.fitness)) 
     output = output_values(orig_c)
     ( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
     return(orig_c,step,0,0,0,output,matched_goals,matched_goals_list)

@@ -124,6 +124,6 @@ function robust_evolve( df::DataFrame, p::Parameters, popsize::Int64, max_pop_ge
     end
     #robfit_vector = [ pop[i].robfit for i = 1:popsize ]
   end
-  println("robust_evolve finished")
+  #println("robust_evolve finished")
   df
 end
