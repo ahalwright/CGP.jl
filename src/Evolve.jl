@@ -166,7 +166,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   while step < max_steps && trunc(c.fitness) < c.params.numoutputs
     #println("step: ",step,"  output: ",output,"   ")
     if c.fitness > fitness
-      #println("fitness improved from ",fitness," to ",c.fitness )
+      println("fitness improved from ",fitness," to ",c.fitness," at step: ",step )
       fitness = c.fitness 
       worse = 0
       same = 0
