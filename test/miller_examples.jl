@@ -69,10 +69,10 @@ function goal_for_two_bit_multiplier()
 end
 
 function convert_binary_list_to_UInt( list::Vector{Int64} )
-  result = UInt64(0)
+  result = MyInt(0)
   shift = 0
   for i = length(list):-1:1
-    result += convert(UInt64,list[i]) << shift
+    result += convert(MyInt,list[i]) << shift
     shift += 1
   end
   result
@@ -105,7 +105,8 @@ function goal_for_three_bit_multiplier()
   map(convert_binary_list_to_UInt,bb)
 end
 
-function evolve_two_bit_multiplier(iterations::Int64)
+function evolve_two_bit_multiplier(iterations::Int64; num_mutations::Int64=1)
+  println("num_mutations: ",num_mutations)
   max_steps = 100000
   steps_list = zeros(Int64,iterations)
   p2b = Parameters(numinputs=4,numoutputs=4,numlevelsback=16,numinteriors=10)
@@ -117,17 +118,19 @@ function evolve_two_bit_multiplier(iterations::Int64)
   goallist = [goal]
   for i = 1:iterations
     rc = random_chromosome(p2b,mfuncs)
-    result = mut_evolve(rc,goallist,mfuncs,max_steps)
+    result = mut_evolve(rc,goallist,mfuncs,max_steps,num_mutations=num_mutations)
     num_active = number_active(result[1])
     steps_list[i] = result[2]
     println("i: ",i,"  steps: ",steps_list[i],"  num active: ",num_active)
   end
+  println("num_mutations: ",num_mutations)
   Statistics.mean(steps_list)
 end
 
 # Note:  MyInt must be UInt64
-function evolve_three_bit_multiplier(iterations::Int64)
+function evolve_three_bit_multiplier(iterations::Int64; num_mutations::Int64=1)
   println("MyInt: ",MyInt)
+  println("num_mutations: ",num_mutations)
   max_steps = 50000000
   steps_list = zeros(Int64,iterations)
   p3b = Parameters(numinputs=6,numoutputs=6,numlevelsback=25,numinteriors=30)
@@ -144,5 +147,6 @@ function evolve_three_bit_multiplier(iterations::Int64)
     steps_list[i] = result[2]
     println("i: ",i,"  steps: ",steps_list[i],"  num active: ",num_active)
   end
+  println("num_mutations: ",num_mutations)
   Statistics.mean(steps_list)
 end
