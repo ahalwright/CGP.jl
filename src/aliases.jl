@@ -41,6 +41,7 @@ mutable struct indiv_result_type
   #robust_sel::Bool
   active_only::Bool
   maxsteps::Int64
+  gl_reps::Int64
   steps::Int64
   same::Int64
   worse::Int64

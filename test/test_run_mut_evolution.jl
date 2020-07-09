@@ -3,9 +3,9 @@
 # The following lines allow this file to included from CGP.jl, CGP.jl/test, or CGP.jl/src.
 cwd = pwd()
 if cwd[end-5:end] == "CGP.jl"
-  csvfile = "$cwd/test/data/test_inf_alleles.csv"
+  csvfile = "$cwd/test/data/test_run_mut_evolve.csv"
 else
-  csvfile = "../test/data/test_inf_alleles.csv"
+  csvfile = "../test/data/test_run_mut_evolve.csv"
 end
 iterations = 4
 numinputs = 2:2

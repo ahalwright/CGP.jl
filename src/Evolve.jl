@@ -120,10 +120,12 @@ end
 
 # Removed robust_sel and active_only keyword args on 6/6/20
 function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; use_robustness::Bool=false,
-      hamming_sel::Bool=true, active_only::Bool=false )
+      hamming_sel::Bool=true, active_only::Bool=false, num_mutations::Int64=1 )
   context = construct_context(c.params.numinputs)
   new_c = deepcopy(c)
-  mutate_chromosome!( new_c, funcs )
+  for _ = 1:num_mutations
+    mutate_chromosome!( new_c, funcs )
+  end
   output = execute_chromosome(new_c,context)
   #println("output: ",output)
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
@@ -144,8 +146,9 @@ end
 # Does Hammingl evolution where the Hamming distance of matched components of a goal is minimized if exact=false
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
-      hamming_sel::Bool=true, use_robustness::Bool=false )
+      hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1 )
   #println("use_robustness: ",use_robustness,"  orig_c.fitness: ",orig_c.fitness)
+  print_improvements = true
   output = output_values(c)   # Executes c if it has not already been executed
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
   ( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
@@ -160,13 +163,16 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   prev_c = deepcopy(c)  # previous generation c
   @assert output_values(prev_c) == output_values(orig_c)
   #(c, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel ) 
-  (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness ) 
+  (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, 
+      hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations ) 
   output = output_values(c)   # Executes c if it has not already been executed
   #while step < max_steps && new_fitness < c.params.numoutputs
   while step < max_steps && trunc(c.fitness) < c.params.numoutputs
     #println("step: ",step,"  output: ",output,"   ")
     if c.fitness > fitness
-      println("fitness improved from ",fitness," to ",c.fitness," at step: ",step )
+      if print_improvements
+        println("fitness improved from ",fitness," to ",c.fitness," at step: ",step )
+      end
       fitness = c.fitness 
       worse = 0
       same = 0
@@ -185,7 +191,9 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     step += 1
     prev_c = deepcopy(c)
     if step < max_steps
-      (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, use_robustness=use_robustness ) 
+        (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, 
+            hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations ) 
+      #(c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, use_robustness=use_robustness ) 
       output = output_values(c)   # Executes c if it has not already been executed
     end
   end
