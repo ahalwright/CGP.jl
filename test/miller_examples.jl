@@ -1,3 +1,7 @@
+# Uses build_chromosome() to specify some example circuits given in of Principles Evol. Design I (Miller et al 2000)
+# Defines functions to compute goals for 2-bit and 3-bit multiplier circuits.
+# Note that the computed goal for the 2-bit multiplier circuit does not agree with the output of the two_bit_multipler() circuit of Fig. 15b.
+# Then defines functions to evolve 2 and 3 bit
 #include("build_circuit.jl")
 using Statistics
 
@@ -105,13 +109,16 @@ function goal_for_three_bit_multiplier()
   map(convert_binary_list_to_UInt,bb)
 end
 
-function evolve_two_bit_multiplier(iterations::Int64; num_mutations::Int64=1)
+# Evolves a two_bit multipler circuit with the goal defined by goal_for_two_bit_multiplier() defined above
+function evolve_two_bit_multiplier( numinteriors::Int64=10, max_steps::Int64=100000; 
+      iterations::Int64=1, num_mutations::Int64=1, outfile::String="")
   println("num_mutations: ",num_mutations)
-  max_steps = 100000
+  #max_steps = 100000
   steps_list = zeros(Int64,iterations)
-  p2b = Parameters(numinputs=4,numoutputs=4,numlevelsback=16,numinteriors=10)
+  p2b = Parameters(numinputs=4,numoutputs=4,numlevelsback=numinteriors,numinteriors=numinteriors)
   mfuncs = [Func(&, 2, "&"),Func(xor, 2, "xor") ]
   #mfuncs = [Func(&, 2, "&"),Func(|, 2, "or"), Func(xor, 2, "xor") ]
+  rc = random_chromosome(p2b,mfuncs)  # not used but establishes rc as a top-level scope variable
   goal = goal_for_two_bit_multiplier()
   #goal = UInt16[0x40c0, 0x8000, 0x6ac0, 0xa0a0]
   #goal = UInt16[0x4c00, 0x8000, 0x6ac0, 0xa0a0]
@@ -123,22 +130,37 @@ function evolve_two_bit_multiplier(iterations::Int64; num_mutations::Int64=1)
     steps_list[i] = result[2]
     println("i: ",i,"  steps: ",steps_list[i],"  num active: ",num_active)
   end
+  println("max_steps: ",max_steps)
+  println("numinteriors=",numinteriors)
   println("num_mutations: ",num_mutations)
-  Statistics.mean(steps_list)
+  if iterations==1
+    steps = steps_list[1]
+  else
+    steps = Statistics.mean(steps_list)
+  end
+  fname = length(outfile)==0 ? "../data/7_10/two_bit_mult.csv" : outfile
+  println("evolve, steps, num_active, num_muts, num_ints, max_steps")
+  println("2bit_mul,", steps,",",number_active(rc),",",num_mutations,",",numinteriors,",",max_steps)
+  open(fname,"a") do f
+    println(f, "evolve, steps, num_active, num_muts, num_ints, max_steps")
+    println(f, "2bit_mul,", steps,",",number_active(rc),",",num_mutations,",",numinteriors,",",max_steps)
+  end
+  rc
 end
 
+# Evolves a three_bit multipler circuit with the goal defined by goal_for_three_bit_multiplier() defined above
+# Usually succeeds (based on a sample of 4) with numinteriors=35 and max_steps=50000000
 # Note:  MyInt must be UInt64
-function evolve_three_bit_multiplier(iterations::Int64; num_mutations::Int64=1)
-  println("MyInt: ",MyInt)
+function evolve_three_bit_multiplier( numinteriors::Int64, max_steps::Int64; 
+      iterations::Int64=1, num_mutations::Int64=1, outfile::String="")
+  @assert MyInt == UInt64
   println("num_mutations: ",num_mutations)
-  max_steps = 50000000
   steps_list = zeros(Int64,iterations)
-  p3b = Parameters(numinputs=6,numoutputs=6,numlevelsback=25,numinteriors=30)
+  p3b = Parameters(numinputs=6,numoutputs=6,numlevelsback=25,numinteriors=numinteriors)
   mfuncs = [Func(&, 2, "&"),Func(xor, 2, "xor") ]
   #mfuncs = [Func(&, 2, "&"),Func(|, 2, "or"), Func(xor, 2, "xor") ]
+  rc = random_chromosome(p3b,mfuncs)  # not used but establishes rc as a top-level scope variable
   goal = goal_for_three_bit_multiplier()
-  #goal = UInt16[0x40c0, 0x8000, 0x6ac0, 0xa0a0]
-  #goal = UInt16[0x4c00, 0x8000, 0x6ac0, 0xa0a0]
   goallist = [goal]
   for i = 1:iterations
     rc = random_chromosome(p3b,mfuncs)
@@ -147,6 +169,20 @@ function evolve_three_bit_multiplier(iterations::Int64; num_mutations::Int64=1)
     steps_list[i] = result[2]
     println("i: ",i,"  steps: ",steps_list[i],"  num active: ",num_active)
   end
+  println("max_steps: ",max_steps)
+  println("numinteriors=",numinteriors)
   println("num_mutations: ",num_mutations)
-  Statistics.mean(steps_list)
+  if iterations==1
+    steps = steps_list[1]
+  else
+    steps = Statistics.mean(steps_list)
+  end
+  fname = length(outfile)==0 ? "../data/7_10/three_bit_mult.csv" : outfile
+  println("evolve, steps, num_active, num_muts, num_ints, max_steps")
+  println("2bit_mul,", number_active(rc),",", steps,",",num_mutations,",",numinteriors,",",max_steps)
+  open(fname,"a") do f
+    println(f, "evolve, steps, num_active, num_muts, num_ints, max_steps")
+    println(f, "2bit_mul,", steps,",",number_active(rc),",",num_mutations,",",numinteriors,",",max_steps)
+  end
+  rc
 end
