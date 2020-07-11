@@ -177,6 +177,13 @@ function num_mutate_locations( c::Chromosome, funcs::Vector{Func} )
   num_mutate_locations
 end
 
+function print_chromosome(f::IO, c::Chromosome )
+  for i = 1:(c.params.numinputs + c.params.numinteriors + c.params.numoutputs)
+    println(f,"i: ",i,"  ",c[i])
+  end
+  check_recursive(c)
+end
+
 function print_chromosome( c::Chromosome )
   for i = 1:(c.params.numinputs + c.params.numinteriors + c.params.numoutputs)
     println("i: ",i,"  ",c[i])
