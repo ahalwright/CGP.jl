@@ -190,7 +190,7 @@ function evolve_three_bit_multiplier( numinteriors::Int64, max_steps::Int64;
   println("3bit_mul,", number_active,",", steps,",",num_mutations,",",numinteriors,",",max_steps)
   open(fname,"a") do f
     println(f, "evolve, steps, num_active, num_muts, num_ints, max_steps")
-    println(f, "3bit_mul,", steps,",",number_active(current_chromosome),",",num_mutations,",",numinteriors,",",max_steps)
+    println(f, "3bit_mul,", steps,",",num_active(current_chromosome),",",num_mutations,",",numinteriors,",",max_steps)
   end
   if steps < max_steps
     println("output: ",sort(execute_chromosome(current_chromosome, construct_context(p3b.numinputs))))
