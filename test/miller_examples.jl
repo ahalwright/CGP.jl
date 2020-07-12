@@ -195,7 +195,7 @@ function evolve_three_bit_multiplier( numinteriors::Int64, max_steps::Int64;
   if steps < max_steps
     println("output: ",sort(execute_chromosome(current_chromosome, construct_context(p2b.numinputs))))
     println("goal:   ",sort(goal))
-    @assert sort(execute_chromosome(current_chromosome, construct_context(p2b.numinputs))) == sort(goal)
+    @assert sort(execute_chromosome(current_chromosome, construct_context(p3b.numinputs))) == sort(goal)
   end
   current_chromosome
 end
