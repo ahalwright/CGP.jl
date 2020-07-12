@@ -185,9 +185,9 @@ function evolve_three_bit_multiplier( numinteriors::Int64, max_steps::Int64;
     steps = Statistics.mean(steps_list)
   end
   num_active = number_active(current_chromosome)
-  fname = length(outfile)==0 ? "../data/7_10/three_bit_mult.csv" : outfile
+  fname = length(outfile)==0 ? "../data/7_12/three_bit_mult.csv" : outfile
   println("evolve, steps, num_active, num_muts, num_ints, max_steps")
-  println("3bit_mul,", num_active,",", steps,",",num_mutations,",",numinteriors,",",max_steps)
+  println("3bit_mul,", steps, ",",  num_active,",",num_mutations,",",numinteriors,",",max_steps)
   open(fname,"a") do f
     println(f, "evolve, steps, num_active, num_muts, num_ints, max_steps")
     println(f, "3bit_mul,", steps,",",num_active,",",num_mutations,",",numinteriors,",",max_steps)
