@@ -15,13 +15,13 @@ Func(f::Function, a::Integer) = Func(f, a, string(f))
 #numinputs = Main.CGP.numinputs
 #Ones = Main.CGP.construct_ones(numinputs)[numinputs]
 #println("Func:  Ones: ",Ones)
-const AND = Func(&, 2)
-const OR = Func(|, 2)
-const XOR = Func(⊻,2)
+const AND = Func(&, 2, "AND")
+const OR = Func(|, 2, "OR")
+const XOR = Func(⊻, 2, "XOR")
 Nand(x,y) = ~(x & y) & Ones
-const NAND = Func(Nand,2,"NAND")
+const NAND = Func(Nand, 2, "NAND")
 Nor(x,y) = ~(x | y) & Ones
-const NOR = Func(Nor,2,"NOR")
+const NOR = Func(Nor, 2, "NOR")
 Not(x) = (~x) & Ones
 const NOT = Func(Not, 1, "NOT")
 Zero() = MyInt(0)
@@ -35,11 +35,12 @@ function default_funcs( numinputs::Int64 )
   ONE = Func(One, 0, "1")
   global Ones
 #     return [NAND ]   # Macia's gate set
+    return [AND, XOR ]
 #    return [AND, OR, XOR ]
 #    return [AND, OR, NOT, ZERO, ONE]
 #    return [ZERO, ONE]
 #    return [AND, OR, XOR, NAND, NOR, NOT, ZERO, ONE]
-     return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
+#    return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
 end
 
 # Evaluate a Func for debugging purposes

@@ -3,6 +3,7 @@ export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromos
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_old
 export copy_chromosome!, mutational_robustness
+export build_chromosome, Input_node, Int_node, Output_node
 
 mutable struct Chromosome
     params::Parameters
@@ -219,6 +220,10 @@ function number_active_old( c::Chromosome )
 end
 
 function number_active( c::Chromosome )
+  if !c[c.outputs[1].input].active   # if chromosome has not been executed
+    context = construct_context(c.params.numinputs)
+    execute_chromosome(c,context)
+  end
   num_act_in = reduce(+,[c.inputs[i].active for i = 1:length(c.inputs)])
   num_act_int =  reduce(+,[c.interiors[i].active for i = 1:length(c.interiors)])
   num_act_in + num_act_int
@@ -316,4 +321,41 @@ function mutational_robustness( c::Chromosome, funcs::Vector{Func}; active_only:
     num_mut_locs = num_mutate_locations( c, funcs )
   end
   count_no_change/num_mut_locs
+end
+
+mutable struct Int_node
+  func::Func
+  inputs::Vector{Int64}
+end
+
+mutable struct Input_node
+  index::Int64
+end
+
+mutable struct Output_node
+  input::Integer
+end
+
+# Example call: build_chromosome( [Input_node(1),Input_node(2)], [Int_node(OR,[1,2]),Int_node(AND,[2,3])],[Output_node(4)])
+function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vector{Int_node}, output_nodes::Vector{Output_node} )
+  num_in = length(input_nodes)
+  num_ints = length(interior_nodes)
+  num_outs = length(output_nodes)
+  p = Parameters( numinputs=num_in, numoutputs=num_outs, numinteriors=num_ints, numlevelsback=num_ints+num_outs )
+  in_nodes = [InputNode(in_node.index) for in_node in input_nodes]
+  int_nodes = [InteriorNode(int_node.func, int_node.inputs) for int_node in interior_nodes]
+  out_nodes = [OutputNode(outnode.input) for outnode in output_nodes]
+  Chromosome( p, in_nodes, int_nodes, out_nodes, 0.0, 0.0 )
+end
+
+# Example call:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,))
+function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple )
+  num_in = length(inputs)
+  num_ints = length(ints)
+  num_outs = length(outs)
+  p = Parameters( numinputs=num_in, numoutputs=num_outs, numinteriors=num_ints, numlevelsback=num_ints+num_outs )
+  in_nodes = [InputNode(in_index) for in_index in inputs]
+  int_nodes = [InteriorNode(int_pair[1], int_pair[2]) for int_pair in ints]
+  out_nodes = [OutputNode(out_index) for out_index in outs]
+  Chromosome( p, in_nodes, int_nodes, out_nodes, 0.0, 0.0 )
 end
