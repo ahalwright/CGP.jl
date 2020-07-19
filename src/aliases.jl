@@ -53,6 +53,31 @@ mutable struct indiv_result_type
   sdegeneracy::Float64   
 end
 
+# env_result_type is used to parallelize population evolution in Env_evolution.jl
+mutable struct env_result_type
+  numinputs::Int64
+  numoutputs::Int64
+  numints::Int64
+  levelsback::Int64
+  ngoals::Int64
+  hamming_sel::Bool
+  #robust_sel::Bool
+  active_only::Bool
+  maxsteps::Int64
+  gl_reps::Int64
+  num_flip_bits::Int64
+  avgfitness::Bool
+  steps::Int64
+  same::Int64
+  worse::Int64
+  better::Int64
+  nactive::Int64
+  redundancy::Float64
+  complexity::Float64
+  degeneracy::Float64
+  sdegeneracy::Float64   
+end
+
 # pop_result_type is used to parallelize population evolution in Pop_evolution.jl
 mutable struct pop_result_type
   numinputs::Int64

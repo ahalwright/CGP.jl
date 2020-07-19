@@ -9,8 +9,9 @@ perfectly suitable for other applications as well.
 
 using Combinatorics
 module CGP
-#const MyInt = UInt16     # Type of bit string integers used in bit functions
-const MyInt = UInt64     # Type of bit string integers used in bit functions
+#const MyInt = UInt8       # Type of bit string integers used in bit functions
+const MyInt = UInt16     # Type of bit string integers used in bit functions
+#const MyInt = UInt64     # Type of bit string integers used in bit functions
 const MyFunc = UInt128  # Type of concatenated output representation of functions
 include("aliases.jl")
 include("Contexts.jl")
@@ -27,6 +28,7 @@ include("Entropy.jl")
 #include("Avg_mut_robustness.jl")
 include("InfTheory.jl")
 include("Indiv_evolution.jl")
+include("Env_evolution.jl")
 include("Pop_evolution.jl")
 include("Propsel.jl")
 include("Robust_evolve.jl")

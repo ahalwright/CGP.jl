@@ -30,4 +30,4 @@ c3m2 = build_chromosome( # Second saved 3-bit multiplier circuit
           (XOR,Integer[25, 33]),(AND,Integer[28, 35]),(XOR,Integer[29, 31])),
          (36,37,38,39,40,41))
 rnw1 = random_neutral_walk( c3m1, [g3m], funcs, 20000, num_mutations=2 )
-rnw1 = random_neutral_walk( c3m1, [g3m], funcs, 20000, num_mutations=2, reduce_numactive_reps=500 )
+rnw2 = random_neutral_walk( c3m1, [g3m], funcs, 20000, num_mutations=2, reduce_numactive_reps=500 )

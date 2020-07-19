@@ -35,12 +35,12 @@ function default_funcs( numinputs::Int64 )
   ONE = Func(One, 0, "1")
   global Ones
 #     return [NAND ]   # Macia's gate set
-    return [AND, XOR ]
+#    return [AND, XOR ]
 #    return [AND, OR, XOR ]
 #    return [AND, OR, NOT, ZERO, ONE]
 #    return [ZERO, ONE]
 #    return [AND, OR, XOR, NAND, NOR, NOT, ZERO, ONE]
-#    return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
+    return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
 end
 
 # Evaluate a Func for debugging purposes

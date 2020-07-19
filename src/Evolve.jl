@@ -1,33 +1,55 @@
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, mut_reduce_numactive
-export random_neutral_walk, randgoal, match_score, randgoallist, findmaxall, findminall, findmaxall_1, findminall_1 
-#export build_chromosome, Input_node, Int_node, Output_node
+export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1 
+
 
 # 5/21: To test:
-# ni = 2, nc = 4
-# julia> g = randgoallist(2,ni,nc)  # g[1] is output, g[2] is goal
+# ni = 2; nc = 4
+# julia> g = randgoallist(2,ni,nc)  # For this example g[1] is interpreted as output, g[2] is goal
 # julia> pmin=match_score(g[1],g[2],ni)
 # Not efficient if length(output) is greater than about 6
-# Returns score of the best-scoring match between components of output and components of goal
+# Returns score of the best-scoring match between components of output and components of goal.
 # A match between the components of outputs and the components of goal is permutation p of 1:nc
 #   where ouput[i] is matched to goal[p[i]].
-# match_score is the number of exact component matches plus the score of the best partial componet match
-# The score of of a partail match between component x and component y is 1.0 - hamming(x,y)/2^numinputs.
+# There are two options depending on the keyword parameter avgfitness.
+# match_score is the number of exact component matches plus the score of the best partial component match.
+#
+# There are two options depending on the setting of avgfitness.
+# The score of of a partial match between component x and component y is 1.0 - hamming(x,y)/2^numinputs.
 # Example:  let output = [0x0e, 0x0d, 0x00, 0x04], goal = [0x06, 0x04, 0x0a, 0x01]
 # There is an exact match between ouput[4] and goal[2].
 # One of the best partial matches is between output[1] and goal[1] where hamming(output[1],goal[1]) = 1.
 # This gives a partial match score of 0.75.
 # Thus, match_score(output,goal,ni) returns 1.75
+function match_score( output::Vector{MyInt}, goal::Vector{MyInt},numinputs::Int64;
+      avgfitness::Bool=false)
+  #println("match_score: avgfitness: ",avgfitness)
+  nc = length(output)  # number of components
+  #println("output: ",output,"  goal: ",goal)
+  @assert nc == length(goal)
+  H = [ hamming_distance(output[i],goal[j],numinputs) for i = 1:nc, j=1:nc]  
+  #println("H: ",H)
+  P = permutations(collect(1:nc))
+  if avgfitness
+    mxscores = [ (sum( H[i,p[i]] for i = 1:nc ),[p[i] for i = 1:nc]) for p in P ]
+    findmaxall(mxscores)[1][1]
+  else # number of exact matches plus Hamming score for best partial match
+    mxscores = [ maxscore([H[i,p[i]] for i = 1:nc]) for p in P ]
+    findmaxall(mxscores)[1]
+  end
+end
+#=
 function match_score( output::Vector{MyInt}, goal::Vector{MyInt},numinputs::Int64)
   nc = length(output)  # number of components
   #println("output: ",output,"  goal: ",goal)
   @assert nc == length(goal)
   H = [ hamming_distance(output[i],goal[j],numinputs) for i = 1:nc, j=1:nc]  
   #println("H: ",H)
-  P=permutations(collect(1:nc))
+  P = permutations(collect(1:nc))
   mxscores = [ maxscore([H[i,p[i]] for i = 1:nc]) for p in P ]
   #println("mxscores: ",mxscores)
   findmaxall(mxscores)[1]
 end
+=#
 
 # return the number of zeros plus one minus the smallest non-zero value
 # Thus, if V contains 2 zeros and the smallest non-zero value is 0.2, returns 2.8.
@@ -50,14 +72,13 @@ function maxscore( V::Vector{Float64} )
   result
 end
 
-
 # Returns a list of triples (comp,i,j) where comp==output[i]==goal[j] and for different triples
 #    (comp1,i1,j1) and (comp2,i2,j2) we must have i1!=i2 and j1!=j2 (but we may have comp1==comp2).
 # So the length of the result is the degree of matching between outputs and goal
 # Based on a merge sort algorithm
 # EXample:  let output=[0x7,0xd], let goal = [0x1,0x7]
 # Result (0x07, 1, 2)  which says that output[1] == goal[2] == 0x07
-function components_matched( output::Vector{MyInt}, goal::Vector{MyInt})
+function components_matched( output::Vector{MyInt}, goal::Vector{MyInt} )
   result = Tuple{MyInt,Int64,Int64}[]
   len = length(output)
   output_pairs = [(output[i],i) for i = 1:len]
@@ -109,9 +130,9 @@ function goals_matched_exact( output::Vector{MyInt}, goallist::GoalList, numinpu
 end
 
 # Note that fitness does not take robustness into account
-function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64 )
+function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64; avgfitness::Bool=false  )
   #println("hamming")
-  goallist_scores = map( g->match_score(output,g,numinputs), goallist )
+  goallist_scores = map( g->match_score(output,g,numinputs,avgfitness=avgfitness), goallist )
   matched_goals = map( g->components_matched(output,g), goallist )
   #println("goallist_scores: ",goallist_scores)
   #println("matched_goals: ",matched_goals)
@@ -120,8 +141,9 @@ function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numin
 end
 
 # Removed robust_sel and active_only keyword args on 6/6/20
-function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; use_robustness::Bool=false,
-      hamming_sel::Bool=true, active_only::Bool=false, num_mutations::Int64=1 )
+function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; 
+      use_robustness::Bool=false, hamming_sel::Bool=true, active_only::Bool=false, num_mutations::Int64=1,
+      avgfitness::Bool=false )
   context = construct_context(c.params.numinputs)
   new_c = deepcopy(c)
   for _ = 1:num_mutations
@@ -130,7 +152,8 @@ function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}
   output = execute_chromosome(new_c,context)
   #println("output: ",output)
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
-  ( new_fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs)
+  ( new_fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs,
+      avgfitness=avgfitness )
   #println("new fitness: ",new_fitness)
   new_c = new_fitness >= fitness ? new_c : c
   if use_robustness
@@ -147,11 +170,15 @@ end
 # Does Hamming evolution where the Hamming distance of matched components of a goal is minimized if exact=false
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
-      hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false )
-  #println("use_robustness: ",use_robustness,"  orig_c.fitness: ",orig_c.fitness)
+      hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
+      avgfitness::Bool=false )
+  #println("mut evolve avgfitness: ",avgfitness)
+  #print_chromosome(c)
   output = output_values(c)   # Executes c if it has not already been executed
+  #println("output: ",output)
+  #println("trunc(c.fitness): ",trunc(c.fitness))
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
-  ( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )
+  ( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs, avgfitness=avgfitness )
   fitness = c.fitness
   orig_c = deepcopy(c)
   #println("initial fitness: ",fitness)
@@ -162,10 +189,13 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   better = 0
   prev_c = deepcopy(c)  # previous generation c
   @assert output_values(prev_c) == output_values(orig_c)
-  #(c, new_robustness, matched_goals_list ) = next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel ) 
+  #(c, new_robustness, matched_goals_list ) = 
+  #    next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, avgfitness=avgfitness ) 
   (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, 
-      hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations ) 
+      hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, avgfitness=avgfitness ) 
   output = output_values(c)   # Executes c if it has not already been executed
+  #println("output: ",output)
+  #println("trunc(c.fitness): ",trunc(c.fitness))
   #while step < max_steps && new_fitness < c.params.numoutputs
   while step < max_steps && trunc(c.fitness) < c.params.numoutputs
     #println("step: ",step,"  output: ",output,"   ")
@@ -192,16 +222,22 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     step += 1
     prev_c = deepcopy(c)
     if step < max_steps
-        (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, 
-            hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations ) 
-      #(c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, use_robustness=use_robustness ) 
+      (c, matched_goals, matched_goals_list ) = 
+            next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, 
+            num_mutations=num_mutations, avgfitness=avgfitness ) 
+      #=
+      (c, matched_goals, matched_goals_list ) = 
+            next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, 
+            use_robustness=use_robustness, avgfitness=avgfitness ) 
+      =#
       output = output_values(c)   # Executes c if it has not already been executed
     end
   end
   if step == max_steps
-    #println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
+    println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
   else
-    #println("mut_evolve finished in ",step," steps with fitness: ", c.fitness )
+    #println("matched_goals: ",matched_goals,"  matched_goals_list: ",matched_goals_list)
+    println("mut_evolve finished in ",step," steps with fitness: ", c.fitness )
   end
   if orig_c.fitness > c.fitness
     #println("(orig_c.fitness,c.fitness): ",(orig_c.fitness,c.fitness)) 
@@ -216,7 +252,14 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       matched_goal_components = [map( x->x[1], mgl) for mgl in matched_goals_list]
       println("fitness improved from ",fitness," to ",c.fitness," at step: ",step, "  goals_matched: ", matched_goals, "  matched goal comps: ", matched_goal_components)
     end
-    @assert sort(output) == sort(goallist[matched_goals[1]])
+    #println("sort(output: ",sort(output),"  sort(goallist[matched_goals[1]]): ",sort(goallist[matched_goals[1]]))
+    
+    try
+      @assert sort(output) == sort(goallist[matched_goals[1]])
+    catch
+      println("sort(output): ",sort(output),"  sort(goallist[matched_goals[1]]): ",sort(goallist[matched_goals[1]]))
+    end
+    
   end
   (c,step,worse,same,better,output,matched_goals,matched_goals_list)
 end 
@@ -520,53 +563,3 @@ function findminall( X::AbstractVector )
   indices = [x[2] for x in Xmin]
   (min,indices)
 end
-
-# generate a random goal assuming that MyInt is set correctly for numinputs
-# Creates an inexacterror if conversion to MyInt doesn't work
-function randgoal(numinputs::Int64, numoutputs::Int64; repetitions::Int64=1 ) 
-  if numinputs == 2
-    component_type = collect(0x00:0x0f)
-  elseif numinputs == 3
-    component_type = collect(0x00:0xff)
-  elseif numinputs == 4
-    component_type = UInt16
-  elseif numinputs == 5
-    component_type = UInt32
-  elseif numinputs == 6
-    component_type = UInt64
-  elseif numinputs > 6
-    error("randgoal doesn't work for numinputs > 6")
-  end
-  rand(component_type,numoutputs)
-end
-
-# generate a random goallist of length ngoals
-function randgoallist(ngoals::Int64, numinputs::Int64, numoutputs::Int64; repetitions::Int64=1)
-  if numinputs == 2
-    component_type = collect(0x00:0x0f)
-  elseif numinputs == 3
-    component_type = collect(0x00:0xff)
-  elseif numinputs == 4
-    component_type = UInt16
-  elseif numinputs == 5
-    component_type = UInt32
-  elseif numinputs == 6
-    component_type = UInt64
-  elseif numinputs > 6
-    error("randgoal doesn't work for numinputs > 6")
-  end
-  result = Vector{MyInt}[]
-  if ngoals % repetitions != 0
-    error("ngoals=",ngoals," must be a multiple of repetitions=",repetitions," in randgoallist")
-  end
-  #println("  collect(1:repetitions.ngoals): ",collect(1:repetitions:ngoals))
-  for i = 1:repetitions:ngoals
-    goal = rand(component_type,numoutputs)
-    for j = 1:repetitions
-      #println("(i,j): ",(i,j)," i+j-1: ",i+j-1)
-      #result[i+j-1] = goal
-      push!(result,goal)
-    end
-  end
-  result
-end     

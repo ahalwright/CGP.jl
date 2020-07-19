@@ -3,7 +3,7 @@ export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromos
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_old
 export copy_chromosome!, mutational_robustness
-export build_chromosome, Input_node, Int_node, Output_node
+export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome
 
 mutable struct Chromosome
     params::Parameters
@@ -359,3 +359,21 @@ function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple )
   out_nodes = [OutputNode(out_index) for out_index in outs]
   Chromosome( p, in_nodes, int_nodes, out_nodes, 0.0, 0.0 )
 end
+
+function print_build_chromosome( f::IO, c::Chromosome )
+  println(f, "build_chromosome(")
+  print_node_tuple(f, c.inputs )
+  println(f,",")
+  print_node_tuple(f, c.interiors )
+  println(f,",")
+  print_node_tuple(f, c.outputs )
+  println(f, ")")
+  if typeof(f) == IOStream  # Don't close Base.stdout since this kills julia
+    close(f)
+  end
+end
+
+function print_build_chromosome( c::Chromosome )
+  print_build_chromosome( Base.stdout, c)
+end          
+
