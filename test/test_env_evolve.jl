@@ -18,7 +18,8 @@ levelsback=15
 maxsteps = 100000:100000
 gl_repetitions = 3
 num_flip_bits = 1:2
-avgfitness = false   # As of 7/19, avgfitness==true does not work correctly
+perturb_goal_range = false:true
+avgfitness = false   
 #run_env_evolution( iterations, numinputs, numoutputs, numinteriors, goallistlength, maxsteps, levelsback, csvfile )
 df = run_env_evolution( iterations, numinputs, numoutputs, numinteriors, ngoals, maxsteps, levelsback, 
-    gl_repetitions, num_flip_bits, avgfitness, csvfile )
+    gl_repetitions, num_flip_bits, avgfitness, perturb_goal_range, csvfile )

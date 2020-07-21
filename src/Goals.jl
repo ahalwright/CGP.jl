@@ -1,5 +1,5 @@
 # Functions to implement goal functions and testing for goal functions
-
+using Printf
 export Goal, GoalList, randgoal, randgoallist, rand_env_goallist, env_goal, goal_count, goal_check, my_test_goal
 
 # Moved these to aliases.jl
@@ -60,8 +60,15 @@ function randgoallist(ngoals::Int64, numinputs::Int64, numoutputs::Int64; repeti
   result
 end     
 
+# Returns a goal list of ngoals which is obtained by generating div(ngoals,repetitions)
+#   goals, and then perturing these base goals repetitions-1 times to generate
+#   the additional goals.
+# If use_env_goals==true, then repeat goals are obtained by flipping specific bits
+#    of the base goals
+# If use_env_goals==false, then repeat goals are obtained by flipping random bits
+#   the additional goals.
 function rand_env_goallist( ngoals::Int64, numinputs::Int64, numoutputs::Int64, 
-      repetitions::Int64, num_flipped_bits::Int64 )
+      repetitions::Int64, num_flipped_bits::Int64; use_env_goals::Bool=true )
   result = Vector{MyInt}[]
   if numoutputs % repetitions != 0
     error("numoutputs=",numoutputs," must be a multiple of repetitions=",repetitions," in rand_env_goallist")
@@ -71,7 +78,11 @@ function rand_env_goallist( ngoals::Int64, numinputs::Int64, numoutputs::Int64,
   for i = 1:ngoals
     #g = rand( component_type(numinputs), div( numoutputs, repetitions ) )
     g = randgoal( numinputs, div(numoutputs,repetitions) )
-    goal = env_goal( g, f_bits_list )
+    if use_env_goals
+      goal = env_goal( g, f_bits_list )
+    else
+      goal = perturb_goal( g, num_flipped_bits, repetitions, numinputs )   
+    end
     Base.push!(result,goal)
   end
   result
@@ -88,19 +99,22 @@ function flipped_bits_list( num_flipped_bits::Int64, repetitions::Int64, numinpu
   [ fb >> (num_flipped_bits*i) for i = 0:(repetitions-1) ]
 end
 
+# returns a new goal with each component of goal replicated length(flipped_bits_list) times,
+#   where each replication has nbits_to_perturb bits of the original component perturbed
 function env_goal( goal::Goal, flipped_bits_list::Vector{MyInt} )
   num_repeats = length(flipped_bits_list)
   new_goal = Goal()
   for c in goal
     Base.push!( new_goal, c )
     for i = 1:num_repeats
-      Base.push!( new_goal, apply_condition( c, flipped_bits_list[i] ))
+      Base.push!( new_goal, xor( c, flipped_bits_list[i] ))
     end
   end
   #println("new_goal: ",new_goal)
   new_goal
 end
   
+# Not used:  equivalent to xor()
 function apply_condition( component::MyInt, flipbits::MyInt )
   neg_flipbits = NOT.func( flipbits )
   neg_component = NOT.func( component )
@@ -123,6 +137,7 @@ function goal_check( testgoal::Goal, goallist::GoalList )
 end
 
 # Returns the number of components of testGoal that are equal to the corresponding component of goal.
+# Never used
 #function my_test_goal( testGoal::Goal, goal::Goal )
 #  length( filter( x -> x == 0, testGoal .⊻ goal ))
 #end
@@ -145,3 +160,42 @@ function my_test_goal( testgoal::Goal, goal::Goal, numsubgoals::Integer )
 end
 =#
 
+# returns an new goal with each component of goal replicated num_repeats times,
+#   where each replication has nbits_to_perturb randomly chosen bits 
+#   of the original component perturbed
+function perturb_goal( goal::Goal, nbits_to_perturb::Int64, num_repeats::Int64, numinputs::Int64 )
+  new_goal = Goal()
+  for c in goal
+    push!( new_goal, c )
+    for i = 1:num_repeats
+      rp = rand_perturbation( 2^numinputs, nbits_to_perturb ) 
+      Printf.@printf("rp: 0x%04x\n",rp)
+      #push!( new_goal, xor( c, rand_perturbation( 2^numinputs, nbits_to_perturb )))
+      push!( new_goal, xor( c, rp))
+   end
+
+  end
+  new_goal
+end
+
+# Returns a MyInt with nnbits_to_perturb 1 bits.
+# When perturbing a goal, maxlen should be 2^numinputs
+function rand_perturbation( maxlength::Int64, nbits_to_perturb::Int64 )
+  bits_to_perturb = rand_set( maxlength, nbits_to_perturb )
+  println("bits_to_perturb: ",bits_to_perturb)
+  result = MyInt(0)
+  for i in bits_to_perturb
+    result |= MyInt(1) << i
+  end
+  result
+end
+
+# returns a random set of n_elements intgers from the integer range [0,maxlen-1]
+function rand_set( maxlen::Int64, n_elements::Int64 )
+  @assert n_elements < maxlen
+  S = Int64[]
+  while length(unique!(S)) < n_elements
+    push!(S,rand(0:(maxlen-1)))
+  end
+  S
+end

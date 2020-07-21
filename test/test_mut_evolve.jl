@@ -18,19 +18,19 @@ function test_mut_evolve(p::Parameters,funcs,max_steps::Int64,ngoals::Int64; use
   (c,step,worse,same,better,output,gl,matched_goals,matched_goals_list)
 end       
 
-avgfitness = false
-numinputs = 3
-numoutputs = 2
+avgfitness = true
+numinputs = 2
+numoutputs = 1
 use_robust=false
 funcs = default_funcs(numinputs)
 p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=10, numlevelsback=12 )
 context = construct_context(numinputs)
 c = random_chromosome( p, funcs )
-maxsteps = 5000
+maxsteps = 50
 ngoals = 2   # number goals in goallist
 #(steps,worse,same,c,output,goallist,matched_goals,matched_goals,matched_goals_list) = 
-      test_mut_evolve(p,funcs,maxsteps,ngoals, avgfitness=avgfitness)
+#      test_mut_evolve(p,funcs,maxsteps,ngoals, avgfitness=avgfitness)
 (c,steps,worse,same,better,output,gl,matched_goals,matched_goals_list ) = 
       test_mut_evolve(p,funcs,maxsteps,ngoals,use_robustness=use_robust, avgfitness=avgfitness )
-#println("result: ",(c,steps,worse,same,better,output,gl,matched_goals_list))
+println("result: ",(c,steps,worse,same,better,output,gl,matched_goals_list))
 

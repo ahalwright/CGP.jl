@@ -30,7 +30,8 @@ function match_score( output::Vector{MyInt}, goal::Vector{MyInt},numinputs::Int6
   #println("H: ",H)
   P = permutations(collect(1:nc))
   if avgfitness
-    mxscores = [ (sum( H[i,p[i]] for i = 1:nc ),[p[i] for i = 1:nc]) for p in P ]
+    mxscores = [ (sum( 1.0-H[i,p[i]] for i = 1:nc ),[p[i] for i = 1:nc]) for p in P ]
+    #println("mxscores: ",mxscores)
     findmaxall(mxscores)[1][1]
   else # number of exact matches plus Hamming score for best partial match
     mxscores = [ maxscore([H[i,p[i]] for i = 1:nc]) for p in P ]
@@ -253,13 +254,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       println("fitness improved from ",fitness," to ",c.fitness," at step: ",step, "  goals_matched: ", matched_goals, "  matched goal comps: ", matched_goal_components)
     end
     #println("sort(output: ",sort(output),"  sort(goallist[matched_goals[1]]): ",sort(goallist[matched_goals[1]]))
-    
-    try
-      @assert sort(output) == sort(goallist[matched_goals[1]])
-    catch
-      println("sort(output): ",sort(output),"  sort(goallist[matched_goals[1]]): ",sort(goallist[matched_goals[1]]))
-    end
-    
+    @assert sort(output) == sort(goallist[matched_goals[1]])
   end
   (c,step,worse,same,better,output,matched_goals,matched_goals_list)
 end 
@@ -563,3 +558,28 @@ function findminall( X::AbstractVector )
   indices = [x[2] for x in Xmin]
   (min,indices)
 end
+
+# Returns the maximum value in A along with a random index for that value
+function findmaxrand( A::AbstractVector )  
+  (val,indices) = findmaxall( A )
+  if length(indices) == 1
+    return (val,indices[1])
+  else
+    ind = rand(indices)
+    #println("indices: ",indices,"  ind: ",ind)
+    return (val,ind)
+  end
+end
+
+# Returns the minimum value in A along with a random index for that value
+function findminrand( A::AbstractVector )  
+  (val,indices) = findmaxall( A )
+  if length(indices) == 1
+    return (val,indices[1])
+  else
+    ind = rand(indices)
+    #println("indices: ",indices,"  ind: ",ind)
+    return (val,ind)
+  end
+end
+

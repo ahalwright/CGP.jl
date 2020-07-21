@@ -32,11 +32,13 @@ run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, goallistleng
 
 function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
     numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange,
-    levelsback::IntRange, gl_repetitions::IntRange, num_flip_bits::IntRange, avgfitness::IntRange, csvfile::String; 
+    levelsback::IntRange, gl_repetitions::IntRange, num_flip_bits::IntRange, avgfitness::IntRange, 
+    perturb_goal_range::IntRange, csvfile::String; 
     base::Float64=2.0, active_only::Bool=false )
   hamming_sel = true
   maxints_for_degen = 20
   nodearity = 2
+  perturb_goal=true
   env_result_list = env_result_type[]
   df = DataFrame() 
   df.numinputs=Int64[]
@@ -50,6 +52,7 @@ function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   df.maxsteps=Int64[]
   df.gl_reps=Int64[]
   df.nflipbits=Int64[]
+  df.perturb_goal=Bool[]
   df.avgfitness=Bool[]
   df.steps=Int64[]
   df.same=Int64[]
@@ -70,15 +73,17 @@ function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutput
           for levsback = levelsback
             for gl_reps = gl_repetitions 
               for avgfit = avgfitness
-                for nflipbits = num_flip_bits
-                  for max_steps = maxsteps
-                    for _ = 1:numiterations
-                      p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
-                      rr = env_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps, nflipbits, avgfit )
-                      push!(env_result_list,rr)
-                      #run_mut_evolve!(rr)
-                      #new_row = env_result_to_tuple(rr)
-                      #Base.push!( df, new_row )
+                for perturb_goal = perturb_goal_range
+                  for nflipbits = num_flip_bits
+                    for max_steps = maxsteps
+                      for _ = 1:numiterations
+                        p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
+                        rr = env_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps, nflipbits, perturb_goal, avgfit )
+                        push!(env_result_list,rr)
+                        #run_mut_evolve!(rr)
+                        #new_row = env_result_to_tuple(rr)
+                        #Base.push!( df, new_row )
+                      end
                     end
                   end
                 end
@@ -131,7 +136,7 @@ function run_env_evolve!( rr::env_result_type; maxints_for_degen::Int64, base::F
 end
 
 function env_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_only::Bool, 
-      max_steps::Int64, gl_reps::Int64, num_flip_bits::Int64, avgfitness::Bool )
+      max_steps::Int64, gl_reps::Int64, num_flip_bits::Int64, perturb_goal::Bool, avgfitness::Bool )
   env_result_type(
     p.numinputs,
     p.numoutputs,
@@ -143,6 +148,7 @@ function env_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_
     max_steps,
     gl_reps,
     num_flip_bits,
+    perturb_goal,
     avgfitness,
     0,      # steps
     0,      # same
@@ -168,6 +174,7 @@ function env_result_to_tuple( rr::env_result_type )
   rr.maxsteps,
   rr.gl_reps,
   rr.num_flip_bits,
+  rr.perturb_goal,
   rr.avgfitness,
   rr.steps,
   rr.same,

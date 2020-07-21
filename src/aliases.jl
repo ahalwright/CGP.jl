@@ -66,6 +66,7 @@ mutable struct env_result_type
   maxsteps::Int64
   gl_reps::Int64
   num_flip_bits::Int64
+  perturb_goal::Bool
   avgfitness::Bool
   steps::Int64
   same::Int64
