@@ -55,9 +55,10 @@ function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   df.perturb_goal=Bool[]
   df.avgfitness=Bool[]
   df.steps=Int64[]
-  df.same=Int64[]
-  df.worse=Int64[]
-  df.better=Int64[]
+  df.avgfit=Float64[]
+  #df.same=Int64[]
+  #df.worse=Int64[]
+  #df.better=Int64[]
   df.nactive=Int64[]
   df.redundancy=Float64[]
   df.complexity=Float64[]
@@ -75,6 +76,7 @@ function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutput
               for avgfit = avgfitness
                 for perturb_goal = perturb_goal_range
                   for nflipbits = num_flip_bits
+                    #println("perturb_goal: ",perturb_goal)
                     for max_steps = maxsteps
                       for _ = 1:numiterations
                         p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
@@ -120,13 +122,14 @@ function run_env_evolve!( rr::env_result_type; maxints_for_degen::Int64, base::F
   p = Parameters( numinputs=rr.numinputs, numoutputs=rr.numoutputs, numinteriors=rr.numints, numlevelsback=rr.levelsback )
   funcs = default_funcs(rr.numinputs) 
   #print_parameters( p )
-  gl = rand_env_goallist(rr.ngoals,rr.numinputs,rr.numoutputs,rr.gl_reps,rr.num_flip_bits)
+  gl = rand_env_goallist(rr.ngoals,rr.numinputs,rr.numoutputs,rr.gl_reps,rr.num_flip_bits,perturb_goal=rr.perturb_goal)
   #println("gl: ",gl)
   c = random_chromosome( p, funcs )
   #(rr.steps,rr.worse,rr.same,rr.better,c,output,goals_matched,matched_goals_list) = 
   #    mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,active_only=rr.active_only)
   (c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals,matched_goals_list) = 
       mut_evolve(c,gl,funcs,rr.maxsteps,avgfitness=rr.avgfitness,hamming_sel=rr.hamming_sel)
+  rr.avgfit = c.fitness
   rr.nactive = number_active( c )
   rr.redundancy = redundancy( c, base=base )
   rr.complexity = rr.numints <= maxints_for_degen ? complexity5( c, base=base ) : 0.0
@@ -151,6 +154,7 @@ function env_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_
     perturb_goal,
     avgfitness,
     0,      # steps
+    0.0,    # avgfit
     0,      # same
     0,      # worse
     0,      # better
@@ -177,9 +181,10 @@ function env_result_to_tuple( rr::env_result_type )
   rr.perturb_goal,
   rr.avgfitness,
   rr.steps,
-  rr.same,
-  rr.worse,
-  rr.better,
+  rr.avgfit,
+  #rr.same,
+  #rr.worse,
+  #rr.better,
   rr.nactive,
   rr.redundancy,
   rr.complexity,

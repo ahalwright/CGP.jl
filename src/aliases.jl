@@ -69,6 +69,7 @@ mutable struct env_result_type
   perturb_goal::Bool
   avgfitness::Bool
   steps::Int64
+  avgfit::Float64   # average fitness of final chromosome
   same::Int64
   worse::Int64
   better::Int64

@@ -68,31 +68,43 @@ end
 # If use_env_goals==false, then repeat goals are obtained by flipping random bits
 #   the additional goals.
 function rand_env_goallist( ngoals::Int64, numinputs::Int64, numoutputs::Int64, 
-      repetitions::Int64, num_flipped_bits::Int64; use_env_goals::Bool=true )
+      repetitions::Int64, num_flipped_bits::Int64; perturb_goal::Bool=true )
+  #println("env goallist: perturb_goal: ",perturb_goal)
   result = Vector{MyInt}[]
   if numoutputs % repetitions != 0
     error("numoutputs=",numoutputs," must be a multiple of repetitions=",repetitions," in rand_env_goallist")
   end
-  f_bits_list = flipped_bits_list( num_flipped_bits, repetitions-1, numinputs )
   #println("f_bit_list: ",f_bits_list)
   for i = 1:ngoals
     #g = rand( component_type(numinputs), div( numoutputs, repetitions ) )
     g = randgoal( numinputs, div(numoutputs,repetitions) )
-    if use_env_goals
-      goal = env_goal( g, f_bits_list )
+    if perturb_goal
+      goal = perturb_bits_goal( g, num_flipped_bits, repetitions, numinputs )   
     else
-      goal = perturb_goal( g, num_flipped_bits, repetitions, numinputs )   
+      f_bits_list = flipped_bits_list( num_flipped_bits, repetitions-1, numinputs )
+      goal = env_goal( g, f_bits_list )
     end
     Base.push!(result,goal)
   end
   result
 end 
 
+# The bits that will be flipped to produce the additional goals in function env_goal()
+# Example (where MyInt==UInt16):
+# julia> flipped_bits_list( 2,3,3)
+# 3-element Array{UInt16,1}:
+#  0x00c0
+#  0x0030
+#  0x000c
 function flipped_bits_list( num_flipped_bits::Int64, repetitions::Int64, numinputs::Int64 )
   one = MyInt(1)
-  ones = one
-  for i = 1:(num_flipped_bits-1)
-    ones = ones<<1 | one
+  if num_flipped_bits > 0
+    ones = one
+    for i = 1:(num_flipped_bits-1)
+      ones = ones<<1 | one
+    end
+  else
+    ones = MyInt(0)   # No flips if num_flipped_bit == 0
   end 
   fb = ones << (2^numinputs-num_flipped_bits)
   #Printf.@printf("flipped_bits_list: ones:  0x%04x  fb: 0x%04x\n",ones,fb)
@@ -102,79 +114,35 @@ end
 # returns a new goal with each component of goal replicated length(flipped_bits_list) times,
 #   where each replication has nbits_to_perturb bits of the original component perturbed
 function env_goal( goal::Goal, flipped_bits_list::Vector{MyInt} )
-  num_repeats = length(flipped_bits_list)
+  #println("env goal")
+  repetitions = length(flipped_bits_list)
   new_goal = Goal()
   for c in goal
     Base.push!( new_goal, c )
-    for i = 1:num_repeats
+    for i = 1:repetitions
       Base.push!( new_goal, xor( c, flipped_bits_list[i] ))
     end
   end
   #println("new_goal: ",new_goal)
   new_goal
 end
-  
-# Not used:  equivalent to xor()
-function apply_condition( component::MyInt, flipbits::MyInt )
-  neg_flipbits = NOT.func( flipbits )
-  neg_component = NOT.func( component )
-  (neg_component & flipbits ) | (component & neg_flipbits )
-end
-  
 
-# Returns a 2-tuple of:
-#    1.  the  maximum number of matching subgoals of testgoal to components of goallist
-#    2.  the  index of the goal of goallist that gave this maximum
-# If testgoal equals all subgoals of a goal of goallist, then returns numouputs and the index of the goal in goallist
-# If no component of testgoal matches the corresponding component of any goal in goallist, return 0
-function goal_count( testgoal::Goal, goallist::GoalList )
-   findmax( map( x -> my_test_goal( x, testgoal ), goallist ))[1] 
-end
-
-# Returns true if testgoal is equal to any of the goals in goallist defined above
-function goal_check( testgoal::Goal, goallist::GoalList )
-  length( filter( x -> testgoal==x, goallist )) > 0
-end
-
-# Returns the number of components of testGoal that are equal to the corresponding component of goal.
-# Never used
-#function my_test_goal( testGoal::Goal, goal::Goal )
-#  length( filter( x -> x == 0, testGoal .⊻ goal ))
-#end
-function my_test_goal( testGoal::Goal, goallist::GoalList )
-  achieved = 0
-  for g in goallist
-    ga = length( filter( x -> x == 0, testGoal .⊻ g ))
-    if ga > achieved
-      achieved = ga
-    end
-    println("my_test_goal: achieved: ",achieved)
-  end
-  achieved
-end
-
-# Test if at least numsubgoals components of testgoal match a component of goal (in any order)
-#=
-function my_test_goal( testgoal::Goal, goal::Goal, numsubgoals::Integer )
-  filter( x -> (Base.findfirst( y -> y == x, testgoal ) != nothing ), goal) 
-end
-=#
-
-# returns an new goal with each component of goal replicated num_repeats times,
+# returns an new goal with each component of goal replicated repetitions times,
 #   where each replication has nbits_to_perturb randomly chosen bits 
 #   of the original component perturbed
-function perturb_goal( goal::Goal, nbits_to_perturb::Int64, num_repeats::Int64, numinputs::Int64 )
+function perturb_bits_goal( goal::Goal, nbits_to_perturb::Int64, repetitions::Int64, numinputs::Int64 )
+  #println("perturb goal")
   new_goal = Goal()
   for c in goal
     push!( new_goal, c )
-    for i = 1:num_repeats
+    for i = 1:repetitions-1
       rp = rand_perturbation( 2^numinputs, nbits_to_perturb ) 
-      Printf.@printf("rp: 0x%04x\n",rp)
+      #Printf.@printf("rp: 0x%04x\n",rp)
       #push!( new_goal, xor( c, rand_perturbation( 2^numinputs, nbits_to_perturb )))
       push!( new_goal, xor( c, rp))
    end
-
   end
+  #println("ptb: Goal: ",goal)
   new_goal
 end
 
@@ -182,7 +150,7 @@ end
 # When perturbing a goal, maxlen should be 2^numinputs
 function rand_perturbation( maxlength::Int64, nbits_to_perturb::Int64 )
   bits_to_perturb = rand_set( maxlength, nbits_to_perturb )
-  println("bits_to_perturb: ",bits_to_perturb)
+  #println("bits_to_perturb: ",bits_to_perturb)
   result = MyInt(0)
   for i in bits_to_perturb
     result |= MyInt(1) << i
@@ -199,3 +167,42 @@ function rand_set( maxlen::Int64, n_elements::Int64 )
   end
   S
 end
+
+# Returns true if testgoal is equal to any of the goals in goallist defined above
+function goal_check( testgoal::Goal, goallist::GoalList )
+  length( filter( x -> testgoal==x, goallist )) > 0
+end
+
+# Returns the number of components of testGoal that are equal to the corresponding component of goal.
+# Never used
+#function my_test_goal( testGoal::Goal, goal::Goal )
+#  length( filter( x -> x == 0, testGoal .⊻ goal ))
+#end
+
+function my_test_goal( testGoal::Goal, goallist::GoalList )
+  achieved = 0
+  for g in goallist
+    ga = length( filter( x -> x == 0, testGoal .⊻ g ))
+    if ga > achieved
+      achieved = ga
+    end
+    println("my_test_goal: achieved: ",achieved)
+  end
+  achieved
+end
+
+# Returns a 2-tuple of:
+#    1.  the  maximum number of matching subgoals of testgoal to components of goallist
+#    2.  the  index of the goal of goallist that gave this maximum
+# If testgoal equals all subgoals of a goal of goallist, then returns numouputs and the index of the goal in goallist
+# If no component of testgoal matches the corresponding component of any goal in goallist, return 0
+function goal_count( testgoal::Goal, goallist::GoalList )
+   findmax( map( x -> my_test_goal( x, testgoal ), goallist ))[1] 
+end
+
+# Test if at least numsubgoals components of testgoal match a component of goal (in any order)
+#=
+function my_test_goal( testgoal::Goal, goal::Goal, numsubgoals::Integer )
+  filter( x -> (Base.findfirst( y -> y == x, testgoal ) != nothing ), goal) 
+end
+=#
