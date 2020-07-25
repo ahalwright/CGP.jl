@@ -1,5 +1,5 @@
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, mut_reduce_numactive
-export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1 
+export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
 
 
 # 5/21: To test:
@@ -121,7 +121,8 @@ end
 #    which says that at most 1 component of output matches with a goal, and this is achieved for goal[2] and goal[3].
 #    See the comments for components_matched() for the interpreation of the third component of the result triple.
 # Note that fitness does not take robustness into account
-function goals_matched_exact( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64 )
+function goals_matched_exact( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64;
+      avgfitness::Bool=false, perm_heuristic::Bool=false )   # Optional arguments not used in this function
   #println("exact")
   matched_goals = map( g->components_matched(output,g), goallist )
   #println("matched_goals: ",matched_goals)
@@ -131,9 +132,14 @@ function goals_matched_exact( output::Vector{MyInt}, goallist::GoalList, numinpu
 end
 
 # Note that fitness does not take robustness into account
-function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64; avgfitness::Bool=false  )
+function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64; 
+    avgfitness::Bool=false, perm_heuristic::Bool=false  )
   #println("hamming")
-  goallist_scores = map( g->match_score(output,g,numinputs,avgfitness=avgfitness), goallist )
+  if perm_heuristic
+    goallist_scores = map( g->match_score_perm_heuristic(output,g,numinputs,avgfitness=avgfitness), goallist )
+  else
+    goallist_scores = map( g->match_score(output,g,numinputs,avgfitness=avgfitness), goallist )
+  end
   matched_goals = map( g->components_matched(output,g), goallist )
   #println("goallist_scores: ",goallist_scores)
   #println("matched_goals: ",matched_goals)
@@ -144,7 +150,7 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; 
       use_robustness::Bool=false, hamming_sel::Bool=true, active_only::Bool=false, num_mutations::Int64=1,
-      avgfitness::Bool=false )
+      avgfitness::Bool=false, perm_heuristic=perm_heuristic )
   context = construct_context(c.params.numinputs)
   new_c = deepcopy(c)
   for _ = 1:num_mutations
@@ -154,7 +160,7 @@ function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}
   #println("output: ",output)
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
   ( new_fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs,
-      avgfitness=avgfitness )
+      avgfitness=avgfitness, perm_heuristic=perm_heuristic )
   #println("new fitness: ",new_fitness)
   new_c = new_fitness >= fitness ? new_c : c
   if use_robustness
@@ -172,7 +178,7 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
-      avgfitness::Bool=false )
+      avgfitness::Bool=false, perm_heuristic=perm_heuristic )
   #println("mut evolve avgfitness: ",avgfitness)
   #print_chromosome(c)
   output = output_values(c)   # Executes c if it has not already been executed
@@ -192,8 +198,9 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   @assert output_values(prev_c) == output_values(orig_c)
   #(c, new_robustness, matched_goals_list ) = 
   #    next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, avgfitness=avgfitness ) 
-  (c, matched_goals, matched_goals_list ) = next_chromosome!(c, goallist, funcs, 
-      hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, avgfitness=avgfitness ) 
+  (c, matched_goals, matched_goals_list ) = 
+      next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, 
+      perm_heuristic=perm_heuristic, avgfitness=avgfitness ) 
   output = output_values(c)   # Executes c if it has not already been executed
   #println("output: ",output)
   #println("trunc(c.fitness): ",trunc(c.fitness))
@@ -225,7 +232,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     if step < max_steps
       (c, matched_goals, matched_goals_list ) = 
             next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, 
-            num_mutations=num_mutations, avgfitness=avgfitness ) 
+            num_mutations=num_mutations, perm_heuristic=perm_heuristic, avgfitness=avgfitness ) 
       #=
       (c, matched_goals, matched_goals_list ) = 
             next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, 

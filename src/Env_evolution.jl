@@ -33,7 +33,7 @@ run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, goallistleng
 function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
     numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange,
     levelsback::IntRange, gl_repetitions::IntRange, num_flip_bits::IntRange, avgfitness::IntRange, 
-    perturb_goal_range::IntRange, csvfile::String; 
+    perm_heuristic::IntRange, perturb_goal_range::IntRange, csvfile::String; 
     base::Float64=2.0, active_only::Bool=false )
   hamming_sel = true
   maxints_for_degen = 20
@@ -80,7 +80,8 @@ function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutput
                     for max_steps = maxsteps
                       for _ = 1:numiterations
                         p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
-                        rr = env_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps, nflipbits, perturb_goal, avgfit )
+                        rr = env_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps, nflipbits, 
+                            perm_heuristic, perturb_goal, avgfit )
                         push!(env_result_list,rr)
                         #run_mut_evolve!(rr)
                         #new_row = env_result_to_tuple(rr)
@@ -110,6 +111,7 @@ function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutput
     #println(f,"nodearity: ",nodearity)
     #println(f,"active_only: ",active_only)
     println(f,"gl_repetitions: ",gl_repetitions)
+    println(f,"perm_heuristic: ",perm_heuristic)
     #println(f,"max_steps",maxsteps)
     CSV.write( f, df, append=true, writeheader=true )
   end
@@ -128,7 +130,7 @@ function run_env_evolve!( rr::env_result_type; maxints_for_degen::Int64, base::F
   #(rr.steps,rr.worse,rr.same,rr.better,c,output,goals_matched,matched_goals_list) = 
   #    mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,active_only=rr.active_only)
   (c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals,matched_goals_list) = 
-      mut_evolve(c,gl,funcs,rr.maxsteps,avgfitness=rr.avgfitness,hamming_sel=rr.hamming_sel)
+      mut_evolve(c,gl,funcs,rr.maxsteps,avgfitness=rr.avgfitness,perm_heuristic=rr.perm_heuristic,hamming_sel=rr.hamming_sel)
   rr.avgfit = c.fitness
   rr.nactive = number_active( c )
   rr.redundancy = redundancy( c, base=base )
@@ -139,7 +141,7 @@ function run_env_evolve!( rr::env_result_type; maxints_for_degen::Int64, base::F
 end
 
 function env_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_only::Bool, 
-      max_steps::Int64, gl_reps::Int64, num_flip_bits::Int64, perturb_goal::Bool, avgfitness::Bool )
+      max_steps::Int64, gl_reps::Int64, num_flip_bits::Int64, perm_heuristic::Bool, perturb_goal::Bool, avgfitness::Bool )
   env_result_type(
     p.numinputs,
     p.numoutputs,
@@ -153,6 +155,7 @@ function env_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_
     num_flip_bits,
     perturb_goal,
     avgfitness,
+    perm_heuristic,
     0,      # steps
     0.0,    # avgfit
     0,      # same

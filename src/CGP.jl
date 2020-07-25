@@ -33,6 +33,7 @@ include("Pop_evolution.jl")
 include("Propsel.jl")
 include("Robust_evolve.jl")
 include("Inf_alleles.jl")
+include("Assignment.jl")
 end
 using Main.CGP
 MyInt=Main.CGP.MyInt

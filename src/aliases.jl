@@ -68,6 +68,7 @@ mutable struct env_result_type
   num_flip_bits::Int64
   perturb_goal::Bool
   avgfitness::Bool
+  perm_heuristic::Bool
   steps::Int64
   avgfit::Float64   # average fitness of final chromosome
   same::Int64
