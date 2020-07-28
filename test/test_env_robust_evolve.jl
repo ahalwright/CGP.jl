@@ -3,17 +3,18 @@
 # The following lines allow this file to included from CGP.jl, CGP.jl/test, or CGP.jl/src.
 cwd = pwd()
 if cwd[end-5:end] == "CGP.jl"
-  csvfile = "$cwd/test/data/test_env_robust_evolve.csv"
+  csvfile = "$cwd/test/data/7_18/test_env_robust_evolve.csv"
 else
-  csvfile = "../test/data/test_env_robust_evolve.csv"
+  csvfile = "../test/data/7_18/test_env_robust_evolve.csv"
 end
-iterations = 40
+iterations = 4
 numinputs = 3
-numoutputs = 3 
+numoutputs = 1
 nodearity = 2
 numinteriors = 10
-ngoals = 8
+ngoals = 4
 levelsback=8
+avgfitness=false
 hamming_rng = true:true
 maxsteps = 100000:100000
 gl_repetitions=2

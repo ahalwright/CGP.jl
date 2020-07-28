@@ -1,5 +1,6 @@
 export execute_chromosome, concatenate_outputs, create_count_function_list, increment_count_function_list, print_function_list
 export evaluate_node, create_count_function_hash, increment_count_function_hash, print_count_function_hash, print_count_function_summary
+export execute_chromosome_ft, evaluate_node_ft
 using Printf
 
 # Limits Funcs to 4 inputs
@@ -31,20 +32,17 @@ function evaluate_node(c::Chromosome, node::InputNode, context::Vector)
 end
 
 function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
-    #println("eval interior node: ",node)
+    #println("en eval interior node: ",node)
     prev_cache = node.cache
     func = node.func
     if node.active
       return node.cache
     end
-    args = map(node.inputs[1:func.arity]) do position
-        index = position
-        #println("position: ",position)
+    args = map(node.inputs[1:func.arity]) do index
+        #println("position: ",index)
         evaluate_node(c, c[index], context)
     end
-    #println("args: ",args)
     result = apply(func.func, args) 
-    #result = 0
     #print("func: ",func,"  args: ",args,"  result: ")
     #Printf.@printf("0x%2x\n",result)
     if node.active 
@@ -56,10 +54,9 @@ function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
 end
 
 # Evaluate an interior node in isolation using context as the input
-# context should be the context for nodearity.
-# For debugging 
+# context should be the context for numinputs.
 function eval_interior( node::InteriorNode, context::Vector )
-    #println("eval interior node: ",node)
+    #println("ei eval interior node: ",node)
     func = node.func
     args = [context[i] for i = 1:func.arity]
     #println("args: ",args)
@@ -67,15 +64,62 @@ function eval_interior( node::InteriorNode, context::Vector )
 end
 
 function evaluate_node(c::Chromosome, node::OutputNode, context::Vector)
-    #println("eval output node: ",node)
     index = node.input
+    #println("eval output node: ",node,"  index: ",index)
     return evaluate_node(c, c[index], context)
 end
 
+# Execute chromosme using context for the inputs and return outputs
 function execute_chromosome(c::Chromosome, context::Vector)
     #println("Executing chromosome")
     #print_chromosome(c)
     return [evaluate_node(c, node, context) for node = c.outputs]
+end
+
+function evaluate_node_ft(c::Chromosome, node::OutputNode, context::Vector, perturb_index::Int64 )
+    index = node.input
+    #println("ft eval output node: ",node,"  index: ",index)
+    if index == perturb_index
+        #println("ft out index == perturb_index")
+        result = NOT.func(evaluate_node_ft(c, c[index], context,perturb_index))
+    else
+       result = evaluate_node_ft(c, c[index], context,perturb_index)
+    end
+    #print("ft out index: ",index)
+    #Printf.@printf("ft out result: 0x%2x\n",result)
+    return result
+end
+
+function evaluate_node_ft(c::Chromosome, node::InputNode, context::Vector, perturb_index::Int64 )
+    #println("ft eval input node: ",node)
+    #Printf.@printf("ft result:  0x0%4x\n",context[node.index]) 
+    return context[node.index]
+end
+
+function evaluate_node_ft(c::Chromosome, node::InteriorNode, context::Vector, perturb_index::Int64 )
+    #println("ft eval interior node: ",node)
+    func = node.func
+    args = map(node.inputs[1:func.arity]) do index
+        #println("index: ",index)
+        if index == perturb_index
+          #println("  ft int index == perturb_index")
+          NOT.func(evaluate_node_ft(c, c[index], context,perturb_index))
+        else
+          evaluate_node_ft(c, c[index], context,perturb_index)
+        end
+    end
+    result = apply(func.func, args) 
+    #print("ft int func: ",func,"  args: ",args )
+    #Printf.@printf("  ft int result: 0x%2x\n",result)
+    return result
+end
+
+# Fault tolerant version where the output of node c[perturb_index] is negated
+# Note: ignores cache values for nodes
+function execute_chromosome_ft(c::Chromosome, context::Vector, perturb_index::Int64 )
+    #println("FT Executing chromosome")
+    #print_chromosome(c)
+    return [evaluate_node_ft(c, node, context,perturb_index) for node = c.outputs]
 end
 
 function print_function_list( function_list::Vector{MyFunc} )

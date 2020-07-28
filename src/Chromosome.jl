@@ -2,7 +2,7 @@ import Base.getindex
 export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, hamming, hamming_distance
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_old
-export copy_chromosome!, mutational_robustness
+export copy_chromosome!, mutational_robustness, fault_tolerance
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome
 
 mutable struct Chromosome
@@ -321,6 +321,13 @@ function mutational_robustness( c::Chromosome, funcs::Vector{Func}; active_only:
     num_mut_locs = num_mutate_locations( c, funcs )
   end
   count_no_change/num_mut_locs
+end
+
+function fault_tolerance( c::Chromosome, goal::Goal )
+  context = construct_context( c.params.numinputs )
+  outputs = output_values( c )
+  for i = 1:c.params.numinteriors
+  end
 end
 
 mutable struct Int_node

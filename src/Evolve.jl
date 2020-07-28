@@ -178,7 +178,8 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
-      avgfitness::Bool=false, perm_heuristic=perm_heuristic )
+      avgfitness::Bool=false, perm_heuristic=false)
+
   #println("mut evolve avgfitness: ",avgfitness)
   #print_chromosome(c)
   output = output_values(c)   # Executes c if it has not already been executed
