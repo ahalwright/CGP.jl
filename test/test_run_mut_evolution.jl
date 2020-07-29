@@ -15,7 +15,8 @@ numinteriors = 6:6
 ngoals = 8:8
 levelsback=6:6
 hamming_rng = true:true
+fault_tol_rng = false:true
 maxsteps = 100000:100000
 gl_repetitions=2
 #run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, goallistlength, maxsteps, levelsback, hamming_rng, csvfile )
-run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, ngoals, maxsteps, levelsback, hamming_rng, csvfile, gl_repetitions=gl_repetitions )
+run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, ngoals, maxsteps, levelsback, hamming_rng, csvfile, gl_repetitions=gl_repetitions, fault_tol_rng=fault_tol_rng )

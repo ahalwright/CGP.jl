@@ -1,4 +1,4 @@
-export Population, indiv_result_type, pop_result_type
+export Population, Chromosome, Parameters, indiv_result_type, pop_result_type
 
 using Distributions
 using DataFrames
@@ -38,10 +38,12 @@ mutable struct indiv_result_type
   levelsback::Int64
   ngoals::Int64
   hamming_sel::Bool
+  avgfitness::Bool
   #robust_sel::Bool
   active_only::Bool
   maxsteps::Int64
   gl_reps::Int64
+  fault_tol::Bool
   steps::Int64
   same::Int64
   worse::Int64

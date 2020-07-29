@@ -13,7 +13,7 @@ c = build_chromosome(
 context = construct_context(c.params.numinputs)
 outv = output_values(c)
 
-@testset "test correctness of execute_chromomsome_ft()" begin
+@testset "test correctness of execute_chromomsome_ft() and fault_tolerance_fitness()" begin
 # Compute output for c
 n1 = context[1]
 n2 = context[2]
@@ -58,6 +58,21 @@ s7 = s5
 s8 = s6
 e3 = execute_chromosome_ft( c, context, 3 );
 @test  e3 == [s7,s8]
+
+funcs = default_funcs(2)  # Reset for chromosome c1 which has 2 inputs
+# Flipping the output of gate 3 of c1 changes the output from 0x00 to 0x0f
+c1 = build_chromosome( (1,2), ((ZERO,Integer[]),), (3,))
+println("fault_tolerance_fitness(c1): ",fault_tolerance_fitness(c1))
+@test isapprox(fault_tolerance_fitness(c1),0.0)
+
+funcs = default_funcs(3)  # Reset for chromosome nulc which has 3 inputs
+# Flipping the output of gate 4 (the first interior node) has no effect on the output
+# Flipping the output of gate 5 (the second interior node)  flips the first output but not the second
+# Flipping the output of gate 6 (the third interior node)  flips the second output but not the first
+nulc = build_chromosome(
+  (1,2,3),
+  ((NAND,Integer[3, 1]),(ZERO,Integer[]),(ONE,Integer[])),
+  (5,6))
+
+@test isapprox(fault_tolerance_fitness(nulc),2/3)
 end  # @testset
-
-

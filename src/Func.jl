@@ -26,8 +26,8 @@ Not(x) = (~x) & Ones
 const NOT = Func(Not, 1, "NOT")
 Zero() = MyInt(0)
 const ZERO = Func(Zero, 0, "0")
-#One() = Ones
-#const ONE = Func(One, 0, "1")
+One() = Ones
+const ONE = Func(One, 0, "1")
 One() = Ones
 
 function default_funcs( numinputs::Int64 )

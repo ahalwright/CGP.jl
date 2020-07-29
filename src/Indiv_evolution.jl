@@ -33,7 +33,8 @@ run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, goallistleng
 function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
     numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange,
     levelsback::IntRange, hamming_rng::IntRange, csvfile::String; 
-    base::Float64=2.0, active_only::Bool=false, gl_repetitions::IntRange=1 )
+    base::Float64=2.0, active_only::Bool=false, gl_repetitions::IntRange=1, fault_tol_rng::IntRange=false,
+    avgfit_rng::IntRange=false )
   maxints_for_degen = 20
   nodearity = 2
   run_result_list = indiv_result_type[]
@@ -43,8 +44,10 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   df.numints=Int64[]
   df.levelsback=Int64[]
   df.ngoals=Int64[]
-  df.hamming_sel=Bool[]
+  #df.hamming_sel=Bool[]
   #df.robust_sel=Bool[]
+  df.avgfitness=Bool[]
+  df.fault_tol=Bool[]
   df.active_only=Bool[]
   df.maxsteps=Int64[]
   df.gl_reps=Int64[]
@@ -66,21 +69,25 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
           println("numinputs: ",num_inputs,"  numoutputs: ",num_outputs,"  numints: ",num_interiors,"  numgoals: ",num_goals)
           for levsback = levelsback
             for hamming_sel = hamming_rng
-                for active_only = [false]
-                  for gl_reps = gl_repetitions 
-                    println("hamming_sel: ",hamming_sel,"  active_only: ",active_only)
-                    for max_steps = maxsteps
-                      for _ = 1:numiterations
-                        p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
-                        rr = run_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps )
-                        push!(run_result_list,rr)
-                        #run_mut_evolve!(rr)
-                        #new_row = run_result_to_tuple(rr)
-                        #Base.push!( df, new_row )
+              for avgfitness = avgfit_rng
+                for fault_tol = fault_tol_rng
+                  for active_only = [false]
+                    for gl_reps = gl_repetitions 
+                      #println("hamming_sel: ",hamming_sel,"  active_only: ",active_only)
+                      for max_steps = maxsteps
+                        for _ = 1:numiterations
+                          p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
+                          rr = run_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps, fault_tol, avgfitness )
+                          push!(run_result_list,rr)
+                          #run_mut_evolve!(rr)
+                          #new_row = run_result_to_tuple(rr)
+                          #Base.push!( df, new_row )
+                        end
                       end
                     end
                   end
                 end
+              end
             end
           end
         end
@@ -124,7 +131,8 @@ function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_re
   rr
 end
 
-function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_only::Bool, max_steps::Int64, gl_reps::Int64 )
+function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_only::Bool, max_steps::Int64, 
+      gl_reps::Int64, fault_tol::Bool, avgfitness::Bool )
   indiv_result_type(
     p.numinputs,
     p.numoutputs,
@@ -132,9 +140,11 @@ function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_
     p.numlevelsback,
     num_goals,
     hamming_sel,
+    avgfitness,
     active_only,
     max_steps,
     gl_reps,
+    fault_tol,
     0,      # steps
     0,      # same
     0,      # worse
@@ -154,7 +164,9 @@ function run_result_to_tuple( rr::indiv_result_type )
   rr.numints,
   rr.levelsback,
   rr.ngoals,
-  rr.hamming_sel,
+  #rr.hamming_sel,
+  rr.avgfitness,
+  rr.fault_tol,
   rr.active_only,
   rr.maxsteps,
   rr.gl_reps,

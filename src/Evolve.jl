@@ -150,25 +150,44 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; 
       use_robustness::Bool=false, hamming_sel::Bool=true, active_only::Bool=false, num_mutations::Int64=1,
-      avgfitness::Bool=false, perm_heuristic=perm_heuristic )
+      avgfitness::Bool=false, perm_heuristic=perm_heuristic, fault_tol::Bool=false )
   context = construct_context(c.params.numinputs)
+  #print_build_chromosome( c )
+  if fault_tol 
+    old_ftf = fault_tolerance_fitness( c )
+    #println("old_ftf: ",old_ftf)
+  end
   new_c = deepcopy(c)
   for _ = 1:num_mutations
     mutate_chromosome!( new_c, funcs )
   end
   output = execute_chromosome(new_c,context)
-  #println("output: ",output)
+  #println("new_c output: ",output,"  new_c.fitness: ",new_c.fitness)
   goals_matched = hamming_sel ? goals_matched_hamming : goals_matched_exact
   ( new_fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs,
       avgfitness=avgfitness, perm_heuristic=perm_heuristic )
-  #println("new fitness: ",new_fitness)
-  new_c = new_fitness >= fitness ? new_c : c
+  #println("old_fitness: ",fitness,"  c.fitness: ",c.fitness, "  new_fitness: ",new_fitness)
+  if !fault_tol
+    if new_fitness < fitness
+      new_c = c
+    else
+      new_c.fitness = new_fitness
+    end    
+  else
+    new_ftf = fault_tolerance_fitness( new_c )
+    #println("new_ftf: ",new_ftf,"  new_c: ",(new_fitness >= fitness) && (new_ftf >= old_ftf))
+    if (new_fitness < fitness) || (new_ftf < old_ftf)
+      new_c = c
+    else
+      new_c.fitness = new_fitness
+    end
+  end  
   if use_robustness
     mut_robust = mutational_robustness( new_c, funcs, active_only=active_only )
     new_c.robustness = mut_robust
     #println("new_fitness: ",new_fitness,"  n_mut_robust: ",mut_robust)
   end
-  new_c.fitness = new_fitness
+  #print_build_chromosome( new_c )
   return ( new_c, matched_goals, matched_goals_list )
 end
 
@@ -178,7 +197,7 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
-      avgfitness::Bool=false, perm_heuristic=false)
+      avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false )
 
   #println("mut evolve avgfitness: ",avgfitness)
   #print_chromosome(c)

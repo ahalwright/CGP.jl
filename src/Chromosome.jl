@@ -2,7 +2,7 @@ import Base.getindex
 export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, hamming, hamming_distance
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_old
-export copy_chromosome!, mutational_robustness, fault_tolerance
+export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome
 
 mutable struct Chromosome
@@ -83,10 +83,10 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
     #println("mutate a func ml:",mutate_location)
     active = c[mutate_location].active
     new_func_index = rand(1:length(funcs))
-    #println("new_funct_index: ",new_func_index,"  funcs[new_func_index]: ",funcs[new_func_index])
-    #println("  c.interiors[mutate_location].func: ",c.interiors[mutate_location].func)
-    #println("condition: ", funcs[new_func_index] == c.interiors[mutate_location].func )
-    while( funcs[new_func_index] == c.interiors[mutate_location].func )
+    #println("new_funct_index: ",new_func_index,"  funcs[new_func_index].func: ",funcs[new_func_index].func)
+    #println("  c.interiors[mutate_location].func: ",c.interiors[mutate_location].func.func)
+    #println("condition: ", funcs[new_func_index].func == c.interiors[mutate_location].func.func )
+    while( funcs[new_func_index].func == c.interiors[mutate_location].func.func )
       new_func_index = rand(1:length(funcs))
       #println("while new_funct_index: ",new_func_index)
     end
@@ -136,7 +136,7 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
     c.interiors[i].inputs[j] = intindex
     #println("(i,j): ",(i,j),"  c.interiors[i].inputs: ",c.interiors[i].inputs)
   elseif mutate_location > num_funcs_to_mutate + sum(num_inputs_list)   # mutate an output
-    println("mutate the output: ",mutate_location - num_funcs_to_mutate - sum(num_inputs_list ))
+    #println("mutate the output: ",mutate_location - num_funcs_to_mutate - sum(num_inputs_list ))
     active = true   # outputs are always active
     minindex = max(1, num_funcs_to_mutate + c.params.numinputs - c.params.numlevelsback + 1 ) 
     maxindex = num_funcs_to_mutate + c.params.numinputs
@@ -323,11 +323,25 @@ function mutational_robustness( c::Chromosome, funcs::Vector{Func}; active_only:
   count_no_change/num_mut_locs
 end
 
-function fault_tolerance( c::Chromosome, goal::Goal )
+# Implements equation 3.3 of Macia and Sole
+function fault_tolerance_fitness( c::Chromosome )
+  numinputs = c.params.numinputs
+  numoutputs = c.params.numoutputs
+  numints = c.params.numinteriors
+  #println("(numinputs,numoutputs,numints):",(numinputs,numoutputs,numints))
   context = construct_context( c.params.numinputs )
   outputs = output_values( c )
-  for i = 1:c.params.numinteriors
+  #println("outputs: ",outputs)
+  distances = fill(0.0,numints)
+  for i = (1+numinputs):(numinputs+numints)    
+    out_ft = execute_chromosome_ft(c,context,i)
+    #println("i: ",i,"  out_ft: ",out_ft)
+    #println("hamming dis: ",hamming_distance(execute_chromosome_ft(c,context,i)[1], outputs[1], numinputs))
+    distances[i-numinputs] =  
+      sum( hamming_distance(execute_chromosome_ft(c,context,i)[k], outputs[k], numinputs) for k = 1:numoutputs)
   end
+  #println("distances: ",distances)
+  1.0-sum(distances)/numints/numoutputs
 end
 
 mutable struct Int_node
@@ -355,8 +369,9 @@ function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vect
   Chromosome( p, in_nodes, int_nodes, out_nodes, 0.0, 0.0 )
 end
 
-# Example call:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,))
-function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple )
+# Example calls:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,))
+# Example calls:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,),0.0)
+function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Float64=0.0 )
   num_in = length(inputs)
   num_ints = length(ints)
   num_outs = length(outs)
@@ -364,17 +379,18 @@ function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple )
   in_nodes = [InputNode(in_index) for in_index in inputs]
   int_nodes = [InteriorNode(int_pair[1], int_pair[2]) for int_pair in ints]
   out_nodes = [OutputNode(out_index) for out_index in outs]
-  Chromosome( p, in_nodes, int_nodes, out_nodes, 0.0, 0.0 )
+  Chromosome( p, in_nodes, int_nodes, out_nodes, fitness, 0.0 )
 end
 
 function print_build_chromosome( f::IO, c::Chromosome )
   println(f, "build_chromosome(")
   print_node_tuple(f, c.inputs )
-  println(f,",")
+  print(f,",")
   print_node_tuple(f, c.interiors )
-  println(f,",")
+  print(f,",")
   print_node_tuple(f, c.outputs )
-  println(f, ")")
+  println(f,", ",c.fitness,")")
+  #print(f, ") ")
   if typeof(f) == IOStream  # Don't close Base.stdout since this kills julia
     close(f)
   end
