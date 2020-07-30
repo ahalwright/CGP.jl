@@ -36,6 +36,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
     base::Float64=2.0, active_only::Bool=false, gl_repetitions::IntRange=1, fault_tol_rng::IntRange=false,
     avgfit_rng::IntRange=false )
   maxints_for_degen = 20
+  ftf_param = 0.95
   nodearity = 2
   run_result_list = indiv_result_type[]
   df = DataFrame() 
@@ -94,8 +95,8 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
       end
     end
   end
-  new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base),run_result_list)
-  #new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base),run_result_list)
+  new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,ftf_param=ftf_param,base=base),run_result_list)
+  #new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,ftf_param=ftf_param,,base=base),run_result_list)
   for r = new_run_result_list
      new_row = run_result_to_tuple(r)
      Base.push!( df, new_row )
@@ -106,6 +107,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
     println(f,"# nodearity: ",nodearity)
     #println(f,"# active_only: ",active_only)
     println(f,"# gl_repetitions: ",gl_repetitions)
+    println(f,"# ftf_param: ",ftf_param)
     println(f,"# max_steps",maxsteps)
     CSV.write( f, df, append=true, writeheader=true )
   end
@@ -113,8 +115,8 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   df
 end
 
-function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_repetitions::Int64=1, base::Float64=2.0 )
-  ftf_param = 0.95
+function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_repetitions::Int64=1, 
+      ftf_param::Float64=0.95, base::Float64=2.0 )
   #println("run_mut_evolve! fault_tol: ",rr.fault_tol)
   nodearity = 2   # built-in default
   p = Parameters( numinputs=rr.numinputs, numoutputs=rr.numoutputs, numinteriors=rr.numints, numlevelsback=rr.levelsback )
