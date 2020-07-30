@@ -150,8 +150,9 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; 
       use_robustness::Bool=false, hamming_sel::Bool=true, active_only::Bool=false, num_mutations::Int64=1,
-      avgfitness::Bool=false, perm_heuristic=perm_heuristic, fault_tol::Bool=false )
+      avgfitness::Bool=false, perm_heuristic=perm_heuristic, fault_tol::Bool=false, ftf_param::Float64=0.95 )
   context = construct_context(c.params.numinputs)
+  #println("next_chromosome!:  fault_tol: ",fault_tol,"  ftf_param: ",ftf_param)
   #print_build_chromosome( c )
   if fault_tol 
     old_ftf = fault_tolerance_fitness( c )
@@ -176,7 +177,7 @@ function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}
   else
     new_ftf = fault_tolerance_fitness( new_c )
     #println("new_ftf: ",new_ftf,"  new_c: ",(new_fitness >= fitness) && (new_ftf >= old_ftf))
-    if (new_fitness < fitness) || (new_ftf < old_ftf)
+    if (new_fitness < fitness) || ((new_ftf < old_ftf) && (rand() > ftf_param))
       new_c = c
     else
       new_c.fitness = new_fitness
@@ -197,9 +198,8 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
-      avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false )
-
-  #println("mut evolve avgfitness: ",avgfitness)
+      avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95 )
+  #println("mut evolve avgfitness: ",avgfitness,"  fault_tol: ",fault_tol,"  ftf_param: ",ftf_param)
   #print_chromosome(c)
   output = output_values(c)   # Executes c if it has not already been executed
   #println("output: ",output)
@@ -220,7 +220,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   #    next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, avgfitness=avgfitness ) 
   (c, matched_goals, matched_goals_list ) = 
       next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, 
-      perm_heuristic=perm_heuristic, avgfitness=avgfitness ) 
+      perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol, ftf_param=ftf_param ) 
   output = output_values(c)   # Executes c if it has not already been executed
   #println("output: ",output)
   #println("trunc(c.fitness): ",trunc(c.fitness))
@@ -252,7 +252,8 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     if step < max_steps
       (c, matched_goals, matched_goals_list ) = 
             next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, 
-            num_mutations=num_mutations, perm_heuristic=perm_heuristic, avgfitness=avgfitness ) 
+            num_mutations=num_mutations, perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol,
+            ftf_param=ftf_param ) 
       #=
       (c, matched_goals, matched_goals_list ) = 
             next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, 

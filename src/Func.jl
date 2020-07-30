@@ -30,6 +30,13 @@ One() = Ones
 const ONE = Func(One, 0, "1")
 One() = Ones
 
+global Ones
+# Sets up Ones, ONE for the number of inputs
+function setup_funcs( numinputs::Int64 )
+  Ones = Main.CGP.construct_ones(numinputs)[numinputs]
+  ONE = Func(One, 0, "1")
+end
+
 function default_funcs( numinputs::Int64 )
   Ones = Main.CGP.construct_ones(numinputs)[numinputs]
   ONE = Func(One, 0, "1")

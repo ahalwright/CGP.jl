@@ -102,11 +102,11 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   end
   println(default_funcs(2))
   open( csvfile, "w" ) do f
-    println(f,"funcs: ", Main.CGP.default_funcs(numinputs[end]))
-    println(f,"nodearity: ",nodearity)
-    #println(f,"active_only: ",active_only)
-    println(f,"gl_repetitions: ",gl_repetitions)
-    println(f,"max_steps",maxsteps)
+    println(f,"# funcs: ", Main.CGP.default_funcs(numinputs[end]))
+    println(f,"# nodearity: ",nodearity)
+    #println(f,"# active_only: ",active_only)
+    println(f,"# gl_repetitions: ",gl_repetitions)
+    println(f,"# max_steps",maxsteps)
     CSV.write( f, df, append=true, writeheader=true )
   end
   #println(df)
@@ -114,6 +114,8 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
 end
 
 function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_repetitions::Int64=1, base::Float64=2.0 )
+  ftf_param = 0.95
+  #println("run_mut_evolve! fault_tol: ",rr.fault_tol)
   nodearity = 2   # built-in default
   p = Parameters( numinputs=rr.numinputs, numoutputs=rr.numoutputs, numinteriors=rr.numints, numlevelsback=rr.levelsback )
   #print_parameters( p )
@@ -121,8 +123,8 @@ function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_re
   #println("gl: ",gl)
   funcs = default_funcs(rr.numinputs) 
   c = random_chromosome( p, funcs )
-  #(rr.steps,rr.worse,rr.same,rr.better,c,output,goals_matched,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,active_only=rr.active_only)
-  (c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals,matched_goals_list) = mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel)
+  (c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals,matched_goals_list) = 
+      mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,fault_tol=rr.fault_tol, ftf_param=ftf_param )
   rr.nactive = number_active( c )
   rr.redundancy = redundancy( c, base=base )
   rr.complexity = rr.numints <= maxints_for_degen ? complexity5( c, base=base ) : 0.0
