@@ -8,7 +8,7 @@ if cwd[end-5:end] == "CGP.jl"
 else
   csvfile = "../data/$date/test_env_evolveA.csv"
 end
-iterations = 2
+iterations = 1
 numinputs = 3
 numoutputs = 6 
 nodearity = 2
@@ -18,10 +18,11 @@ levelsback=15
 #hamming_rng = true:true
 maxsteps = 100000:100000
 gl_repetitions = 3
-num_flip_bits = 1:2
+num_flip_bits = 2:2
 perm_heuristic=true
 perturb_goal_range = false:true
 avgfitness = true
+fit_limit_list = [numoutputs-2.0, numoutputs-1.0, Float64(numoutputs)]
 #run_env_evolution( iterations, numinputs, numoutputs, numinteriors, goallistlength, maxsteps, levelsback, csvfile )
 df = run_env_evolution( iterations, numinputs, numoutputs, numinteriors, ngoals, maxsteps, levelsback, 
-    gl_repetitions, num_flip_bits, avgfitness, perm_heuristic, perturb_goal_range, csvfile )
+    gl_repetitions, num_flip_bits, avgfitness, perm_heuristic, perturb_goal_range, fit_limit_list, csvfile )

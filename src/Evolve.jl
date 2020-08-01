@@ -198,7 +198,9 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
-      avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95 )
+      avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95, 
+      fit_limit::Float64=Float64(c.params.numoutputs) )
+  #println("mut_evolve fit limit: ",fit_limit)
   #println("mut evolve avgfitness: ",avgfitness,"  fault_tol: ",fault_tol,"  ftf_param: ",ftf_param)
   #print_chromosome(c)
   output = output_values(c)   # Executes c if it has not already been executed
@@ -223,10 +225,10 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol, ftf_param=ftf_param ) 
   output = output_values(c)   # Executes c if it has not already been executed
   #println("output: ",output)
-  #println("trunc(c.fitness): ",trunc(c.fitness))
   #while step < max_steps && new_fitness < c.params.numoutputs
-  while step < max_steps && trunc(c.fitness) < c.params.numoutputs
+  while step < max_steps && c.fitness < fit_limit
     #println("step: ",step,"  output: ",output,"   ")
+    #println("trunc(c.fitness): ",trunc(c.fitness))
     if c.fitness > fitness
       if print_improvements
         matched_goal_components = [map( x->x[1], mgl) for mgl in matched_goals_list]
@@ -265,8 +267,8 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   if step == max_steps
     println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
   else
-    #println("matched_goals: ",matched_goals,"  matched_goals_list: ",matched_goals_list)
     println("mut_evolve finished in ",step," steps with fitness: ", c.fitness )
+    #println("matched_goals: ",matched_goals,"  matched_goals_list: ",matched_goals_list)
   end
   if orig_c.fitness > c.fitness
     #println("(orig_c.fitness,c.fitness): ",(orig_c.fitness,c.fitness)) 
@@ -282,7 +284,9 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       println("fitness improved from ",fitness," to ",c.fitness," at step: ",step, "  goals_matched: ", matched_goals, "  matched goal comps: ", matched_goal_components)
     end
     #println("sort(output: ",sort(output),"  sort(goallist[matched_goals[1]]): ",sort(goallist[matched_goals[1]]))
-    @assert sort(output) == sort(goallist[matched_goals[1]])
+    if Int(trunc(fit_limit)) == c.params.numoutputs
+      @assert sort(output) == sort(goallist[matched_goals[1]])
+    end
   end
   (c,step,worse,same,better,output,matched_goals,matched_goals_list)
 end 
