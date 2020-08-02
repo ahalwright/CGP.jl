@@ -32,7 +32,7 @@ run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, goallistleng
 
 function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
     numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange,
-    levelsback::IntRange, hamming_rng::IntRange, csvfile::String; 
+    levelsback::IntRange, hamming_rng::IntRange, fit_limit_list::Vector{Float64}, csvfile::String; 
     base::Float64=2.0, active_only::Bool=false, gl_repetitions::IntRange=1, fault_tol_rng::IntRange=false,
     avgfit_rng::IntRange=false )
   maxints_for_degen = 20
@@ -52,6 +52,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   df.active_only=Bool[]
   df.maxsteps=Int64[]
   df.gl_reps=Int64[]
+  df.fit_limit=Float64[]
   df.steps=Int64[]
   df.same=Int64[]
   df.worse=Int64[]
@@ -64,6 +65,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   #println("size(df): ",size(df))
   for num_inputs = numinputs
     for num_outputs = numoutputs
+      fit_limit = Float64(num_outputs)
       funcs = default_funcs(num_inputs) 
       for num_interiors = numinteriors
         for num_goals = goallistlength
@@ -74,15 +76,15 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
                 for fault_tol = fault_tol_rng
                   for active_only = [false]
                     for gl_reps = gl_repetitions 
-                      #println("hamming_sel: ",hamming_sel,"  active_only: ",active_only)
-                      for max_steps = maxsteps
-                        for _ = 1:numiterations
-                          p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
-                          rr = run_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps, fault_tol, avgfitness )
-                          push!(run_result_list,rr)
-                          #run_mut_evolve!(rr)
-                          #new_row = run_result_to_tuple(rr)
-                          #Base.push!( df, new_row )
+                      for fit_limit in fit_limit_list
+                        #println("hamming_sel: ",hamming_sel,"  active_only: ",active_only)
+                        for max_steps = maxsteps
+                          for _ = 1:numiterations
+                            p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
+                            rr = run_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps, fault_tol, avgfitness, fit_limit )
+                            push!(run_result_list,rr)
+                            #Base.push!( df, new_row )
+                          end
                         end
                       end
                     end
@@ -126,7 +128,7 @@ function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_re
   funcs = default_funcs(rr.numinputs) 
   c = random_chromosome( p, funcs )
   (c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals,matched_goals_list) = 
-      mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,fault_tol=rr.fault_tol, ftf_param=ftf_param )
+      mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,fault_tol=rr.fault_tol, ftf_param=ftf_param, fit_limit=rr.fit_limit )
   rr.nactive = number_active( c )
   rr.redundancy = redundancy( c, base=base )
   rr.complexity = rr.numints <= maxints_for_degen ? complexity5( c, base=base ) : 0.0
@@ -136,7 +138,7 @@ function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_re
 end
 
 function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_only::Bool, max_steps::Int64, 
-      gl_reps::Int64, fault_tol::Bool, avgfitness::Bool )
+      gl_reps::Int64, fault_tol::Bool, avgfitness::Bool, fit_limit::Float64 )
   indiv_result_type(
     p.numinputs,
     p.numoutputs,
@@ -149,6 +151,7 @@ function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_
     max_steps,
     gl_reps,
     fault_tol,
+    fit_limit,
     0,      # steps
     0,      # same
     0,      # worse
@@ -174,6 +177,7 @@ function run_result_to_tuple( rr::indiv_result_type )
   rr.active_only,
   rr.maxsteps,
   rr.gl_reps,
+  rr.fit_limit,
   rr.steps,
   rr.same,
   rr.worse,

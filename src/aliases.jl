@@ -44,6 +44,7 @@ mutable struct indiv_result_type
   maxsteps::Int64
   gl_reps::Int64
   fault_tol::Bool
+  fit_limit::Float64     
   steps::Int64
   same::Int64
   worse::Int64
