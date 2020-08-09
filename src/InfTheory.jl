@@ -4,8 +4,36 @@
 using Combinatorics
 export get_probs, get_bits, degeneracy, degeneracy1 
 #include("../../information_theory/src/entropy.jl")
-export degeneracy, degeneracy1, complexity5, complexity6, redundancy
-export mutinf1, mutinf2
+export degeneracy, degeneracy1, complexity4, complexity5, complexity6, complexity7, redundancy, integration
+export mutinf1, mutinf2, test_MyInt, MyIntBits
+
+# if function degeneracy() or complexity() is called with numinteriors > MyIntBits(MyInt), the results of get_bits() will overflow
+#   and be inaccurate.
+# maxints_for_degen is the upper limit of numinteriors for calls to degeneracy() and complexity()
+function test_MyInt(max_numinteriors::Int64)
+  MyInt_bits = MyIntBits( MyInt )
+  if max_numinteriors > MyInt_bits && maxints_for_degen > MyInt_bits
+    println("max_numinteriors: ",max_numinteriors,"  maxints_for_degen: ",maxints_for_degen,"  MyInt_bits: ",MyInt_bits)
+    error("max_numinteriors > MyInt_bits && maxints_for_degen > MyInt_bits in function test_MyInt.  Run with a larger width MyInt" )
+  end
+end
+
+# return the maximum number of bits in a MyInt integer
+function MyIntBits( my_int::Type )
+  if my_int == UInt8
+    8
+  elseif my_int == UInt16
+    16
+  elseif my_int == UInt32
+    32
+  elseif my_int == UInt64
+    64
+  elseif my_int == UInt128
+    128
+  else
+    error("error in MyIntBits")
+  end
+end          
 
 # v is a vector of outputs from a subset of a circuit
 # The length of v is the number of gates in the circuit
@@ -47,7 +75,7 @@ end
 #    1110
 #    0101
 #    1010
-function get_bits( v::Vector{Main.CGP.MyInt}, numinputs::Integer )
+function get_bits( v::Vector{Main.CGP.MyInt}, numinputs::Int64 )
   result = zeros(MyInt,2^numinputs)
   reverse_v = reverse(v)
   mask = MyInt(1)
@@ -93,7 +121,7 @@ function degeneracy( c::Chromosome; mutinf::Function=mutinf1, base=Float64=2.0 )
   summand = [mi_avg[k] - k/n*mi_X_O for k = 1:n]
   @assert summand[n] == 0.0
   #println("summand: ",summand)
-  sum([mi_avg[k] - k/n*mi_X_O for k = 1:n])
+  sum(summand)
 end
 
 # degeneracy according to equation 2.5 of Macia and Sole
@@ -155,92 +183,120 @@ function redundancy( c::Chromosome; mutinf::Function=mutinf1, base=Float64=2.0 )
 end
 
 # Tononi complexity as defined by equation 5 of Tononi et al. (1994).
-# on April 13 replaced Macia Z with Tononi n as the number of interacting units
-# On May 1 replaced call to get_probs with a call to get_bits
 # Note:  no use of mutual information, just entropy
 function complexity5( c::Chromosome; base=Float64=2.0 )
-  # Macia & Sole:  Z = number of "interacting units".  See comments in file macia_circuit.jl.
+  # Macia & Sole:  Z = n = number of "interacting units".  See comments in file macia_circuit.jl.
   n = c.params.numinteriors 
   numinputs = c.params.numinputs
   if number_active( c ) == 0   # Make sure chromosome has been executed
     execute_chromosome( c, construct_context(numinputs ) )
   end
   (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
+  complexity5( X, numinputs; base=Float64=2.0 )
+end
+
+function complexity5( X::Vector{MyInt}, numinputs::Int64; base=Float64=2.0 )
+  n = length(X)
   gbX = get_bits( X, numinputs )
-  gbO = get_bits( O, numinputs )
+  #println("X: ",X,"  gbX: ",gbX)  
   ent_X = entropy(gbX,base=base)
   ents = [map(x->entropy(x,base=base),map(x->get_bits(x,numinputs),[s for s in combinations(X,k)])) 
         for k = 1:(length(X))]
   #println("ents: ",ents)
-  mi_avg = map(x->sum(x)/length(x), ents )
-  #println("mi_avg: ",mi_avg)
-  summand = [mi_avg[k] - k/n*ent_X for k = 1:n]
+  ents_avg = map(x->sum(x)/length(x), ents )
+  #println("ents_avg: ",ents_avg)
+  summand = [ents_avg[k] - k/n*ent_X for k = 1:n]
   #println("summand: ",summand)
-  sum([mi_avg[k] - k/n*ent_X for k = 1:n])
+  sum(summand)
 end
 
-# Tononi complexity as defined by equation 6 of Tononi et al. (1994).
-# On April 13 replaced Macia Z with Tononi n as the number of interacting units
-# On May 1 replaced call to get_probs with a call to get_bits
-function complexity6( c::Chromosome; mutinf::Function=mutinf1, base=Float64=2.0 )
-  # Macia & Sole:  Z = number of "interacting units".  See comments in file macia_circuit.jl.
+function complexity6( c::Chromosome; base=Float64=2.0 )
+  # Macia & Sole:  Z = n = number of "interacting units".  See comments in file macia_circuit.jl.
   n = c.params.numinteriors 
-  numinputs = c.params.numinputs
-  if number_active( c ) == 0   # Make sure chromosome has been executed
-    execute_chromosome( c, construct_context(c.params.numinputs) )
-  end
-  (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
-  gbX = get_bits( X, numinputs )
-  Xinds = collect(1:length(X))
-  ssum = 0.0
-  #for k = 1:Int(floor(n/2))
-  for k = 1:n
-    #println("k: ",k)
-    # Each element of combs is a 2-tuple (s,setdiff(Xinds,s)) where s is a subset of Xinds
-    #   and setdiff(Xinds,s) is its complement
-    combs = [(s,setdiff(Xinds,s)) for s in combinations(Xinds,k)]
-    #println("combs: ",combs)
-    # convert set indices into sets.
-    # Note that if x is a list of indices, X[x] is the elements of X whose indices are in x
-    Xboth=map(i->map(x->X[x],combs[i]),collect(1:length(combs)))
-    #println("Xboth: ",Xboth)
-    # Apply get_bits function to the sets of Xboth
-    gbXboth = map(i->map(x->get_bits(x,numinputs),Xboth[i]),collect(1:length(Xboth)))
-    #println("gbXboth: ",gbXboth)
-    #println("length(gbXboth): ",length(gbXboth))
-    miXboth = [mutinf(gbXboth[i][1],gbXboth[i][2],base=base) for i =1:length(gbXboth)]
-    #println("miXboth: ",miXboth)     
-    ssum += sum(miXboth)/length(miXboth)
-  end
-  ssum/2.0
-end
-
-#=
-# I function defined in equation 2 of Tononi et al. (1994)
-# Not fully tested
-# On May 1 replaced call to get_probs with a call to get_bits
-function I( X::Vector{MyInt}, numinputs::Int64, base::Float64=2.0 )
-  ents = map(x->entropy(x,base=base),map(x->get_bits(x,numinputs),[s for s in combinations(X,1)])) 
-  println("ents: ",ents,"  result: ",sum(ents) - entropy(X))
-  return sum(ents) - entropy(X)
-end  
-# Tononi complexity as defined by equaion 4 of Tononi et al. (1994).
-# Gives negative answers which is clearly not right
-function complexity4( c::Chromosome; base::Float64=2.0 )
-  Z = c.params.numinteriors - c.params.numoutputs
   numinputs = c.params.numinputs
   if number_active( c ) == 0   # Make sure chromosome has been executed
     execute_chromosome( c, construct_context(numinputs ) )
   end
   (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
-  @assert Z == length(X)
-  IX = I(X,numinputs)
-  println("IX: ",IX)
-  Is = [[ I(s,numinputs) for s in combinations(X,k) ] for k = 1:Z ]
-  println("Is: ",Is)
-  I_avg = map(is->sum(is)/length(is), Is)
-  println("I_avg: ",I_avg)
-  println( [ k/Z*IX - I_avg[k] for k = 1:Z ])
-  sum( [ k/Z*IX - I_avg[k] for k = 1:Z ])
+  complexity6( X, numinputs; base=Float64=2.0 )
 end
-=#
+
+# Tononi complexity as defined by equation 6 of Tononi et al. (1994) and eqn. 2.9 of Macia and Sole 2009.
+# Based on the sum of average mutual information between subsets of X and their complements
+# See Figure 2b of Tononi Edelman and Sporns
+# Version of complexity6 which prints more information
+function complexity6( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
+  n = length(X)
+  Xinds = collect(1:length(X))
+  ssum = 0.0
+  for k = 1:Int(floor(n/2))
+    subset_pairs = [(s,setdiff(Xinds,s)) for s in combinations(Xinds,k)]
+    #println("k: ",k,"  subset_pairs: ",subset_pairs)
+    X_pairs = map( i->( X[subset_pairs[i][1]], X[subset_pairs[i][2]] ), collect(1:length(subset_pairs)))
+    #println("X_pairs: ",X_pairs)
+    #gbX_pairs = [ (get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
+    #println("gbX_pairs: ",gbX_pairs)
+    mutints = [ mutinf(get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
+    #println("mutints: ",mutints)
+    ssum += sum(mutints)/length(mutints) 
+  end
+  ssum
+end 
+
+# Tononi complexity as defined by equaion 4 of Tononi et al. (1994).
+# See Figure 2a of Tononi Edelman and Sporns
+function complexity7( c::Chromosome; base::Float64=2.0 )   
+  n = c.params.numinteriors 
+  numinputs = c.params.numinputs
+  outputs = output_values(c)
+  (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0  
+  complexity7( X, numinputs )
+end
+
+# Tononi complexity as defined by equaion 4 of Tononi et al. (1994).
+# See Figure 2a of Tononi Edelman and Sporns
+function complexity7( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
+  n = length(X)
+  IX = integration( X, numinputs, base=base )
+  Xinds = collect(1:length(X)) 
+  ssum = 0.0
+  for k = 1:(n-1)
+    subsets = [X[setdiff(Xinds,s)] for s in combinations(Xinds,k)]
+    IXk = map( x->integration(x,numinputs,base=base), subsets )
+    avgIXk = sum(IXk)/length(IXk)
+    ssum += k/n*IX - avgIXk
+  end
+  ssum
+end
+  
+function integration( XI::Vector{Vector{MyInt}}, numinputs::Int64; base::Float64=2.0 )
+  X = vcat( XI... )   # Combines all of the lists in XI into a long list
+  sum( entropy( get_bits(x,numinputs)) for x in XI ) - entropy( get_bits(X,numinputs))
+end
+
+# Integration assuming that the components are the individual elements of X
+function integration( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
+  ent_list =  [ entropy(get_bits([x],numinputs)) for x in X ]
+  sum(ent_list) - entropy(get_bits(X,numinputs))
+end
+
+# Tononi complexity as defined by equaion 4 of Tononi et al. (1994).
+# Based on the difference between the integration of X and the average integration of subsets.
+# See Figure 2a of Tononi Edelman and Sporns
+function complexity4( c::Chromosome; base::Float64=2.0 )
+  n = c.params.numinteriors 
+  numinputs = c.params.numinputs
+  if number_active( c ) == 0   # Make sure chromosome has been executed
+    execute_chromosome( c, construct_context(numinputs ) )
+  end
+  (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
+  @assert n == length(X)
+  IX = integration(X,numinputs)
+  #println("IX: ",IX)
+  Is = [[ integration(s,numinputs) for s in combinations(X,k) ] for k = 1:(n-1) ]
+  #println("Is: ",Is)
+  I_avg = map(is->sum(is)/length(is), Is)
+  #println("I_avg: ",I_avg)
+  #println( [ k/n*IX - I_avg[k] for k = 1:(n-1) ])
+  sum( [ k/n*IX - I_avg[k] for k = 1:(n-1) ])
+end

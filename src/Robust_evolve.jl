@@ -11,6 +11,7 @@ using Distributed
 function run_robust_evolve( nreps::Int64, p::Parameters, popsize::Int64, max_pop_gens::Int64, indiv_steps::Int64, robust_steps::Int64, fit_steps::Int64,
       goallist::GoalList, tourn_size::Int64, csvfile::String )   # tourn_size==0 means proportional selection
   funcs = default_funcs(p.numinputs)
+  test_MyInt(p.numinteriors) 
   df_results = DataFrame[]
   df = DataFrame()
   df.generation = collect(1:2*robust_steps)
@@ -108,8 +109,8 @@ function robust_evolve( df::DataFrame, p::Parameters, popsize::Int64, max_pop_ge
       end
       robfit_vector = robust_sel ? [ pop[i].robustness for i = 1:popsize ] : [ pop[i].fitness for i = 1:popsize ] 
       nactive_vector = [ number_active( pop[i] ) for i = 1:popsize ]
-      complexity_vector = [ complexity5( pop[i] ) for i = 1:popsize ]
-      degeneracy_vector = [ degeneracy( pop[i] ) for i = 1:popsize ]
+      complexity_vector = df.numints <= maxints_for_degen ? [ complexity5( pop[i] ) for i = 1:popsize ] : zeros(MyInt,popsiz)
+      degeneracy_vector = df.numints <= maxints_for_degen ? [ degeneracy( pop[i] ) for i = 1:popsize ] : zeros(MyInt,popsize)
       df.mean_robfit[gr] = mean(robfit_vector)
       df.max_robfit[gr] = maximum(robfit_vector)
       df.mean_nactive[gr] = mean(nactive_vector)

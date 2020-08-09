@@ -35,8 +35,9 @@ function run_env_evolution( numiterations::Int64, numinputs::IntRange, numoutput
     levelsback::IntRange, gl_repetitions::IntRange, num_flip_bits::IntRange, avgfitness::IntRange, 
     perm_heuristic::IntRange, perturb_goal_range::IntRange, fit_limit_list::Vector{Float64}, csvfile::String; 
     base::Float64=2.0, active_only::Bool=false )
+  max_numinteriors = collect(numinteriors)[end]
+  test_MyInt(max_numinteriors)
   hamming_sel = true
-  maxints_for_degen = 20
   nodearity = 2
   perturb_goal=true
   env_result_list = env_result_type[]

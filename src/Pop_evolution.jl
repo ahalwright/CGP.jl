@@ -35,7 +35,9 @@ function run_pop_evolve_df( numiterations::Int64, numinputs::IntRange, numoutput
     popsize_rng::IntRange,
     hamming_rng::IntRange, robust_rng::IntRange, csvfile::String; 
     base::Float64=2.0, active_only::Bool=false, gl_repetitions::Int64=1 )
-  maxints_for_degen = 20
+  #maxints_for_degen = 20
+  max_numinteriors = collect(numinteriors)[end]
+  test_MyInt(max_numinteriors)
   all_max_sel=true
   nodearity = 2
   pop_result_list = pop_result_type[]

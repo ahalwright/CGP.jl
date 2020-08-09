@@ -1,4 +1,4 @@
-export Func, default_funcs, eval_func, Ones, AND, OR, XOR, Nand, NAND, Nor, NOR, NOT, Zero, ZERO, One, ONE
+export Func, default_funcs, eval_func, Ones, AND, OR, XOR, Nand, NAND, Nor, NOR, NOT, Not, Zero, ZERO, One, ONE
 export func_names
 using Main.CGP
 

@@ -248,7 +248,7 @@ end
 #   This is the mutual information of a joint distribution.
 function mutual_information( tbl::Array{Float64,2}; base::Float64=2.0 )
   if ! reduce( &, tbl .>= 0.0 )
-    error("all entries of tbl must be non-netative in function mutual information")
+    error("all entries of tbl must be non-negative in function mutual information")
   end
   if !(sum(tbl) ≈ 1.0)
     tbl = tbl/sum(tbl)   # Normalize to sum 1

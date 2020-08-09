@@ -17,7 +17,7 @@ iterations = 4
 numinputs = 2:2
 numoutputs = 2:2
 nodearity = 2
-numinteriors = 6:6
+numinteriors = 18:18
 numlevelsback = 6:6
 ngoals = 4:4
 goallistlength=8:8
@@ -35,7 +35,8 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
     levelsback::IntRange, hamming_rng::IntRange, fit_limit_list::Vector{Float64}, csvfile::String; 
     base::Float64=2.0, active_only::Bool=false, gl_repetitions::IntRange=1, fault_tol_rng::IntRange=false,
     avgfit_rng::IntRange=false )
-  maxints_for_degen = 20
+  max_numinteriors = collect(numinteriors)[end]
+  test_MyInt(max_numinteriors)
   ftf_param = 0.95
   nodearity = 2
   run_result_list = indiv_result_type[]
