@@ -1,0 +1,27 @@
+April 15, 2020
+
+Verified my defintions of relative_entropy, conditional_entropy, joint_entropy, mutual_information
+   agree with the examples given in Cover & Thomas (1991) in the file 
+   information_theory/test/test_cover_mutint.jl (also linked in CGP.jl/test).
+
+Made sure that my defintions of Mutual Information agree with those of Macia and Sole.
+Modified  infomation_theory/test/macia_circuit.jl to check that the values for 
+   joint_entropy and mutual_information agree with those of tables 3 and 4 of Macia and Sole.
+
+But does mutual_information measure what we want?
+  First consider a population P that we apply the entropy function.  Note that P is indexed 
+  over the possible input bit strings.  For numinputs=2, these are 00, 01, 10, 11 (or 0x0, 0x1, 0x2, 0x3).
+  entropy(P) measures the number of repeated values in P.  entropy(P) is maximal if all values in P
+  are unique, and is 0 if all values in P are identical.  Is this what we care about?  What we really
+  care about is how similar two populations P1 and P2 are.  The standard measure of similarity of
+  discrete populations (vectors) is Hamming distance---the number of indices  i  where P[i] != P2[i].
+  
+
+  Consider two populations P1 and P2.  
+  My function pops_to_dist(P1,P2) creates a distribution
+  (equivalent to a popuation) with values  (P1[i],P2[i])  for i = 1:length(P1).  
+  function joint_entropy(P1,P2) measures the number of duplications of these ordered pairs.
+  Maybe what we want is the number of times that P1[i] == P2[i]?
+
+More generally, does Tononi's definition of degeneracy measure degeneracy for digital circuits?
+  I increasingly think no.  I am reading Edelman and Gally about degeneracy and complexity.

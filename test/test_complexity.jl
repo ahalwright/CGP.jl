@@ -128,11 +128,14 @@ function get_bits1( v::Vector{MyInt}, numinputs::Int64 )
   for i = 1:length(v)
     shift = numbits-1
     mask = MyInt(1) << shift 
-    for j = collect(numbits:-1:1)
+    j = numbits-1
+    while j > 1
+    #for j = collect(numbits:-1:1)
       rr = (mask & v[i]) >> shift 
       result[j] |= rr << mask_shift
       shift -= 1
       mask >>= 1
+      j -= 1
     end
     mask_shift -= 1
   end

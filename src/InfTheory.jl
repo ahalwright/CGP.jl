@@ -5,7 +5,7 @@ using Combinatorics
 export get_probs, get_bits, degeneracy, degeneracy1 
 #include("../../information_theory/src/entropy.jl")
 export degeneracy, degeneracy1, complexity4, complexity5, complexity6, complexity7, redundancy, integration
-export mutinf1, mutinf2, test_MyInt, MyIntBits
+export mutinf1, mutinf2, test_MyInt, MyIntBits, to_binary
 
 # if function degeneracy() or complexity() is called with numinteriors > MyIntBits(MyInt), the results of get_bits() will overflow
 #   and be inaccurate.
@@ -92,6 +92,69 @@ function get_bits( v::Vector{Main.CGP.MyInt}, numinputs::Int64 )
   result
 end
 
+function to_binary( x::MyInt, numbits::Int64 )
+  result = Int64[]
+  shift = numbits-1
+  mask = MyInt(1) << (numbits-1)
+  for i = 1:numbits
+    push!(result, (mask & x)>>shift )
+    shift -= 1
+    mask >>= 1
+  end
+  result
+end
+
+function to_binary( X::Vector{MyInt}, numbits::Int64 )
+  result = zeros(Int64,length(X),numbits)
+  for j in 1:length(X)
+    shift = numbits-1
+    mask = MyInt(1) << (numbits-1)
+    for i = 1:numbits
+      #push!(result, (mask & X[j])>>shift )
+      result[j,i] = (mask & X[j])>>shift
+      shift -= 1
+      mask >>= 1
+    end
+  end
+  result
+end
+
+# get_bits for a single MyInt
+function get_bits1( x::Main.CGP.MyInt, numinputs::Int64 )
+  numbits = 2^numinputs
+  result = zeros(MyInt,2^numinputs)
+  shift = numbits-1 
+  mask = MyInt(1) << shift
+  for j = collect(numbits:-1:1)
+    result[j] |= (mask & x) >> shift
+    shift -= 1
+    mask >>= 1
+  end
+  result
+end
+
+# Agrees with the result of get_bits but slightly slower
+function get_bits1( v::Vector{MyInt}, numinputs::Int64 )
+  numbits = 2^numinputs
+  result = zeros(MyInt,numbits)
+  mask_shift = length(v)-1
+  one = convert(MyInt,0x00000000000000001)
+  for i = 1:length(v)
+    shift = numbits-1
+    mask = one << shift 
+    j = numbits
+    while j >= 1
+      result[j] |= ((mask & v[i]) >> shift) << mask_shift
+      shift -= 1
+      mask >>= 1
+      j -= 1
+    end
+    mask_shift -= 1
+  end
+  result
+end
+      
+
 mutinf1(X,Y;base=Float64=2.0 ) = mutual_information(X,Y,base=base)    # Standard definition
 mutinf2(X,Y;base=Float64=2.0 ) = mutual_information([X,Y],base=base)  # Sherwin definition
 
@@ -167,7 +230,6 @@ end
 
 # Tonini redundancy as defined by equation 2.8 of Macia and Sole (2009)
 #    and by equation 3 of Tononi et al. (1999)  (eq. 2.8 is unclear)
-# On May 1 replaced call to get_probs with a call to get_bits
 #function redundancy( c::Chromosome; base::Float64=2.0 )
 function redundancy( c::Chromosome; mutinf::Function=mutinf1, base=Float64=2.0 )
   Z = c.params.numinteriors - c.params.numoutputs
@@ -210,7 +272,7 @@ function complexity5( X::Vector{MyInt}, numinputs::Int64; base=Float64=2.0 )
   sum(summand)
 end
 
-function complexity6( c::Chromosome; base=Float64=2.0 )
+function complexity6( c::Chromosome; mutinf::Function=mutinf1, base=Float64=2.0 )
   # Macia & Sole:  Z = n = number of "interacting units".  See comments in file macia_circuit.jl.
   n = c.params.numinteriors 
   numinputs = c.params.numinputs
@@ -218,27 +280,32 @@ function complexity6( c::Chromosome; base=Float64=2.0 )
     execute_chromosome( c, construct_context(numinputs ) )
   end
   (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
-  complexity6( X, numinputs; base=Float64=2.0 )
+  complexity6( X, numinputs, mutinf=mutinf, base=Float64=2.0 )
 end
 
 # Tononi complexity as defined by equation 6 of Tononi et al. (1994) and eqn. 2.9 of Macia and Sole 2009.
 # Based on the sum of average mutual information between subsets of X and their complements
 # See Figure 2b of Tononi Edelman and Sporns
-# Version of complexity6 which prints more information
-function complexity6( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
+function complexity6( X::Vector{MyInt}, numinputs::Int64; mutinf::Function=mutinf1, base::Float64=2.0 )
   n = length(X)
   Xinds = collect(1:length(X))
   ssum = 0.0
   for k = 1:Int(floor(n/2))
+  #for k = 1:n
     subset_pairs = [(s,setdiff(Xinds,s)) for s in combinations(Xinds,k)]
-    #println("k: ",k,"  subset_pairs: ",subset_pairs)
+    println("k: ",k,"  subset_pairs: ",subset_pairs)
     X_pairs = map( i->( X[subset_pairs[i][1]], X[subset_pairs[i][2]] ), collect(1:length(subset_pairs)))
     #println("X_pairs: ",X_pairs)
-    #gbX_pairs = [ (get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
-    #println("gbX_pairs: ",gbX_pairs)
+    gbX_pairs = [ (get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
+    println("gbX_pairs: ",gbX_pairs)
     mutints = [ mutinf(get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
-    #println("mutints: ",mutints)
-    ssum += sum(mutints)/length(mutints) 
+    println("k: ",k,"  mutints: ",mutints)
+    summand = sum(mutints)/length(mutints)
+    println("k: ",k,"sum mutual informaiton: ",summand)
+    if k == Int(ceil(n/2))
+      summand /= 2
+    end
+    ssum += summand
   end
   ssum
 end 
@@ -300,3 +367,36 @@ function complexity4( c::Chromosome; base::Float64=2.0 )
   #println( [ k/n*IX - I_avg[k] for k = 1:(n-1) ])
   sum( [ k/n*IX - I_avg[k] for k = 1:(n-1) ])
 end
+
+function complexity66( c::Chromosome; mutinf::Function=mutinf1, base=Float64=2.0 )
+  # Macia & Sole:  Z = n = number of "interacting units".  See comments in file macia_circuit.jl.
+  n = c.params.numinteriors
+  numinputs = c.params.numinputs
+  if number_active( c ) == 0   # Make sure chromosome has been executed
+    execute_chromosome( c, construct_context(c.params.numinputs) )
+  end
+  (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
+  gbX = get_bits( X, numinputs )
+  Xinds = collect(1:length(X))
+  ssum = 0.0
+  #for k = 1:Int(floor(n/2))
+  for k = 1:n
+    println("k: ",k)
+    # Each element of combs is a 2-tuple (s,setdiff(Xinds,s)) where s is a subset of Xinds
+    #   and setdiff(Xinds,s) is its complement
+    combs = [(s,setdiff(Xinds,s)) for s in combinations(Xinds,k)]
+    #println("combs: ",combs)
+    # convert set indices into sets.
+    # Note that if x is a list of indices, X[x] is the elements of X whose indices are in x
+    Xboth=map(i->map(x->X[x],combs[i]),collect(1:length(combs)))
+    #println("Xboth: ",Xboth)
+    # Apply get_bits function to the sets of Xboth
+    gbXboth = map(i->map(x->get_bits(x,numinputs),Xboth[i]),collect(1:length(Xboth)))
+    println("gbXboth: ",gbXboth)
+    #println("length(gbXboth): ",length(gbXboth))
+    miXboth = [mutinf(gbXboth[i][1],gbXboth[i][2],base=base) for i =1:length(gbXboth)]
+    println("miXboth: ",miXboth)
+    ssum += sum(miXboth)/length(miXboth)
+  end
+  ssum/2.0
+end  

@@ -1,11 +1,13 @@
-export Population, Chromosome, Parameters, indiv_result_type, pop_result_type
+export Population, Chromosome, Parameters, indiv_result_type, pop_result_type, elt_type
 
 using Distributions
 using DataFrames
 using Random
 using QuadGK
 using CSV
+using Statistics
 using Distributed
+using Printf
 import Random.seed!
 export MyInt, DIST_TYPE, Population, PopVect, IPopulation, IntRange
 

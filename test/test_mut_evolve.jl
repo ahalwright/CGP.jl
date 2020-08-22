@@ -11,7 +11,7 @@ function test_mut_evolve(p::Parameters,funcs,max_steps::Int64,ngoals::Int64; use
   c = random_chromosome(p,funcs)
   gl = randgoallist(ngoals,c.params.numinputs,c.params.numoutputs)
   println("gl: ",gl)
-  fit_limit = Float64(c.params.numoutputs)-0.5
+  fit_limit = Float64(c.params.numoutputs)
   (c,step,worse,same,better,output,matched_goals,matched_goals_list) = 
       mut_evolve( c, gl, funcs, max_steps,  use_robustness=use_robustness, avgfitness=avgfitness, fit_limit=fit_limit, print_improvements=false ) 
   if step < max_steps
@@ -23,13 +23,13 @@ end
 avgfitness = true
 numinputs = 2
 numoutputs = 2
-numinteriors = 5
+numinteriors = 3
 use_robust=false
 funcs = default_funcs(numinputs)
 p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numinteriors )
 context = construct_context(numinputs)
 c = random_chromosome( p, funcs )
-maxsteps = 200
+maxsteps = 2000
 ngoals = 2   # number goals in goallist
 #(steps,worse,same,c,output,goallist,matched_goals,matched_goals,matched_goals_list) = 
 #      test_mut_evolve(p,funcs,maxsteps,ngoals, avgfitness=avgfitness)

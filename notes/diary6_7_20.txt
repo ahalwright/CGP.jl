@@ -1,0 +1,15 @@
+Successfully changed function run_mut_evolution() in src/Subgoal_evolution.jl to use pmap for parallel evolution.
+This involved creating a type run_result_type in aliases.jl.
+
+Successfully added computation for robustness selection using mu/lambda evolution (with mu = 1) on surt2.
+
+Decided that robustness selection using mu/lambda evolution was not working based on runs on surt2.
+
+Went back to lycosa and reverted the code back to about 5/24 but including use of pmap.
+
+This version can consistently evolve to successfully find a goal with numinputs=numoutputs=4.
+
+Got rid of robust_sel in dataframe and in run_result_type.
+
+Revised randgoal and randgoallist to include options for different repetitions.  For example, if gl_repetitions=2,
+  then randgoal() will generate goals with each component having an identical component.

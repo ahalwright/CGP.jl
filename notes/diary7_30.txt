@@ -1,0 +1,10 @@
+Fixed the bug mentioned in diary7_29.txt.  Did one run for each time of simulation.  Results were uniformly negative.
+
+
+Tests of the hypothesis that increasing fault tolerance increases complexity, degeneracy, and number active nodes.
+
+A flipped gate perturbation of a circuit output is the output of the circuit when the output of that gate is flipped.  The fault tolerance of a circuit is computed by averaging the deviation of the flipped gate perturbation from the unperturbed output over all gates of the ciruit.  This is converted into a fitness by negating and normalizing to a value between 0 and 1.  This is based on equation 3.3 of the Macia and Sole paper.
+
+I have done fairly extensive tests of the above hypothesis both using only NAND gates (as in Macia and Sole) and using the Raman and Wagner function set {AND, OR, XOR, NAND, NOR}.  These use 3 inputs and 2 outputs for the Macia gate set and 4 inputs and 2 outputs for the Raman gate set.  Despite doing 5000 runs per simulations, I am not getting any significant results.
+
+One interesting result is that running the Macia gate set with 10 gate circuits is much slower than running with 18 gates.  This is consistent with other results.

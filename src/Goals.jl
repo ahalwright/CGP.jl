@@ -18,7 +18,7 @@ goallist3 = [0x50, 0x05, 0xf5, 0xa0, 0xe0, 0x0e, 0xf1, 0x80, 0x08, 0xfa]
 =#
 
 function component_type( numinputs::Int64 )
-  if numinputs == 2
+  if numinputs <= 2
     comp_type = collect(0x00:0x0f)
   elseif numinputs == 3
     comp_type = collect(0x00:0xff)

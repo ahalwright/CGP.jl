@@ -3,7 +3,7 @@
 using Main.CGP
 using Test
 
-nreps = 10
+nreps = 4
 function test_degen_complexity( p::Main.CGP.Parameters, nreps::Integer )
   funcs = default_funcs(p.numinputs)
   for i = 1:nreps  

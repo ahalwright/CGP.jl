@@ -1,0 +1,132 @@
+4/27/20
+
+The conclusion seems to be that any computation that uses pops_to_dist() is incorrect.
+So I am deleting all such functions from entropy.jl.
+
+Observation:  Any computation of mutual_information that uses the formula
+  mutual_information(P1,P2) = entropy(P1) + entropy(P2) - joint_entropy(P1,P2)
+is suspect because P1 and P2 must be the marginal distributions of a joint probability 
+distribution which must be the distribution used to compute the joint entropy.
+It is not clear what table the distribution computed by pops_to_dist( P1, P2 ) 
+corresponds to.
+
+  mutual_information( tbl )  and  sherwin_mutual_information( tbl ) agree and 
+are correct:  see  test/test_cover_mutint.jl.  Note that sherwin_mutual_information(P1,P2)
+produces a table whose rows are P1 and P2.  The row marginal of this table is [0.5, 0.5]
+and the column marginal is (P1 .+ P2)/2.  This generalizes to more than two populations
+
+TESTING: 
+In  information_theory/test/
+test.jl  32 tests passed
+test_cover_mutint.jl   Passed
+test_mutual_information.jl   Passed
+test_sherwin_mutinf.jl  Passed
+test_conditional_entropy.jl  Passed after substantial modification 
+
+HOWEVER:
+When I tested CGP.jl/test/macia_examples.jl, I found that the joint_entropy()
+and mutual_information() is based on pops_to_dist().  A test with trying to
+use pops_to_tbl() either didn't work or gave different answers.
+The answers using pops_to_dist() agree with Table 3 of Macia & Sole.
+The the populations in these examples are MyInt populations, not Float64
+populations.
+
+
+IMPORTANT:
+The conclusion seems to be that any computation that uses pops_to_dist() applied to
+probability populations is incorrect.  So I am deleting all such functions from entropy.jl.
+But I am keeping such functions applied to SPopulations, IPopulations, and MIPopulations.
+
+HOWEVER:
+In trying information_systems/test/test_mutual_information.jl, I find that 
+mutual_information([lst1,lst2]) didn't work.  When it worked, it used
+function mutual_information( P::Vector{IPopulation}; base::Float64=2.0 )
+  sherwin_mutual_information( pops_to_tbl( P ), base=base )
+end
+But there was another such function:
+# Mutual information by the defintion   I(P1;P2) = H(P1) + H(P2) - H(P1,P2) (eq. 2.45 of Cover)
+function mutual_information( P1::IPopulation, P2::IPopulation; base::Float64=2.0 )
+  @assert length(P1) == length(P2)
+  entropy(P1,base=base) + entropy(P2,base=base) - joint_entropy(P1,P2,base=base)
+end
+where joint_entropy() is defined by
+function joint_entropy_bs( P1::FPopulation, P2::FPopulation; base::Float64=2.0 )
+  @assert length(P1) == length(P2)
+  entropy(pops_to_dist_bs(P1,P2),base=base)
+end
+These two versions give radically different results as shown in the current pardosa
+version of test_mutual_information.jl
+
+
+===========================================================================
+Here is a specific example that shows that there is a problem with the 
+calculation of joint_entropy() and mutual_information() for populations of floats
+which are interpreted as probabilities.
+
+Two versions of mutual information applied to two populations of floats which give
+different results. 
+
+julia> (P1,P2) = ([0.5, 0.25, 0.125, 0.125], [0.0, 0.125, 0.75, 0.125])
+
+julia> mutual_information(P1,P2)
+MI pops_to_tbl
+0.4439626904850149
+
+julia> mutual_information_bs(P1,P2)
+MI bit string prob
+bit prob entropy
+bit prob entropy
+0.8112781244591329
+
+Here is the version that uses pops_to_tbl:
+
+function mutual_information( P1::FPopulation, P2::FPopulation; base::Float64=2.0 )
+  println("MI pops_to_tbl")
+  sherwin_mutual_information( pops_to_tbl( [P1, P2] ), base=base )
+end
+
+function pops_to_tbl( P::Vector{FPopulation} )
+  lengths = map(length,P)
+  @assert( all(lengths .==  lengths[1]))   # Check that esch population has the same length
+  sums = map(sum,P)
+  @assert( all(sums .≈ 1.0 ))   # Check that each population has approximate sum 1.0
+  result = zeros(Float64,length(P),length(P[1]))
+  for i = 1:length(P)
+    result[i,:] = P[i]/length(P)
+  end
+  result
+end
+
+Here is the _bs version which uses pops_to_dist: (These files are in lycosa entropy.jl.)
+
+# Entropy of two bit string probability vectors
+# Each is a vector over bit positions of probabilities of 1 in a collection of bit strings
+#     computed by the get_probs()  function
+function mutual_information_bs( P1::Vector{Float64}, P2::Vector{Float64}; base::Float64=2.0 )
+  println("MI bit string prob")
+  @assert length(P1) == length(P2)
+  entropy(P1,base=base) + entropy(P2,base=base) - joint_entropy_bs(P1,P2,base=base)
+end
+
+# Assumes that both populations are indexed over the same set.
+# Thus, both population must be the same length
+# There is one entry in the table for each pair (P1[i],P2[j]).
+function joint_entropy_bs( P1::FPopulation, P2::FPopulation; base::Float64=2.0 )
+  @assert length(P1) == length(P2)
+  entropy(pops_to_dist_bs(P1,P2),base=base)
+end
+
+# Assumes that both populations are indexed over the same set.
+# Thus, both population must be the same length
+# There is one entry in the dictionary for each pair (P1[i],P2[i]).
+function pops_to_dist_bs( P1::FPopulation, P2::FPopulation )
+  len1 = length(P1)
+  len2 = length(P2)
+  @assert( len1 == len2 )
+  result = DIST_TYPE()
+  for i = 1:len1
+    entry = (P1[i],P2[i])
+    result[entry] = get(result,entry,0.0) + 1.0/len1
+  end
+  result
+end

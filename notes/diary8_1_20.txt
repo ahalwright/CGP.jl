@@ -1,0 +1,22 @@
+Added the keyword variable fit_limit to function mut_evolve() in Evolve.jl.  This is set to c.params.numoutputs by default.
+It can be set to values like c.params.numoutputs-1.5, in which case when a fitness of c.params.numoutputs-1.5 is reached,
+the main iteration loop in mut_evolve() will terminate.
+
+Then added fit_limit to struct env_result_type in aliases.jl, and added to the output dataframe in src/Env_evolution.jl.
+
+Here is how I did a significance test on the results:
+[wright@lycosa 8_1]$ julia -L ../../src/Hypothesis_tests.jl 
+
+julia> df = import_csv("env_evolve8_1C.csv")
+julia> df.complexity[ ((df.gl_reps.*df.perturb_goal).==2) .& (df.nflipbits.==2) .& (df.fitlimit.==7.0) ]
+500-element Array{Float64,1}:
+ 17.321796299193323
+ ⋮
+18.87300680191607
+
+julia> pvalue( EqualVarianceTTest( df.complexity[ ((df.gl_reps.*df.perturb_goal).==2) .& (df.nflipbits.==2) .& (df.fitlimit.==7.0) ], df.complexity[ ((df.gl_reps.*df.perturb_goal).==2) .& (df.nflipbits.==0) .& (df.fitlimit.==7.0) ] ))
+7.1918354630291524e-12
+
+julia> pvalue( EqualVarianceTTest( df.complexity[ ((df.gl_reps.*df.perturb_goal).==2) .& (df.nflipbits.==2) .& (df.fitlimit.==7.0) ], df.complexity[ ((df.gl_reps.*df.perturb_goal).==2) .& (df.nflipbits.==1) .& (df.fitlimit.==7.0) ] ))
+0.005533392042749558
+

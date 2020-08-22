@@ -1,6 +1,6 @@
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, mut_reduce_numactive
 export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
-
+export evolve_function
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -613,5 +613,48 @@ function findminrand( A::AbstractVector )
     #println("indices: ",indices,"  ind: ",ind)
     return (val,ind)
   end
+end
+
+# Use neutral evolution to find a chromosome c that maximizes funct(c)
+# funct( c::Chromosome ) returns a Float64.
+function evolve_function( funct::Function, p::Parameters, funcs::Vector{Func}, max_steps::Int64;
+    goallist::Vector{Vector{MyInt}}=[MyInt[]], max_evolve_steps::Int64=10000 )
+  println("goallist: ",goallist)
+  use_goal = !(goallist==[MyInt[]])
+  c = random_chromosome( p, funcs )
+  orig_c = deepcopy(c)
+  goal = goallist[1]
+  println("goal: ",goal)
+  if use_goal
+    result = mut_evolve( c, goallist, funcs, max_evolve_steps, print_improvements = true ) 
+    steps = result[2]
+    if steps == max_evolve_steps
+      error("evolution to goal failed in function evolve_function()")
+    else
+      println("evolution to goal suceeded in function evolve_function()")
+    end 
+    c = result[1]
+    goal = output_values(c)
+    orig_c = deepcopy(c)
+  end
+  current_fitness = funct(c)
+  println("starting fitness: ",current_fitness)
+  for i = 1:max_steps
+    prev_c = deepcopy(c)
+    (c,active) = mutate_chromosome!(c,funcs)
+    if use_goal && output_values(c) != goal
+      c = prev_c
+      continue
+    end  
+    new_fitness = funct(c)
+    if new_fitness < current_fitness 
+      c = prev_c
+    elseif new_fitness > current_fitness
+      println("i: ",i,"  new_fitness: ", new_fitness,"  funct(c): ",funct(c) )
+      current_fitness = new_fitness
+    end
+    println("i: ",i,"  current_fitness: ", current_fitness, "  funct(c): ",funct(c)  )
+  end
+  (c,orig_c)
 end
 

@@ -1,0 +1,30 @@
+5/2/20
+
+Decided to evaluate the correlation between the Tononi complexity and number_active
+for random chromosomes.  The code is test/test_active_complexity.jl.
+Results:
+The last column is correlation between number_active and complexity5.
+julia> include("../test/test_active_complexity.jl")
+nreps: 10000
+funcs: ["NAND"]  numinputs: 2  numoutputs: 2  nintss: 6  levback: 6   0.674
+funcs: ["NAND"]  numinputs: 2  numoutputs: 2  nintss: 10  levback: 6   0.441
+funcs: ["NAND"]  numinputs: 2  numoutputs: 3  nintss: 6  levback: 6   0.546
+funcs: ["NAND"]  numinputs: 2  numoutputs: 3  nintss: 10  levback: 6   0.382
+funcs: ["NAND"]  numinputs: 3  numoutputs: 2  nintss: 6  levback: 6   0.724
+funcs: ["NAND"]  numinputs: 3  numoutputs: 2  nintss: 10  levback: 6   0.567
+funcs: ["NAND"]  numinputs: 3  numoutputs: 3  nintss: 6  levback: 6   0.570
+funcs: ["NAND"]  numinputs: 3  numoutputs: 3  nintss: 10  levback: 6   0.461
+nreps: 10000
+funcs: ["&", "|", "xor", "NAND", "NOR"]  numinputs: 2  numoutputs: 2  nintss: 6  levback: 6   0.472
+funcs: ["&", "|", "xor", "NAND", "NOR"]  numinputs: 2  numoutputs: 2  nintss: 10  levback: 6   0.319
+funcs: ["&", "|", "xor", "NAND", "NOR"]  numinputs: 2  numoutputs: 3  nintss: 6  levback: 6   0.364
+funcs: ["&", "|", "xor", "NAND", "NOR"]  numinputs: 2  numoutputs: 3  nintss: 10  levback: 6   0.278
+funcs: ["&", "|", "xor", "NAND", "NOR"]  numinputs: 3  numoutputs: 2  nintss: 6  levback: 6   0.557
+funcs: ["&", "|", "xor", "NAND", "NOR"]  numinputs: 3  numoutputs: 2  nintss: 10  levback: 6   0.493
+funcs: ["&", "|", "xor", "NAND", "NOR"]  numinputs: 3  numoutputs: 3  nintss: 6  levback: 6   0.449
+funcs: ["&", "|", "xor", "NAND", "NOR"]  numinputs: 3  numoutputs: 3  nintss: 10  levback: 6   0.431
+
+Results are positive.
+
+Converted to output a dataframe.  Also computed degeneracy using Sherwin mutinf (pops_to_tbl).
+Sometimes positive, sometimes negative correlation with complexity5()

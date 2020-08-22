@@ -1,0 +1,20 @@
+An emphasis of the Miller papers is on obtaining a minimum number active circuit that satisfies the goal(s).
+
+
+Idea:  After evolving circuits to optimum fitness then evolve to minimize number active using neutral evolution.
+This is implemented in function mut_reduce_evolve() in src/Evolve.jl and in test/test_reduce_numactive.jl.
+A definite conclusion is that starting with a higher value for numinteriors gives more instances of minimum
+numactive for the evoltuion of a 3-bit multiplier circuit.  See data/7_13/count_min_2bitmult.txt.
+This suggest that random exploration of the neutral network of fitness optimal circuits, perhaps interspesed 
+with a small amount of evolution to minimize numactive would be a beter strategy.
+
+It does not appear that minimizing for numactive works better than just evolving ciruits.
+
+Idea:  To solve a difficult problem like the evolution of the 3-bit multiplier, evolve each output
+separately, and then combine by building a circuit that combines these solutions by connecting each to
+the appropriate inputs and outputs, and then evolving to minimize numactive.  However, the difficulties
+described above on minimizing numactive does not suggest that this is a good strategy except perhaps for
+very difficult problems.  
+
+Idea:  To evolve difficult multi-component goals, evolve components in order of descreasing difficulty.
+I. e., evolve the most difficult component first, the next most difficult next, etc.

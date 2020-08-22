@@ -1,12 +1,16 @@
 # A version of evolution with selection for robustness that evolves population until all individuals are at optimal goal fitness,
 #    then evolves with selection for mutational robustness for a fixed number of generations.
+# A limitation is that fitness is not maintained during mutation for robustenss.
 export run_robust_evolve, robust_evolve
 using DataFrames
 using Statistics
 using CSV
 using Distributed
+using Main.CGP
 
 # To run julia:  julia -i -p 4 -L CGP.jl
+
+# On 8/19/20 commented out the "var" fields of the dataframe
 
 function run_robust_evolve( nreps::Int64, p::Parameters, popsize::Int64, max_pop_gens::Int64, indiv_steps::Int64, robust_steps::Int64, fit_steps::Int64,
       goallist::GoalList, tourn_size::Int64, csvfile::String )   # tourn_size==0 means proportional selection
@@ -24,11 +28,11 @@ function run_robust_evolve( nreps::Int64, p::Parameters, popsize::Int64, max_pop
   df.mean_robfit = zeros(Float64,2*robust_steps)
   df.max_robfit = zeros(Float64,2*robust_steps)
   df.mean_nactive = zeros(Float64,2*robust_steps)
-  df.var_nactive = zeros(Float64,2*robust_steps)
+  #df.var_nactive = zeros(Float64,2*robust_steps)
   df.mean_complexity = zeros(Float64,2*robust_steps)
-  df.var_complexity = zeros(Float64,2*robust_steps)
+  #df.var_complexity = zeros(Float64,2*robust_steps)
   df.mean_degeneracy = zeros(Float64,2*robust_steps)          
-  df.var_degeneracy = zeros(Float64,2*robust_steps)          
+  #df.var_degeneracy = zeros(Float64,2*robust_steps)          
   df_init = [ deepcopy(df) for _ = 1:nreps]
   df_results = pmap( ddf->robust_evolve(ddf,p, popsize, max_pop_gens, indiv_steps, robust_steps, fit_steps, goallist, tourn_size ), df_init)
   #df_results = map( ddf->robust_evolve(ddf,p, popsize, max_pop_gens, indiv_steps, robust_steps, fit_steps, goallist, tourn_size ), df_init)
@@ -43,16 +47,17 @@ function run_robust_evolve( nreps::Int64, p::Parameters, popsize::Int64, max_pop
   # the var() function computes the sample variance over reps for each generation
   df.mean_nactive = mean([d.mean_nactive for d in df_results])
   @assert df.mean_nactive == sum([d.mean_nactive for d in df_results])/nreps
-  df.var_nactive = var([d.mean_nactive for d in df_results])
+  #df.var_nactive = var([d.mean_nactive for d in df_results])
   df.mean_complexity = mean([d.mean_complexity for d in df_results])
-  df.var_complexity = var([d.mean_complexity for d in df_results])
+  #df.var_complexity = var([d.mean_complexity for d in df_results])
   #println("df.var_complexity: ",df.var_complexity)
   df.mean_degeneracy = mean([d.mean_degeneracy for d in df_results])
-  df.var_degeneracy = var([d.mean_degeneracy for d in df_results])
+  #df.var_degeneracy = var([d.mean_degeneracy for d in df_results])
   open( csvfile, "w" ) do f
     println(f,"MyInt: ",Main.CGP.MyInt)
     println(f,"funcs: ",funcs)
     println(f,"nreps: ",nreps)
+    println(f,"maxints_for_degen: ",Main.CGP.maxints_for_degen)
     println(f,"indiv_steps: ",indiv_steps)
     println(f,"robust_steps: ",robust_steps)
     println(f,"fit_steps: ",fit_steps)
@@ -67,6 +72,7 @@ end
 function robust_evolve( df::DataFrame, p::Parameters, popsize::Int64, max_pop_gens::Int64, indiv_steps::Int64, robust_steps::Int64, fit_steps::Int64,
     goallist::GoalList, tourn_size::Int64 )   # tourn_size==0 means proportional selection
   funcs = default_funcs(p.numinputs)
+  maxints_for_degen = Main.CGP.maxints_for_degen
   for robust_sel = false:true
     pop = [ random_chromosome(p,funcs) for _ = 1:popsize ]
     gg = 1
@@ -107,10 +113,11 @@ function robust_evolve( df::DataFrame, p::Parameters, popsize::Int64, max_pop_ge
       else
         tournsel!( pop, robfit_vector, tourn_size )
       end
+      #println("df.numints: ",df.numints)
       robfit_vector = robust_sel ? [ pop[i].robustness for i = 1:popsize ] : [ pop[i].fitness for i = 1:popsize ] 
       nactive_vector = [ number_active( pop[i] ) for i = 1:popsize ]
-      complexity_vector = df.numints <= maxints_for_degen ? [ complexity5( pop[i] ) for i = 1:popsize ] : zeros(MyInt,popsiz)
-      degeneracy_vector = df.numints <= maxints_for_degen ? [ degeneracy( pop[i] ) for i = 1:popsize ] : zeros(MyInt,popsize)
+      complexity_vector = df.numints[1] <= maxints_for_degen ? [ complexity5( pop[i] ) for i = 1:popsize ] : zeros(MyInt,popsiz)
+      degeneracy_vector = df.numints[1] <= maxints_for_degen ? [ degeneracy( pop[i] ) for i = 1:popsize ] : zeros(MyInt,popsize)
       df.mean_robfit[gr] = mean(robfit_vector)
       df.max_robfit[gr] = maximum(robfit_vector)
       df.mean_nactive[gr] = mean(nactive_vector)

@@ -1,0 +1,22 @@
+Worked on understanding Tononi complexity.  Also rewrote the complexity functions in InfTheory.jl.
+
+Split most of the complexity functions into a function the computes the complexity of a 
+Chromosome and a function that computes the complexity of a set X of MyInts.  The former
+function calls the latter.
+
+Rewrote the integration() function and the complexity7() function that uses integration().
+Note that complexity4() also uses the same algorithm.  Should probably get ride of it.
+
+Rewrote the complexity6() function to be much simpler and faster.  This is the function
+that uses mutual_information.  This version seems to be the best for giving an explanation.
+See Figure 2b of Tononi Edelman and Sporns.
+
+Found that get_btis() was overflowing when X was too large for MyInt.  In other words,
+bits were being shifted off the end of elements of the result.  Wrote a function test_MyInt()
+in InfTheory.jl to check when this is happening.  The function is called int
+Indiv_evolution.jl, Env_evolution.jl, Pop_evolution.jl, and Robust_evolve.jl.
+
+Rewrote get_bits() to be simpler and more intuitive.  Perhaps faster.
+
+The file test_degen_complexity() tests that both versions of degeneracy and 4 versions
+of complexity all give the same results.
