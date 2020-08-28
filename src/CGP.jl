@@ -10,8 +10,8 @@ perfectly suitable for other applications as well.
 using Combinatorics
 module CGP
 #const MyInt = UInt8       # Type of bit string integers used in bit functions
-#const MyInt = UInt16     # Type of bit string integers used in bit functions
-const MyInt = UInt32     # Type of bit string integers used in bit functions
+const MyInt = UInt16     # Type of bit string integers used in bit functions
+#const MyInt = UInt32     # Type of bit string integers used in bit functions
 #const MyInt = UInt64     # Type of bit string integers used in bit functions
 const MyFunc = UInt128  # Type of concatenated output representation of functions
 const maxints_for_degen = 20
@@ -30,6 +30,7 @@ include("Entropy.jl")
 #include("Avg_mut_robustness.jl")
 include("InfTheory.jl")
 include("Indiv_evolution.jl")
+include("Genotype_phenotype.jl")
 include("Env_evolution.jl")
 include("Pop_evolution.jl")
 include("Propsel.jl")

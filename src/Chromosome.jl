@@ -323,7 +323,8 @@ function mutational_robustness( c::Chromosome, funcs::Vector{Func}; active_only:
   count_no_change/num_mut_locs
 end
 
-# Implements equation 3.3 of Macia and Sole
+# Implements equation 3.3 of Macia and Sole (2009)
+#  The average Hamming deviation of the output from the unperturbed output under perturbation of the output of each node
 function fault_tolerance_fitness( c::Chromosome )
   numinputs = c.params.numinputs
   numoutputs = c.params.numoutputs

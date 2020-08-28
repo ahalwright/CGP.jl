@@ -148,6 +148,8 @@ function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numin
 end
 
 # Removed robust_sel and active_only keyword args on 6/6/20
+# Fault tolerance is the  average Hamming deviation of the output from the unperturbed output under perturbation of the output of each node.
+# See equation 3.3 of Macia and Sole (2009)
 function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; 
       use_robustness::Bool=false, hamming_sel::Bool=true, active_only::Bool=false, num_mutations::Int64=1,
       avgfitness::Bool=false, perm_heuristic=perm_heuristic, fault_tol::Bool=false, ftf_param::Float64=0.95 )

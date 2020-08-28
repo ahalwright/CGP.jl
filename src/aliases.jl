@@ -40,7 +40,7 @@ mutable struct indiv_result_type
   levelsback::Int64
   ngoals::Int64
   hamming_sel::Bool
-  avgfitness::Bool
+  #avgfitness::Bool
   #robust_sel::Bool
   active_only::Bool
   maxsteps::Int64
@@ -56,6 +56,30 @@ mutable struct indiv_result_type
   complexity::Float64
   degeneracy::Float64
   sdegeneracy::Float64   
+end
+
+# indiv_result_type is used to parallelize population evolution in Indiv_evolution.jl
+mutable struct geno_pheno_result_type
+  goallist::Vector{Vector{MyInt}}
+  numinputs::Int64
+  numoutputs::Int64
+  numints::Int64
+  levelsback::Int64
+  ngoals::Int64
+  hamming_sel::Bool
+  active_only::Bool
+  maxsteps::Int64
+  gl_reps::Int64
+  steps::Int64
+  logsteps::Float64
+  avgfit::Float64
+  nactive::Int64
+  redundancy::Float64
+  complexity::Float64
+  gb_complexity::Float64
+  degeneracy::Float64
+  sdegeneracy::Float64   
+  f_mutinf::Float64
 end
 
 # env_result_type is used to parallelize population evolution in Env_evolution.jl
