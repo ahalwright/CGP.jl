@@ -74,12 +74,15 @@ mutable struct geno_pheno_result_type
   logsteps::Float64
   avgfit::Float64
   nactive::Int64
-  redundancy::Float64
-  complexity::Float64
-  gb_complexity::Float64
-  degeneracy::Float64
-  sdegeneracy::Float64   
+  redund::Float64
+  complex::Float64
+  gb_complex::Float64
+  degen::Float64
+  #gb_degen::Float64
+  sdegen::Float64   
   f_mutinf::Float64
+  mutrobust::Float64
+  evolvability::Float64
 end
 
 # env_result_type is used to parallelize population evolution in Env_evolution.jl

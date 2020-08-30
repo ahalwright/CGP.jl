@@ -8,12 +8,12 @@ else
   csvfile = "../test/data/test_run_geno_pheno_evolve.csv"
 end
 allgoals=false
-iterations = allgoals ? 2 : 20
-numinputs = 3
+iterations = allgoals ? 2 : 8
+numinputs = 4
 numoutputs = 1
 nodearity = 2
-numinteriors = 8
+numinteriors = 10
 ngoals = 1
-levelsback=numinteriors-4
+levelsback=numinteriors-5
 maxsteps = 100000
 df = run_geno_pheno_evolution( iterations, numinputs, numoutputs, numinteriors, ngoals, maxsteps, levelsback, csvfile, allgoals=allgoals )

@@ -1,7 +1,7 @@
 import Base.getindex
-export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, hamming, hamming_distance
+export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
-export output_values, number_active, number_active_old
+export output_values, number_active, number_active_old, hamming_distance, hamming, deactivate_chromosome!
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome
 
@@ -77,7 +77,8 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
   end
   #println("num_mutate_locations: ",num_mutate_locs,"  mutate_location: ",mutate_location)
   interiors_inputs_list = [ c.interiors[i].inputs for i = 1:c.params.numinteriors ]
-  num_inputs_list = map(length, interiors_inputs_list)
+  num_inputs_list = map(length, interiors_inputs_list)  # A list of the number of inputs of the interior node functions
+  #println("num_inputs_list: ",num_inputs_list)  
   num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
   if mutate_location <= num_funcs_to_mutate   # mutate a func
     #println("mutate a func ml:",mutate_location)
@@ -136,6 +137,9 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
     c.interiors[i].inputs[j] = intindex
     #println("(i,j): ",(i,j),"  c.interiors[i].inputs: ",c.interiors[i].inputs)
   elseif mutate_location > num_funcs_to_mutate + sum(num_inputs_list)   # mutate an output
+    # Mutating an output node should never happen because random chromosomes always use that last interior nodes as input,
+    #   and num_mutate_locations() returns a value that does not include mutation of output nodes.
+    error("mutate_chromosome!() is mutating an output node which should never happen")
     #println("mutate the output: ",mutate_location - num_funcs_to_mutate - sum(num_inputs_list ))
     active = true   # outputs are always active
     minindex = max(1, num_funcs_to_mutate + c.params.numinputs - c.params.numlevelsback + 1 ) 
@@ -159,6 +163,151 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
   #println("active: ",active)
   set_active_to_false(c)
   (c,active)
+end
+
+# Mutates c in all possible ways and returns a list of the outputs of the mutated chromosomes
+# Deterministic if all functions in default_funcs() have the same arity
+# If robustness_only return a pair of avg robustness and evolvability
+# Otherwise returns vector of either outputs, or chromosomes, or (outputs, chromosomes) pairs
+function mutate_all( c::Chromosome, funcs::Vector{Func}; 
+      robustness_only::Bool=false, output_outputs::Bool=true, output_chromosomes::Bool=false )
+  sav_c = deepcopy(c)
+  if robustness_only
+    output_outputs = output_chromosomes = false
+    robustness_sum = 0.0; robustness_count = 0
+    result = Vector{MyInt}[]   # Save outputs to give a measure of evolvability
+  elseif output_outputs && !output_chromosomes
+    result = Vector{MyInt}[]
+  elseif !output_outputs && output_chromosomes 
+    result = Chromosome[]
+  elseif output_outputs && output_chromosomes 
+    result = Tuple{Vector{MyInt},Chromosome}[]
+  end
+  context = construct_context(c.params.numinputs)
+  orig_output = output_values(c)
+  num_mutate_locs = num_mutate_locations( c, funcs )
+  interiors_inputs_list = [ c.interiors[i].inputs for i = 1:c.params.numinteriors ]
+  num_inputs_list = map(length, interiors_inputs_list)
+  num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
+  for mutate_location = 1:num_mutate_locs
+    new_c = deepcopy(c)
+    if mutate_location <= num_funcs_to_mutate   # mutate a func
+      #println("mutate a func ml:",mutate_location,"  node: ",c.interiors[mutate_location])
+      active = c[mutate_location].active
+      for new_func_index = 1:length(funcs)
+        # Does not generate all alternative mutations in the very unusual case when the new function has greater arity
+        #    than the old function
+        #println("new_func: ",funcs[new_func_index].func,"  old_func: ", c.interiors[mutate_location].func.func )
+        if funcs[new_func_index].func == c.interiors[mutate_location].func.func
+          continue   # skip
+        end
+        #println("new_funct_index: ",new_func_index,"  funcs[new_func_index].func: ",funcs[new_func_index].func)
+        #println("  c.interiors[mutate_location].func: ",c.interiors[mutate_location].func.func)
+        #println("condition: ", funcs[new_func_index].func == c.interiors[mutate_location].func.func )
+        #println("new_func_index: ",new_func_index)
+        old_func_arity = c.interiors[mutate_location].func.arity
+        old_inputs = c.interiors[mutate_location].inputs
+        new_func = funcs[new_func_index]
+        new_inputs = Array{Int64}(undef, new_func.arity)
+        for i = 1:new_func.arity
+          if i <= length(old_inputs)
+            new_inputs[i] = old_inputs[i]
+          else
+            maxindex = mutate_location + c.params.numinputs - 1
+            minindex = max(1,mutate_location + c.params.numinputs - c.params.numlevelsback)        
+            #println("mut_location: ",mutate_location,"  minindex: ",minindex,"  maxindex: ",maxindex) 
+            new_inputs[i] = rand(minindex:maxindex)
+          end
+        end 
+        new_c = deepcopy(c)
+        new_c.interiors[mutate_location] = InteriorNode(new_func,new_inputs)
+        deactivate_chromosome!(new_c)
+        new_output = execute_chromosome(new_c,context)
+        if robustness_only
+          robustness_sum = (new_output == orig_output) ? robustness_sum + 1 : robustness_sum
+          robustness_count+=1
+          push!(result,new_output)
+        elseif output_outputs && !output_chromosomes
+          push!(result,new_output)
+        elseif !output_outputs && output_chromosomes
+          push!(result,new_c)
+        elseif output_outputs && output_chromosomes
+          push!(result,(new_output,new_c))
+        end
+      end
+      #println("new interior node: ",new_c.interiors[mutate_location])
+    elseif mutate_location <= num_funcs_to_mutate + sum(num_inputs_list)  # mutate an interior
+      #println("mutate an interior node ml:",mutate_location, "  node: ",c.interiors[mutate_location-num_funcs_to_mutate])
+      interior_mutate_location = mutate_location - num_funcs_to_mutate
+      #println("interior mutate_location: ",interior_mutate_location) 
+      i = 1  # i will be the index of the interior node one of whose inputs will be mutated
+      num_inputs_sum = num_inputs_list[1]
+      #println("i: ",i,"  num_inputs_sum: ",num_inputs_sum)
+      while(num_inputs_sum < interior_mutate_location)
+        i += 1
+        num_inputs_sum += num_inputs_list[i]
+        #println("i: ",i,"  num_inputs_sum: ",num_inputs_sum)
+      end
+      #println("i: ",i,"  c.interiors[i]: ", c.interiors[i])
+      j  = num_inputs_sum - interior_mutate_location + 1  # j is the index of the input to mutate
+      maxindex = i + c.params.numinputs -1
+      minindex = max(1, i + c.params.numinputs - c.params.numlevelsback)
+      #println("(i,j): ",(i,j),"  num_inputs_sum: ",num_inputs_sum,"  minidex: ",minindex,"  maxindex: ",maxindex)
+      for intindex = minindex:maxindex
+        #println("intindex: ",intindex,"  c.interiors[i].inputs[j]: ",c.interiors[i].inputs[j])
+        if intindex == c.interiors[i].inputs[j]
+          #println("continue")
+          continue
+        end
+        new_c = deepcopy(c)
+        new_c.interiors[i].inputs[j] = intindex
+        #println("intindex: ",intindex,"  (i,j): ",(i,j),"  new_c.interiors[i].inputs: ",new_c.interiors[i].inputs)
+        deactivate_chromosome!(new_c)
+        new_output = execute_chromosome(new_c,context)
+        if robustness_only
+          robustness_sum = (new_output == orig_output) ? robustness_sum + 1 : robustness_sum
+          robustness_count+=1
+          push!(result,new_output)
+        elseif output_outputs && !output_chromosomes
+          push!(result,new_output)
+        elseif !output_outputs && output_chromosomes
+          push!(result,new_c)
+        elseif output_outputs && output_chromosomes
+          push!(result,(new_output,new_c))
+        end
+      end
+    elseif mutate_location > num_funcs_to_mutate + sum(num_inputs_list)   # mutate an output
+      # Mutating an output node should never happen because random chromosomes always use that last interior nodes as input,
+      #   and num_mutate_locations() returns a value that does not include mutation of output nodes.
+      error("mutate_all() is mutating an output node which should never happen")
+      #println("mutate the output: ",mutate_location - num_funcs_to_mutate - sum(num_inputs_list ))
+      #active = true   # outputs are always active
+      minindex = max(1, num_funcs_to_mutate + c.params.numinputs - c.params.numlevelsback + 1 ) 
+      maxindex = num_funcs_to_mutate + c.params.numinputs
+      if maxindex == mutate_location
+        print_chromosome(c)
+        exit()
+      end
+      #println("minindex: ",minindex,"  maxindex: ",maxindex)
+      if maxindex > minindex   # no change if there is only one alternative for the output node index
+        for outindex = minindex:maxindex
+          #outindex = rand(minindex:maxindex)
+          if outindex == c.outputs[mutate_location - num_funcs_to_mutate - sum(num_inputs_list)].input 
+            continue
+          end
+        end
+        println("outindex: ",outindex)
+        new_c.outputs[mutate_location - num_funcs_to_mutate - sum(num_inputs_list)].input = outindex
+        new_output = execute_chromosome(new_c,context)
+        push!(result,new_c)
+      end
+    end
+  end
+  if robustness_only
+    (robustness_sum/robustness_count, length(unique(result))/length(result)) # pair of avg robustenss and evolvability
+  else
+    result
+  end
 end
 
 function num_mutate_locations( c::Chromosome, funcs::Vector{Func} )
@@ -244,6 +393,16 @@ function output_values( c::Chromosome )
   else
     return [c[c.outputs[i].input].cache for i = 1:length(c.outputs)]
   end
+end
+
+function deactivate_chromosome!( c::Chromosome )
+  for in in c.inputs
+    in.active = false
+  end
+  for int in c.interiors
+    int.active = false
+  end
+  c
 end
 
 function fraction_active( c::Chromosome )
@@ -384,7 +543,7 @@ function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Flo
 end
 
 function print_build_chromosome( f::IO, c::Chromosome )
-  println(f, "build_chromosome(")
+  print(f, "build_chromosome(")
   print_node_tuple(f, c.inputs )
   print(f,",")
   print_node_tuple(f, c.interiors )

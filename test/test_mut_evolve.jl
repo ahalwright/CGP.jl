@@ -1,4 +1,4 @@
-# Test the mut_evolve_subgoal() function from src/Evolve.jl
+# Test the mut_evolve() function from src/Evolve.jl
 
 #include("../src/CGP.jl")
 using Main.CGP
@@ -21,15 +21,15 @@ function test_mut_evolve(p::Parameters,funcs,max_steps::Int64,ngoals::Int64; use
 end       
 
 avgfitness = true
-numinputs = 2
-numoutputs = 2
-numinteriors = 3
+numinputs = 5
+numoutputs = 1
+numinteriors = 18
 use_robust=false
 funcs = default_funcs(numinputs)
 p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numinteriors )
 context = construct_context(numinputs)
 c = random_chromosome( p, funcs )
-maxsteps = 2000
+maxsteps = 2000000
 ngoals = 2   # number goals in goallist
 #(steps,worse,same,c,output,goallist,matched_goals,matched_goals,matched_goals_list) = 
 #      test_mut_evolve(p,funcs,maxsteps,ngoals, avgfitness=avgfitness)
