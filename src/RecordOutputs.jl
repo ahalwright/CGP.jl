@@ -71,7 +71,11 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
 end
 
 function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer ) 
-  nreps_p = Int(round(nreps/(nprocs()-1)))
+  if nprocs() > 1
+    nreps_p = Int(round(nreps/(nprocs()-1)))
+  else
+    nreps_p = 1
+  end
   println("nreps_p: ",nreps_p)
   #mapreduce(x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback ), +, collect(1:nprocs()))
   reduce(+, pmap( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback ), collect(1:nprocs())))
@@ -99,6 +103,14 @@ function show_outputs_list( outputs_list::Vector{MyFunc}, show_increment::Int64=
     end
   end
   println("count of shown elements: ",count)
+end
+
+function write_to_file( outputs_list::Vector{MyFunc}, filename::String )
+  open( filename, "w" ) do f
+    for i = 1:length(outputs_list)
+      println(f, outputs_list[i] )
+    end
+  end
 end
 
 # Not used or valid at this time.
