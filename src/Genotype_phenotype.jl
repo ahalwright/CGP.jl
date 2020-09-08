@@ -2,7 +2,7 @@
 # Includes evolving multiple chromosomes that correspond to every possible 3-input 1-output phenotype. 
 # In other words, evolves 3-input 1-output chromosomes (genotypes) whose output is every possible 8-bit UInt.
 # There are 
-export run_geno_pheno_evolution, gp_result, gp_result_to_tuple, run_gp_evolve!, analyze_dataframe
+export run_geno_pheno_evolution, gp_result, gp_result_to_tuple, run_gp_evolve! 
 using DataFrames 
 using CSV
 using Statistics
@@ -90,7 +90,7 @@ function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::Int
   df.f_mutinf=Float64[]
   df.mutrobust=Float64[]
   df.evolvability=Float64[]
-  #println("size(df): ",size(df))
+  println("size(df): ",size(df))
   for num_inputs = numinputs
     for num_outputs = numoutputs
       #fit_limit = Float64(num_outputs)
@@ -202,7 +202,6 @@ function gp_result( gl::Vector{Vector{MyInt}}, p::Parameters, num_goals::Int64, 
     0.0,    # complex
     0.0,    # gb_complex
     0.0,    # degen
-    #0.0,    # gb_degen
     0.0,    # sdegen
     0.0,    # f_mutinf
     0.0,    # mutrobust
@@ -228,17 +227,17 @@ function gp_result_to_tuple( rr::geno_pheno_result_type )
   rr.complex,
   rr.gb_complex,
   rr.degen,
-  #rr.gb_degen,
   rr.sdegen,
   rr.f_mutinf,
   rr.mutrobust,
   rr.evolvability
  )
 end
-
+#=
 # Analyze a dataframe that was created by run_geno_pheno_evolution()
 function analyze_dataframe( df_filename::String )
   df = CSV.read(df_filename,header=true,comment="#")
   println("cor(logsteps,complex): ",cor(df.logsteps,df.complex))
   df
 end  
+=#

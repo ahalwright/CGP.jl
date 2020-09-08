@@ -1,3 +1,5 @@
+using DataFrames
+using CSV
 import Base.getindex
 export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
@@ -166,11 +168,13 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
 end
 
 # Mutates c in all possible ways and returns a list of the outputs of the mutated chromosomes
+#    or the pair (avg_robustness, evolvability)
 # Deterministic if all functions in default_funcs() have the same arity
-# If robustness_only return a pair of avg robustness and evolvability
+# If robustness_only==true returnsa the pair: (avg_robustness, evolvability)
 # Otherwise returns vector of either outputs, or chromosomes, or (outputs, chromosomes) pairs
 function mutate_all( c::Chromosome, funcs::Vector{Func}; 
       robustness_only::Bool=false, output_outputs::Bool=true, output_chromosomes::Bool=false )
+  println("mutate_all: numlevelsback: ", c.params.numlevelsback )
   sav_c = deepcopy(c)
   if robustness_only
     output_outputs = output_chromosomes = false
@@ -450,6 +454,9 @@ function copy_chromosome!( c::Chromosome, c_to_copy::Chromosome )
 end
 
 # Computes the fraction of mutations that do not change the output
+# Not really accurate because it counts one mutation per num_mutate_location(), while in fact
+#    there may be more than one random choice per num_mutate_location()
+# Superceded by calling   mutate_all( c, funcs, robustness_only=true ) which returns the pair (robustness,evolvability)
 # If active_only==true, then only mutations that change active nodes are considered
 # If active_only==false, then all mutations are considered
 # Note that results are partially random since the result of mutations at a specific location can be different.
@@ -518,11 +525,12 @@ mutable struct Output_node
 end
 
 # Example call: build_chromosome( [Input_node(1),Input_node(2)], [Int_node(OR,[1,2]),Int_node(AND,[2,3])],[Output_node(4)])
-function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vector{Int_node}, output_nodes::Vector{Output_node} )
+function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vector{Int_node}, output_nodes::Vector{Output_node};
+    levsback::Int64=length(input_nodes)+length(interior_nodes))
   num_in = length(input_nodes)
   num_ints = length(interior_nodes)
   num_outs = length(output_nodes)
-  p = Parameters( numinputs=num_in, numoutputs=num_outs, numinteriors=num_ints, numlevelsback=num_ints+num_outs )
+  p = Parameters( numinputs=num_in, numoutputs=num_outs, numinteriors=num_ints, numlevelsback=levsback )
   in_nodes = [InputNode(in_node.index) for in_node in input_nodes]
   int_nodes = [InteriorNode(int_node.func, int_node.inputs) for int_node in interior_nodes]
   out_nodes = [OutputNode(outnode.input) for outnode in output_nodes]
@@ -531,11 +539,12 @@ end
 
 # Example calls:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,))
 # Example calls:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,),0.0)
-function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Float64=0.0 )
+function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Float64=0.0; 
+    levsback::Int64=length(inputs)+length(ints))
   num_in = length(inputs)
   num_ints = length(ints)
   num_outs = length(outs)
-  p = Parameters( numinputs=num_in, numoutputs=num_outs, numinteriors=num_ints, numlevelsback=num_ints+num_outs )
+  p = Parameters( numinputs=num_in, numoutputs=num_outs, numinteriors=num_ints, numlevelsback=levsback )
   in_nodes = [InputNode(in_index) for in_index in inputs]
   int_nodes = [InteriorNode(int_pair[1], int_pair[2]) for int_pair in ints]
   out_nodes = [OutputNode(out_index) for out_index in outs]

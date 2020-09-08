@@ -38,13 +38,18 @@ mutable struct OutputNode <: Node
     input::Integer
 end
 
+# 
 function print_node_tuple( f::IO, node_vect::Vector{InputNode} )
   print(f,"  (")
   len = length(node_vect)
   for i in 1:(len-1)
     print(f,node_vect[i].index,",")
   end
-  print(f,node_vect[len].index,")")
+  if len > 1
+    print(f,node_vect[len].index,")")
+  else
+    print(f,node_vect[len].index,",)") # add comma so 1-element tuple will be read as a tuple
+  end
 end
 
 function print_node_tuple( node_vect::Vector{InputNode} )
@@ -57,7 +62,12 @@ function print_node_tuple( f::IO, node_vect::Vector{InteriorNode} )
   for i in 1:(len-1)
     print(f,"(",node_vect[i].func.name,",",node_vect[i].inputs,"),")
   end
-  print(f,"(",node_vect[len].func.name,",",node_vect[len].inputs,"))")
+  if len > 1
+    print(f,"(",node_vect[len].func.name,",",node_vect[len].inputs,"))")
+  else
+    # add comma so 1-element tuple will be read as a tuple
+    print(f,"(",node_vect[len].func.name,",",node_vect[len].inputs,"),)")  
+  end
 end
 
 function print_node_tuple( node_vect::Vector{InteriorNode} )
@@ -70,7 +80,11 @@ function print_node_tuple( f::IO, node_vect::Vector{OutputNode} )
   for i in 1:(len-1)
     print(f,node_vect[i].input,",")
   end
-  print(f,node_vect[len].input,")")
+  if len > 1
+    print(f,node_vect[len].input,")")
+  else
+    print(f,node_vect[len].input,",)")
+  end
 end
 
 function print_node_tuple( node_vect::Vector{OutputNode} )
