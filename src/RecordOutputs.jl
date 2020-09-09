@@ -28,7 +28,7 @@
 using DataFrames
 using Distributed
 using Printf
-export count_outputs, count_outputs_parallel, show_outputs
+export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list
 
 MyFunc = Main.CGP.MyFunc
 
@@ -105,22 +105,36 @@ function show_outputs_list( outputs_list::Vector{MyFunc}, show_increment::Int64=
   println("count of shown elements: ",count)
 end
 
-function write_to_file( outputs_list::Vector{MyFunc}, filename::String )
+# Write output list to a file.  
+# Optional list of comments which are written to a file preceded by a # character.
+# Example:  write_to_file( ol, "../data/9_8/test.csv", "10^6 reps Raman funcs", "3 inputs, 1 output, 7 interiors, 4 levsback",hex=true )
+function write_to_file( outputs_list::Vector{MyFunc}, filename::String, comments::String... ; 
+      hex::Bool=false )
   open( filename, "w" ) do f
+    for s in comments
+      println(f,"# ",s)
+    end
     for i = 1:length(outputs_list)
-      println(f, outputs_list[i] )
+      if hex
+        @printf(f,"0x%x\n",outputs_list[i])
+      else
+        println(f, outputs_list[i] )
+      end
     end
   end
 end
 
-# Not used or valid at this time.
-#=
-function record_to_dataframe( numinputs::Integer, numoutputs::Integer,  numlevelsback::Integer, repetitions::Integer )
-  df = DataFrame(
-    numinputs = zeros(Int64,repetitions),
-    numoutputs = zeros(Int64,repetitions),
-    numinteriors = zeros(Int64,repetitions),
-    numlevelsback = zeros(Int64,repetitions)
-  )
+# Read a file written by write_to_file(). 
+# Returns a list whose elements are of type out_type.
+# Options for out_type include Int64, UInt64, UInt32,
+# Lines starting with "#" are comments
+function read_file( filename::String, out_type::Type )
+  result = out_type[]
+  i = 0
+  for row in CSV.File(filename, header=false, comment="#" )
+    #println("i: ",i,"  ",row.Column1)
+    push!(result,parse(out_type,row.Column1))
+    i += 1
+  end
+  result
 end
-=#

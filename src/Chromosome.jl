@@ -170,7 +170,7 @@ end
 # Mutates c in all possible ways and returns a list of the outputs of the mutated chromosomes
 #    or the pair (avg_robustness, evolvability)
 # Deterministic if all functions in default_funcs() have the same arity
-# If robustness_only==true returnsa the pair: (avg_robustness, evolvability)
+# If robustness_only==true returns the pair: (avg_robustness, evolvability)
 # Otherwise returns vector of either outputs, or chromosomes, or (outputs, chromosomes) pairs
 function mutate_all( c::Chromosome, funcs::Vector{Func}; 
       robustness_only::Bool=false, output_outputs::Bool=true, output_chromosomes::Bool=false )
