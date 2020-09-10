@@ -25,6 +25,7 @@
 # julia> show_outputs_list( ol, 2, show_small=true )  # shows outputs created at most twice
 # output: 0X4:  2
 # count of shown outputs: 1
+# See notes/diargy9_9_20.txt for more examples.
 using DataFrames
 using Distributed
 using Printf

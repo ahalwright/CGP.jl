@@ -174,7 +174,7 @@ end
 # Otherwise returns vector of either outputs, or chromosomes, or (outputs, chromosomes) pairs
 function mutate_all( c::Chromosome, funcs::Vector{Func}; 
       robustness_only::Bool=false, output_outputs::Bool=true, output_chromosomes::Bool=false )
-  println("mutate_all: numlevelsback: ", c.params.numlevelsback )
+  #println("mutate_all: numlevelsback: ", c.params.numlevelsback )
   sav_c = deepcopy(c)
   if robustness_only
     output_outputs = output_chromosomes = false

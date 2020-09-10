@@ -1,5 +1,5 @@
 export Func, default_funcs, eval_func, Ones, AND, OR, XOR, Nand, NAND, Nor, NOR, NOT, Not, Zero, ZERO, One, ONE
-export func_names
+export func_names, setup_funcs
 using Main.CGP
 
 mutable struct Func

@@ -39,6 +39,7 @@ include("Inf_alleles.jl")
 include("Assignment.jl")
 include("Analyze.jl")
 include("RecordOutputs.jl")
+include("evolvability.jl")
 end
 using Main.CGP
 MyInt=Main.CGP.MyInt

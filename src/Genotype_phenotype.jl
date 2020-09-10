@@ -20,11 +20,9 @@ function run_geno_pheno_evolution( iterations::Int64, numinputs::IntRange, numou
     levelsback::IntRange, csvfile::String; 
     base::Float64=2.0, allgoals::Bool=false, active_only::Bool=false, gl_repetitions::IntRange=1)
   println(default_funcs(2))
-  result =
+  (df,ttime) =
     @timed run_geno_pheno( iterations, numinputs, numoutputs, numinteriors, goallistlength, maxsteps, levelsback,
         base=base, allgoals=allgoals, active_only=active_only, gl_repetitions=gl_repetitions )
-  df = result[1]
-  ttime = result[2]
   println("run time in minutes: ",ttime/60)
   println("cor( df.logsteps, df.complex): ",cor( df.logsteps, df.complex))
   println("cor( df.logsteps, df.gb_complex): ",cor( df.logsteps, df.gb_complex))

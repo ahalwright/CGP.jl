@@ -31,6 +31,7 @@ const FPopulation = Array{Float64,1}
 const IntRange = Union{Integer, Bool, AbstractRange{Int64}, AbstractRange{Bool}}
 const Goal =  Vector{MyInt}
 const GoalList = Vector{Goal}
+const Ones = 0xffff
 
 # indiv_result_type is used to parallelize population evolution in Indiv_evolution.jl
 mutable struct indiv_result_type
@@ -152,3 +153,13 @@ mutable struct inf_alleles_result_type
   gen_finished::Int64
 end
 
+mutable struct evo_result_type
+  goal::Goal
+  nchromes::Int64
+  numinputs::Int64
+  numoutputs::Int64
+  numints::Int64
+  levelsback::Int64
+  maxsteps::Int64
+  evolvability::Int64
+end
