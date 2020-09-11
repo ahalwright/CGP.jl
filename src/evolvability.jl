@@ -7,8 +7,8 @@ using Dates
 using CSV
 using Distributed
 
-export evolvability, run_evolvability, test_evo
-
+export evolvability, run_evolvability, test_evo, evo_result_type
+#=
 mutable struct evo_result_type
   goal::Goal
   nchromes::Int64
@@ -19,6 +19,7 @@ mutable struct evo_result_type
   maxsteps::Int64
   evolvability::Int64
 end
+=#
 
 function evo_result( goal::Goal, nchromes, max_steps::Int64, p::Parameters, evolvability::Int64 )
   evo_result_type(
@@ -65,11 +66,19 @@ function evolvability( g::Goal, funcs::Vector{Func}, nchromes::Int64, maxsteps::
   evolvability( g, funcs, nchromes,  maxsteps, p )
 end
 
-function evolvability( er::evo_result_type, funcs::Vector{Func} )
+# Return dataframe of genotypic evolvability results
+# If intermediate_results is a non-empty list, save intermediate results for those number of chromosomes
+function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_results::Vector{Int64}=Int64[] )
   repeat_limit = 10
   println("er: ",er)
   p = Parameters( numinputs=er.numinputs, numoutputs=er.numoutputs, numinteriors=er.numints, numlevelsback=er.levelsback )
   result = Goal[]
+  if length(intermediate_results) > 0
+    @assert maximum(intermediate_results) <= er.nchromes
+    intermediates = Vector{Goal}[]   # results saved for steps i in intermediate_results
+    intermediate_count = 1
+    #println("len inter > 0")
+  end
   @assert p.numoutputs==length(er.goal)
   for i = 1:er.nchromes
     numinteriors_repeat = er.numints
@@ -92,15 +101,40 @@ function evolvability( er::evo_result_type, funcs::Vector{Func} )
     #println("goal_list: ",goal_list)
     goal_set = unique(goal_list)
     result = unique(vcat(result,goal_set))
+    #println("i: ",i,"  intermediate_count: ",intermediate_count,"  intermediate_results[intermediate_count]: ",intermediate_results[intermediate_count])
+    if length(intermediate_results) > 0 && i == intermediate_results[intermediate_count]
+      intermediate = deepcopy(result)
+      #println("i: ",i,"  int_count: ",intermediate_count,"  length(intermediate): ",length(intermediate))
+      push!(intermediates,intermediate)
+      intermediate_count += 1
+    end
   end
-  println("len(result): ",length(result))
-  er.evolvability = length(result)
-  return er
+  if length(intermediate_results) == 0
+    #println("len(result): ",length(result))
+    er.evolvability = length(result)
+    return er
+  else
+    er_list = evo_result_type[]
+    int_count = 1
+    for int in intermediate_results
+      er_i = deepcopy(er)
+      er_i.nchromes = int
+      er_i.evolvability = length(intermediates[int_count])
+      #println("int: ",int,"  er_i: ",er_i)
+      push!(er_list,er_i)
+      int_count += 1
+    end
+    return er_list
+  end
 end
 
 function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchromes::IntRange,  maxsteps::IntRange, 
-      numinputs::Int64, numinteriors::IntRange, numlevelsback::IntRange )
-  evo_result_list = evo_result_type[]
+      numinputs::Int64, numinteriors::IntRange, numlevelsback::IntRange; intermediate_results::Vector{Int64}=Int64[] )
+  if length(intermediate_results) == 0
+    evo_result_list = evo_result_type[]
+  else
+    evo_result_list = Vector{evo_result_type}[]
+  end
   df = DataFrame()
   df.goal=Vector{MyInt}[]
   df.nchromes=Int64[]
@@ -119,18 +153,32 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
               er = evo_result( g, nch, numinputs, length(g), nints, levsback, mxsteps, 0 )
               #er = evolvability( er, funcs )
               #push!(df,(g,nch,numinputs,nints,levsback,mxsteps,evob))
-              push!(evo_result_list, er )
+              if length(intermediate_results)==0
+                push!(evo_result_list, er )
+              else
+                push!(evo_result_list, [er] )
+              end
             end
           end
         end
       end
     end
   end
-  new_evo_result_list = pmap( x->evolvability(x,funcs), evo_result_list )
-  #new_evo_result_list = map( x->evolvability(x,funcs), evo_result_list )
+  #println("evo_result_list: ",evo_result_list)
+  new_evo_result_list = pmap( x->evolvability(x[1],funcs,intermediate_results=intermediate_results), evo_result_list )
+  #new_evo_result_list = map( x->evolvability(x[1],funcs,intermediate_results=intermediate_results), evo_result_list )
+  #println("evo_result_list[1]: ",evo_result_list[1])
+  #new_evo_result_list = [evolvability(evo_result_list[1][1],funcs,intermediate_results=intermediate_results)]
   for er in new_evo_result_list
-    new_row = evo_result_to_tuple(er)
-    push!(df, new_row)
+    if length(intermediate_results) == 0
+      new_row = evo_result_to_tuple(er)
+      push!(df, new_row)
+    else
+      for e in er
+        new_row = evo_result_to_tuple(e)
+        push!(df, new_row)
+      end
+    end
   end
   df
 end
@@ -161,10 +209,13 @@ function test_evo()
   setup_funcs(numinputs)
   g =[0x03f3]
   p = Parameters( numinputs=numinputs, numoutputs=length(g), numinteriors=numinteriors, numlevelsback=numlevelsback )
-  nchromes = 3
   max_steps = 10000
+  nchromes = 16
+  evo_result = Main.CGP.evo_result
   er = evo_result( g, nchromes, max_steps, p, 0 )
   funcs=default_funcs(p.numinputs)
-  evolvability( er, funcs )
-  run_evolvability( 20, [g], funcs, 5:5:20, er.maxsteps, er.numinputs, er.numints, er.levelsback, "test.csv" )
+  #evolvability( er, funcs )
+  evolvability( er, funcs, intermediate_results=[1,4,8,16] )
+  run_evolvability( 8, [g], funcs, er.nchromes, er.maxsteps, er.numinputs, er.numints, er.levelsback, intermediate_results=[4,8,12,16] )
+  #run_evolvability( 20, [g], funcs, 5:5:20, er.maxsteps, er.numinputs, er.numints, er.levelsback, "test.csv" )
 end

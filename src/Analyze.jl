@@ -3,7 +3,7 @@ using DataFrames
 using Statistics
 using Distributions
 using CSV
-export spearman_cor, consoidate_dataframe, read_dataframe, write_dataframe_with_comments
+export spearman_cor, consoidate_dataframe, read_dataframe, write_dataframe_with_comments, write_dataframe
 
 
 # Returns a dataframe by reading a CSV file with comments that start with "#"
@@ -129,6 +129,12 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
   new_df
 end
 
+function write_dataframe( df::DataFrame, out_filename::String )
+  CSV.write( outfile, df, append=true, writeheader=true )
+end
+
+# Writes the datarame df to the file out_filename with comments taken from file in_filename.
+# No dataframe is read from in_filename.
 function write_dataframe_with_comments( df::DataFrame, in_filename::String, out_filename::String )
   open( out_filename, "w" ) do outfile
     open( in_filename, "r" ) do infile

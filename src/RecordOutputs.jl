@@ -29,7 +29,8 @@
 using DataFrames
 using Distributed
 using Printf
-export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list
+export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list, read_counts_files
+export add_counts_to_dataframe
 
 MyFunc = Main.CGP.MyFunc
 
@@ -139,3 +140,37 @@ function read_file( filename::String, out_type::Type )
   end
   result
 end
+
+function read_counts_file(filename::String...)
+  my_goals = Vector{String}[]
+  my_counts = Vector{Int64}[]
+  i=1
+  for fname in filename
+    open(fname) do f
+      lines = readlines(f)
+      if i > 1
+        @assert length(lines) == length(my_goals[i-1])
+      end
+      filter!(x->x[1]!='#',lines)
+      goals = [ @sprintf("0x%x",i) for i = 0:(length(lines)-1) ]
+      if i > 1
+        @assert goals == my_goals[i-1]
+      end
+      push!(my_goals,goals)
+      counts = [ parse(Int64, lines[i+1] ) for i = 0:(length(lines)-1)]
+      push!(my_counts,counts)
+    end
+  end
+  (my_goals[1],my_counts)
+end
+
+function add_counts_to_dataframe( df::DataFrame, names::Vector{Symbol}, filename::String... )
+  (goals,counts) = read_counts_file( filename... )
+  df.goal = goals
+  i = 1
+  for nm in names
+    insert!(df, size(df)[2]+1, counts[i], nm )
+  end
+  df
+end
+
