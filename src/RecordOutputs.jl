@@ -72,6 +72,7 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
   outlist
 end
 
+# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
 function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer ) 
   if nprocs() > 1
     nreps_p = Int(round(nreps/(nprocs()-1)))
@@ -107,7 +108,7 @@ function show_outputs_list( outputs_list::Vector{MyFunc}, show_increment::Int64=
   println("count of shown elements: ",count)
 end
 
-# Write output list to a file.  
+# Write output counts list to a file.  
 # Optional list of comments which are written to a file preceded by a # character.
 # Example:  write_to_file( ol, "../data/9_8/test.csv", "10^6 reps Raman funcs", "3 inputs, 1 output, 7 interiors, 4 levsback",hex=true )
 function write_to_file( outputs_list::Vector{MyFunc}, filename::String, comments::String... ; 
@@ -126,7 +127,7 @@ function write_to_file( outputs_list::Vector{MyFunc}, filename::String, comments
   end
 end
 
-# Read a file written by write_to_file(). 
+# Read a counts file written by write_to_file(). 
 # Returns a list whose elements are of type out_type.
 # Options for out_type include Int64, UInt64, UInt32,
 # Lines starting with "#" are comments
@@ -141,7 +142,10 @@ function read_file( filename::String, out_type::Type )
   result
 end
 
-function read_counts_file(filename::String...)
+# Read multiple counts files.   
+# Returns a 2-tuple where the first element is a list of goals written in hex form,
+#    and the second is a vector of counts lists, one for each file read.
+function read_counts_files(filename::String...)
   my_goals = Vector{String}[]
   my_counts = Vector{Int64}[]
   i=1
@@ -164,8 +168,12 @@ function read_counts_file(filename::String...)
   (my_goals[1],my_counts)
 end
 
+# Add multiple counts vectors as additional columns to dataframe df.
+# The hames of the columns are given in the names vector.
+# The filename to read the counts vector is filename.
+# The dataframe can be read using function read_dataframe() in Analyze.jl
 function add_counts_to_dataframe( df::DataFrame, names::Vector{Symbol}, filename::String... )
-  (goals,counts) = read_counts_file( filename... )
+  (goals,counts) = read_counts_files( filename... )
   df.goal = goals
   i = 1
   for nm in names

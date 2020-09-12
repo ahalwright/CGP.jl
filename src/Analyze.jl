@@ -130,7 +130,7 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
 end
 
 function write_dataframe( df::DataFrame, out_filename::String )
-  CSV.write( outfile, df, append=true, writeheader=true )
+  CSV.write( out_filename, df, append=true, writeheader=true )
 end
 
 # Writes the datarame df to the file out_filename with comments taken from file in_filename.

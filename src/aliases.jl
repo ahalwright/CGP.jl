@@ -161,5 +161,20 @@ mutable struct evo_result_type
   numints::Int64
   levelsback::Int64
   maxsteps::Int64
-  evolvability::Int64
+  all_count::Int64
+  evolvable_count::Int64
+end
+
+mutable struct evo_pairs_type
+  source_g::Goal
+  dest_g::Goal
+  numinputs::Int64
+  numoutputs::Int64
+  numints::Int64
+  levelsback::Int64
+  maxsteps::Int64
+  hamming_dist::Float64
+  source_g_count::Int64
+  dest_g_count::Int64
+  steps::Int64
 end

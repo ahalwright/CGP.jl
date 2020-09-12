@@ -23,8 +23,6 @@
 
 export construct_ones, construct_contexts, construct_context, get_bits
 
-#const MyInt  = UInt8
-
 # Ones[i] is a "mask" with 1 bits in positions 1 to 2^i where position 1 is least significant
 function construct_ones( numinputs::Integer )
   Ones = zeros(MyInt,numinputs)
