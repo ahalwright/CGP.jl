@@ -89,10 +89,10 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
     all_sums = Int64[]  # save all_sum for intermediate generations
     unique_intermeds = Vector{Goal}[]   # results saved for steps i in intermediate_gens
     intermediate_count = 1
+    prev_goal_count = 0
     #println("len inter > 0")
   end
   @assert p.numoutputs==length(er.goal)
-  prev_goal_count = 0
   for i = 1:er.nchromes
     numinteriors_repeat = er.numints
     numlevelsback_repeat = er.levelsback
@@ -117,11 +117,11 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
     #print("len unique_goal_list)): ",length(unique_goals))
     unique_result = unique(vcat(unique_result,unique_goals))
     current_goal_count = length(unique_result)
-    diff_count = current_goal_count - prev_goal_count
-    #println("  diff_count: ",diff_count)
-    push!(goal_diff_counts,diff_count)
-    prev_goal_count = length(unique_result)
     if length(intermediate_gens) > 0 && i == intermediate_gens[intermediate_count]
+      diff_count = current_goal_count - prev_goal_count
+      #println("  diff_count: ",diff_count)
+      push!(goal_diff_counts,diff_count)
+      prev_goal_count = length(unique_result)
       unique_intermed = deepcopy(unique_result)
       ##println("i: ",i,"  int_count: ",intermediate_count,"  length(intermediate): ",length(intermediate))
       push!(all_sums,all_sum)
@@ -133,7 +133,7 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
     #println("len(unique_result): ",length(unique_result))
     er.all_count = all_sum
     er.evolvable_count = length(unique_result)
-    er.evo_diff_count = goal_diff_counts[end]
+    er.evo_diff_count = 0
     return er
   else
     er_list = evo_result_type[]
