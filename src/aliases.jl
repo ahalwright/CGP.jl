@@ -163,6 +163,7 @@ mutable struct evo_result_type
   maxsteps::Int64
   all_count::Int64
   evolvable_count::Int64
+  evo_diff_count::Int64
 end
 
 mutable struct evo_pairs_type

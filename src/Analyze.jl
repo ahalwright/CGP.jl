@@ -42,29 +42,12 @@ function spearman_cor( df::DataFrame, name1::Symbol, name2::Symbol )
   (r, p_value)
 end
 
+# Consolidates a dataframe with the columns specified below by averaging columsn with the same paramter values
 function consolidate_dataframe( in_filename::String, out_filename::String; consolidate::Bool=true )
   new_df = DataFrame()
-  new_df.goal=UInt16[]
-  new_df.numinputs=Float64[]
-  new_df.numoutputs=Float64[]
-  new_df.numints=Float64[]
-  new_df.levsback=Float64[]
-  new_df.ngoals=Float64[]
-  new_df.maxsteps=Float64[]
-  new_df.gl_reps=Float64[]
-  new_df.steps=Float64[]
-  new_df.logsteps=Float64[]
-  new_df.avgfit=Float64[]
-  new_df.nactive=Float64[]
-  new_df.redund=Float64[]
-  new_df.complex=Float64[]
-  new_df.gb_complex=Float64[]
-  new_df.degen=Float64[]
-  new_df.sdegen=Float64[]
-  new_df.f_mutinf=Float64[]
-  new_df.mutrobust=Float64[]
-  new_df.evolvability=Float64[]     
-
+  for n in names(df)
+    new_df[!,n] = typeof(df[1,n])[]
+  end
   df = read_dataframe( in_filename )
   first_pos = findfirst( "0x", df.goallist[1] )[1]
   last_pos = findnext( "]]", df.goallist[1], first_pos )[1]-1
@@ -84,7 +67,7 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
     error("The number of rows in the dataframe must be a multiple of increment")
   end
   for r = 1:increment:Int(floor(size(df)[1]))
-    ndf_row = Any[df.goal[r]]
+    ndf_row = Any[df.goal[r]]   # first entry of row is the current goal
     isum = zeros(Int64,size(df)[2])
     fsum = zeros(Float64,size(df)[2])
     for row = r:(r+increment-1)
@@ -165,3 +148,7 @@ function write_comments( in_filename::String, out_filename::String )
   end
 end
 
+function goal_lookup_from_df( df::DataFrame, goal::String, fields::Vector{Symbol} )
+  [df[findfirst(x->x==goal,df.goal),f] for f in fields]
+end
+  

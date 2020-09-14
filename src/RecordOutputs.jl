@@ -142,7 +142,7 @@ function read_file( filename::String, out_type::Type )
   result
 end
 
-# Read multiple counts files.   
+# Read multiple counts files where each counts file has one base 10 integer per line.
 # Returns a 2-tuple where the first element is a list of goals written in hex form,
 #    and the second is a vector of counts lists, one for each file read.
 function read_counts_files(filename::String...)
@@ -168,9 +168,10 @@ function read_counts_files(filename::String...)
   (my_goals[1],my_counts)
 end
 
-# Add multiple counts vectors as additional columns to dataframe df.
-# The hames of the columns are given in the names vector.
+# Add multiple vectors of numbers as additional columns to dataframe df.
+# The names of the columns are given in the names vector.
 # The filename to read the counts vector is filename.
+# The column file has one entry which must be a base 10 integer.
 # The dataframe can be read using function read_dataframe() in Analyze.jl
 function add_counts_to_dataframe( df::DataFrame, names::Vector{Symbol}, filename::String... )
   (goals,counts) = read_counts_files( filename... )
@@ -178,6 +179,7 @@ function add_counts_to_dataframe( df::DataFrame, names::Vector{Symbol}, filename
   i = 1
   for nm in names
     insert!(df, size(df)[2]+1, counts[i], nm )
+    i += 1
   end
   df
 end

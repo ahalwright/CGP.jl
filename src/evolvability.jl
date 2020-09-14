@@ -22,9 +22,10 @@ mutable struct evo_result_type
 end
 =#
 
-function evo_result( goal::Goal, nchromes, max_steps::Int64, p::Parameters, evolvable_count::Int64, all_count::Int64 )
+function evo_result( g::Goal, nchromes, max_steps::Int64, p::Parameters, evolvable_count::Int64, all_count::Int64,
+      evo_diff_count::Int64 )
   evo_result_type(
-    goal,
+    g,
     nchromes,
     p.numinputs,
     p.numoutputs,
@@ -32,14 +33,15 @@ function evo_result( goal::Goal, nchromes, max_steps::Int64, p::Parameters, evol
     p.numlevelsback,  
     max_steps,
     all_count,
-    evolvable_count
+    evolvable_count,
+    evo_diff_count
   )
 end
 
-function evo_result( goal::Goal, nchromes, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, 
-      max_steps::Int64, all_count::Int64, evolvable_count::Int64 )
+function evo_result( g::Goal, nchromes, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, 
+      max_steps::Int64, all_count::Int64, evolvable_count::Int64, evo_diff_count::Int64 )
   evo_result_type(
-    goal,
+    g,
     nchromes,
     numinputs,
     numoutputs,
@@ -47,7 +49,8 @@ function evo_result( goal::Goal, nchromes, numinputs::Int64, numoutputs::Int64, 
     numlevelsback,  
     max_steps,
     all_count,
-    evolvable_count
+    evolvable_count,
+    evo_diff_count
   )
 end
 
@@ -61,6 +64,7 @@ function evo_result_to_tuple( er::evo_result_type )
     er.maxsteps,
     er.all_count,
     er.evolvable_count,
+    er.evo_diff_count,
     er.evolvable_count/er.all_count   # the Q field
   )
 end
@@ -75,10 +79,11 @@ end
 # If intermediate_gens is a non-empty list, save intermediate results for those number of chromosomes
 function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_gens::Vector{Int64}=Int64[] )
   repeat_limit = 10
-  println("er: ",er)
+  #println("er: ",er)
   p = Parameters( numinputs=er.numinputs, numoutputs=er.numoutputs, numinteriors=er.numints, numlevelsback=er.levelsback )
   all_sum = 0      # Accumulation of count of all neutral neighbors
   unique_result = Goal[]  # Accumulation of unique neutral neighbors
+  goal_diff_counts = Int64[]  # save for intermediate generations
   if length(intermediate_gens) > 0
     @assert maximum(intermediate_gens) <= er.nchromes
     all_sums = Int64[]  # save all_sum for intermediate generations
@@ -87,6 +92,7 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
     #println("len inter > 0")
   end
   @assert p.numoutputs==length(er.goal)
+  prev_goal_count = 0
   for i = 1:er.nchromes
     numinteriors_repeat = er.numints
     numlevelsback_repeat = er.levelsback
@@ -108,11 +114,16 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
     all_sum += length(goal_list)
     #println("goal_list: ",goal_list)
     unique_goals = unique(goal_list)
+    #print("len unique_goal_list)): ",length(unique_goals))
     unique_result = unique(vcat(unique_result,unique_goals))
-    #println("i: ",i,"  intermediate_count: ",intermediate_count,"  intermediate_gens[intermediate_count]: ",intermediate_gens[intermediate_count])
+    current_goal_count = length(unique_result)
+    diff_count = current_goal_count - prev_goal_count
+    #println("  diff_count: ",diff_count)
+    push!(goal_diff_counts,diff_count)
+    prev_goal_count = length(unique_result)
     if length(intermediate_gens) > 0 && i == intermediate_gens[intermediate_count]
       unique_intermed = deepcopy(unique_result)
-      #println("i: ",i,"  int_count: ",intermediate_count,"  length(intermediate): ",length(intermediate))
+      ##println("i: ",i,"  int_count: ",intermediate_count,"  length(intermediate): ",length(intermediate))
       push!(all_sums,all_sum)
       push!(unique_intermeds,unique_intermed)
       intermediate_count += 1
@@ -122,6 +133,7 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
     #println("len(unique_result): ",length(unique_result))
     er.all_count = all_sum
     er.evolvable_count = length(unique_result)
+    er.evo_diff_count = goal_diff_counts[end]
     return er
   else
     er_list = evo_result_type[]
@@ -131,6 +143,7 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
       er_i.nchromes = int
       er_i.all_count = all_sums[int_count]
       er_i.evolvable_count = length(unique_intermeds[int_count])
+      er_i.evo_diff_count = goal_diff_counts[int_count]
       #println("int: ",int,"  er_i: ",er_i)
       push!(er_list,er_i)
       int_count += 1
@@ -155,6 +168,7 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
   df.maxsteps=Int64[]
   df.all_count=Int64[]
   df.evolvable_count=Int64[]
+  df.evo_diff_count=Int64[]
   df.Q = Float64[]
   for g in gl
     for nch = nchromes
@@ -163,7 +177,7 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
           for mxsteps = maxsteps
             for rep = 1:nreps
               #er = evo_result( g, nch, mxsteps, p, 0 )
-              er = evo_result( g, nch, numinputs, length(g), nints, levsback, mxsteps, 0, 0 )
+              er = evo_result( g, nch, numinputs, length(g), nints, levsback, mxsteps, 0, 0, 0 )
               #er = evolvability( er, funcs )
               #push!(df,(g,nch,numinputs,nints,levsback,mxsteps,evob))
               if length(intermediate_gens)==0
@@ -202,9 +216,11 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
 end
 
 function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchromes::IntRange,  maxsteps::IntRange, 
-      numinputs::Int64, numinteriors::IntRange, numlevelsback::IntRange, csvfile::String )
+      numinputs::Int64, numinteriors::IntRange, numlevelsback::IntRange, csvfile::String; 
+      intermediate_gens::Vector{Int64}=Int64[] )
   #result = @timed run_evolvability( nreps, gl, funcs, nchromes,  maxsteps, numinputs, numinteriors, numlevelsback ) 
-  (df,ttime) = @timed run_evolvability( nreps, gl, funcs, nchromes,  maxsteps, numinputs, numinteriors, numlevelsback ) 
+  (df,ttime) = @timed run_evolvability( nreps, gl, funcs, nchromes,  maxsteps, numinputs, numinteriors, numlevelsback,
+      intermediate_gens=intermediate_gens ) 
   hostname = chomp(open("/etc/hostname") do f read(f,String) end)
   println("size(df): ",size(df))
   println("# host: ",hostname," with ",nprocs()-1,"  processes: " )    
@@ -273,13 +289,13 @@ function test_evo()
   g =[0x03f3]
   p = Parameters( numinputs=numinputs, numoutputs=length(g), numinteriors=numinteriors, numlevelsback=numlevelsback )
   max_steps = 200000
-  nchromes = 400
+  nchromes = 50
   evo_result = Main.CGP.evo_result
-  er = evo_result( g, nchromes, max_steps, p, 0, 0 )
+  er = evo_result( g, nchromes, max_steps, p, 0, 0, 0 )
   funcs=default_funcs(p.numinputs)
   #evolvability( er, funcs )
   #evolvability( er, funcs, intermediate_gens=[1,4,8] )
-  run_evolvability( 8, [g], funcs, er.nchromes, er.maxsteps, er.numinputs, er.numints, er.levelsback, intermediate_gens=[50,100,200,300,400] )
+  run_evolvability( 2, [g], funcs, er.nchromes, er.maxsteps, er.numinputs, er.numints, er.levelsback, intermediate_gens=[10,20,30,40,50] )
   #run_evolvability( 20, [g], funcs, 5:5:20, er.maxsteps, er.numinputs, er.numints, er.levelsback, "test.csv" )
 end
 
