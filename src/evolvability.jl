@@ -7,7 +7,7 @@ using Dates
 using CSV
 using Distributed
 
-export evolvability, run_evolvability, evo_result, test_evo, evo_result_type
+export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
 #=
 mutable struct evo_result_type
   goal::Goal
@@ -237,6 +237,37 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
   df
 end
 
+#function evolve_g_pairs( df::DataFrame, sample::Vector{Int64}, p::Parameters,  maxsteps::Int64 )
+#function evolve_g_pairs( df::DataFrame, src_g::String, dst_g::String, p::Parameters,  maxsteps::Int64 )
+function evolve_g_pairs( df::DataFrame, g_pair::Tuple{String,String}, p::Parameters,  maxsteps::Int64 )
+  (src_g,dst_g) = g_pair
+  funcs = default_funcs(p.numinputs)
+  source_g = parse(MyInt,src_g)
+  dest_g = parse(MyInt,dst_g)
+  (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) = 
+      mut_evolve_increase_numints( random_chromosome( p, funcs ), [[source_g]], funcs, maxsteps )
+  if step == maxsteps
+    println("failed to find chromosome for source goal: ",src_g)
+    return nothing
+  else
+    println("found source goal: ",src_g)
+  end
+  (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) = 
+      mut_evolve_increase_numints(c, [[dest_g]], funcs, maxsteps )
+  if step == maxsteps
+    println("failed to find chromosome for dest goal: ",dst_g)
+    return nothing
+  else
+    println("found dest goal: ",dst_g)
+  end
+  total_steps = (new_levsback - p.numlevelsback)*maxsteps + step
+  s_df = df[df.goal.==src_g,[:counts10ints,:complex,:mutrobust,:evolvability]]
+  d_df = df[df.goal.==dst_g,[:counts10ints,:complex,:mutrobust,:evolvability]]
+  hdist = hamming_distance(source_g,dest_g,p.numinputs)
+  row=(src_g,s_df[1,:counts10ints],s_df[1,:complex],dst_g,d_df[1,:counts10ints],d_df[1,:complex],hdist,p.numinputs,p.numoutputs,new_numints,new_levsback,maxsteps,total_steps)
+  row
+end
+
 # Test Wagner's hypothesis that "An evolutionary search’s ability to find a target genotype is only weakly 
 #    correlated with the evolvability of the source genotype".
 # Choose a random sample of sample_genotypes for source and destination genotypes.
@@ -246,40 +277,65 @@ end
 #   reruns due to failures are rare.
 # Perhaps reverse roles of source_g and dest_g.
 # Calculate correlations with evolvabilities, frequencies (counts), and Hamming distance from source_g to dest_g.
-function evolve_between_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nruns::Int64, 
-      numints::Int64, maxsteps::Int64)
-  evolvabilities = Dict{String,Int64}()
-  p = Parameters( numinputs=df.numinputs[1], numoutputs=df.numoutputs[1], numinteriors=df.nunints,
-      numlevelsback=df.levelsback )
+function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nruns::Int64, numints::Int64, maxsteps::Int64 )
+  println("run_evolve_g_pairs")
+  p = Parameters( numinputs=df.numinputs[1], numoutputs=df.numoutputs[1], numinteriors=numints, numlevelsback=df.levsback[1] )
+  funcs = default_funcs(p.numinputs)
   ndf = DataFrame()
-  ndf.numints = Int64[]
   ndf.source_g = String[]
+  ndf.src_count=Int64[]
+  ndf.src_cmplx=Float64[]
   ndf.dest_g = String[]
+  ndf.dst_count=Int64[]
+  ndf.dst_cmplx=Float64[]
+  ndf.hamming_dist = Float64[]
   ndf.numinputs = Int64[]
   ndf.numoutputs = Int64[]
   ndf.numints = Int64[]
   ndf.levelsback = Int64[]
   ndf.maxsteps = Int64[]
   ndf.steps = Int64[]
-  ndf.hamming_dist = Float64[]
   samples = rand( 1:size(df)[1], sample_size )
+  row_list = Tuple[]
+  g_pair_list = Tuple{String,String}[]
   for i = 1:nreps
-    source_g = parse(MyInt,df.goal[rand(samples)])
-    dest_g = parse(MyInt,df.goal[rand(samples)])
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = 
-        mut_evolve( random_chromosome( p, funcs ), [source_g], maxsteps )
-    if step == maxsteps
-      println("failed to find chromosome for source_g")
-      continue
-    end
-    res = mut_evolve( c, [dest_g], maxsteps )
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = 
-        mut_evolve(c, p, funcs , [dest_g], maxsteps )
-    if step == maxsteps
-      println("failed to find chromosome for desr_g")
-      continue
+    src_g = df.goal[rand(samples)]
+    dst_g = df.goal[rand(samples)]
+    for j = 1:nruns
+      push!(g_pair_list,(src_g,dst_g))
     end
   end
+  row_list = pmap( pair->evolve_g_pairs( df, pair, p, maxsteps), g_pair_list )
+  #row_list = map( pair->evolve_g_pairs( df, pair, p, maxsteps), g_pair_list )
+  for row in row_list
+    if row != nothing
+      push!(ndf,row)
+    else
+      println("evolve_g_pairs() failed!")
+    end
+  end
+  ndf
+end
+
+function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nruns::Int64, 
+      numints::Int64, maxsteps::Int64, csvfile::String)
+  println("run_evolve_g_pairs: csvfile: ",csvfile)
+  p = Parameters( numinputs=df.numinputs[1], numoutputs=df.numoutputs[1], numinteriors=numints, numlevelsback=df.levsback[1] )
+  (ndf,ttime) = @timed run_evolve_g_pairs( df, sample_size, nreps, nruns, numints, maxsteps )  
+  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+  println("size(df): ",size(df))
+  println("# host: ",hostname," with ",nprocs()-1,"  processes: " )    
+  println("# date and time: ",Dates.now())
+  println("# run time in minutes: ",ttime/60)
+  println("# funcs: ", Main.CGP.default_funcs(p.numinputs))
+  open( csvfile, "w" ) do f 
+    println(f,"# date and time: ",Dates.now())
+    println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )    
+    println(f,"# run time in minutes: ",ttime/60)
+    println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+    CSV.write( f, ndf, append=true, writeheader=true )
+  end
+  ndf
 end
 
 function test_evo()

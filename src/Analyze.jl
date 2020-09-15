@@ -116,11 +116,11 @@ function write_dataframe( df::DataFrame, out_filename::String )
   CSV.write( out_filename, df, append=true, writeheader=true )
 end
 
-# Writes the datarame df to the file out_filename with comments taken from file in_filename.
-# No dataframe is read from in_filename.
-function write_dataframe_with_comments( df::DataFrame, in_filename::String, out_filename::String )
+# Writes the datarame df to the file out_filename with comments taken from file comments_filename.
+# No dataframe is read from comments_filename.
+function write_dataframe_with_comments( df::DataFrame, comments_filename::String, out_filename::String )
   open( out_filename, "w" ) do outfile
-    open( in_filename, "r" ) do infile
+    open( comments_filename, "r" ) do infile
       line = readline(infile)
       while line[1] == '#'
         #println("line: ",line)
