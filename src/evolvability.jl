@@ -237,8 +237,6 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
   df
 end
 
-#function evolve_g_pairs( df::DataFrame, sample::Vector{Int64}, p::Parameters,  maxsteps::Int64 )
-#function evolve_g_pairs( df::DataFrame, src_g::String, dst_g::String, p::Parameters,  maxsteps::Int64 )
 function evolve_g_pairs( df::DataFrame, g_pair::Tuple{String,String}, p::Parameters,  maxsteps::Int64 )
   (src_g,dst_g) = g_pair
   funcs = default_funcs(p.numinputs)
@@ -264,7 +262,9 @@ function evolve_g_pairs( df::DataFrame, g_pair::Tuple{String,String}, p::Paramet
   s_df = df[df.goal.==src_g,[:counts10ints,:complex,:mutrobust,:evolvability]]
   d_df = df[df.goal.==dst_g,[:counts10ints,:complex,:mutrobust,:evolvability]]
   hdist = hamming_distance(source_g,dest_g,p.numinputs)
-  row=(src_g,s_df[1,:counts10ints],s_df[1,:complex],dst_g,d_df[1,:counts10ints],d_df[1,:complex],hdist,p.numinputs,p.numoutputs,new_numints,new_levsback,maxsteps,total_steps)
+  row=(src_g,s_df[1,:counts10ints],s_df[1,:complex],s_df[1,:mutrobust],s_df[1,:evolvability],
+        dst_g,d_df[1,:counts10ints],d_df[1,:complex],d_df[1,:mutrobust],hdist,d_df[1,:evolvability],
+        p.numinputs,p.numoutputs,new_numints,new_levsback,maxsteps,total_steps)
   row
 end
 
@@ -275,8 +275,9 @@ end
 # Then for each pair run mut_evolve from a genotype that corresponds to the source_g with goal dest_g nruns times,
 #   and count the number of steps for each run.  Use a large maxsteps and a large numints so that
 #   reruns due to failures are rare.
-# Perhaps reverse roles of source_g and dest_g.
-# Calculate correlations with evolvabilities, frequencies (counts), and Hamming distance from source_g to dest_g.
+# Returns a DataFrame whose fields are given below.  
+# Objective: determine correlation of steps with src_count, src_complex, dst_count, dst_complex
+# Wagner (2008) claims that there is little correlation of difficulty with src for his RNA data
 function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nruns::Int64, numints::Int64, maxsteps::Int64 )
   println("run_evolve_g_pairs")
   p = Parameters( numinputs=df.numinputs[1], numoutputs=df.numoutputs[1], numinteriors=numints, numlevelsback=df.levsback[1] )
@@ -285,9 +286,13 @@ function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nr
   ndf.source_g = String[]
   ndf.src_count=Int64[]
   ndf.src_cmplx=Float64[]
+  ndf.src_mrobust=Float64[]
+  ndf.src_evolble=Float64[]
   ndf.dest_g = String[]
   ndf.dst_count=Int64[]
   ndf.dst_cmplx=Float64[]
+  ndf.dst_mrobust=Float64[]
+  ndf.dst_evolbl=Float64[]
   ndf.hamming_dist = Float64[]
   ndf.numinputs = Int64[]
   ndf.numoutputs = Int64[]

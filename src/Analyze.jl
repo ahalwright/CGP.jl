@@ -35,7 +35,7 @@ end
 function spearman_cor( df::DataFrame, name1::Symbol, name2::Symbol )
   v1 = Vector{Float64}(df[!,name1])
   v2 = Vector{Float64}(df[!,name2])
-  r = StatsBase.corspearman( v1, v2 )
+  r = corspearman( v1, v2 )
   t_value = r*sqrt((length(v1)-2)/(1-r^2))
   # p_value is always positive 
   p_value = r>=0.0 ? Distributions.ccdf( TDist(length(v1)-2), t_value ) : Distributions.cdf( TDist(length(v1)-2), t_value ) 
