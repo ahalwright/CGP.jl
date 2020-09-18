@@ -262,8 +262,9 @@ function evolve_g_pairs( df::DataFrame, g_pair::Tuple{String,String}, p::Paramet
   s_df = df[df.goal.==src_g,[:counts10ints,:complex,:mutrobust,:evolvability]]
   d_df = df[df.goal.==dst_g,[:counts10ints,:complex,:mutrobust,:evolvability]]
   hdist = hamming_distance(source_g,dest_g,p.numinputs)
+  # changed order on 9/15/20
   row=(src_g,s_df[1,:counts10ints],s_df[1,:complex],s_df[1,:mutrobust],s_df[1,:evolvability],
-        dst_g,d_df[1,:counts10ints],d_df[1,:complex],d_df[1,:mutrobust],hdist,d_df[1,:evolvability],
+        dst_g,d_df[1,:counts10ints],d_df[1,:complex],d_df[1,:mutrobust],d_df[1,:evolvability],hdist,
         p.numinputs,p.numoutputs,new_numints,new_levsback,maxsteps,total_steps)
   row
 end
@@ -278,6 +279,8 @@ end
 # Returns a DataFrame whose fields are given below.  
 # Objective: determine correlation of steps with src_count, src_complex, dst_count, dst_complex
 # Wagner (2008) claims that there is little correlation of difficulty with src for his RNA data
+# As of 9/15/20, the dataframe df can be obtained by 
+# df = read_dataframe("../data/consolidate/geno_pheno_raman_df_all_9_13.csv");
 function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nruns::Int64, numints::Int64, maxsteps::Int64 )
   println("run_evolve_g_pairs")
   p = Parameters( numinputs=df.numinputs[1], numoutputs=df.numoutputs[1], numinteriors=numints, numlevelsback=df.levsback[1] )
@@ -292,7 +295,7 @@ function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nr
   ndf.dst_count=Int64[]
   ndf.dst_cmplx=Float64[]
   ndf.dst_mrobust=Float64[]
-  ndf.dst_evolbl=Float64[]
+  ndf.dst_evolble=Float64[]
   ndf.hamming_dist = Float64[]
   ndf.numinputs = Int64[]
   ndf.numoutputs = Int64[]
@@ -322,6 +325,64 @@ function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nr
   ndf
 end
 
+function run_sample_g_pairs( df::DataFrame, nreps::Int64, sample_size::Int64, order_by::Symbol,
+    p::Parameters, maxsteps::Int64 )
+  pmap( x-> sample_g_pairs( df, nreps, sample_size, order_by, p, maxsteps, x ), [1,2,3,4] )
+end 
+
+# Choose a random sample of genotypes of size 4*sample size.  
+# Sort this sample according to field order_by of DataFrame df.  Then return the smallest eighth
+#  and the largest eigth
+function sample_g_pairs( df::DataFrame, nreps::Int64, sample_size::Int64, order_by::Symbol, 
+    p::Parameters, maxsteps::Int64, option::Int64 )
+  sample_size_multiplier = 8
+  sdf = DataFrame()
+  sdf.goals = rand(MyInt(0):MyInt(size(df)[1]-1),sample_size_multiplier*sample_size)
+  #sdf.goals = map(x->@sprintf("0x%x",x), rand(1:size(df)[1],sample_size_multiplier*sample_size))
+  #println("sdf.goals: ",sdf.goals)
+  sdf[!,order_by] = [ df[ gg, order_by ] for gg in randgoallist(sample_size_multiplier*sample_size,p.numinputs,p.numoutputs) ] 
+  nsdf = sort(sdf,order(order_by))
+  simple_goals = nsdf.goals[1:sample_size]
+  complex_goals = nsdf.goals[((sample_size_multiplier-1)*sample_size+1):(sample_size_multiplier*sample_size)]
+  steps_list = Int64[]
+  steps_count = 0
+  steps_squared_count = 0
+  for i = 1:nreps
+    if option == 1
+      src_g = rand(simple_goals)
+      dst_g = rand(simple_goals)
+    elseif option == 2
+      src_g = rand(simple_goals)
+      dst_g = rand(complex_goals)
+    elseif option == 3
+      src_g = rand(complex_goals)
+      dst_g = rand(simple_goals)
+    elseif option == 4
+      src_g = rand(simple_goals)
+      dst_g = rand(complex_goals)
+    end
+    steps = evolve_g_pair( [src_g], [dst_g], p, maxsteps)
+    #println("steps: ",steps,"  steps_count: ",steps_count)
+    push!(steps_list,steps)
+    steps_count += steps
+    steps_squared_count += steps^2
+  end
+  variance = (steps_squared_count - steps_count^2/nreps)/(nreps-1)
+  (option, steps_count/nreps, variance, steps_list )
+end
+
+function evolve_g_pair( s_g::Goal, d_g::Goal, p::Parameters, maxsteps::Int64 )
+  funcs = default_funcs(p.numinputs)
+  c = random_chromosome( p, funcs)
+  (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
+      mut_evolve_increase_numints(c, [s_g], funcs, maxsteps ) 
+  println("src crhomsome evolved in ",step," steps.")
+  (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
+      mut_evolve_increase_numints(c, [d_g], funcs, maxsteps ) 
+  println("dst crhomsome evolved in ",step," steps.")
+  step
+end
+
 function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nruns::Int64, 
       numints::Int64, maxsteps::Int64, csvfile::String)
   println("run_evolve_g_pairs: csvfile: ",csvfile)
@@ -341,6 +402,70 @@ function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nr
     CSV.write( f, ndf, append=true, writeheader=true )
   end
   ndf
+end
+
+# Test the Wagner (2008) that genotypic robustness is negatively associated with genotypic evolvability.  
+# Strongly confirmed by:
+# julia> tge=test_g_evolvability_g_robustness( 100000, 4, 1, 9, 5 );
+# julia> corspearman( tge[1], tge[2])
+#  -0.8104812361089767
+function test_g_evolvability_g_robustness( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64 )
+  p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
+  funcs = default_funcs(numinputs)
+  robust_vec = Float64[]
+  evolvable_vec = Float64[]
+  for i = 1:nreps
+    c = random_chromosome(p,funcs)
+    c_output = output_values(c)
+    #println("c_output: ",c_output)
+    outputs = mutate_all( c, funcs, output_outputs=true )
+    #println("outputs: ",outputs)
+    robust_outputs = filter( x->x==c_output, outputs )
+    #println("robust_outputs: ",robust_outputs)
+    evolvable_outputs = unique(outputs)
+    #println("evolvable_outputs: ",evolvable_outputs)
+    #println("push: ",length(robust_outputs)/length(outputs),"  ",length(evolvable_outputs)/length(outputs))
+    push!( robust_vec, length(robust_outputs)/length(outputs))
+    push!( evolvable_vec, length(evolvable_outputs)/length(outputs))
+  end
+  ( robust_vec, evolvable_vec )
+end
+
+function run_geno_robustness( ngoals::Int64, nreps::Int64, numinputs::Int64, numoutputs::Int64, 
+    numinteriors::Int64, numlevelsback::Int64, max_steps::Int64 )
+  robust_vec = Float64[]
+  evolvable_vec = Float64[]
+  for j = 1:ngoals
+    goal = randgoal( numinputs, numoutputs)
+    println("goal: ",goal)
+    (rbst, evbl) = geno_robustness( goal, nreps, numinputs, numoutputs, numinteriors, 
+        numlevelsback, max_steps )
+    push!(robust_vec,rbst)
+    push!(evolvable_vec,evbl)
+  end
+  (robust_vec, evolvable_vec)
+end
+
+function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, max_steps::Int64 )
+  p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
+  funcs = default_funcs(numinputs)
+  robust_vec = Float64[]
+  evolvable_vec = Float64[]
+  for i = 1:nreps
+    c = random_chromosome(p,funcs)
+    c_output = output_values(c)
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
+      mut_evolve_increase_numints( c, [goal], funcs, max_steps )
+    c_output = output_values(c)
+    @assert c_output == goal
+    #println("output values: ",c_output)
+    outputs = mutate_all( c, funcs, output_outputs=true )
+    robust_outputs = filter( x->x==c_output, outputs )
+    evolvable_outputs = unique(outputs)
+    push!( robust_vec, length(robust_outputs)/length(outputs))
+    push!( evolvable_vec, length(evolvable_outputs)/length(outputs))
+  end
+  return ( sum(robust_vec)/length(robust_vec), sum(evolvable_vec)/length(evolvable_vec) )
 end
 
 function test_evo()

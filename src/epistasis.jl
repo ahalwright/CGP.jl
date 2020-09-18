@@ -1,5 +1,6 @@
 using Combinatorics
-# Should do this via Walsh transform, but for now, just do it
+
+# See the functions k_bit_epistasis and total_epistasis for Walsh transform computation 
 
 # count_ones(x) is a built-in Julia function with the same purpose
 function count1bits( x::MyInt, numinputs::Int64 )

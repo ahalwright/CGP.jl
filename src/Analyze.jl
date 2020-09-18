@@ -4,6 +4,7 @@ using Statistics
 using Distributions
 using CSV
 export spearman_cor, consoidate_dataframe, read_dataframe, write_dataframe_with_comments, write_dataframe
+export variance1, variance2
 
 
 # Returns a dataframe by reading a CSV file with comments that start with "#"
@@ -152,3 +153,15 @@ function goal_lookup_from_df( df::DataFrame, goal::String, fields::Vector{Symbol
   [df[findfirst(x->x==goal,df.goal),f] for f in fields]
 end
   
+# Simple sample variance
+function variance1( X::Vector )
+  N = length(X)
+  avg = sum(X)/N
+  sum( (x - avg)^2 for x in X )/(N-1) 
+end
+
+# Simple sample variance
+function variance2( X::Vector )
+  N = length(X)
+  ( sum( x^2 for x in X) - sum(X)^2/N )/(N-1)
+end

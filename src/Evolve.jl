@@ -301,7 +301,7 @@ function mut_evolve_increase_numints( c::Chromosome, goallist::GoalList, funcs::
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
       avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95,
       fit_limit::Float64=Float64(c.params.numoutputs) ) 
-  #println("starting mut_evolve_increase_numints")
+  total_steps = 0
   new_numints = c.params.numinteriors
   new_levsback = c.params.numlevelsback
   repeat_limit = 10  
@@ -314,6 +314,7 @@ function mut_evolve_increase_numints( c::Chromosome, goallist::GoalList, funcs::
   repeat = 0
   while repeat < repeat_limit && step == max_steps
     #println("starting repeat loop repeat: ",repeat)
+    total_steps += max_steps
     numinteriors_repeat += 1
     numlevelsback_repeat += 1
     p_repeat = Parameters( numinputs=c.params.numinputs, numoutputs=c.params.numoutputs, numinteriors=numinteriors_repeat,
@@ -328,10 +329,11 @@ function mut_evolve_increase_numints( c::Chromosome, goallist::GoalList, funcs::
     new_levsback = p_repeat.numlevelsback
     repeat += 1
   end
+  total_steps += step
   if repeat == repeat_limit
     error(" repeat reached repeat_limit in function mut_evolve_increase_numints()")
   end
-  (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback)
+  (c,total_steps,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback)
 end
 
 # Attempts to reduce the number active of the chromosome c by mutational neutral evolution
