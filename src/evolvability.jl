@@ -6,6 +6,8 @@ using DataFrames
 using Dates
 using CSV
 using Distributed
+using HypothesisTests
+using Printf
 
 export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
 #=
@@ -327,7 +329,12 @@ end
 
 function run_sample_g_pairs( df::DataFrame, nreps::Int64, sample_size::Int64, order_by::Symbol,
     p::Parameters, maxsteps::Int64 )
-  pmap( x-> sample_g_pairs( df, nreps, sample_size, order_by, p, maxsteps, x ), [1,2,3,4] )
+  result = pmap( x-> sample_g_pairs( df, nreps, sample_size, order_by, p, maxsteps, x ), [1,2,3,4] )
+  #result = map( x-> sample_g_pairs( df, nreps, sample_size, order_by, p, maxsteps, x ), [1,2,3,4] )
+  pvalues = 
+      (pvalue(EqualVarianceTTest(result[1][4],result[3][4])),
+       pvalue(EqualVarianceTTest(result[2][4],result[4][4])))
+  (pvalues,result)
 end 
 
 # Choose a random sample of genotypes of size 4*sample size.  
@@ -340,7 +347,8 @@ function sample_g_pairs( df::DataFrame, nreps::Int64, sample_size::Int64, order_
   sdf.goals = rand(MyInt(0):MyInt(size(df)[1]-1),sample_size_multiplier*sample_size)
   #sdf.goals = map(x->@sprintf("0x%x",x), rand(1:size(df)[1],sample_size_multiplier*sample_size))
   #println("sdf.goals: ",sdf.goals)
-  sdf[!,order_by] = [ df[ gg, order_by ] for gg in randgoallist(sample_size_multiplier*sample_size,p.numinputs,p.numoutputs) ] 
+  #sdf[!,order_by] = [ df[ gg, order_by ] for gg in randgoallist(sample_size_multiplier*sample_size,p.numinputs,p.numoutputs) ] 
+  sdf[!,order_by] = [df[ df.goal.==@sprintf("0x%x",gg),:complex] for gg in sdf.goals ]
   nsdf = sort(sdf,order(order_by))
   simple_goals = nsdf.goals[1:sample_size]
   complex_goals = nsdf.goals[((sample_size_multiplier-1)*sample_size+1):(sample_size_multiplier*sample_size)]
@@ -376,10 +384,10 @@ function evolve_g_pair( s_g::Goal, d_g::Goal, p::Parameters, maxsteps::Int64 )
   c = random_chromosome( p, funcs)
   (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
       mut_evolve_increase_numints(c, [s_g], funcs, maxsteps ) 
-  println("src crhomsome evolved in ",step," steps.")
+  println("src chromsome evolved in ",step," steps.")
   (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
       mut_evolve_increase_numints(c, [d_g], funcs, maxsteps ) 
-  println("dst crhomsome evolved in ",step," steps.")
+  println("dst chromsome evolved in ",step," steps.")
   step
 end
 
@@ -484,4 +492,14 @@ function test_evo()
   run_evolvability( 2, [g], funcs, er.nchromes, er.maxsteps, er.numinputs, er.numints, er.levelsback, intermediate_gens=[10,20,30,40,50] )
   #run_evolvability( 20, [g], funcs, 5:5:20, er.maxsteps, er.numinputs, er.numints, er.levelsback, "test.csv" )
 end
+
+function test_gen_evo()
+  df = read_dataframe("../data/consolidate/geno_pheno_raman_df_all_9_13.csv");
+  p = Parameters( numinputs=4, numinteriors=10, numlevelsback=5, numoutputs=1 ); maxsteps = 150000
+  sample_size = 100
+  nreps = 100
+  res = sample_g_pairs( df, 4, 10, :complex, p, maxsteps, 2 ) 
+  @time result = run_sample_g_pairs( df, nreps, sample_size, :complex, p, maxsteps )
+end
+
 
