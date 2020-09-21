@@ -77,7 +77,7 @@ function evolvability( g::Goal, funcs::Vector{Func}, nchromes::Int64, maxsteps::
   evolvability( g, funcs, nchromes,  maxsteps, p )
 end
 
-# Return dataframe of genotypic evolvability results
+# Update er with results of one run of computation of evolvability
 # If intermediate_gens is a non-empty list, save intermediate results for those number of chromosomes
 function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_gens::Vector{Int64}=Int64[] )
   repeat_limit = 10
@@ -112,7 +112,7 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
       repeat += 1
     end
     #print_build_chromosome( c )
-    goal_list = mutate_all( c, funcs, output_outputs=true )
+    goal_list = mutate_all( c, funcs, output_outputs=true )  # goals for all possible mutations
     all_sum += length(goal_list)
     #println("goal_list: ",goal_list)
     unique_goals = unique(goal_list)
@@ -327,10 +327,18 @@ function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nr
   ndf
 end
 
+# Test hypotheses that evolution starting with complex goals takes fewer cases than evolution starting with simple goals.
+# There are two cases:  evolution of simple goals and evolution of complex goals.
+# df is the dataframe that results from running 10 (in the 4x1) case evolutions to find each goal.
+# df = read_dataframe("../data/consolidate/geno_pheno_raman_df_all_9_13.csv");
+# df = read_dataframe("../../../complexity/data/consolidate/geno_pheno_raman_df_all_9_13.csv");
+# sample_size is the size of the sample used in this run.  See the comments on sample_g_pairs()
+# order_by is the column of the dataframe df used to measure complexity.  Default is :complex
+# Defaults for the 4x1 case might be numinteriors=10, numlevelsback=5, maxsteps=150000
 function run_sample_g_pairs( df::DataFrame, nreps::Int64, sample_size::Int64, order_by::Symbol,
-    p::Parameters, maxsteps::Int64 )
-  result = pmap( x-> sample_g_pairs( df, nreps, sample_size, order_by, p, maxsteps, x ), [1,2,3,4] )
-  #result = map( x-> sample_g_pairs( df, nreps, sample_size, order_by, p, maxsteps, x ), [1,2,3,4] )
+    p::Parameters, maxsteps::Int64; hamming::Bool=false )
+  result = pmap( x-> sample_g_pairs( df, nreps, sample_size, order_by, p, maxsteps, x, hamming=hamming ), [1,2,3,4] )
+  #result = map( x-> sample_g_pairs( df, nreps, sample_size, order_by, p, maxsteps, x, hamming=hamming ), [1,2,3,4] )
   pvalues = 
       (pvalue(EqualVarianceTTest(result[1][4],result[3][4])),
        pvalue(EqualVarianceTTest(result[2][4],result[4][4])))
@@ -339,16 +347,16 @@ end
 
 # Choose a random sample of genotypes of size 4*sample size.  
 # Sort this sample according to field order_by of DataFrame df.  Then return the smallest eighth
-#  and the largest eigth
+#  and the largest eigth (assuming that sample_size_multiplier==8 as set below).
 function sample_g_pairs( df::DataFrame, nreps::Int64, sample_size::Int64, order_by::Symbol, 
-    p::Parameters, maxsteps::Int64, option::Int64 )
+    p::Parameters, maxsteps::Int64, option::Int64; hamming::Bool=false)
   sample_size_multiplier = 8
   sdf = DataFrame()
   sdf.goals = rand(MyInt(0):MyInt(size(df)[1]-1),sample_size_multiplier*sample_size)
   #sdf.goals = map(x->@sprintf("0x%x",x), rand(1:size(df)[1],sample_size_multiplier*sample_size))
   #println("sdf.goals: ",sdf.goals)
   #sdf[!,order_by] = [ df[ gg, order_by ] for gg in randgoallist(sample_size_multiplier*sample_size,p.numinputs,p.numoutputs) ] 
-  sdf[!,order_by] = [df[ df.goal.==@sprintf("0x%x",gg),:complex] for gg in sdf.goals ]
+  sdf[!,order_by] = [df[ df.goal.==@sprintf("0x%x",gg),order_by] for gg in sdf.goals ]
   nsdf = sort(sdf,order(order_by))
   simple_goals = nsdf.goals[1:sample_size]
   complex_goals = nsdf.goals[((sample_size_multiplier-1)*sample_size+1):(sample_size_multiplier*sample_size)]
@@ -357,17 +365,13 @@ function sample_g_pairs( df::DataFrame, nreps::Int64, sample_size::Int64, order_
   steps_squared_count = 0
   for i = 1:nreps
     if option == 1
-      src_g = rand(simple_goals)
-      dst_g = rand(simple_goals)
+      (src_g,dst_g) = choose_g_pair(simple_goals,simple_goals, sample_size, p, hamming=hamming)
     elseif option == 2
-      src_g = rand(simple_goals)
-      dst_g = rand(complex_goals)
+      (src_g,dst_g) = choose_g_pair(simple_goals,complex_goals, sample_size, p, hamming=hamming)
     elseif option == 3
-      src_g = rand(complex_goals)
-      dst_g = rand(simple_goals)
+      (src_g,dst_g) = choose_g_pair(complex_goals,simple_goals, sample_size, p, hamming=hamming)
     elseif option == 4
-      src_g = rand(simple_goals)
-      dst_g = rand(complex_goals)
+      (src_g,dst_g) = choose_g_pair(complex_goals,complex_goals, sample_size, p, hamming=hamming)
     end
     steps = evolve_g_pair( [src_g], [dst_g], p, maxsteps)
     #println("steps: ",steps,"  steps_count: ",steps_count)
@@ -377,6 +381,29 @@ function sample_g_pairs( df::DataFrame, nreps::Int64, sample_size::Int64, order_
   end
   variance = (steps_squared_count - steps_count^2/nreps)/(nreps-1)
   (option, steps_count/nreps, variance, steps_list )
+end
+
+function choose_g_pair( goals1::Vector{MyInt}, goals2::Vector{MyInt}, sample_size::Int64, p::Parameters; hamming::Bool=false )
+  if !hamming
+    return (rand(goals1), rand(goals1))
+  else 
+    if rand() < 0.5
+      choice1 = rand(goals1)
+      cdf= DataFrame()
+      cdf.goals2 = goals2
+      cdf.chooseby = [ hamming_distance( choice1, gg, p.numinputs ) for gg in goals2 ] 
+      sort!(cdf, [:chooseby])
+      choice2 = rand(cdf.goals2[1:Int(ceil(sample_size/4))])
+    else
+      choice2 = rand(goals2)
+      cdf= DataFrame()
+      cdf.goals1 = goals1
+      cdf.chooseby = [ hamming_distance( choice2, gg, p.numinputs ) for gg in goals1 ] 
+      sort!(cdf, [:chooseby])
+      choice1 = rand(cdf.goals1[1:Int(ceil(sample_size/4))])
+    end
+    return (choice1,choice2)
+  end
 end
 
 function evolve_g_pair( s_g::Goal, d_g::Goal, p::Parameters, maxsteps::Int64 )
