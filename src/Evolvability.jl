@@ -10,7 +10,9 @@ using HypothesisTests
 using Printf
 
 export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
-#=
+export run_geno_robustness, geno_robustness
+export run_geno_robustness0, geno_robustness0
+#=  Moved to aliases.jl so that this file can be included.
 mutable struct evo_result_type
   goal::Goal
   nchromes::Int64
@@ -78,6 +80,11 @@ function evolvability( g::Goal, funcs::Vector{Func}, nchromes::Int64, maxsteps::
 end
 
 # Update er with results of one run of computation of evolvability
+# The following is done nchromes times:
+#   Start with a random chromosome and evolve the goal.
+#   When the goal is found, generate the output of the chromosome.
+# Evolvability is the count of the unique goals over all of the nchromes chromosome outputs.
+# TODO:  convert this to a relative evolvability.  
 # If intermediate_gens is a non-empty list, save intermediate results for those number of chromosomes
 function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_gens::Vector{Int64}=Int64[] )
   repeat_limit = 10
@@ -467,18 +474,47 @@ function test_g_evolvability_g_robustness( nreps::Int64, numinputs::Int64, numou
 end
 
 function run_geno_robustness( ngoals::Int64, nreps::Int64, numinputs::Int64, numoutputs::Int64, 
-    numinteriors::Int64, numlevelsback::Int64, max_steps::Int64 )
+    numinteriors::IntRange, numlevelsback::Int64, max_steps::Int64; csvfile = "" )
   robust_vec = Float64[]
   evolvable_vec = Float64[]
+  list_goals_numints = Tuple[]
   for j = 1:ngoals
     goal = randgoal( numinputs, numoutputs)
-    println("goal: ",goal)
-    (rbst, evbl) = geno_robustness( goal, nreps, numinputs, numoutputs, numinteriors, 
-        numlevelsback, max_steps )
-    push!(robust_vec,rbst)
-    push!(evolvable_vec,evbl)
+    for numints in numinteriors 
+      #println("goal: ",goal)
+      push!(list_goals_numints,(goal,numints) )
+    end
   end
-  (robust_vec, evolvable_vec)
+  #println("list goals_numints: ",list_goals_numints)
+  result = pmap(x->geno_robustness( x[1], nreps, numinputs, numoutputs, x[2], numlevelsback, max_steps ), list_goals_numints )
+  #result = map(x->geno_robustness( x[1], nreps, numinputs, numoutputs, x[2], numlevelsback, max_steps ), list_goals_numints )
+  #result = map(g->geno_robustness( g, nreps, numinputs, numoutputs, numinteriors, numlevelsback, max_steps ), list_goals_numints )
+  robust_vec = [ rb[1] for rb in result ]
+  evolvable_vec = [ rb[2] for rb in result ]
+  numints_vec = [ rb[3] for rb in result ]
+  #println("(robust_vec, evolvable_vec): ",(robust_vec, evolvable_vec))
+  robust_evo_df = DataFrame() 
+  robust_evo_df.robust = robust_vec
+  robust_evo_df.evolvable = evolvable_vec
+  robust_evo_df.numints = numints_vec
+  if length(csvfile) > 0
+    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )    
+      #println(f,"# run time in minutes: ",ttime/60)
+      println(f,"# funcs: ", Main.CGP.default_funcs(numinputs))
+      println(f,"# ngoals: ",ngoals)
+      println(f,"# nreps: ",nreps)
+      println(f,"# numinputs: ",numinputs)
+      println(f,"# numoutputs: ",numoutputs)
+      println(f,"# numinteriors: ",numinteriors)
+      println(f,"# numlevelsback: ",numlevelsback)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write(f, robust_evo_df, append=true, writeheader=true )
+    end
+  end
+  return robust_evo_df
 end
 
 function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, max_steps::Int64 )
@@ -486,7 +522,9 @@ function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs
   funcs = default_funcs(numinputs)
   robust_vec = Float64[]
   evolvable_vec = Float64[]
+  new_numints = numinteriors
   for i = 1:nreps
+    new_numints = numinteriors
     c = random_chromosome(p,funcs)
     c_output = output_values(c)
     (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
@@ -500,7 +538,7 @@ function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs
     push!( robust_vec, length(robust_outputs)/length(outputs))
     push!( evolvable_vec, length(evolvable_outputs)/length(outputs))
   end
-  return ( sum(robust_vec)/length(robust_vec), sum(evolvable_vec)/length(evolvable_vec) )
+  return ( sum(robust_vec)/length(robust_vec), sum(evolvable_vec)/length(evolvable_vec), new_numints )
 end
 
 function test_evo()

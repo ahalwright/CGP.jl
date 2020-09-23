@@ -4,8 +4,7 @@ using Statistics
 using Distributions
 using CSV
 export spearman_cor, consoidate_dataframe, read_dataframe, write_dataframe_with_comments, write_dataframe
-export variance1, variance2
-
+export goal_lookup_from_df, add_edf_col_from_df, frequencies_from_counts, variance1, variance2
 
 # Returns a dataframe by reading a CSV file with comments that start with "#"
 function read_dataframe( df_filename::String )
@@ -149,10 +148,55 @@ function write_comments( in_filename::String, out_filename::String )
   end
 end
 
+# Given a goal represented as a string, extract the df values of the columns fields for that goal.
+# Example:  goal_lookup_from_df(df,"0x4208",[:counts10ints]) returns 1192.
 function goal_lookup_from_df( df::DataFrame, goal::String, fields::Vector{Symbol} )
   [df[findfirst(x->x==goal,df.goal),f] for f in fields]
 end
-  
+
+# Adds a column to dataframe edf whose values are obtained by goal_lookup_from_df( df, goal_string, [field] )
+function add_edf_col_from_df( df::DataFrame, edf::DataFrame, field::Symbol )
+  edf[!,field] =  zeros(Float64,size(edf)[1])
+  for i = 1:size(edf)[1]
+    # Extract MyInt goal from edf.goal[i] by parsing.  See Julia documentation for Metaprogramming.
+    goal = Meta.parse(edf[i,:goal]).args[2]  
+    goal_string = @sprintf("0x%x",goal)   # Convert to string
+    edf[i,field] = goal_lookup_from_df(df,goal_string,[field])[1]
+  end
+  edf
+end
+
+# Return the frequencies of the unique elements of V
+function frequencies_from_counts( V::Vector{Int64} )
+  sort!(V)
+  #println("V: ",V) 
+  freq = Int64[]
+  i = 1
+  while i <= length(V)
+    push!(freq,1)
+    while i < length(V) && V[i+1] == V[i]
+      freq[end] += 1
+      i += 1
+    end
+    i += 1
+  end
+  #println("sum(freq): ",sum(freq),"  freq: ",freq)
+  # Two assertions to check correctness
+  @assert sum(freq) == length(V)
+  @assert length(freq) == length(unique(V))
+  freq
+end
+
+function pad_missing( V::Vector, new_length::Int64 )
+  result = Union{Missing,Int64}[]
+    for v in V push!(result,v)
+  end
+  for i = length(V)+1:new_length
+    push!(result,missing)
+  end
+  result
+end
+    
 # Simple sample variance
 function variance1( X::Vector )
   N = length(X)
