@@ -1,0 +1,5 @@
+Runs of run_geno_robustness() in Evolvability.jl with 400 reps, 200 goals, and both numints=10 and numints=11.
+
+Wrote geno_complexity() and run_geno_complexity() in Evolvability.jl.  Similar to geno_robustness() except that
+it also computes complexity, epistasis, nuints, f_robustenss.  Intend to run it for 5 inputs.
+

@@ -10,8 +10,8 @@ perfectly suitable for other applications as well.
 using Combinatorics
 module CGP
 #const MyInt = UInt8       # Type of bit string integers used in bit functions
-const MyInt = UInt16     # Type of bit string integers used in bit functions
-#const MyInt = UInt32     # Type of bit string integers used in bit functions
+#const MyInt = UInt16     # Type of bit string integers used in bit functions
+const MyInt = UInt32     # Type of bit string integers used in bit functions
 #const MyInt = UInt64     # Type of bit string integers used in bit functions
 const MyFunc = UInt128  # Type of concatenated output representation of functions
 const maxints_for_degen = 20
@@ -40,6 +40,7 @@ include("Assignment.jl")
 include("Analyze.jl")
 include("RecordOutputs.jl")
 include("Evolvability.jl")
+include("epistasis.jl")
 end
 using Main.CGP
 MyInt=Main.CGP.MyInt

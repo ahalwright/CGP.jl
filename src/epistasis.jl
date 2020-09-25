@@ -1,4 +1,6 @@
 using Combinatorics
+using DataFrames
+export Walsh, k_bit_epistasis, total_epistasis
 
 # See the functions k_bit_epistasis and total_epistasis for Walsh transform computation 
 
