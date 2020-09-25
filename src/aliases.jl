@@ -12,7 +12,7 @@ import Random.seed!
 export MyInt, DIST_TYPE, Population, PopVect, IPopulation, IntRange
 
 if !@isdefined(MyInt)  # MyInt should be defined in CGP.jl
-  const MyInt = UInt8
+  const MyInt = UInt16
 end
 if !@isdefined(MyFunc)  # MyFunc should be defined in CGP.jl
   const MyFunc = UInt128
@@ -31,8 +31,8 @@ const FPopulation = Array{Float64,1}
 const IntRange = Union{Integer, Bool, AbstractRange{Int64}, AbstractRange{Bool}}
 const Goal =  Vector{MyInt}
 const GoalList = Vector{Goal}
-const Ones = 0xffff
-#const Ones = 0xffffffff
+Ones = 0xffff
+#Ones = 0xffffffff
 
 # indiv_result_type is used to parallelize population evolution in Indiv_evolution.jl
 mutable struct indiv_result_type

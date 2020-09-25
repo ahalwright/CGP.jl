@@ -13,7 +13,7 @@ module CGP
 const MyInt = UInt16     # Type of bit string integers used in bit functions
 #const MyInt = UInt32     # Type of bit string integers used in bit functions
 #const MyInt = UInt64     # Type of bit string integers used in bit functions
-const MyFunc = UInt64  # Type of concatenated output representation of functions
+const MyFunc = UInt128  # Type of concatenated output representation of functions
 const maxints_for_degen = 20
 include("aliases.jl")
 include("Contexts.jl")

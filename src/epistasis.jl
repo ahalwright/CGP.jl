@@ -135,6 +135,26 @@ end
 function reciprocal_sign_epistasis()
 end
 
+function add_epistasis_to_dataframe( df::DataFrame, W::DenseMatrix{Int64} )
+  numinputs = Int(df[1,:numinputs])
+  all_epistasis = zeros(Int64,size(df)[1],numinputs+1)
+  for i = 1:size(df)[1]
+    goal = parse(MyInt,df[i,:goal])
+    for k = 1:numinputs
+      all_epistasis[i,k] = k_bit_epistasis( W, k, goal )
+    end
+    all_epistasis[i,numinputs+1] = total_epistasis( W, goal )
+  end
+  #all_epistasis
+  field_names = vcat([ Symbol("epistasis$k") for k = 1:numinputs ], [Symbol("total_epistasis")] )
+  for k = 1:numinputs
+    df[!,Symbol("epistasis$k")] = all_epistasis[:,k]
+  end
+  df[!,Symbol("total_epistasis")] = all_epistasis[:,numinputs+1] 
+  df
+end
+
+
 function testw( W, x )
   L=size(W)[1]
   #println( [ k_bit_epistasis(W,k,x) for k = 1:Int(log2(L)) ])

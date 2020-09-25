@@ -451,11 +451,12 @@ end
 # julia> tge=test_g_evolvability_g_robustness( 100000, 4, 1, 9, 5 );
 # julia> corspearman( tge[1], tge[2])
 #  -0.8104812361089767
+#=
 function test_g_evolvability_g_robustness( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64 )
   p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
   funcs = default_funcs(numinputs)
   robust_vec = Float64[]
-  evolvable_vec = Float64[]
+  all_outputs = Goal[]
   for i = 1:nreps
     c = random_chromosome(p,funcs)
     c_output = output_values(c)
@@ -465,6 +466,7 @@ function test_g_evolvability_g_robustness( nreps::Int64, numinputs::Int64, numou
     robust_outputs = filter( x->x==c_output, outputs )
     #println("robust_outputs: ",robust_outputs)
     evolvable_outputs = unique(outputs)
+    all_outputs = unique( vcat( all_outputs, evolvable_outputs ) 
     #println("evolvable_outputs: ",evolvable_outputs)
     #println("push: ",length(robust_outputs)/length(outputs),"  ",length(evolvable_outputs)/length(outputs))
     push!( robust_vec, length(robust_outputs)/length(outputs))
@@ -472,6 +474,7 @@ function test_g_evolvability_g_robustness( nreps::Int64, numinputs::Int64, numou
   end
   ( robust_vec, evolvable_vec )
 end
+=#
 
 function run_geno_robustness( ngoals::Int64, nreps::Int64, numinputs::Int64, numoutputs::Int64, 
     numinteriors::IntRange, numlevelsback::Int64, max_steps::Int64; csvfile = "" )
@@ -489,11 +492,13 @@ function run_geno_robustness( ngoals::Int64, nreps::Int64, numinputs::Int64, num
   result = pmap(x->geno_robustness( x[1], nreps, numinputs, numoutputs, x[2], numlevelsback, max_steps ), list_goals_numints )
   #result = map(x->geno_robustness( x[1], nreps, numinputs, numoutputs, x[2], numlevelsback, max_steps ), list_goals_numints )
   #result = map(g->geno_robustness( g, nreps, numinputs, numoutputs, numinteriors, numlevelsback, max_steps ), list_goals_numints )
-  robust_vec = [ rb[1] for rb in result ]
-  evolvable_vec = [ rb[2] for rb in result ]
-  numints_vec = [ rb[3] for rb in result ]
+  goal_vec = [ rb[1] for rb in result ]
+  robust_vec = [ rb[2] for rb in result ]
+  evolvable_vec = [ rb[3] for rb in result ]
+  numints_vec = [ rb[4] for rb in result ]
   #println("(robust_vec, evolvable_vec): ",(robust_vec, evolvable_vec))
   robust_evo_df = DataFrame() 
+  robust_evo_df.goal = goal_vec 
   robust_evo_df.robust = robust_vec
   robust_evo_df.evolvable = evolvable_vec
   robust_evo_df.numints = numints_vec
@@ -520,9 +525,11 @@ end
 function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, max_steps::Int64 )
   p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
   funcs = default_funcs(numinputs)
-  robust_vec = Float64[]
-  evolvable_vec = Float64[]
+  all_outputs_sum = 0
+  robust_sum = 0
+  all_unique_outputs = Goal[]
   new_numints = numinteriors
+  new_numlevback = numlevelsback
   for i = 1:nreps
     new_numints = numinteriors
     c = random_chromosome(p,funcs)
@@ -533,13 +540,95 @@ function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs
     @assert c_output == goal
     #println("output values: ",c_output)
     outputs = mutate_all( c, funcs, output_outputs=true )
+    all_outputs_sum += length(outputs)
     robust_outputs = filter( x->x==c_output, outputs )
+    robust_sum += length(robust_outputs)
     evolvable_outputs = unique(outputs)
-    push!( robust_vec, length(robust_outputs)/length(outputs))
-    push!( evolvable_vec, length(evolvable_outputs)/length(outputs))
-  end
-  return ( sum(robust_vec)/length(robust_vec), sum(evolvable_vec)/length(evolvable_vec), new_numints )
+    all_unique_outputs = vcat(all_unique_outputs,evolvable_outputs)
+  end  
+  return ( goal, robust_sum/all_outputs_sum, length(all_unique_outputs)/all_outputs_sum, new_numints )
 end
+#=
+function run_geno_complexity( ngoals::Int64, nreps::Int64, numinputs::Int64, numoutputs::Int64, 
+    numinteriors::IntRange, numlevelsback::Int64, max_steps::Int64; csvfile = "" )
+  robust_vec = Float64[]
+  evolvable_vec = Float64[]
+  list_goals_params = Tuple[]
+  for j = 1:ngoals
+    goal = randgoal( numinputs, numoutputs)
+    for numints in numinteriors 
+      #println("goal: ",goal)
+      p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
+      
+      push!(list_goals_params,(goal,p) )
+    end
+  end
+  #println("list goals_numints: ",list_goals_numints)
+  result = pmap(x->geno_robustness( x[1], nreps, numinputs, numoutputs, x[2], numlevelsback, max_steps ), list_goals_numints )
+  #result = map(x->geno_robustness( x[1], nreps, numinputs, numoutputs, x[2], numlevelsback, max_steps ), list_goals_numints )
+  #result = map(g->geno_robustness( g, nreps, numinputs, numoutputs, numinteriors, numlevelsback, max_steps ), list_goals_numints )
+  goal_vec = [ rb[1] for rb in result ]
+  robust_vec = [ rb[2] for rb in result ]
+  evolvable_vec = [ rb[3] for rb in result ]
+  numints_vec = [ rb[4] for rb in result ]
+  #println("(robust_vec, evolvable_vec): ",(robust_vec, evolvable_vec))
+  geno_complexity_df = DataFrame() 
+  geno_complexity_df.numinputs = Int64[]
+  geno_complexity_df.numoutputs = Int64[]
+  geno_complexity_df.numints = Int64[]
+  geno_complexity_df.numlevsback = Int64[]
+  geno_complexity_df.maxsteps = Int64[]
+  geno_complexity_df.goal = Goal[]
+  geno_complexity_df.evolvability = Float64[]
+  geno_complexity_df.robustness = Float64[]
+  for res in result
+    push!(geno_complexity_df,res)
+  end
+  if length(csvfile) > 0
+    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )    
+      #println(f,"# run time in minutes: ",ttime/60)
+      println(f,"# funcs: ", Main.CGP.default_funcs(numinputs))
+      println(f,"# ngoals: ",ngoals)
+      println(f,"# nreps: ",nreps)
+      println(f,"# numinputs: ",numinputs)
+      println(f,"# numoutputs: ",numoutputs)
+      println(f,"# numinteriors: ",numinteriors)
+      println(f,"# numlevelsback: ",numlevelsback)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write(f, robust_evo_df, append=true, writeheader=true )
+    end
+  end
+  return robust_evo_df
+end
+
+function geno_evo_complexity( goal::Goal, p::Parameters, max_steps::Int64 )
+  p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
+  funcs = default_funcs(numinputs)
+  new_numints = numinteriors
+  c = random_chromosome(p,funcs)
+  c_output = output_values(c)
+  (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
+      mut_evolve_increase_numints( c, [goal], funcs, max_steps )
+  c_output = output_values(c)
+  @assert c_output == goal
+  #println("output values: ",c_output)
+  outputs = mutate_all( c, funcs, output_outputs=true )
+  robust_outputs = filter( x->x==c_output, outputs )
+  evolvable_outputs = unique(outputs)
+  return (
+    p.numints,
+    p.numoutputs,
+    new_numints,
+    new_levsback,
+    max_steps,
+    goal,
+  
+( goal, sum(robust_vec)/length(robust_vec), sum(evolvable_vec)/length(evolvable_vec), new_numints )
+end
+=#
 
 function test_evo()
   g = [0x0332]
