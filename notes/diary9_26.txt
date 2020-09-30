@@ -1,0 +1,115 @@
+Idea:  Show that simple chromosomes or goals seldom mutate to complex choromsomes/goal.
+
+Experiment 1: Start with a random parent chromosome and mutate it to get the child.  
+Compare the complexities:  How often does the complexity increase, approximately stay 
+the same, or decrease.  Does the difference in complexity depend on the complexity of 
+the parent.
+
+Experiment 2: Start with a random parent goal and find a corresponding chromosome.
+Mutate it to get the child chromosome and thus goal.  Compare the complexities of the goals: 
+ How often does the complexity increase, approximately stay the same, or decrease.  Does the 
+difference in complexity depend on the complexity of the parent.
+
+Results for experiment 1:
+See function parent_child_complexity( p::Parameters, nreps::Int64 ) in Evolvability.jl.
+
+julia> cpairs = parent_child_complexity( p, 10000);
+julia> pdiffs = [ c[1]-c[2] for c in cpairs ];
+julia> mean(pdiffs)
+julia> mean(pdiffs)
+julia> 0.004463110047400335
+julia> c1 = [ c[1] for c in cpairs];
+julia> c2 = [ c[2] for c in cpairs];
+julia> (mean(c1),mean(c2))
+(2.955474010514528, 2.9510109004671277)
+julia> cmpx_pairs = filter( x->x[1]>4, cpairs); length(cmpx_pairs)
+2281
+julia> cmpx_diffs = [ c[1]-c[2] for c in cmpx_pairs ];
+julia> mean(cmpx_diffs)
+0.3475742610937819
+
+There is some regression to the mean as expected.
+
+==================================================
+How does get_bits( ) work?
+Example:
+julia> to_binary([0x0a, 0x05, 0x0d],4)
+3×4 Array{Int64,2}:
+ 1  0  1  0
+ 0  1  0  1
+ 1  1  0  1
+julia> get_bits([0x0a, 0x05, 0x0d],2)
+4-element Array{UInt8,1}:
+ 0x03
+ 0x04
+ 0x03
+ 0x05
+julia> to_binary( get_bits([0x0a, 0x05, 0x0d],2), 4)
+4×4 Array{Int64,2}:
+ 0  0  1  1
+ 0  1  0  0
+ 0  0  1  1
+ 0  1  0  1
+Notice that the two binary matrices are transposes of each other.
+
+julia> entropy( get_bits([0x0a, 0x05, 0x0d],2))
+1.5
+Note that get_bits([0x0a, 0x05, 0x0d],2) has two repeated elements 
+which reduces the entropy from 2.0 when all elements are different.
+Thus, entropy is increased when different bits have the same patter.
+
+
+
+Trying to understand Tononi complexity:
+See file complexity.jl in src.
+
+Example with high complexity:
+c=build_chromosome( (1,2), ((AND,Integer[2, 2]),(NOR,Integer[3, 2]),(AND,Integer[4, 4])), (5,), 0.0)
+julia> test_complexity(c)
+X: UInt8[0x0a, 0x05, 0x05]  gbX: UInt8[0x03, 0x04, 0x03, 0x04]  ent_X: 1.0
+k: 1  sets: Array{UInt8,1}[[0x0a], [0x05], [0x05]]
+k: 1  gb(s):: Array{UInt8,1}[[0x00, 0x01, 0x00, 0x01], [0x01, 0x00, 0x01, 0x00], [0x01, 0x00, 0x01, 0x00]]
+k: 1  ent(s):: [1.0, 1.0, 1.0]
+k: 2  sets: Array{UInt8,1}[[0x0a, 0x05], [0x0a, 0x05], [0x05, 0x05]]
+k: 2  gb(s):: Array{UInt8,1}[[0x01, 0x02, 0x01, 0x02], [0x01, 0x02, 0x01, 0x02], [0x03, 0x00, 0x03, 0x00]]
+k: 2  ent(s):: [1.0, 1.0, 1.0]
+k: 3  sets: Array{UInt8,1}[[0x0a, 0x05, 0x05]]
+k: 3  gb(s):: Array{UInt8,1}[[0x03, 0x04, 0x03, 0x04]]
+k: 3  ent(s):: [1.0]
+ents_avg: [1.0, 1.0, 1.0]
+summand: [0.6666666666666667, 0.33333333333333337, 0.0]
+1.0
+
+Example with low complexity:
+c=build_chromosome(  (1,2),  ((OR,Integer[2, 2]),(NAND,Integer[2, 2]),(XOR,Integer[3, 3])),  (5,), 0.0)
+julia> test_complexity(c)
+X: UInt8[0x0a, 0x00, 0x00]  gbX: UInt8[0x00, 0x04, 0x00, 0x04]  ent_X: 1.0
+k: 1  sets: Array{UInt8,1}[[0x0a], [0x00], [0x00]]
+k: 1  gb(s):: Array{UInt8,1}[[0x00, 0x01, 0x00, 0x01], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
+k: 1  ent(s):: [1.0, 0.0, 0.0]
+k: 2  sets: Array{UInt8,1}[[0x0a, 0x00], [0x0a, 0x00], [0x00, 0x00]]
+k: 2  gb(s):: Array{UInt8,1}[[0x00, 0x02, 0x00, 0x02], [0x00, 0x02, 0x00, 0x02], [0x00, 0x00, 0x00, 0x00]]
+k: 2  ent(s):: [1.0, 1.0, 0.0]
+k: 3  sets: Array{UInt8,1}[[0x0a, 0x00, 0x00]]
+k: 3  gb(s):: Array{UInt8,1}[[0x00, 0x04, 0x00, 0x04]]
+k: 3  ent(s):: [1.0]
+ents_avg: [0.3333333333333333, 0.6666666666666666, 1.0]
+summand: [0.0, 0.0, 0.0]
+0.0
+ 
+Example with higher complexity:
+c=build_chromosome(  (1,2),  ((XOR,Integer[1, 2]),(XOR,Integer[2, 3]),(OR,Integer[4, 3])),  (5,), 0.0)
+julia> test_complexity(c)
+X: UInt8[0x06, 0x0c, 0x0e]  gbX: UInt8[0x00, 0x05, 0x07, 0x03]  ent_X: 2.0
+k: 1  sets: Array{UInt8,1}[[0x06], [0x0c], [0x0e]]
+k: 1  gb(s):: Array{UInt8,1}[[0x00, 0x01, 0x01, 0x00], [0x00, 0x00, 0x01, 0x01], [0x00, 0x01, 0x01, 0x01]]
+k: 1  ent(s):: [1.0, 1.0, 0.8112781244591328]
+k: 2  sets: Array{UInt8,1}[[0x06, 0x0c], [0x06, 0x0e], [0x0c, 0x0e]]
+k: 2  gb(s):: Array{UInt8,1}[[0x00, 0x02, 0x03, 0x01], [0x00, 0x03, 0x03, 0x01], [0x00, 0x01, 0x03, 0x03]]
+k: 2  ent(s):: [2.0, 1.5, 1.5]
+k: 3  sets: Array{UInt8,1}[[0x06, 0x0c, 0x0e]]
+k: 3  gb(s):: Array{UInt8,1}[[0x00, 0x05, 0x07, 0x03]]
+k: 3  ent(s):: [2.0]
+ents_avg: [0.9370927081530444, 1.6666666666666667, 2.0]
+summand: [0.2704260414863777, 0.3333333333333335, 0.0]
+0.6037593748197112

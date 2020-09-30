@@ -1,3 +1,7 @@
+# Includes alternate versions which print more information
+using Combinatorics
+
+# test_degen_complexity actually tests that the different versions of complexity agree.
 function rand_X( numinputs::Int64, numints::Int64 )
   MyInt_bits = MyIntBits( MyInt )
   X = rand(collect(MyInt(0):MyInt(2^numinputs-1)),numints)
@@ -36,28 +40,6 @@ function complexity( X::Vector{MyInt}, numinputs::Int64; base=Float64=2.0 )
   sum(summand)
 end
 
-# Version of complexity7 which prints more information
-function complexity0( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
-  n = length(X)
-  IX = integration( X, numinputs, base=base )
-  println("X: ",X,"  IX: ",IX)
-  Xinds = collect(1:length(X))
-  ssum = 0.0
-  for k = 1:(n-1)
-    println("k: ",k)
-    for s in combinations(Xinds,k)
-      compl = X[setdiff(Xinds,s)]
-      IXc = integration(compl,numinputs,base=base)
-      println("s: ",s,"  compl: ",compl,"  IXc ",IXc)
-    end
-    subsets = [X[setdiff(Xinds,s)] for s in combinations(Xinds,k)]
-    IXk = map( x->integration(x,numinputs,base=base), subsets )
-    avgIXk = sum(IXk)/length(IXk)
-    ssum += k/n*IX - avgIXk
-  end
-  ssum
-end
-
 # Version of complexity6 which prints more information
 function complexity1( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
   n = length(X)
@@ -77,33 +59,55 @@ function complexity1( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
   println("mutint_means: ",mutint_means)
   sum(mutint_means)
 end
-    
 
-function to_binary( x::MyInt, numbits::Int64 )
-  result = Int64[]
-  shift = numbits-1
-  mask = MyInt(1) << (numbits-1)
-  for i = 1:numbits
-    push!(result, (mask & x)>>shift )
-    shift -= 1
-    mask >>= 1
+# Version of complexity7 which prints more information
+function complexity0( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
+  n = length(X)
+  IX = integration( X, numinputs, base=base )
+  println("X: ",X,"  IX: ",IX)
+  Xinds = collect(1:length(X))
+  ssum = 0.0
+  for k = 1:(n-1)
+    println("k: ",k)
+    for s in combinations(Xinds,k)
+      compl = X[setdiff(Xinds,s)]
+      IXc = integration0(compl,numinputs,base=base)
+      #println("s: ",s,"  compl: ",compl,"  IXc ",IXc)
+    end
+    subsets = [X[setdiff(Xinds,s)] for s in combinations(Xinds,k)]
+    IXk = map( x->integration(x,numinputs,base=base), subsets )
+    println("IXk: ",IXk)
+    avgIXk = sum(IXk)/length(IXk)
+    println("avgIXk: ",avgIXk,"  summand: ",k/n*IX - avgIXk)
+    ssum += k/n*IX - avgIXk
   end
-  result
+  ssum
 end
 
-function to_binary( X::Vector{MyInt}, numbits::Int64 )
-  result = zeros(Int64,length(X),numbits)
-  for j in 1:length(X)
-    shift = numbits-1
-    mask = MyInt(1) << (numbits-1)
-    for i = 1:numbits
-      #push!(result, (mask & X[j])>>shift )
-      result[j,i] = (mask & X[j])>>shift
-      shift -= 1
-      mask >>= 1
-    end
-  end
-  result
+# Version of integration() with get_bits() that prints more information
+function integration0( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
+  gb_list = [ get_bits([x],numinputs) for x in X]
+  ent_list =  [ entropy(get_bits([x],numinputs)) for x in X ]
+  println("X: ",X,"  entX: ",entropy(get_bits(X,numinputs)))
+  println("gb_list: ",gb_list,"  ent_list: ",ent_list,"  sum: ",sum(ent_list))
+  sum(ent_list) - entropy(get_bits(X,numinputs))
+end 
+    
+# Version of integration() without get_bits() that prints more information
+function integration0( X::Vector{Int64}; base::Float64=2.0 )
+  ent_list =  [ entropy([x]) for x in X ]
+  println("X: ",X,"  entX: ",entropy(X))
+  println("ent_list: ",ent_list,"  sum: ",sum(ent_list))
+  sum(ent_list) - entropy(X)
+end 
+
+# Integration of XI without get_bits
+function integration0( XI::Vector{Vector{Int64}} ; base::Float64=2.0 )
+  X = vcat( XI... )   # Combines all of the lists in XI into a long list
+  println("X: ",X,"  entX: ",entropy(X))
+  ent_list = [entropy(x) for x in XI]
+  println("ent_list: ",ent_list,"  sum: ",sum(ent_list))
+  sum( entropy(x) for x in XI ) - entropy( X)
 end
 
 # get_bits for a single MyInt
@@ -142,4 +146,4 @@ function get_bits1( v::Vector{MyInt}, numinputs::Int64 )
   result
 end
       
-
+# [([z,x,y], get_bits([z,x,y],2),[entropy(get_bits([p],2)) for p in [z,y,x]],(fract_part(integration([z,x,y],2)+entropy(get_bits([z,x,y],2))))) for y = 0x0:0x7  for x = 0x0:0x7  for z = 0x0:0x7]

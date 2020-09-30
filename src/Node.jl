@@ -40,7 +40,7 @@ end
 
 # 
 function print_node_tuple( f::IO, node_vect::Vector{InputNode} )
-  print(f,"  (")
+  print(f,"(")
   len = length(node_vect)
   for i in 1:(len-1)
     print(f,node_vect[i].index,",")
@@ -57,7 +57,7 @@ function print_node_tuple( node_vect::Vector{InputNode} )
 end
 
 function print_node_tuple( f::IO, node_vect::Vector{InteriorNode} )
-  print(f,"  (")
+  print(f," (")
   len = length(node_vect)
   for i in 1:(len-1)
     print(f,"(",node_vect[i].func.name,",",node_vect[i].inputs,"),")
@@ -75,7 +75,7 @@ function print_node_tuple( node_vect::Vector{InteriorNode} )
 end
 
 function print_node_tuple( f::IO, node_vect::Vector{OutputNode} )
-  print(f,"  (")
+  print(f," (")
   len = length(node_vect)
   for i in 1:(len-1)
     print(f,node_vect[i].input,",")
@@ -91,7 +91,7 @@ function print_node_tuple( node_vect::Vector{OutputNode} )
   print_node_tuple( Base.stdout, node_vect )
 end
 
-#=
+#= moved to Chromosome.jl
 function print_build_chromosome( f::IO, c::Chromosome )
   println(f, "build_chromosome(")
   print_node_tuple(f, c.inputs )

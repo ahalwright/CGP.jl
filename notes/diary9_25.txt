@@ -3,3 +3,77 @@ Runs of run_geno_robustness() in Evolvability.jl with 400 reps, 200 goals, and b
 Wrote geno_complexity() and run_geno_complexity() in Evolvability.jl.  Similar to geno_robustness() except that
 it also computes complexity, epistasis, nuints, f_robustenss.  Intend to run it for 5 inputs.
 
+
+Results for 
+gcdf = read_dataframe("../data/9_25/geno_complexity9_25B.csv") 
+
+# on Windows
+julia> Plots.scatter( gcdf.evolvability, gcdf.nactive, title="Number Active vs Evolvability", ylabel="nactive", xlabel="evolvability", label="" )
+julia> Plots.savefig( "../../complexity/data/9_25/nactive_vs_evolvability.png")
+julia> spearman_cor(gcdf, :nactive, :evolvability)
+(0.9422190473435869, 9.655485437076209e-25)
+
+julia> Plots.scatter( gcdf.complexity, gcdf.nactive, title="Complexity vs Evolvability", ylabel="complexity", xlabel="evolvability", label="" )
+julia> Plots.savefig( "../../complexity/data/9_25/complexity_vs_evolvability.png")
+julia> spearman_cor(gcdf, :complexity, :evolvability)
+(0.9616806722689075, 6.30089388030168e-29)
+julia> spearman_cor(df, :evolvability,:complex)   # Maybe less because evolvability is based on 10 reps
+(0.8689927769043664, 0.0)
+
+julia> spearman_cor(gcdf, :epi2, :evolvability)
+(0.17746620145291905, 0.10879705170443546)
+julia> Plots.scatter( gcdf.epi3, gcdf.nactive, title="3-bit epistasis vs Evolvability", ylabel="epi3", xlabel="evolvability", label="" )
+julia> Plots.savefig( "../../complexity/data/9_25/epistasis3_vs_evolvability.png")
+julia> spearman_cor(gcdf, :epi3, :evolvability)
+(0.4592469862735011, 0.0003971759778907193)
+
+julia> spearman_cor(gcdf, :epi4, :evolvability)
+(0.14719007394269315, 0.15385581673704962)
+julia> spearman_cor(gcdf, :epi_total, :evolvability)
+(0.42921863096386875, 0.00093433425017382)
+
+julia> Plots.scatter( gcdf.f_mutrobust, gcdf.nactive, title="frenken mutinf vs Evolvability", ylabel="f_mutrobust", xlabel="evolvability", label="" )
+julia> Plots.savefig( "../../complexity/data/9_25/frenken_mutint_vs_evolvability.png")
+julia> spearman_cor(gcdf, :f_mutrobust, :evolvability)
+(0.24926770708283313, 0.040433270458455205)
+julia> spearman_cor(df, :evolvability,:f_mutinf)
+(0.046786089346983604, 2.1662168059542013e-33)
+
+Results for df = read_dataframe("../../complexity/data/consolidate/geno_pheno_raman_df_epi_9_24.csv")  (All 4x1 goals)
+df = read_dataframe("../data/consolidate/geno_pheno_raman_df_epi_9_24.csv") 
+julia> spearman_cor(df, :complex, :evolvability)
+(0.8689927769043664, 0.0)
+julia> Plots.scatter( df.evolvability, df.complex, title="Complexity vs Evolvability", ylabel="complexity", xlabel="evolvability", label="", markersize=1 )
+julia> Plots.scatter( df.evolvability, df.complex, title="Complexity vs Evolvability (all goals)", ylabel="complexity", xlabel="evolvability", label="", markersize=1 )
+
+julia> spearman_cor(df, :epistasis3 , :evolvability)
+(0.4115864086105044, 0.0)
+julia> Plots.scatter( df.evolvability, df.epistasis3, title="Complexity vs Evolvability (all goals)", ylabel="epistasis3", xlabel="evolvability", label="", markersize=1 )
+julia> Plots.scatter( df.evolvability, df.epistasis3, title="Complexity vs Evolvability (all goals)", ylabel="epistasis3", xlabel="evolvability", label="", markersize=3 )
+
+5x1 simulation
+Resuls for erdf5 = read_dataframe("../data/9_25/geno_complexity5x1_9_25C.csv") 
+
+julia> spearman_cor(erdf5, :evolvability, :epi3 )
+(0.2790163528330433, 0.02486938056327738)
+
+julia> spearman_cor(erdf5, :evolvability, :epi4 )
+(0.3589611895134161, 0.005233818045403771)
+
+julia> spearman_cor(erdf5, :evolvability, :epi_total )
+(0.17162552105301954, 0.11668004024171835)
+
+julia> spearman_cor(erdf5, :evolvability, :complexity)  # almost identical to the 4x1 case
+(0.9642737094837935, 1.2070699461247545e-29)
+
+julia> spearman_cor(erdf5, :evolvability, :robustness)
+(-0.971764705882353, 4.629068407432405e-32)
+
+julia> spearman_cor(erdf5, :evolvability, :numlevsback )
+(0.8306348375284078, 4.2561222769774856e-14)
+
+julia> spearman_cor(erdf5, :evolvability, :numints )
+(0.8306348375284078, 4.2561222769774856e-14)
+
+julia> spearman_cor(erdf5, :evolvability, :f_mutrobust )   # Note the much stronger correlation than in the 4x1 case.
+(0.6557983193277311, 1.1751393671561346e-7)

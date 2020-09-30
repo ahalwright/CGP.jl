@@ -13,6 +13,7 @@ export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, ru
 export run_geno_robustness, geno_robustness
 #export run_geno_robustness0, geno_robustness0
 export run_geno_complexity, geno_complexity
+export parent_child_complexity, rand_norm
 #=  Moved to aliases.jl so that this file can be included.
 mutable struct evo_result_type
   goal::Goal
@@ -550,6 +551,9 @@ function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs
   return ( goal, robust_sum/all_outputs_sum, length(all_unique_outputs)/all_outputs_sum, new_numints )
 end
 
+# For each of ngoals randomly chosen goals, evolves nreps chromosomes whose output is that goal.
+# Computes properties of these goals and chromosomes. 
+# Returns a dataframe with one row per goal.
 function run_geno_complexity( ngoals::Int64, nreps::Int64, numinputs::Int64, numoutputs::Int64, 
     numinteriors::IntRange, numlevelsback::Int64, max_steps::Int64; csvfile = "" )
   robust_vec = Float64[]
@@ -605,7 +609,8 @@ function run_geno_complexity( ngoals::Int64, nreps::Int64, numinputs::Int64, num
   return geno_complexity_df
 end
 
-#function geno_complexity( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, maxsteps::Int64 )
+# For the given goal, evolves nreps chromosomes that output that goal.
+# Returns a tuple which is pushed as a row onto the dataframe constructed in run_geno_complexity().
 function geno_complexity( goal::Goal, nreps::Int64, p::Parameters,  maxsteps::Int64 )
   #p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
   funcs = default_funcs(p.numinputs)
@@ -664,13 +669,29 @@ function geno_complexity( goal::Goal, nreps::Int64, p::Parameters,  maxsteps::In
   )
 end
 
+function parent_child_complexity( p::Parameters, nreps::Int64 )
+  funcs = default_funcs(p.numinputs)
+  complexity_pair_list = Tuple{Float64,Float64}[]
+  for i = 1:nreps
+    pc = random_chromosome(p,funcs)
+    p_complex = complexity5( pc )
+    cc = mutate_chromosome!( deepcopy(pc), funcs )[1]
+    c_complex = complexity5( cc )
+    #println("pair: ",(p_complex, c_complex ))
+    push!( complexity_pair_list, (p_complex, c_complex ) )
+  end
+  complexity_pair_list
+end
+
+rand_norm( mean::Float64, std::Float64, nreps::Int64 ) = std.*randn(nreps).+mean
+rand_norm(nreps::Int64) = rand_norm( 3.12727, 1.164145, nreps )
 
 function test_evo()
   g = [0x0332]
   numinputs=4; numoutputs=1; numinteriors=9; numlevelsback=5;
   setup_funcs(numinputs)
   g =[0x03f3]
-  p = Parameters( numinputs=numinputs, numoutputs=length(g), numinteriors=numinteriors, numlevelsback=numlevelsback )
+  p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback )
   max_steps = 200000
   nchromes = 50
   evo_result = Main.CGP.evo_result

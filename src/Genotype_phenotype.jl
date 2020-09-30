@@ -167,9 +167,8 @@ function run_gp_evolve!( rr::geno_pheno_result_type; maxints_for_degen::Int64, g
   rr.nactive = number_active( c )
   rr.redund = redundancy( c, base=base )
   rr.complex = rr.numints <= maxints_for_degen ? complexity5( c, base=base ) : 0.0
-  rr.gb_complex = rr.numints <= maxints_for_degen ? gb_complexity_chrome( c, base=base ) : 0.0
+  #rr.gb_complex = rr.numints <= maxints_for_degen ? gb_complexity_chrome( c, base=base ) : 0.0 # meaningless 9/27
   rr.degen = rr.numints <= maxints_for_degen ? degeneracy( c, base=base ) : 0.0
-  #rr.gb_degen = rr.numints <= maxints_for_degen ? gb_degeneracy_chrome( c, base=base ) : 0.0
   rr.sdegen = rr.numints <= maxints_for_degen ? degeneracy( c, base=base, mutinf=mutinf2 ) : 0.0
   rr.f_mutinf = fmi_chrome( c )
   mutall = mutate_all( c, funcs, robustness_only=true )

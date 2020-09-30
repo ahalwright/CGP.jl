@@ -31,8 +31,9 @@ const FPopulation = Array{Float64,1}
 const IntRange = Union{Integer, Bool, AbstractRange{Int64}, AbstractRange{Bool}}
 const Goal =  Vector{MyInt}
 const GoalList = Vector{Goal}
+Ones = 0x0f
 #Ones = 0xffff
-Ones = 0xffffffff
+#Ones = 0xffffffff
 
 # indiv_result_type is used to parallelize population evolution in Indiv_evolution.jl
 mutable struct indiv_result_type
