@@ -43,13 +43,22 @@ function Parameters( ; numinputs=2, numoutputs=2, nodearity=2, numinteriors=4, n
     return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
 end
 
-function print_parameters(f:: IOStream, p::Parameters )
-  println(f,"MyInt: ",MyInt)
-  println(f,"numinputs: ",p.numinputs)
-  println(f,"numoutputs: ",p.numoutputs)
-  println(f,"numinteriors: ",p.numinteriors)
-  println(f,"numlevelsback: ",p.numlevelsback)
-  println(f,"nodearity: ",p.nodearity)
+function print_parameters(f:: IOStream, p::Parameters; comment::Bool=false )
+  if !comment
+    println(f,"MyInt: ",MyInt)
+    println(f,"numinputs: ",p.numinputs)
+    println(f,"numoutputs: ",p.numoutputs)
+    println(f,"numinteriors: ",p.numinteriors)
+    println(f,"numlevelsback: ",p.numlevelsback)
+    println(f,"nodearity: ",p.nodearity)
+  else
+    println(f,"# MyInt: ",MyInt)
+    println(f,"# numinputs: ",p.numinputs)
+    println(f,"# numoutputs: ",p.numoutputs)
+    println(f,"# numinteriors: ",p.numinteriors)
+    println(f,"# numlevelsback: ",p.numlevelsback)
+    println(f,"# nodearity: ",p.nodearity)
+  end
 end
 
 function print_parameters(p::Parameters )

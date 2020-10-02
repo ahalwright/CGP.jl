@@ -298,15 +298,15 @@ function complexity6( X::Vector{MyInt}, numinputs::Int64; mutinf::Function=mutin
   for k = 1:Int(floor(n/2))
   #for k = 1:n
     subset_pairs = [(s,setdiff(Xinds,s)) for s in combinations(Xinds,k)]
-    println("k: ",k,"  subset_pairs: ",subset_pairs)
+    #println("k: ",k,"  subset_pairs: ",subset_pairs)
     X_pairs = map( i->( X[subset_pairs[i][1]], X[subset_pairs[i][2]] ), collect(1:length(subset_pairs)))
     #println("X_pairs: ",X_pairs)
     gbX_pairs = [ (get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
-    println("gbX_pairs: ",gbX_pairs)
+    #println("gbX_pairs: ",gbX_pairs)
     mutints = [ mutinf(get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
-    println("k: ",k,"  mutints: ",mutints)
+    #println("k: ",k,"  mutints: ",mutints)
     summand = sum(mutints)/length(mutints)
-    println("k: ",k,"sum mutual informaiton: ",summand)
+    println("k: ",k,"  sum mutual informaiton: ",summand)
     if k == Int(ceil(n/2))
       summand /= 2
     end
@@ -370,12 +370,14 @@ function complexity8( X::Vector{MyInt}; base::Float64=2.0 )
 end
   
 # Seems to always give a negative answer.
+# Does not use get_bits()
 function integration( XI::Vector{Vector{MyInt}}; base::Float64=2.0 )
   X = vcat( XI... )   # Combines all of the lists in XI into a long list
   sum( entropy( x ) for x in XI ) - entropy( X )
 end
 
 # Seems to always give a negative answer.
+# Does not use get_bits()
 # Integration assuming that the components are the individual elements of X
 function integration( X::Vector{MyInt}; base::Float64=2.0 )
   ent_list =  [ entropy([x]) for x in X ]

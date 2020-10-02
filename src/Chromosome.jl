@@ -438,10 +438,16 @@ function hamming( x::MyInt, y::MyInt )
   result
 end
 
-# Hamming distance which is between 0 and 1.
+# Hamming distance between MyInts which is between 0 and 1.
 # If hamming(x,y) >= 2^numinputs/2, then hamming_distance(x,y,numinputs) = 1.0
 function hamming_distance( x::MyInt, y::MyInt, numinputs::Int64 )
   result = hamming(x,y)/2^numinputs
+end
+
+# Hamming distance between Goals which is between 0 and 1.
+function hamming_distance( x::Vector{MyInt}, y::Vector{MyInt}, numinputs::Int64 )
+  @assert length( x ) == length( y )
+  sum( hamming_distance( x[i], y[i], numinputs ) for i = 1:length(x))/length(x)
 end
 
 # Change the fields of chromosome c to be the fields of chromosom c_to_copy

@@ -11,6 +11,7 @@ using DataFrames
 using CSV
 using Statistics
 using Distributions
+using Distributed
 indiv_result_type = Main.CGP.indiv_result_type
 #=
 iterations = 4
@@ -32,9 +33,9 @@ run_mut_evolution( iterations, numinputs, numoutputs, numinteriors, goallistleng
 
 function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
     numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange,
-    levelsback::IntRange, hamming_rng::IntRange, fit_limit_list::Vector{Float64}, csvfile::String; 
-    base::Float64=2.0, active_only::Bool=false, gl_repetitions::IntRange=1, fault_tol_rng::IntRange=false,
-    avgfit_rng::IntRange=false )
+    levelsback::IntRange, hamming_rng::IntRange, csvfile::String; 
+    base::Float64=2.0, active_only::Bool=false, avgfit_rng::IntRange=false )
+  maxints_for_degen=20
   max_numinteriors = collect(numinteriors)[end]
   test_MyInt(max_numinteriors)
   ftf_param = 0.95
@@ -48,12 +49,13 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   df.ngoals=Int64[]
   #df.hamming_sel=Bool[]
   #df.robust_sel=Bool[]
-  df.avgfitness=Bool[]
-  df.fault_tol=Bool[]
-  df.active_only=Bool[]
+  #df.avgfitness=Bool[]
+  #df.fault_tol=Bool[]
+  #df.active_only=Bool[]
   df.maxsteps=Int64[]
-  df.gl_reps=Int64[]
-  df.fit_limit=Float64[]
+  #df.gl_reps=Int64[]
+  #df.fit_limit=Float64[]
+  df.hdist=Float64[]
   df.steps=Int64[]
   df.same=Int64[]
   df.worse=Int64[]
@@ -63,7 +65,7 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
   df.complexity=Float64[]
   df.degeneracy=Float64[]
   df.sdegeneracy=Float64[]
-  #println("size(df): ",size(df))
+  println("size(df): ",size(df))
   for num_inputs = numinputs
     for num_outputs = numoutputs
       fit_limit = Float64(num_outputs)
@@ -74,20 +76,14 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
           for levsback = levelsback
             for hamming_sel = hamming_rng
               for avgfitness = avgfit_rng
-                for fault_tol = fault_tol_rng
-                  for active_only = [false]
-                    for gl_reps = gl_repetitions 
-                      for fit_limit in fit_limit_list
-                        #println("hamming_sel: ",hamming_sel,"  active_only: ",active_only)
-                        for max_steps = maxsteps
-                          for _ = 1:numiterations
-                            p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
-                            rr = run_result( p, num_goals, hamming_sel, active_only, max_steps, gl_reps, fault_tol, avgfitness, fit_limit )
-                            push!(run_result_list,rr)
-                            #Base.push!( df, new_row )
-                          end
-                        end
-                      end
+                for active_only = [false]
+                  #println("hamming_sel: ",hamming_sel,"  active_only: ",active_only)
+                  for max_steps = maxsteps
+                    for _ = 1:numiterations
+                      p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
+                      rr = run_result( p, num_goals, hamming_sel, active_only, max_steps )
+                      push!(run_result_list,rr)
+                      #Base.push!( df, new_row )
                     end
                   end
                 end
@@ -98,19 +94,18 @@ function run_mut_evolution( numiterations::Int64, numinputs::IntRange, numoutput
       end
     end
   end
-  new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,ftf_param=ftf_param,base=base),run_result_list)
-  #new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,ftf_param=ftf_param,,base=base),run_result_list)
+  new_run_result_list = pmap(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,base=base),run_result_list)
+  #new_run_result_list = map(r->run_mut_evolve!(r,maxints_for_degen=maxints_for_degen,base=base),run_result_list)
   for r = new_run_result_list
-     new_row = run_result_to_tuple(r)
-     Base.push!( df, new_row )
+    new_row = run_result_to_tuple(r)
+    println("len row: ",length(new_row))
+    Base.push!( df, new_row )
   end
   println(default_funcs(2))
   open( csvfile, "w" ) do f
     println(f,"# funcs: ", Main.CGP.default_funcs(numinputs[end]))
     println(f,"# nodearity: ",nodearity)
     #println(f,"# active_only: ",active_only)
-    println(f,"# gl_repetitions: ",gl_repetitions)
-    println(f,"# ftf_param: ",ftf_param)
     println(f,"# max_steps",maxsteps)
     CSV.write( f, df, append=true, writeheader=true )
   end
@@ -128,18 +123,19 @@ function run_mut_evolve!( rr::indiv_result_type; maxints_for_degen::Int64, gl_re
   #println("gl: ",gl)
   funcs = default_funcs(rr.numinputs) 
   c = random_chromosome( p, funcs )
-  (c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals,matched_goals_list) = 
-      mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel,fault_tol=rr.fault_tol, ftf_param=ftf_param, fit_limit=rr.fit_limit )
-  rr.nactive = number_active( c )
-  rr.redundancy = redundancy( c, base=base )
-  rr.complexity = rr.numints <= maxints_for_degen ? complexity5( c, base=base ) : 0.0
-  rr.degeneracy = rr.numints <= maxints_for_degen ? degeneracy( c, base=base ) : 0.0
-  rr.sdegeneracy = rr.numints <= maxints_for_degen ? degeneracy( c, base=base, mutinf=mutinf2 ) : 0.0
+  sav_c = deepcopy(c)
+  (new_c,rr.steps,rr.worse,rr.same,rr.better,output,matched_goals,matched_goals_list) = 
+      mut_evolve(c,gl,funcs,rr.maxsteps,hamming_sel=rr.hamming_sel )
+  rr.hdist = hamming_distance( output_values(c), output_values(new_c), rr.numinputs )
+  rr.nactive = number_active( new_c )
+  rr.redundancy = redundancy( new_c, base=base )
+  rr.complexity = rr.numints <= maxints_for_degen ? complexity5( new_c, base=base ) : 0.0
+  rr.degeneracy = rr.numints <= maxints_for_degen ? degeneracy( new_c, base=base ) : 0.0
+  rr.sdegeneracy = rr.numints <= maxints_for_degen ? degeneracy( new_c, base=base, mutinf=mutinf2 ) : 0.0
   rr
 end
 
-function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_only::Bool, max_steps::Int64, 
-      gl_reps::Int64, fault_tol::Bool, avgfitness::Bool, fit_limit::Float64 )
+function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_only::Bool, max_steps::Int64 )
   indiv_result_type(
     p.numinputs,
     p.numoutputs,
@@ -147,12 +143,13 @@ function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_
     p.numlevelsback,
     num_goals,
     hamming_sel,
-    avgfitness,
+    #avgfitness,
     active_only,
     max_steps,
-    gl_reps,
-    fault_tol,
-    fit_limit,
+    #gl_reps,
+    #fault_tol,
+    #fit_limit,
+    0.0,    # hdist
     0,      # steps
     0,      # same
     0,      # worse
@@ -161,7 +158,7 @@ function run_result( p::Parameters, num_goals::Int64, hamming_sel::Bool, active_
     0.0,    # redundancy
     0.0,    # complexity
     0.0,    # degeneracy
-    0.0     # sdegeneract
+    0.0     # sdegeneracy
   )
 end
 
@@ -173,12 +170,13 @@ function run_result_to_tuple( rr::indiv_result_type )
   rr.levelsback,
   rr.ngoals,
   #rr.hamming_sel,
-  rr.avgfitness,
-  rr.fault_tol,
-  rr.active_only,
+  #rr.avgfitness,
+  #rr.fault_tol,
+  #rr.active_only,
   rr.maxsteps,
-  rr.gl_reps,
-  rr.fit_limit,
+  #rr.gl_reps,
+  #rr.fit_limit,
+  rr.hdist,
   rr.steps,
   rr.same,
   rr.worse,

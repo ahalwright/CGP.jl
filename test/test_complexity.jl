@@ -26,13 +26,13 @@ function complexity( X::Vector{MyInt}, numinputs::Int64; base=Float64=2.0 )
   ent_X = entropy(gbX,base=base)
   println("X: ",X,"  gbX: ",gbX," ent_X: ",ent_X)
   for k = 1:(length(X))
-    println("k: ",k,"  ")
-    for s in combinations(X,k)
-      println("  s: ",s,"  gbs: ",get_bits(s,numinputs),"  ents: ",entropy(get_bits(s,numinputs),base=base))
-    end
+    #println("k: ",k,"  ")
+    #for s in combinations(X,k)
+      #println("  s: ",s,"  gbs: ",get_bits(s,numinputs),"  ents: ",entropy(get_bits(s,numinputs),base=base))
+    #end
   end   
   ents = [map(x->entropy(x,base=base),map(x->get_bits(x,numinputs),[s for s in combinations(X,k)])) for k = 1:(length(X))]
-  println("ents: ",ents)
+  #println("ents: ",ents)
   ents_avg = map(x->sum(x)/length(x), ents )
   println("ents_avg: ",ents_avg)
   summand = [ents_avg[k] - k/n*ent_X for k = 1:n]
@@ -44,20 +44,25 @@ end
 function complexity1( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
   n = length(X)
   Xinds = collect(1:length(X))
-  mutint_means = zeros(Float64,n)
+  ssum = 0.0
   for k = 1:Int(floor(n/2)) 
     subset_pairs = [(s,setdiff(Xinds,s)) for s in combinations(Xinds,k)]
     #println("k: ",k,"  subset_pairs: ",subset_pairs)
     X_pairs = map( i->( X[subset_pairs[i][1]], X[subset_pairs[i][2]] ), collect(1:length(subset_pairs)))
     #println("X_pairs: ",X_pairs)
     gbX_pairs = [ (get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
-    println("gbX_pairs: ",gbX_pairs)
+    #println("gbX_pairs: ",gbX_pairs)
     mutints = [ mutual_information(get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
-    println("mutints: ",mutints)
-    mutint_means[k] = sum(mutints)/length(mutints)
+    #println("mutints: ",mutints)
+    summand = sum(mutints)/length(mutints)
+    #println("k: ",k,"  sum mutual informaiton: ",summand)
+    println(summand)
+    if k == Int(ceil(n/2))
+      summand /= 2
+    end
+    ssum += summand
   end
-  println("mutint_means: ",mutint_means)
-  sum(mutint_means)
+  ssum
 end
 
 # Version of complexity7 which prints more information
@@ -68,7 +73,7 @@ function complexity0( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
   Xinds = collect(1:length(X))
   ssum = 0.0
   for k = 1:(n-1)
-    println("k: ",k)
+    #println("k: ",k)
     for s in combinations(Xinds,k)
       compl = X[setdiff(Xinds,s)]
       IXc = integration0(compl,numinputs,base=base)
@@ -76,9 +81,10 @@ function complexity0( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
     end
     subsets = [X[setdiff(Xinds,s)] for s in combinations(Xinds,k)]
     IXk = map( x->integration(x,numinputs,base=base), subsets )
-    println("IXk: ",IXk)
+    #println("IXk: ",IXk)
     avgIXk = sum(IXk)/length(IXk)
-    println("avgIXk: ",avgIXk,"  summand: ",k/n*IX - avgIXk)
+    println("k: ",k,"  avgIXk: ",avgIXk)
+    #println("k: ",k,"  avgIXk: ",avgIXk,"  summand: ",k/n*IX - avgIXk)
     ssum += k/n*IX - avgIXk
   end
   ssum
@@ -88,8 +94,8 @@ end
 function integration0( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
   gb_list = [ get_bits([x],numinputs) for x in X]
   ent_list =  [ entropy(get_bits([x],numinputs)) for x in X ]
-  println("X: ",X,"  entX: ",entropy(get_bits(X,numinputs)))
-  println("gb_list: ",gb_list,"  ent_list: ",ent_list,"  sum: ",sum(ent_list))
+  #println("X: ",X,"  entX: ",entropy(get_bits(X,numinputs)))
+  #println("gb_list: ",gb_list,"  ent_list: ",ent_list,"  sum: ",sum(ent_list))
   sum(ent_list) - entropy(get_bits(X,numinputs))
 end 
     
