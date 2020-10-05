@@ -194,10 +194,23 @@ end
 
 # Saves as a dataframe
 # Assumes chromosomes have only one output 
-function save_ints_goals_to_file( p::Parameters, int_gene_pairs::Vector{Tuple{Int64,Vector{Int64}}}, csvfile::String )
+function save_ints_goals_to_file( p::Parameters, int_gene_pairs::Vector{Tuple{Int64,Vector{MyInt}}}, csvfile::String; incr::Int64=0 )
   df = DataFrame( ch_ints=map( ig->ig[1], int_gene_pairs ), goals=map( x->@sprintf("0x%x",x[1][1]), int_gene_pairs ) )
   open(csvfile,"w") do f
     print_parameters(f,p,comment=true)
+    if incr > 0
+      println("incr: ",incr)
+    end
     CSV.write( f, df, append=true, writeheader=true )
+  end
+end
+
+function save_build_goals_to_file( bag::Vector{Tuple{Int64,Vector{Int64}}}, filename::String )
+  open( filename, "w" ) do f
+    print_parameters(f,p,comment=true)
+    println(f,"# incr: ",incr)
+    for i = 1:length(bag)
+      println(f,bag[i])
+    end
   end
 end

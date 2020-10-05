@@ -1,7 +1,7 @@
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, mut_evolve_increase_numints
 export mut_reduce_numactive
 export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
-export evolve_function
+export evolve_function, mut_evolve_repeat
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -271,7 +271,8 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   if step == max_steps
     println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
   else
-    println("mut_evolve finished in ",step," steps with fitness: ", c.fitness )
+    matched_g = map( x->x[1][1], matched_goals_list )
+    println("mut_evolve finished in ",step," steps for goals ",matched_g," with fitness: ", c.fitness )
     #println("matched_goals: ",matched_goals,"  matched_goals_list: ",matched_goals_list)
   end
   if orig_c.fitness > c.fitness
@@ -294,6 +295,31 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   end
   (c,step,worse,same,better,output,matched_goals,matched_goals_list)
 end 
+
+function mut_evolve_repeat(n_repeats::Int64, p::Parameters, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
+      hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
+      avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95, 
+      fit_limit::Float64=Float64(p.numoutputs) )
+  repeat = 1
+  c = random_chromosome( p, funcs )
+  (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, goallist, funcs, max_steps, 
+        hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, print_improvements=print_improvements,
+        avgfitness=avgfitness, perm_heuristic=perm_heuristic, fault_tol=fault_tol, ftf_param=ftf_param,
+        fit_limit=fit_limit ) 
+  while repeat < n_repeats && step == max_steps
+    c = random_chromosome( p, funcs )
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, goallist, funcs, max_steps, 
+        hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, print_improvements=print_improvements,
+        avgfitness=avgfitness, perm_heuristic=perm_heuristic, fault_tol=fault_tol, ftf_param=ftf_param,
+        fit_limit=fit_limit ) 
+    repeat += 1
+  end
+  if step < max_steps  # circut that outputs a goal of goallist has been found
+    return (c,step,worse,same,better,output,matched_goals,matched_goals_list)
+  else
+    return nothing
+  end
+end
 
 # If mut_evolve() fails in max_steps iterations, increase the numinteriors and numlevelsback and try again.
 # Continue up to repeat_limit until it suceeds.

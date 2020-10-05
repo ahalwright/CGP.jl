@@ -28,7 +28,7 @@ mutable struct evo_result_type
 end
 =#
 
-function evo_result( g::Goal, nchromes, max_steps::Int64, p::Parameters, evolvable_count::Int64, all_count::Int64,
+function evo_result( g::Goal, nchromes, max_steps::Int64, p::Parameters, nrepeats::Int64, evolvable_count::Int64, all_count::Int64,
       evo_diff_count::Int64 )
   evo_result_type(
     g,
@@ -37,6 +37,7 @@ function evo_result( g::Goal, nchromes, max_steps::Int64, p::Parameters, evolvab
     p.numoutputs,
     p.numinteriors,
     p.numlevelsback,  
+    nrepeats,
     max_steps,
     all_count,
     evolvable_count,
@@ -45,7 +46,7 @@ function evo_result( g::Goal, nchromes, max_steps::Int64, p::Parameters, evolvab
 end
 
 function evo_result( g::Goal, nchromes, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, 
-      max_steps::Int64, all_count::Int64, evolvable_count::Int64, evo_diff_count::Int64 )
+      max_steps::Int64, nrepeats::Int64, all_count::Int64, evolvable_count::Int64, evo_diff_count::Int64 )
   evo_result_type(
     g,
     nchromes,
@@ -53,6 +54,7 @@ function evo_result( g::Goal, nchromes, numinputs::Int64, numoutputs::Int64, num
     numoutputs,
     numinteriors,
     numlevelsback,  
+    nrepeats,
     max_steps,
     all_count,
     evolvable_count,
@@ -68,6 +70,7 @@ function evo_result_to_tuple( er::evo_result_type )
     er.numints,
     er.levelsback,
     er.maxsteps,
+    er.nrepeats,
     er.all_count,
     er.evolvable_count,
     er.evo_diff_count,
@@ -88,9 +91,10 @@ end
 # Evolvability is the count of the unique goals over all of the nchromes chromosome outputs.
 # TODO:  convert this to a relative evolvability.  
 # If intermediate_gens is a non-empty list, save intermediate results for those number of chromosomes
-function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_gens::Vector{Int64}=Int64[] )
-  repeat_limit = 10
+function evolvability( er::evo_result_type, funcs::Vector{Func}, max_repeats::Int64; intermediate_gens::Vector{Int64}=Int64[],
+    increase_numints::Bool=true )
   #println("er: ",er)
+  succeed = true    # Whether the evoluton succeeded.  Reset below
   p = Parameters( numinputs=er.numinputs, numoutputs=er.numoutputs, numinteriors=er.numints, numlevelsback=er.levelsback )
   all_sum = 0      # Accumulation of count of all neutral neighbors
   unique_result = Goal[]  # Accumulation of unique neutral neighbors
@@ -103,25 +107,39 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
     prev_goal_count = 0
     #println("len inter > 0")
   end
+  er.nrepeats = 0    # Establish scope for variable nrepeats
   @assert p.numoutputs==length(er.goal)
   for i = 1:er.nchromes
-    numinteriors_repeat = er.numints
-    numlevelsback_repeat = er.levelsback
+    if increase_numints
+      numinteriors_repeat = er.numints
+      numlevelsback_repeat = er.levelsback
+    end
     c = random_chromosome( p, funcs )
     (c,steps,output,mached_goals,matched_goals_list) = mut_evolve( c, [er.goal], funcs, er.maxsteps )
-    repeat = 0
-    while repeat < repeat_limit && steps == er.maxsteps
-      numinteriors_repeat += 1
-      numlevelsback_repeat += 1
-      p_repeat = Parameters( numinputs=er.numinputs, numoutputs=length(er.goal), numinteriors=numinteriors_repeat, 
-          numlevelsback=numlevelsback_repeat )
-      println("repeating function mut_evolve with numints: ",numinteriors_repeat,"  and with levsback: ",numlevelsback_repeat)
+    nrepeats = 0
+    while nrepeats < max_repeats && steps == er.maxsteps
+      if increase_numints
+        numinteriors_repeat += 1
+        numlevelsback_repeat += 1
+        p_repeat = Parameters( numinputs=er.numinputs, numoutputs=length(er.goal), numinteriors=numinteriors_repeat, 
+            numlevelsback=numlevelsback_repeat )
+        println("repeating function mut_evolve with numints: ",numinteriors_repeat,"  and with levsback: ",numlevelsback_repeat)
+      else
+        p_repeat = p
+        println("repeating function mut_evolve" )
+      end
       c = random_chromosome( p_repeat, funcs )
       (c,steps,output,mached_goals,matched_goals_list) = mut_evolve( c, [er.goal], funcs, er.maxsteps )
-      repeat += 1
+      nrepeats += 1
+    end
+    succeed = (steps < er.maxsteps)
+    if !succeed
+      println("nrepeats: ",nrepeats)
+      println("evolution failed for goal: ",er.goal)
+      er.nrepeats += 100000
     end
     #print_build_chromosome( c )
-    goal_list = mutate_all( c, funcs, output_outputs=true )  # goals for all possible mutations
+    goal_list = succeed ? mutate_all( c, funcs, output_outputs=true ) : Vector{MyInt}[] # goals for all possible mutations
     all_sum += length(goal_list)
     #println("goal_list: ",goal_list)
     unique_goals = unique(goal_list)
@@ -139,6 +157,7 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
       push!(unique_intermeds,unique_intermed)
       intermediate_count += 1
     end
+    er.nrepeats += nrepeats
   end
   if length(intermediate_gens) == 0
     #println("len(unique_result): ",length(unique_result))
@@ -164,7 +183,9 @@ function evolvability( er::evo_result_type, funcs::Vector{Func}; intermediate_ge
 end
 
 function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchromes::IntRange,  maxsteps::IntRange, 
-      numinputs::Int64, numinteriors::IntRange, numlevelsback::IntRange; intermediate_gens::Vector{Int64}=Int64[] )
+      numinputs::Int64, numinteriors::IntRange, numlevelsback::IntRange, max_repeats::Int64; 
+      increase_numints::Bool=false, intermediate_gens::Vector{Int64}=Int64[] )
+  #repeats=3
   if length(intermediate_gens) == 0
     evo_result_list = evo_result_type[]
   else
@@ -177,6 +198,7 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
   df.numints=Int64[]
   df.levsback=Int64[]
   df.maxsteps=Int64[]
+  df.nrepeats=Int64[]
   df.all_count=Int64[]
   df.evolvable_count=Int64[]
   df.evo_diff_count=Int64[]
@@ -188,7 +210,7 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
           for mxsteps = maxsteps
             for rep = 1:nreps
               #er = evo_result( g, nch, mxsteps, p, 0 )
-              er = evo_result( g, nch, numinputs, length(g), nints, levsback, mxsteps, 0, 0, 0 )
+              er = evo_result( g, nch, numinputs, length(g), nints, levsback, mxsteps, 0, 0, 0, 0 )
               #er = evolvability( er, funcs )
               #push!(df,(g,nch,numinputs,nints,levsback,mxsteps,evob))
               if length(intermediate_gens)==0
@@ -204,11 +226,11 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
   end
   #println("evo_result_list: ",evo_result_list)
   if length(intermediate_gens) == 0
-    new_evo_result_list = pmap( x->evolvability(x,funcs,intermediate_gens=intermediate_gens), evo_result_list )
-    #new_evo_result_list = map( x->evolvability(x,funcs,intermediate_gens=intermediate_gens), evo_result_list )
+    #new_evo_result_list = pmap( x->evolvability(x,funcs,max_repeats,increase_numints=increase_numints,intermediate_gens=intermediate_gens), evo_result_list )
+    new_evo_result_list = map( x->evolvability(x,funcs,max_repeats,increase_numints=increase_numints,intermediate_gens=intermediate_gens), evo_result_list )
   else
-    new_evo_result_list = pmap( x->evolvability(x[1],funcs,intermediate_gens=intermediate_gens), evo_result_list )
-    #new_evo_result_list = map( x->evolvability(x[1],funcs,intermediate_gens=intermediate_gens), evo_result_list )
+    #new_evo_result_list = pmap( x->evolvability(x[1],funcs,max_repeats,increase_numints=increase_numints,intermediate_gens=intermediate_gens), evo_result_list )
+    new_evo_result_list = map( x->evolvability(x[1],funcs,max_repeats,increase_numints=increase_numints,intermediate_gens=intermediate_gens), evo_result_list )
   end
   #println("evo_result_list[1]: ",evo_result_list[1])
   #new_evo_result_list = [evolvability(evo_result_list[1][1],funcs,intermediate_gens=intermediate_gens)]
@@ -226,22 +248,24 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
   df
 end
 
-function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchromes::IntRange,  maxsteps::IntRange, 
-      numinputs::Int64, numinteriors::IntRange, numlevelsback::IntRange, csvfile::String; 
-      intermediate_gens::Vector{Int64}=Int64[] )
+function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchromes::IntRange, maxsteps::IntRange, 
+      numinputs::Int64, numinteriors::IntRange, numlevelsback::IntRange, max_repeats::Int64, csvfile::String; 
+      increase_numints::Bool=false, intermediate_gens::Vector{Int64}=Int64[] )
   #result = @timed run_evolvability( nreps, gl, funcs, nchromes,  maxsteps, numinputs, numinteriors, numlevelsback ) 
   (df,ttime) = @timed run_evolvability( nreps, gl, funcs, nchromes,  maxsteps, numinputs, numinteriors, numlevelsback,
-      intermediate_gens=intermediate_gens ) 
+      max_repeats, intermediate_gens=intermediate_gens ) 
   hostname = chomp(open("/etc/hostname") do f read(f,String) end)
   println("size(df): ",size(df))
   println("# host: ",hostname," with ",nprocs()-1,"  processes: " )    
   println("# date and time: ",Dates.now())
   println("# run time in minutes: ",ttime/60)
+  println("# max_repeats: ",max_repeats)
   println("# funcs: ", Main.CGP.default_funcs(numinputs[end]))
   open( csvfile, "w" ) do f 
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )    
     println(f,"# run time in minutes: ",ttime/60)
+    println(f,"# max_repeats: ",max_repeats)
     println(f,"# funcs: ", Main.CGP.default_funcs(numinputs[end]))
     CSV.write( f, df, append=true, writeheader=true )
   end
@@ -478,32 +502,34 @@ function test_g_evolvability_g_robustness( nreps::Int64, numinputs::Int64, numou
 end
 =#
 
-function run_geno_robustness( ngoals::Int64, nreps::Int64, numinputs::Int64, numoutputs::Int64, 
-    numinteriors::IntRange, numlevelsback::Int64, max_steps::Int64; csvfile = "" )
+function run_geno_robustness( ngoals::Int64, maxreps::Int64, numinputs::Int64, numoutputs::Int64, 
+    numinteriors::IntRange, numlevelsback::Int64, max_steps::Int64, max_tries::Int64; csvfile = "" )
+  p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=10, numlevelsback=numlevelsback ) # Establish scope for p
   robust_vec = Float64[]
   evolvable_vec = Float64[]
-  list_goals_numints = Tuple[]
+  list_goals_params = Tuple[]
   for j = 1:ngoals
     goal = randgoal( numinputs, numoutputs)
     for numints in numinteriors 
-      #println("goal: ",goal)
-      push!(list_goals_numints,(goal,numints) )
+      p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numints, numlevelsback=numlevelsback )
+      println("goal: ",goal)
+      push!(list_goals_params,(goal,p) )
     end
   end
-  #println("list goals_numints: ",list_goals_numints)
-  result = pmap(x->geno_robustness( x[1], nreps, numinputs, numoutputs, x[2], numlevelsback, max_steps ), list_goals_numints )
-  #result = map(x->geno_robustness( x[1], nreps, numinputs, numoutputs, x[2], numlevelsback, max_steps ), list_goals_numints )
-  #result = map(g->geno_robustness( g, nreps, numinputs, numoutputs, numinteriors, numlevelsback, max_steps ), list_goals_numints )
+  println("list goals_params: ",map(x->x[1],list_goals_params))
+  result = pmap(x->geno_robustness( x[1], maxreps, p, max_steps, max_tries ), list_goals_params )
   goal_vec = [ rb[1] for rb in result ]
   robust_vec = [ rb[2] for rb in result ]
   evolvable_vec = [ rb[3] for rb in result ]
-  numints_vec = [ rb[4] for rb in result ]
+  ntries_vec = [ rb[4] for rb in result ]  
+  nrepeats_vec = [ rb[5] for rb in result ]
   #println("(robust_vec, evolvable_vec): ",(robust_vec, evolvable_vec))
   robust_evo_df = DataFrame() 
   robust_evo_df.goal = goal_vec 
   robust_evo_df.robust = robust_vec
   robust_evo_df.evolvable = evolvable_vec
-  robust_evo_df.numints = numints_vec
+  robust_evo_df.ntries = ntries_vec
+  robust_evo_df.nrepeats = nrepeats_vec
   if length(csvfile) > 0
     hostname = chomp(open("/etc/hostname") do f read(f,String) end)
     open( csvfile, "w" ) do f
@@ -512,10 +538,10 @@ function run_geno_robustness( ngoals::Int64, nreps::Int64, numinputs::Int64, num
       #println(f,"# run time in minutes: ",ttime/60)
       println(f,"# funcs: ", Main.CGP.default_funcs(numinputs))
       println(f,"# ngoals: ",ngoals)
-      println(f,"# nreps: ",nreps)
+      println(f,"# maxreps: ",maxreps)
+      println(f,"# max_tries: ",max_tries)
       println(f,"# numinputs: ",numinputs)
       println(f,"# numoutputs: ",numoutputs)
-      println(f,"# numinteriors: ",numinteriors)
       println(f,"# numlevelsback: ",numlevelsback)
       println(f,"# max_steps: ",max_steps)
       CSV.write(f, robust_evo_df, append=true, writeheader=true )
@@ -524,20 +550,25 @@ function run_geno_robustness( ngoals::Int64, nreps::Int64, numinputs::Int64, num
   return robust_evo_df
 end
 
-function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, max_steps::Int64 )
-  p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
-  funcs = default_funcs(numinputs)
+function geno_robustness( goal::Goal, maxreps::Int64, p::Parameters, max_steps::Int64, max_tries::Int64 )
+  #p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
+  funcs = default_funcs(p.numinputs)
+  nrepeats = 0
   all_outputs_sum = 0
   robust_sum = 0
   all_unique_outputs = Goal[]
-  new_numints = numinteriors
-  new_numlevback = numlevelsback
-  for i = 1:nreps
-    new_numints = numinteriors
+  i = 0
+  while i < max_tries && nrepeats < maxreps
+    i += 1
+    #println("i: ",i,"  nrepeats: ",nrepeats)
     c = random_chromosome(p,funcs)
     c_output = output_values(c)
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
-      mut_evolve_increase_numints( c, [goal], funcs, max_steps )
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list) =
+      mut_evolve( c, [goal], funcs, max_steps )
+    if step == max_steps
+      println("mut evolve failed for goal: ",goal)
+      continue
+    end
     c_output = output_values(c)
     @assert c_output == goal
     #println("output values: ",c_output)
@@ -547,8 +578,14 @@ function geno_robustness( goal::Goal, nreps::Int64, numinputs::Int64, numoutputs
     robust_sum += length(robust_outputs)
     evolvable_outputs = unique(outputs)
     all_unique_outputs = vcat(all_unique_outputs,evolvable_outputs)
+    nrepeats += 1
   end  
-  return ( goal, robust_sum/all_outputs_sum, length(all_unique_outputs)/all_outputs_sum, new_numints )
+  ntries = i
+  if nrepeats > 0
+    return ( goal, robust_sum/all_outputs_sum, length(all_unique_outputs)/all_outputs_sum, ntries, nrepeats )
+  else
+    return ( goal, 0.0, 0.0, ntries, nrepeats )
+  end
 end
 
 # For each of ngoals randomly chosen goals, evolves nreps chromosomes whose output is that goal.
@@ -670,6 +707,7 @@ function geno_complexity( goal::Goal, nreps::Int64, p::Parameters,  maxsteps::In
 end
 
 function parent_child_complexity( p::Parameters, nreps::Int64 )
+  nrepeats = 3
   funcs = default_funcs(p.numinputs)
   complexity_pair_list = Tuple{Float64,Float64}[]
   for i = 1:nreps
@@ -694,13 +732,14 @@ function test_evo()
   p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback )
   max_steps = 200000
   nchromes = 50
+  nrepeats = 3
   evo_result = Main.CGP.evo_result
-  er = evo_result( g, nchromes, max_steps, p, 0, 0, 0 )
+  er = evo_result( g, nchromes, max_steps, p, nrepeats, 0, 0, 0 )
   funcs=default_funcs(p.numinputs)
   #evolvability( er, funcs )
   #evolvability( er, funcs, intermediate_gens=[1,4,8] )
-  run_evolvability( 2, [g], funcs, er.nchromes, er.maxsteps, er.numinputs, er.numints, er.levelsback, intermediate_gens=[10,20,30,40,50] )
-  #run_evolvability( 20, [g], funcs, 5:5:20, er.maxsteps, er.numinputs, er.numints, er.levelsback, "test.csv" )
+  run_evolvability( 2, [g], funcs, er.nchromes, er.maxsteps, er.numinputs, er.numints, er.levelsback, er.nrepeats, intermediate_gens=[10,20,30,40,50] )
+  #run_evolvability( 20, [g], funcs, 5:5:20, er.maxsteps, er.numinputs, er.numints, er.levelsback, er.nrepeats, "test.csv" )
 end
 
 function test_gen_evo()

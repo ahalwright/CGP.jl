@@ -163,6 +163,7 @@ mutable struct evo_result_type
   numoutputs::Int64
   numints::Int64
   levelsback::Int64
+  nrepeats::Int64
   maxsteps::Int64
   all_count::Int64
   evolvable_count::Int64
