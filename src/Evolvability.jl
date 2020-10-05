@@ -590,32 +590,21 @@ function geno_robustness( goal::Goal, maxreps::Int64, p::Parameters, max_steps::
   end
 end
 
-# For each of ngoals randomly chosen goals, evolves nreps chromosomes whose output is that goal.
+# For each of ngoals randomly chosen goals, evolves maxreps chromosomes whose output is that goal.
 # Computes properties of these goals and chromosomes. 
 # Returns a dataframe with one row per goal.
-function run_geno_complexity( ngoals::Int64, nreps::Int64, numinputs::Int64, numoutputs::Int64, 
-    numinteriors::IntRange, numlevelsback::Int64, max_steps::Int64; csvfile = "" )
-  robust_vec = Float64[]
-  evolvable_vec = Float64[]
-  list_goals_params = Tuple[]
-  for j = 1:ngoals
-    goal = randgoal( numinputs, numoutputs)
-    for numints in numinteriors 
-      #println("goal: ",goal)
-      p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
-      push!(list_goals_params,(goal,p) )
-    end
-  end
-  #result = pmap(x->geno_complexity( x[1], nreps, x[2], max_steps ), list_goals_params )
-  result = map(x->geno_complexity( x[1], nreps, x[2], max_steps ), list_goals_params )
-  #println("(robust_vec, evolvable_vec): ",(robust_vec, evolvable_vec))
+function run_geno_complexity( ngoals::Int64, maxreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::IntRange, numlevelsback::Int64, 
+      max_steps::Int64, max_tries::Int64; csvfile = "" )
+  p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=10, numlevelsback=numlevelsback ) # Establish scope for p
   geno_complexity_df = DataFrame() 
   geno_complexity_df.goal = MyInt[]
   geno_complexity_df.numinputs = Int64[]
   geno_complexity_df.numoutputs = Int64[]
-  geno_complexity_df.numints = Float64[]
-  geno_complexity_df.numlevsback = Float64[]
+  geno_complexity_df.numints = Int64[]
+  geno_complexity_df.numlevsback = Int64[]
   geno_complexity_df.maxsteps = Int64[]
+  geno_complexity_df.ntries = Int64[]
+  geno_complexity_df.nrepeats = Int64[]
   geno_complexity_df.robustness = Float64[]
   geno_complexity_df.evolvability = Float64[]
   geno_complexity_df.nactive = Float64[]
@@ -625,6 +614,17 @@ function run_geno_complexity( ngoals::Int64, nreps::Int64, numinputs::Int64, num
   geno_complexity_df.epi4= Float64[]
   geno_complexity_df.epi_total = Float64[]
   geno_complexity_df.f_mutrobust= Float64[]
+  list_goals_params = Tuple[]
+  for j = 1:ngoals
+    goal = randgoal( numinputs, numoutputs)
+    for numints in numinteriors 
+      #println("goal: ",goal)
+      p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
+      push!(list_goals_params,(goal,p) )
+    end
+  end
+  result = pmap(x->geno_complexity( x[1], maxreps, x[2], max_steps, max_tries ), list_goals_params )
+  #result = map(x->geno_complexity( x[1], maxreps, x[2], max_steps, max_tries ), list_goals_params )
   for res in result
     push!(geno_complexity_df,res)
   end
@@ -636,7 +636,7 @@ function run_geno_complexity( ngoals::Int64, nreps::Int64, numinputs::Int64, num
       #println(f,"# run time in minutes: ",ttime/60)
       println(f,"# funcs: ", Main.CGP.default_funcs(numinputs))
       println(f,"# ngoals: ",ngoals)
-      println(f,"# nreps: ",nreps)
+      println(f,"# maxreps: ",maxreps)
       println(f,"# numinputs: ",numinputs)
       println(f,"# numoutputs: ",numoutputs)
       println(f,"# numinteriors: ",numinteriors)
@@ -648,32 +648,34 @@ function run_geno_complexity( ngoals::Int64, nreps::Int64, numinputs::Int64, num
   return geno_complexity_df
 end
 
-# For the given goal, evolves nreps chromosomes that output that goal.
+# For the given goal, evolves maxreps chromosomes that output that goal.
 # Returns a tuple which is pushed as a row onto the dataframe constructed in run_geno_complexity().
-function geno_complexity( goal::Goal, nreps::Int64, p::Parameters,  maxsteps::Int64 )
-  #p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
+function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::Int64, max_tries::Int64 )
   funcs = default_funcs(p.numinputs)
   W = Walsh(2^p.numinputs)
   all_outputs_sum = 0
   robust_sum = 0
   all_unique_outputs = Goal[]
-  new_numints = p.numinteriors
-  new_numlevback = p.numlevelsback
-  new_numints_list = zeros(Int64, nreps )
-  new_levsback_list = zeros(Int64, nreps )
-  nactive_list = zeros(Int64, nreps )
-  complexity_list = zeros(Float64, nreps )
-  frenken_mi_list = zeros(Float64, nreps ) 
+  nactive_list = Int64[]
+  complexity_list = Float64[]
+  frenken_mi_list = Float64[]
   epi2 = k_bit_epistasis(W,2,goal[1])
   epi3 = k_bit_epistasis(W,3,goal[1])
   epi4 = k_bit_epistasis(W,4,goal[1])
   epi_total = total_epistasis(W,goal[1])
-  for i = 1:nreps
-    #new_numints = p.numinteriors
+  nrepeats = 0
+  i = 0
+  while i < max_tries && nrepeats < maxreps 
+    i += 1
     c = random_chromosome(p,funcs)
     c_output = output_values(c)
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback) =
-      mut_evolve_increase_numints( c, [goal], funcs, maxsteps )
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list) =
+      mut_evolve( c, [goal], funcs, maxsteps )
+    if step == maxsteps
+      println("mut evolve failed for goal: ",goal)
+      continue
+    end        
+    #println("goal: ",goal,"  i: ",i,"  nrepeats: ",nrepeats)
     c_output = output_values(c)
     @assert c_output == goal
     #println("output values: ",c_output)
@@ -683,29 +685,63 @@ function geno_complexity( goal::Goal, nreps::Int64, p::Parameters,  maxsteps::In
     robust_sum += length(robust_outputs)
     evolvable_outputs = unique(outputs)
     all_unique_outputs = vcat(all_unique_outputs,evolvable_outputs)
-    nactive_list[i] = number_active( c )
-    complexity_list[i] = complexity5( c )
-    new_numints_list[i] = new_numints
-    new_levsback_list[i] = new_levsback
-    frenken_mi_list[i] = fmi_chrome( c )
+    push!( nactive_list, number_active( c ))
+    push!( complexity_list, complexity5( c ))
+    push!( frenken_mi_list, fmi_chrome( c ))
+    nrepeats += 1
   end  
-  return ( 
-    goal[1], 
-    p.numinputs,
-    p.numoutputs,
-    sum( new_numints_list )/nreps,
-    sum( new_levsback_list )/nreps,
-    maxsteps,
-    robust_sum/all_outputs_sum, 
-    length(all_unique_outputs)/all_outputs_sum,
-    sum( nactive_list )/nreps,
-    sum( complexity_list )/nreps,
-    epi2,
-    epi3,
-    epi4,
-    epi_total,
-    sum(frenken_mi_list)/nreps
-  )
+  ntries = i
+  println("ntries: ",ntries,"  nrepeats: ",nrepeats)
+  if nrepeats > 0
+    return ( 
+      goal[1], 
+      p.numinputs,
+      p.numoutputs,
+      p.numinteriors,
+      p.numlevelsback,
+      maxsteps,
+      ntries,
+      nrepeats,
+      robust_sum/all_outputs_sum, 
+      length(all_unique_outputs)/all_outputs_sum,
+      sum( nactive_list )/maxreps,
+      sum( complexity_list )/maxreps,
+      epi2,
+      epi3,
+      epi4,
+      epi_total,
+      sum(frenken_mi_list)/maxreps
+    )
+  else  # Evolution always failed
+    return ( 
+      goal[1], 
+      p.numinputs,
+      p.numoutputs,
+      p.numinteriors,
+      p.numlevelsback,
+      maxsteps,
+      ntries,
+      0,
+      #robust_sum/all_outputs_sum, 
+      #length(all_unique_outputs)/all_outputs_sum,
+      #sum( nactive_list )/maxreps,
+      #sum( complexity_list )/maxreps,
+      #epi2,
+      #epi3,
+      #epi4,
+      #epi_total,
+      #sum(frenken_mi_list)/maxreps
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    )
+  end
 end
 
 function parent_child_complexity( p::Parameters, nreps::Int64 )
