@@ -30,6 +30,11 @@ julia> mean(cmpx_diffs)
 
 There is some regression to the mean as expected.
 
+TODO (added 10/7/20):
+Filter parent chromosomes for high or low complexity
+Need to see what good filter values are. 
+How to you interpret the results? perhaps compare with normal distribution sampling.
+
 ==================================================
 How does get_bits( ) work?
 Example:

@@ -116,7 +116,6 @@ function chromosome_to_genes( c::Chromosome )
   end
   genes
 end
-  
 
 # Note that result can be zero, so when used as an array index, add 1
 function genes_to_integer( p::Parameters, genes::Vector{Int64} )

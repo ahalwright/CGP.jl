@@ -78,6 +78,40 @@ function evo_result_to_tuple( er::evo_result_type )
   )
 end
 
+# return the pair (pheno_evolvability, pheno_robustness)
+function evolvability( g::Goal, p::Parameters, funcs::Vector{Func}, nchromes::Int64, maxsteps::Int64, n_repeats::Int64  )
+  all_count = 0
+  robust_count = 0
+  goal_list = Goal[]
+  for i = 1:nchromes
+    j = 1
+    while j < n_repeats
+      res =  mut_evolve_repeat(n_repeats, p, [g], funcs, maxsteps)
+      if res == nothing
+        j += 1
+        continue
+      end
+      (c,step,worse,same,better,output,matched_goals,matched_goals_list) = res
+      @assert output_values(c) == g
+      #print("i: ",i,"  found c: ")
+      #print_build_chromosome(c)
+      outputs = mutate_all( c, funcs, output_outputs=true )
+      #println("outputs: ",outputs)
+      #println("i: ",i,"  unique outputs: ",sort(unique(outputs)))
+      all_count += length(outputs)
+      robust_count += length(filter( x->x == g, outputs ))
+      #println("len unique outputs: ", length(unique(outputs)))
+      #println("robust outputs: ",length(filter( x->x == g, outputs )))
+      goal_list = unique(vcat( goal_list, unique(outputs) ))
+      #println("goal_list: ",sort(goal_list))
+      println((all_count, robust_count, length(goal_list )))
+      j = n_repeats
+    end
+  end
+  println((all_count, robust_count, length(goal_list )))
+  ( length(goal_list)/all_count, robust_count/all_count )
+end
+    
 function evolvability( g::Goal, funcs::Vector{Func}, nchromes::Int64, maxsteps::Int64, 
       numinputs::Int64, numinteriors::Int64, numlevelsback::Int64 )
   p = Parameters( numinputs=numinputs, numoutputs=length(g), numinteriors=numinteriors, numlevelsback=numlevelsback )
@@ -579,8 +613,9 @@ function geno_robustness( goal::Goal, maxreps::Int64, p::Parameters, max_steps::
     robust_outputs = filter( x->x==c_output, outputs )
     robust_sum += length(robust_outputs)
     evolvable_outputs = unique(outputs)
-    all_unique_outputs = vcat(all_unique_outputs,evolvable_outputs)
+    all_unique_outputs = unique(vcat(all_unique_outputs,evolvable_outputs))
     nrepeats += 1
+    #println((all_outputs_sum,robust_sum,length(all_unique_outputs)))
   end  
   ntries = i
   if nrepeats > 0
@@ -684,7 +719,7 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
     robust_outputs = filter( x->x==c_output, outputs )
     robust_sum += length(robust_outputs)
     evolvable_outputs = unique(outputs)
-    all_unique_outputs = vcat(all_unique_outputs,evolvable_outputs)
+    all_unique_outputs = unique(vcat(all_unique_outputs,evolvable_outputs))
     push!( nactive_list, number_active( c ))
     push!( complexity_list, complexity5( c ))
     push!( frenken_mi_list, fmi_chrome( c ))
@@ -744,6 +779,8 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
   end
 end
 
+# See diary9_26.txt for motivation and sample results
+# TODO:  filter parent chromosomes for high or low complexity
 function parent_child_complexity( p::Parameters, nreps::Int64 )
   nrepeats = 3
   funcs = default_funcs(p.numinputs)

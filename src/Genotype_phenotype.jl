@@ -57,6 +57,8 @@ function run_geno_pheno_evolution( iterations::Int64, numinputs::IntRange, numou
   df
 end
 
+# Tentative conclusion:  10/6/20:  The robustness and evolvability computed are genotypic rather than phenotypic.
+# Not what we really want.  The computations in geno_robustness() and geno_complexity() in Evolvability.jl should be correct.
 function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
     numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange, levelsback::IntRange ; 
     base::Float64=2.0, allgoals::Bool=false, active_only::Bool=false, gl_repetitions::IntRange=1)
@@ -125,6 +127,7 @@ function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::Int
   df
 end
 
+# Tentative conclusion:  10/6/20:  The robustness and evolvability computed are genotypic rather than phenotypic.
 function run_gp_evolve!( rr::geno_pheno_result_type; maxints_for_degen::Int64, gl_repetitions::Int64=1, base::Float64=2.0,
       repeat_limit::Int64=10 )
   #repeat_limit = 10

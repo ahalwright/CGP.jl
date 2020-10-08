@@ -10,6 +10,37 @@ julia> unique(og)
 output file:  data/10_2/out_listA.csv.bz2
 Comment:  did not work:  Goals are not in correct format.  Maybe overflow.
 
+Added 10/6:
+Tried the following check:
+julia> p = Parameters( numinputs=3, numoutputs=1, numinteriors=7, numlevelsback = 2 )
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 7, 2)
+julia> funcs = default_funcs(p.numinputs)
+1-element Array{Func,1}:
+ Func(Main.CGP.Nand, 2, "NAND")
+julia> gg=integer_to_genes( p, 59049 )
+14-element Array{Int64,1}:
+ 1
+ 0
+ 0
+ 1
+ 1
+ 0
+ 1
+ 0
+ 1
+ 0
+ 1
+ 0
+ 0
+ 1
+julia> cc = build_chromosome(p,gg,funcs,incr=2)
+julia> outputs = output_values(cc)
+1-element Array{UInt32,1}:
+ 0x00000077
+
+According the a record in  out_listA.csv, should have come out to be 0xe6a9.
+So something didn't work.
+
 Second run:
 julia> p = Parameters( numinputs=3, numoutputs=1, numinteriors=8,numlevelsback=3)
 Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 8, 3)

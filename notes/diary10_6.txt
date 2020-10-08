@@ -1,0 +1,7 @@
+Mostly worked on writing.
+
+But looked at run_geno_pheno_evolution() in Genotype_phenotype.jl, and concluded that
+they were computing genotypic robustness and evolvability rather than phenotpic.
+The computations in geno_robustness() and geno_complexity() in Evolvability.jl should be correct. 
+
+In addition, these run_geno_pheno_evolution() computations are based on increasing numints.
