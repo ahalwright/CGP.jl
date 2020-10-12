@@ -10,8 +10,7 @@ using HypothesisTests
 using Printf
 
 export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
-export run_geno_robustness, geno_robustness
-#export run_geno_robustness0, geno_robustness0
+export run_geno_robustness, geno_robustness, evo_robust
 export run_geno_complexity, geno_complexity
 export parent_child_complexity, rand_norm
 #=  Moved to aliases.jl so that this file can be included.
@@ -79,7 +78,7 @@ function evo_result_to_tuple( er::evo_result_type )
 end
 
 # return the pair (pheno_evolvability, pheno_robustness)
-function evolvability( g::Goal, p::Parameters, funcs::Vector{Func}, nchromes::Int64, maxsteps::Int64, n_repeats::Int64  )
+function evo_robust( g::Goal, p::Parameters, funcs::Vector{Func}, nchromes::Int64, maxsteps::Int64, n_repeats::Int64  )
   all_count = 0
   robust_count = 0
   goal_list = Goal[]
@@ -653,11 +652,12 @@ function run_geno_complexity( ngoals::Int64, maxreps::Int64, numinputs::Int64, n
   for j = 1:ngoals
     goal = randgoal( numinputs, numoutputs)
     for numints in numinteriors 
-      #println("goal: ",goal)
       p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
+      #println("j: ",j,"  goal: ",goal,"  parameters: ",p)
       push!(list_goals_params,(goal,p) )
     end
   end
+  #println("list_goals_params: ",list_goals_params)
   result = pmap(x->geno_complexity( x[1], maxreps, x[2], max_steps, max_tries ), list_goals_params )
   #result = map(x->geno_complexity( x[1], maxreps, x[2], max_steps, max_tries ), list_goals_params )
   for res in result
@@ -686,6 +686,7 @@ end
 # For the given goal, evolves maxreps chromosomes that output that goal.
 # Returns a tuple which is pushed as a row onto the dataframe constructed in run_geno_complexity().
 function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::Int64, max_tries::Int64 )
+  #println("geno_complexity: goal: ",goal)
   funcs = default_funcs(p.numinputs)
   W = Walsh(2^p.numinputs)
   all_outputs_sum = 0
@@ -694,10 +695,12 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
   nactive_list = Int64[]
   complexity_list = Float64[]
   frenken_mi_list = Float64[]
-  epi2 = k_bit_epistasis(W,2,goal[1])
-  epi3 = k_bit_epistasis(W,3,goal[1])
-  epi4 = k_bit_epistasis(W,4,goal[1])
-  epi_total = total_epistasis(W,goal[1])
+  if p.numoutputs == 1
+    epi2 = k_bit_epistasis(W,2,goal[1])
+    epi3 = k_bit_epistasis(W,3,goal[1])
+    epi4 = k_bit_epistasis(W,4,goal[1])
+    epi_total = total_epistasis(W,goal[1])
+  end
   nrepeats = 0
   i = 0
   while i < max_tries && nrepeats < maxreps 
@@ -710,9 +713,9 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       println("mut evolve failed for goal: ",goal)
       continue
     end        
-    #println("goal: ",goal,"  i: ",i,"  nrepeats: ",nrepeats)
     c_output = output_values(c)
-    @assert c_output == goal
+    #println("goal: ",goal,"  i: ",i,"  nrepeats: ",nrepeats,"  c_output: ",c_output)
+    @assert sort(c_output) == sort(goal)
     #println("output values: ",c_output)
     outputs = mutate_all( c, funcs, output_outputs=true )
     all_outputs_sum += length(outputs)
@@ -741,10 +744,10 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       length(all_unique_outputs)/all_outputs_sum,
       sum( nactive_list )/maxreps,
       sum( complexity_list )/maxreps,
-      epi2,
-      epi3,
-      epi4,
-      epi_total,
+      p.numoutputs==1 ? epi2 : 0.0,
+      p.numoutputs==1 ? epi3 : 0.0,
+      p.numoutputs==1 ? epi4 : 0.0,
+      p.numoutputs==1 ? epi_total : 0.0,
       sum(frenken_mi_list)/maxreps
     )
   else  # Evolution always failed
@@ -777,6 +780,15 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       0.0
     )
   end
+end
+
+# Create and save a scatter plot using Plots package
+function scatter_plot( gcdf::DataFrame, y_var::Symbol, x_var::Symbol, circuit_type::String, numints::Int64, numlevsback::Int64 )
+  Plots.scatter( gcdf[!,x_var], gcdf[!,y_var], title="$y_var vs $x_var $circuit_type $numints ints $numlevsback levsback", ylabel=y_var, xlabel=x_var, label="")
+  fname = "$y_var@vs@$x_var@$circuit_type@$numints@ints@$numlevsback@levsback"  # "@" will be changed to "_"
+  Plots.savefig( replace(fname, "@"=>"_") )
+  # Redo plot so that it shows up interactively
+  Plots.scatter( gcdf[!,x_var], gcdf[!,y_var], title="$y_var vs $x_var $circuit_type $numints ints $numlevsback levsback", ylabel=y_var, xlabel=x_var, label="")
 end
 
 # See diary9_26.txt for motivation and sample results

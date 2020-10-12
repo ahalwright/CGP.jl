@@ -131,6 +131,7 @@ end
 # Returns a list whose elements are of type out_type.
 # Options for out_type include Int64, UInt64, UInt32,
 # Lines starting with "#" are comments
+# Didn't work 10/11/20
 function read_file( filename::String, out_type::Type )
   result = out_type[]
   i = 0

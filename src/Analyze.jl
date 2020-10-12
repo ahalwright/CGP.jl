@@ -3,6 +3,7 @@ using DataFrames
 using Statistics
 using Distributions
 using CSV
+using StatsBase
 export spearman_cor, consoidate_dataframe, read_dataframe, write_dataframe_with_comments, write_dataframe
 export goal_lookup_from_df, add_edf_col_from_df, frequencies_from_counts, variance1, variance2
 
