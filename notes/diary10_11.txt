@@ -10,11 +10,40 @@ julia> scatter_plot( gcdf, :complexity, :evolvability, "4x1R", 11, 8 )
 julia> scatter_plot( gcdf, :complexity, :robustness, "4x1R", 11, 8 )
 julia> scatter_plot( gcdf, :evolvability, :robustness, "4x1R", 11, 8 )
 
+4x1 frequencies results
+lycosa
+julia> ints11_8 = [cdf[cdf.goals.==@sprintf("0x%x",gcdf.goal[i]),:ints11_8][1] for i = 1:size(gcdf)[1]]
+julia> gcdf.ints11_8 = ints11_8
+julia> gcdf.log_ints11_8 = map(x->log10(x),gcdf.ints11_8)
+Windows
+julia> gcdf = read_dataframe("geno_pheno_complexity10_11freqs.csv")
+100×18 DataFrame. 
+julia> gcdf_names=names(gcdf)
+julia> gcdf_names[18] = "frequency"
+julia> rename!(gcdf, Symbol.(gcdf_names))
+julia> gcdf.log_freq = map(x->log10(x),gcdf.frequency)
+100-element Array{Float64,1}:
+julia> scatter_plot(gcdf,:evolvability,:log_freq,"4x1R",11,8)
+julia> scatter_plot(gcdf,:robustness,:log_freq,"4x1R",11,8)
+julia> scatter_plot(gcdf,:complexity,:log_freq,"4x1R",11,8)
+
 3x3 results.
 gcdf = read_dataframe("geno_complexity10_11R.csv")
 scatter_plot( gcdf, :complexity, :evolvability, "3x3R", 14, 9 )
 scatter_plot( gcdf, :complexity, :robustness, "3x3R", 14, 9 )
 scatter_plot( gcdf, :evolvability, :robustness, "3x3R", 14, 9 )
+Results are not as consistent, especially evolvability vs complexity.
+
+4x2 results
+100 goals
+200 nrepeats
+300 ntries
+julia> gcdf = read_dataframe("geno_complexity10_11T.csv")
+julia> scatter_plot( gcdf, :evolvability, :robustness, "4x2R", 16, 11 )
+julia> scatter_plot( gcdf, :complexity, :robustness, "4x2R", 16, 11 )
+julia> scatter_plot( gcdf, :complexity, :evolvability, "4x2R", 16, 11 )
+julia> scatter_plot( gcdf, :nactive, :evolvability, "4x2R", 16, 11 )
+Results are almost as good as 4x1.
 
 
 
@@ -36,4 +65,4 @@ julia> fa = findall(x->Int64(x)==0, ol_11ints_5lb)
 Now consistent with earlier results.
 
 
-
+ints11_5 = [df[df.goals.==@sprintf("0x%x",evdf.goal[i][]),:ints11_5][1] for i = 1:size(evdf)[1] ]

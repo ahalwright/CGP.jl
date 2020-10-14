@@ -1,0 +1,8 @@
+Plan for parallelizing geno_complexity() in Evolvability.jl:
+
+geno_complexity() will return the list all_unique_outputs.
+It will continue to run for multiple reps.
+run_geno_complexity() will use unique() to combine subsequent results from geno_complexity().
+
+Also change run_geno_complexity() to take parameters as an argument.
+
