@@ -728,13 +728,15 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   geno_complexity_df.nrepeats = Int64[]
   geno_complexity_df.robustness = Float64[]
   geno_complexity_df.evo_count = Int64[]
+  geno_complexity_df.ratio = Float64[]
+  geno_complexity_df.estimate = Float64[]
   geno_complexity_df.unique_goals = GoalList[]
   geno_complexity_df.nactive = Float64[]
   geno_complexity_df.complexity = Float64[]
-  geno_complexity_df.epi2= Float64[]
-  geno_complexity_df.epi3= Float64[]
-  geno_complexity_df.epi4= Float64[]
-  geno_complexity_df.epi_total = Float64[]
+  #geno_complexity_df.epi2= Float64[]
+  #geno_complexity_df.epi3= Float64[]
+  #geno_complexity_df.epi4= Float64[]
+  #geno_complexity_df.epi_total = Float64[]
   geno_complexity_df.f_mutrobust= Float64[]
   list_goals = Goal[]
   num_iterations = Int(ceil(maxreps/iter_maxreps))
@@ -745,22 +747,41 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
       push!(list_goals,g)
     end
   end
-  println("list_goals: ",list_goals)
+  funcs = default_funcs(p.numinputs)
+  c = random_chromosome(p,funcs)
+  sample_size = length(mutate_all(c, funcs, output_outputs=true))*iter_maxreps 
+  num_goals = 2^2^p.numinputs
+  #println("sample size: ",sample_size,"  num_goals: ",num_goals)
+  #println("list_goals: ",list_goals)
   result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, max_tries ), list_goals)
   #result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, max_tries ), list_goals)
   for res in result
     push!(geno_complexity_df,res)
   end
   geno_complexity_df.evo_count = zeros(Int64,size(geno_complexity_df)[1] )
+  geno_complexity_df.ratio = zeros(Float64,size(geno_complexity_df)[1] )
+  geno_complexity_df.estimate = zeros(Float64,size(geno_complexity_df)[1] )
   j = 1
   for g in goallist
     all_unique_goals = Goal[]
+    prev_evo_count = 0
+    sum_estimate = 0.0
     for i = 1:num_iterations
       all_unique_goals = unique( vcat( all_unique_goals, geno_complexity_df[j,:unique_goals] ))
       #println("j: ",j,"  i: ",i,"  length(all_unique_goals): ",length(all_unique_goals))
-      geno_complexity_df[j,:evo_count] = length(all_unique_goals)
+      evo_count = length(all_unique_goals)
+      new_count = evo_count - prev_evo_count
+      geno_complexity_df[j,:evo_count] = evo_count
+      prev_evo_count = evo_count
+      ratio = new_count/sample_size
+      geno_complexity_df[j,:ratio] = ratio
+      estimate = evo_count + ratio*num_goals   # 10/20/20: estimates always increase over multiple runs and are too low at first
+      geno_complexity_df[j,:estimate] = estimate
+      #println("i: ",i,"  evo_count: ",evo_count,"  new_count: ",new_count,"  ratio: ",ratio,"  estimate: ",estimate)
+      sum_estimate += estimate
       j += 1
     end
+    println("estimate_avg for goal : ",g,": ",sum_estimate/num_iterations)
   end
   select!(geno_complexity_df,DataFrames.Not(:unique_goals))    # Remove :unique_goals from gcdf
   if length(csvfile) > 0
@@ -771,6 +792,7 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
       #println(f,"# run time in minutes: ",ttime/60)
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
       println(f,"# maxreps: ",maxreps)
+      println(f,"# iter_maxreps: ",iter_maxreps)
       println(f,"# numinputs: ",p.numinputs)
       println(f,"# numoutputs: ",p.numoutputs)
       println(f,"# numinteriors: ",p.numinteriors)
@@ -784,13 +806,16 @@ end
 
 # For the given goal, evolves maxreps chromosomes that output that goal.
 # Returns a tuple which is pushed as a row onto the dataframe constructed in run_geno_complexity().
+# This can be run in parallel for one goal because each run is evolving maxreps circuits that compute goal.
+# all_unique_outputs is returned as one of the fields in the returned dataframe.
+# The run_geno_complexity combines the all_unique_outputs from the parallell runs
 function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::Int64, max_tries::Int64 )
   #println("geno_complexity: goal: ",goal)
   if max_tries < maxreps
     error("max_tries should be greater than maxreps in geno_complexity.")
   end
   funcs = default_funcs(p.numinputs)
-  W = Walsh(2^p.numinputs)
+  #W = Walsh(2^p.numinputs)
   all_outputs_sum = 0
   robust_sum = 0
   all_unique_outputs = Goal[]
@@ -832,7 +857,7 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
     nrepeats += 1
   end  
   ntries = i
-  println("ntries: ",ntries,"  nrepeats: ",nrepeats)
+  #println("ntries: ",ntries,"  nrepeats: ",nrepeats,"  all_outputs_sum: ",all_outputs_sum,"  len all_unique_outputs: ",length(all_unique_outputs))
   # Return evolvability count for testing  10/13
   #length(all_unique_outputs)
   # Temporarily comment out for testing evolvability  10/13
@@ -848,13 +873,15 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       nrepeats,
       robust_sum/all_outputs_sum, 
       0,   # evo_count, value filled in later
+      0.0,  # ratio, value filled in later 
+      0.0,  # estimate, value filled in later 
       all_unique_outputs,
       sum( nactive_list )/maxreps,
       sum( complexity_list )/maxreps,
-      p.numoutputs==0 ? epi2 : 0.0,
-      p.numoutputs==0 ? epi3 : 0.0,
-      p.numoutputs==0 ? epi4 : 0.0,
-      p.numoutputs==0 ? epi_total : 0.0,
+      #p.numoutputs==0 ? epi2 : 0.0,
+      #p.numoutputs==0 ? epi3 : 0.0,
+      #p.numoutputs==0 ? epi4 : 0.0,
+      #p.numoutputs==0 ? epi_total : 0.0,
       sum(frenken_mi_list)/maxreps
     )
   else  # Evolution always failed
@@ -868,6 +895,8 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       ntries,
       0,   # nrepeats
       0,   # evo_count
+      0.0, # ratio
+      0.0, # estimate
       0.0,
       Goal[],
       #sum( nactive_list )/maxreps,
@@ -879,13 +908,23 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       #sum(frenken_mi_list)/maxreps
       0.0,
       0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
+      #0.0,
+      #0.0,
+      #0.0,
+      #0.0,
       0.0
     )
   end
+end
+
+function add_frequencies_to_dataframe( gdf:: DataFrame, counts_field::Symbol, count_csv_file::String="../data/counts/count_out_4x1_all_ints_10_10.csv" )
+  cdf = read_dataframe(count_csv_file)
+  # The following is what works when the :goal field of gdf is of the format "UInt16[0x4fd1]"  where UInt16 is MyInt
+  #counts = [cdf[cdf.goals.==@sprintf("0x%x",eval(Meta.parse(gdf.goal[i]))[1]),counts_field][1] for i = 1:size(gdf)[1]]
+  # The following is what works when the :goal field of gdf is of the format [0x4fd1] where UInt16 is MyInt
+  counts = [cdf[cdf.goals.==@sprintf("0x%x",gdf.goal[i][1]),counts_field][1] for i = 1:size(gdf)[1]]
+  gdf.counts = counts
+  gdf
 end
 
 # Create and save a scatter plot using Plots package

@@ -255,7 +255,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     end
     step += 1
     prev_c = deepcopy(c)
-    if step < max_steps
+    if step < max_steps   # Construct c for next generation
       (c, matched_goals, matched_goals_list ) = 
             next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, 
             num_mutations=num_mutations, perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol,
@@ -268,14 +268,14 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       output = output_values(c)   # Executes c if it has not already been executed
     end
   end
-  if step == max_steps
+  if step == max_steps   # Failed to find goal
     println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
   else
     matched_g = map( x->x[1][1], matched_goals_list )
     println("mut_evolve finished in ",step," steps for goals ",matched_g," with fitness: ", c.fitness )
     #println("matched_goals: ",matched_goals,"  matched_goals_list: ",matched_goals_list)
   end
-  if orig_c.fitness > c.fitness
+  if orig_c.fitness > c.fitness   # this should never happen
     #println("(orig_c.fitness,c.fitness): ",(orig_c.fitness,c.fitness)) 
     output = output_values(orig_c)
     ( fitness, matched_goals, matched_goals_list ) = goals_matched( output, goallist, c.params.numinputs )

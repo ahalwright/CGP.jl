@@ -1,0 +1,4 @@
+Integrated estimates of phenotypic evolvability in run_geno_complexity() and geno_compexity() in Evolvability.jl.
+
+Everything seems right, but the intial estimate always seems to be low.  Not sure why.
+So for a long run, I am going to take the last evolvability count estimate as the "true" result.

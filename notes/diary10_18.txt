@@ -1,0 +1,61 @@
+Determine bias.
+References:  Ahnert (2017), Greenbury (2014)
+Bias is the skewed distribution of the number of genotypes per phenotype (Ahnert 2017, 7).
+
+"Another way to quantify bias, in the form of a simple number, is to consider the fraction of phenotypes 
+with the largest number of genotypes that cover 95% of genotype space." (Ahnert 2017, 7).
+
+4x1 with Raman gate set.
+julia> cdf = read_dataframe("../data/counts/count_out_4x1_all_ints_10_10.csv")
+65536×6 DataFrames.DataFrame 
+julia> ss=[sum(cdf[:,i]) for i =2:6]
+5-element Array{Int64,1}:
+ 10357142853
+ 10357142853
+ 10357142853
+ 10500000000
+ 10500000000 
+julia> srt = [sort(cdf[:,i+1],rev=true) for i = 1:5]
+5-element Array{Array{Int64,1},1}: 
+julia> k=950;[sum(srt[i][1:k])/ss[i] for i =1:5]
+5-element Array{Float64,1}:
+ 0.9492563606141853
+ 0.9494377009728785
+ 0.9504954220215774
+ 0.8971417826666667
+ 0.9520642155238095
+julia> k=2621; sum(srt[4][1:k]/ss[4])
+0.9499108862857141
+
+Thus, bias depends much more on numlevelsback than on numinteriors.
+
+The bias number as defined above is 950/2^16 = 0.0145 for 5 levelsback 
+and 2620/2^16 = 0.040 for 8 levelsback.
+
+Created a number of counts files for the 3x1 case.  Added minimumm(counts) as a comment to the output files.
+
+Here are some results:
+Ints  Lb  mincts
+7     5   4
+6     4   43
+6     5   57
+5     4   22
+4     2   0
+4     3   0
+4     4   8
+
+Recreated Goal freq vs goal rank plot:  file data/10_18/count_out_4x1_all_ints_10_10.csv
+and also in cce/plots/.
+
+julia> cdf = read_dataframe("count_out_4x1_all_ints_10_10.csv")
+65536×6 DataFrame
+julia> s11log = map(x->(x > 0.0 ? log10(x) : 0.0), cdf.ints11_5 )
+65536-element Array{Float64,1}:
+# Both of the next commands take a long time
+julia> scatter( collect(1:65536), [sort(s8log,rev=true),sort(s11log,rev=true)], title="Goal frequency vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["8 gates" "11 gates"],markershape=[:star4, :xcross])
+julia> savefig("goal_freq_vs_goal_rank10_18.png")
+
+julia> scatter( collect(1:65536), [sort(s11_8log,rev=true),sort(s11log,rev=true)], title="Goal frequency vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["11 gates 8 levsback" "11 gates 5 levsback"],markershape=[:star4, :xcross])
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\counts"
+

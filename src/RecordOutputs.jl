@@ -30,7 +30,7 @@ using DataFrames
 using Distributed
 using Printf
 export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list, read_counts_files
-export add_counts_to_dataframe
+export add_counts_to_dataframe, write_to_dataframe_file
 
 MyFunc = Main.CGP.MyFunc
 
@@ -124,6 +124,20 @@ function write_to_file( outputs_list::Vector{MyFunc}, filename::String, comments
         println(f, outputs_list[i] )
       end
     end
+  end
+end
+
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Int64}, csvfile::String, comments::String... ) 
+  df = DataFrame()
+  df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  #println("len goals: ",length(df.:goals))
+  sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
+  df[!,sym] = outputs_list
+  open( csvfile, "w" ) do f
+    for s in comments
+      println(f,"# ",s)
+    end
+    CSV.write( f, df, append=true, writeheader=true )
   end
 end
 
