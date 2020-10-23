@@ -15,7 +15,8 @@ struct Parameters
     numlevelsback::Integer
 end
 
-function Parameters(numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
+function Parameters(numinputs, numoutputs, numinteriors, numlevelsback)
+    nodearity = 2
     mu = 1
     lambda = 4
     mutrate = 0.05
@@ -29,7 +30,7 @@ function Parameters(numinputs, numoutputs, nodearity, numinteriors, numlevelsbac
     return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
 end
 
-function Parameters( ; numinputs=2, numoutputs=2, nodearity=2, numinteriors=4, numlevelsback=3 )
+function Parameters( ; numinputs=2, numoutputs=1, nodearity=2, numinteriors=4, numlevelsback=3 )
     mu = 1
     lambda = 4
     mutrate = 0.05

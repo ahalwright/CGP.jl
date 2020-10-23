@@ -51,11 +51,10 @@ julia> cdf = read_dataframe("count_out_4x1_all_ints_10_10.csv")
 65536×6 DataFrame
 julia> s11log = map(x->(x > 0.0 ? log10(x) : 0.0), cdf.ints11_5 )
 65536-element Array{Float64,1}:
-# Both of the next commands take a long time
-julia> scatter( collect(1:65536), [sort(s8log,rev=true),sort(s11log,rev=true)], title="Goal frequency vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["8 gates" "11 gates"],markershape=[:star4, :xcross])
-julia> savefig("goal_freq_vs_goal_rank10_18.png")
+# Computation of s8log and s11_8log is similar.
 
-julia> scatter( collect(1:65536), [sort(s11_8log,rev=true),sort(s11log,rev=true)], title="Goal frequency vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["11 gates 8 levsback" "11 gates 5 levsback"],markershape=[:star4, :xcross])
 julia> pwd()
-"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\counts"
-
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\10_18"
+# Both of the next commands take a long time
+julia> scatter( collect(1:65536), [sort(s8log,rev=true),sort(s11log,rev=true),sort(s11_8log,rev=true)], title="Goal frequency vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["8 gates 5 levsback" "11 gates 5 levsback" "11 gates 8 levsback"],markershape=[:star4, :xcross])
+julia> savefig("goal_freq_vs_goal_rank8_5__11_5__11_8__10_18.png")

@@ -1,4 +1,9 @@
 Integrated estimates of phenotypic evolvability in run_geno_complexity() and geno_compexity() in Evolvability.jl.
 
 Everything seems right, but the intial estimate always seems to be low.  Not sure why.
-So for a long run, I am going to take the last evolvability count estimate as the "true" result.
+For an example that shows that this is not working, consider the case of goal [0x0603] for 4x1 11 gates, 5 lb.
+A 10/19 run with maxreps=3000, the final estimate was 5349, but for a 10/15 run with maxreps = 64000, the
+final evo_count was 17761.  However, this run had lb=6 rather than lb=5.
+
+Will do a rerun of this for lb=5.
+

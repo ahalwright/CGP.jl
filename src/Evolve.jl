@@ -1,7 +1,7 @@
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, mut_evolve_increase_numints
 export mut_reduce_numactive
 export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
-export evolve_function, mut_evolve_repeat
+export evolve_function, mut_evolve_repeat, circuit_evolve, run_circuit_evolve
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -466,6 +466,8 @@ function mut_reduce_numactive( c::Chromosome, goallist::GoalList, funcs::Vector{
 end 
 
 # Do a random walk through circuit space starting with chromosome c which must be optimal for the given goallist.
+# This function is trying to minimize num_active.  
+# There is another random_neutral_walk function in Evolability.jl which is trying to measure evolability
 function random_neutral_walk( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, nreps::Integer;
       hamming_sel::Bool=true, num_mutations::Int64=1, print_improvements::Bool=false, reduce_numactive_reps::Int64=0 )
   sum_num_active = 0
@@ -529,8 +531,79 @@ function random_neutral_walk( c::Chromosome, goallist::GoalList, funcs::Vector{F
         "  min_num_active: ",min_num_active, "  count_min_num_active: ",count_min_num_active)
   return (min_num_active,count_min_num_active,min_active_chromes_list)
 end
+
+# Given a goal, for each iteraion of numiterations,
+#    evolve two chromosomes that map to it, and try to find a distance nondecreasing path from one to the other
+# TODO:  What happens when mut_evolve to find c1 or c2 fails?  Retry?  How many times?
+function run_circuit_evolve( goal::Goal, p::Parameters, numiterations::Int64, maxreps::Int64 )
+  funcs=default_funcs(p.numinputs)
+  successes = 0
+  sum_steps = 0
+  for iter = 1:numiterations
+    c = random_chromosome(p,funcs)
+    res = mut_evolve(c,[goal],funcs,maxreps); c1=res[1]
+    c = random_chromosome(p,funcs)
+    res = mut_evolve(c,[goal],funcs,maxreps); c2=res[1]
+    steps = circuit_evolve(c1,c2, maxreps )
+    if steps <= maxreps
+      println("success with ",steps," steps")
+      sum_steps += steps
+      successes += 1
+    end
+  end
+  (successes,sum_steps/numiterations)
+end
     
+# Do neutral evolution starting at chromosome c_src trying to get to chromosome c_dest.
+# c_src and c_dest must have the same parameters and the same output values (goals).
+function circuit_evolve( c_src::Chromosome, c_dest::Chromosome, maxreps::Int64 )
+  funcs = default_funcs(c_src.params.numinputs)
+  @assert c_src.params == c_dest.params
+  outputs_src = output_values( c_src )
+  outputs_dest = output_values( c_dest )
+  @assert outputs_dest == outputs_src
+  c = deepcopy(c_src)  # current chromosome
+  dist = circuit_distance( c_src, c_dest )
+  #outputs_prev = output_values( c_src )
+  step = 1
+  c_new = deepcopy(c)
+  mutate_chromosome!( c_new, funcs )
+  #print("c_new before loop: ")
+  #print_build_chromosome(c_new)
+  while step <= maxreps
+    if outputs_src != output_values(c_new)
+      step += 1
+      #println("continue")
+      #continue  # continue with current ciruit c unchanged
+    else
+      println("c_new code:  ",chromosome_code(c_new))
+      println("c_dest_code: ",chromosome_code(c_dest))
+      new_dist = circuit_distance( c_new, c_dest )
+      println("dist:     ",dist,"  new_dist: ",new_dist)
+      if new_dist > dist
+        step += 1
+        #continue  # continue with current ciruit c unchanged
+      elseif new_dist == 0  # success
+        println("circuit_evolve() found a path to c_dest!")
+        return step
+      elseif new_dist < dist
+        println("distance improved from ",dist," to ",new_dist)
+        dist = new_dist
+        c = deepcopy(c_new)
+        step += 1
+      end
+    end
+    c_new = deepcopy(c)
+    mutate_chromosome!(c_new,funcs)
+    #print("c_new end of loop: ")
+    #print_build_chromosome(c_new)
+  end
+  println("circuit_evolve() failed to find a path to c_dest!")
+  return step
+end
+  
 # Change the fields of chromosome c to be the fields of chromosom c_to_copy
+# TODO:  Move to Chromosome.jl
 function copy_chromosome!( c::Chromosome, c_to_copy::Chromosome )
   c.params = c_to_copy.params
   c.inputs = c_to_copy.inputs
@@ -727,5 +800,13 @@ function evolve_function( funct::Function, p::Parameters, funcs::Vector{Func}, m
     println("i: ",i,"  current_fitness: ", current_fitness, "  funct(c): ",funct(c)  )
   end
   (c,orig_c)
+end
+
+# to test circuit_evolve()
+function test_evolve()
+  p = Parameters(numinputs=2,numoutputs=1,numinteriors=3,numlevelsback=3); 
+  funcs=default_funcs(p.numinputs);c = random_chromosome(p,funcs); goal=output_values(c)
+  res = mut_evolve(c,[goal],funcs,1000); c_dest=res[1]
+  circuit_evolve(c,c_dest, 1000 )
 end
 

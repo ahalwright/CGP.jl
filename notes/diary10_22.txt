@@ -1,0 +1,22 @@
+Wrote a neighbor_complexity() function which finds circuits that map into a given goal,
+and averages the complexity of the neighbors of those neighbors.  
+Found that complexity of neighbors is very close to complexity of the base circuit.
+
+Currently in the file src/neighbor_complexity.jl.
+
+Write a run_neighbor_complexity() which runs neighbor_complexity() on a random goallist
+and creates a dataframe with 3 columns:  goal, chr_complexity, nbr_complexity)
+
+Results show very strong correlation and fit to linear regression line.  
+Shows that the "complexity landscape" is very smooth.
+
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\10_22"
+julia> ncdf = read_dataframe("neighbor_complexityB.csv")
+100×3 DataFrame
+julia> Plots.scatter( ncdf[!,:circuit_complexity], ncdf[!,:neighbor_complexity], title="circuit complexity vs average complexity of neighbors", xlabel="circuit complexity", ylabel="neighbor_complexity")
+julia> savefig("neighbor_complexity_4x1_11_7.png")
+julia> spearman_cor
+spearman_cor (generic function with 1 method)
+julia> spearman_cor(ncdf,:circuit_complexity,:neighbor_complexity)
+(0.9953915391539154, 6.6339516711981615e-102)

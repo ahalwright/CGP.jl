@@ -314,29 +314,41 @@ function run_random_neutral_walk( p::Parameters, ngoals::Int64, steps::Int64, ma
   for gc = 1:ngoals
     g = randgoal( p.numinputs, p.numoutputs )
     (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
+    res = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
+    if res == nothing
+      error("run_random_neutral_walk: mut_evolve_repeat() failed.  Try increasing maxsteps.")
+    end
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = res
     @assert output_values(c) == g
     complexity = complexity5(c)
-    ev_count = random_neutral_walk( c, steps, maxsteps )
+    ev_count = random_neutral_walk( c, steps, maxsteps, evo_count_only=true )
     push!(df, (g, ev_count, complexity ))
   end
   df
 end
 
+# See diary10_13.txt for example runs
 function run_random_neutral_walk( p::Parameters, g::Goal, steps::Int64, maxsteps::Int64, nreps::Int64=1; skip_steps::Int64=1 )
-  funcs = default_funcs(c.params.numinputs)
+  funcs = default_funcs(p.numinputs)
   ev_count = 0
   for _ = 1:nreps
     # evolve a chromosome that outputs goal g.
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
+    res = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
+    if res == nothing
+      error("run_random_neutral_walk: mut_evolve_repeat() failed.  Try increasing maxsteps.")
+    end
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = res
+    #(c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
     @assert output_values(c) == g
-    ev_count += random_neutral_walk( c, steps, maxsteps, skip_steps=skip_steps )
+    ev_count += random_neutral_walk( c, steps, maxsteps, skip_steps=skip_steps, evo_count_only=true )
   end
   ev_count/nreps
 end
 
 # steps is the number of random walk steps.
-# 
-function random_neutral_walk( c::Chromosome, steps::Int64, maxsteps::Int64; skip_steps::Int64=1 )
+# maxsteps is the number of steps in mut_evolve().
+# Returns an evolvabile_count
+function random_neutral_walk( c::Chromosome, steps::Int64, maxsteps::Int64; skip_steps::Int64=1, evo_count_only::Bool=true )
   all_outputs_list = Goal[]
   all_unique_list = Goal[]
   df = DataFrame()
@@ -353,14 +365,14 @@ function random_neutral_walk( c::Chromosome, steps::Int64, maxsteps::Int64; skip
   total_steps = 0  # Number of mutation steps 
   #println("goal: ",goal,"  complexity: ",complexity5(c))
   df.complexity[1] = complexity5(c)
-  for i = 2:steps
+  for i = 1:steps
     j = 1
     while j <= maxsteps   # terminated by a break statement
       sav_c = deepcopy(c)
       (c,active) = mutate_chromosome!( c, funcs )
       outputs = output_values(c)
       if outputs == goal
-        #println("successful step for i= ",i,"  outputs: ",outputs)
+        println("successful step for i= ",i,"  outputs: ",outputs)
         break
       end
       c = sav_c
@@ -384,9 +396,12 @@ function random_neutral_walk( c::Chromosome, steps::Int64, maxsteps::Int64; skip
       #println("k: ",k,"  all_count[k]: ",df.all_count[k],"  robust_count[k]: ",df.robust_count[k],"  evolvable_count[k]: ",df.evolvable_count[k] )
     end
   end
-  #println("total steps: ",total_steps)
-  #df
-  df.evolvable_count[k]
+  println("total steps: ",total_steps)
+  if evo_count_only
+    df.evolvable_count[k]
+  else
+    df
+  end
 end
 
 function evolve_g_pairs( df::DataFrame, g_pair::Tuple{String,String}, p::Parameters,  maxsteps::Int64 )

@@ -5,7 +5,7 @@ export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromos
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_old, hamming_distance, hamming, deactivate_chromosome!
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
-export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome
+export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, chromosome_code, circuit_distance
 
 mutable struct Chromosome
     params::Parameters
@@ -574,4 +574,40 @@ end
 function print_build_chromosome( c::Chromosome )
   print_build_chromosome( Base.stdout, c)
 end          
+
+# Returns a vector of integers which is a characterization of the chromosome for the parameters c.params
+# The length of the result should be p.numinteriors*(1+p.nodearity).
+function chromosome_code( c::Chromosome )
+  result = Int64[]
+  funcs = default_funcs(c.params.numinputs)
+  for i = 1:c.params.numinteriors
+    # Determine index of gate 
+    j = 1
+    while j <= length(funcs) && funcs[j].func != c.interiors[1].func.func
+      j += 1
+    end
+    if j > length(funcs)
+      error("illegal function in function chromosome_code()")
+    end
+    push!(result,j)
+    # Add interior node inputs to result
+    for k = 1:length(c.interiors[i].inputs)
+      push!(result,c.interiors[i].inputs[k])
+    end
+  end
+  # Note:  assumes that the input fields of output nodes are set by default and thus don't need to be recorded
+  result
+end
+
+# Hamming distance between chromosomes normalized to be between 0.0 and 1.0
+function circuit_distance( c1::Chromosome, c2::Chromosome )
+  code1 = chromosome_code(c1)
+  code2 = chromosome_code(c2)
+  @assert length(code1) == length(code2)
+  diff_count = 0
+  for i = 1:length(code1)
+    diff_count += code1[i] == code2[i] ? 0 : 1
+  end
+  diff_count/length(code1)
+end
 
