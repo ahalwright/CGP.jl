@@ -1,0 +1,19 @@
+# Wrote functions neutral_walk_complexity() and run_neutral_walk_complexity()
+#    in file  neutral_walk_connectivity.jl.
+
+Result: 
+julia> run_neutral_walk_complexity( [[0x0005],[0x0017],[0x0049]], p, 10, 4, 200000, 40 )
+goal: [0x0005]  w_count:     310  w_mean: 3.766  w_max: 6.543  w_min: 1.896  w_std: 0.991  w_q90: 5.282  w_q95: 5.437  w_q99: 6.225
+goal: [0x0005]  n_count:   35400  n_mean: 3.842  n_max: 7.509  n_min: 0.000  n_std: 1.147  n_q90: 5.422  n_q95: 5.833  n_q99: 6.430
+goal: [0x0017]  w_count:     310  w_mean: 5.016  w_max: 7.165  w_min: 3.046  w_std: 1.254  w_q90: 6.765  w_q95: 6.863  w_q99: 7.037
+goal: [0x0017]  n_count:   35400  n_mean: 4.965  n_max: 8.281  n_min: 1.574  n_std: 1.229  n_q90: 6.632  n_q95: 6.888  n_q99: 7.318
+goal: [0x0049]  w_count:     310  w_mean: 6.186  w_max: 8.712  w_min: 3.545  w_std: 1.221  w_q90: 7.836  w_q95: 7.836  w_q99: 8.410
+goal: [0x0049]  n_count:   35400  n_mean: 6.005  n_max: 9.265  n_min: 1.960  n_std: 1.255  n_q90: 7.594  n_q95: 7.836  n_q99: 8.410
+
+julia> run_neutral_walk_complexity( [[0x0005],[0x0017],[0x0049]], p, 2, 20, 200000, 40 )
+goal: [0x0005]  w_count:      62  w_mean: 2.488  w_max: 4.809  w_min: 1.639  w_std: 0.821  w_q90: 3.589  w_q95: 4.205  w_q99: 4.589
+goal: [0x0005]  n_count:    7080  n_mean: 2.779  n_max: 6.627  n_min: 0.000  n_std: 1.017  n_q90: 4.218  n_q95: 4.572  n_q99: 5.233
+goal: [0x0017]  w_count:      62  w_mean: 4.786  w_max: 6.856  w_min: 3.381  w_std: 1.424  w_q90: 6.236  w_q95: 6.276  w_q99: 6.709
+goal: [0x0017]  n_count:    7080  n_mean: 4.790  n_max: 8.357  n_min: 0.225  n_std: 1.449  n_q90: 6.598  n_q95: 7.027  n_q99: 7.598
+goal: [0x0049]  w_count:      62  w_mean: 6.403  w_max: 7.396  w_min: 5.940  w_std: 0.531  w_q90: 7.296  w_q95: 7.306  w_q99: 7.396
+goal: [0x0049]  n_count:    7080  n_mean: 6.236  n_max: 8.653  n_min: 2.437  n_std: 0.925  n_q90: 7.306  n_q95: 7.531  n_q99: 8.036

@@ -1,0 +1,70 @@
+Comment: count results are incorrect because they were using the Macia (NAND onlY) gate set.  See diary10_11.txt
+Scatter plots for 4x1 Macia gate set:
+
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\10_9"
+
+julia> gcdf = read_dataframe("geno_complexity10_9B.csv")
+julia> scatter_plot( gcdf, :complexity, :evolvability, "4x1M", 14, 7 )
+julia> scatter_plot( gcdf, :complexity, :robustness, "4x1M", 14, 7 )
+julia> scatter_plot( gcdf, :evolvability, :robustness, "4x1M", 14, 7 )
+
+The goals with low values of nrepeats had low complexity.  Definite outliers
+julia> mcdf = gcdf[gcdf.nrepeats.>=50,:]
+94×17 DataFrame
+julia> scatter_plot( mcdf, :complexity, :evolvability, "4x1Mf", 14, 7 )  # f for filtered
+julia> scatter_plot( mcdf, :complexity, :robustness, "4x1Mf", 14, 7 )
+julia> scatter_plot( mcdf, :evolvability, :robustness, "4x1Mf", 14, 7 )
+
+
+How rare are uncommon genomes?
+Catalan 2018 claims:  This implies that rare phenotypes will not play a central role in evolution: 
+they are hard to find in a genotype space that is filled with abundant phenotypes [12,14,37]."
+
+function accum( x::Vector{Int64} )
+  result = zeros(Int64,length(x))
+  result[1] = x[1]
+  for i = 2:length(x)
+    result[i] = result[i-1]+x[i]
+  end 
+  result
+end
+
+julia> cdf = read_dataframe("../data/counts/count_out_4x1_all_ints_10_10.csv")
+julia> s9 = sort(map(x->Int64(x),cdf.ints9),rev=true);
+julia> s10 = sort(map(x->Int64(x),cdf.ints10),rev=true);
+julia> s11 = sort(map(x->Int64(x),cdf.ints11),rev=true);
+
+julia> a9 = accum(s9);
+julia> a10 = accum(s10);
+julia> a11 = accum(s11);
+julia> sum9 = sum(s9)
+julia> sum10 = sum(s10)
+julia> sum11 = sum(s11)
+julia> a9 =  map(x->1.0-x/sum9, a9 )
+julia> a10 =  map(x->1.0-x/sum10, a10 )
+julia> a11 =  map(x->1.0-x/sum11, a11 )
+
+
+julia> i=100; (a9[i],a10[i],a11[i])
+(0.2472511853264867, 0.23676438664642985, 0.26094514056868445)
+julia> i=500; (a9[i],a10[i],a11[i])
+(0.0893615294426412, 0.0877231605178479, 0.06535820848278995)
+julia> i=1000; (a9[i],a10[i],a11[i])
+(0.04813602863994404, 0.047134713977474596, 0.028773608615670798)
+julia> i=2000; (a9[i],a10[i],a11[i])
+(0.02515123453419843, 0.025037211099670054, 0.009669558301441561)
+julia> i=3000; (a9[i],a10[i],a11[i])
+(0.017388967165576252, 0.017518161193214143, 0.004616438276865087)
+julia> i=10000; (a9[i],a10[i],a11[i])
+(0.0041083279050916355, 0.004306701339653718, 0.00016497105909429877)
+julia> i=20000; (a9[i],a10[i],a11[i])
+(0.0010684211038756164, 0.0011850003590946345, 5.199903698516195e-6)
+julia> i=30000; (a9[i],a10[i],a11[i])
+(0.00031845133805841197, 0.00036915277256144297, 3.177777774254764e-8)
+julia> i=31000; (a9[i],a10[i],a11[i])
+(0.0002811223173537769, 0.00032767067599315247, 0.0)
+
+The next statement is wrong because funcs was set to NAND only gates.  See data/10_11
+
+Conclusion:  rare phenotypes are much less likey to be sampled with 11 ints.

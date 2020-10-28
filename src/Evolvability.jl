@@ -741,6 +741,8 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   geno_complexity_df.maxsteps = Int64[]
   geno_complexity_df.ntries = Int64[]
   geno_complexity_df.nrepeats = Int64[]
+  geno_complexity_df.avg_steps = Float64[]
+  geno_complexity_df.log_avg_steps = Float64[]
   geno_complexity_df.robustness = Float64[]
   geno_complexity_df.evo_count = Int64[]
   geno_complexity_df.ratio = Float64[]
@@ -823,7 +825,7 @@ end
 # Returns a tuple which is pushed as a row onto the dataframe constructed in run_geno_complexity().
 # This can be run in parallel for one goal because each run is evolving maxreps circuits that compute goal.
 # all_unique_outputs is returned as one of the fields in the returned dataframe.
-# The run_geno_complexity combines the all_unique_outputs from the parallell runs
+# Then run_geno_complexity combines the all_unique_outputs from the parallell runs
 function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::Int64, max_tries::Int64 )
   #println("geno_complexity: goal: ",goal)
   if max_tries < maxreps
@@ -844,16 +846,19 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
     epi_total = total_epistasis(W,goal[1])
   end
   #println("After epi")
+  sum_steps = 0.0
+  sum_steps_per_iteration = 0  # for one iteration of the while loop
   nrepeats = 0
   i = 0
   while i < max_tries && nrepeats < maxreps 
     i += 1
     c = random_chromosome(p,funcs)
     c_output = output_values(c)
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) =
+    (c,steps,worse,same,better,output,matched_goals,matched_goals_list) =
       mut_evolve( c, [goal], funcs, maxsteps )
-    if step == maxsteps
+    if steps == maxsteps
       println("mut evolve failed for goal: ",goal)
+      sum_steps_per_iteration += steps
       continue
     end        
     c_output = output_values(c)
@@ -869,6 +874,9 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
     push!( nactive_list, number_active( c ))
     push!( complexity_list, complexity5( c ))
     push!( frenken_mi_list, fmi_chrome( c ))
+    sum_steps_per_iteration += steps
+    sum_steps += sum_steps_per_iteration
+    sum_steps_per_iteration = 0
     nrepeats += 1
   end  
   ntries = i
@@ -886,6 +894,8 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       maxsteps,
       ntries,
       nrepeats,
+      sum_steps/nrepeats,
+      sum_steps != 0.0 ? log10(sum_steps/nrepeats) : 0.0,
       robust_sum/all_outputs_sum, 
       0,   # evo_count, value filled in later
       0.0,  # ratio, value filled in later 
@@ -909,6 +919,8 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       maxsteps,
       ntries,
       0,   # nrepeats
+      0,   # sum_steps
+      0,   # log_sum_steps
       0,   # evo_count
       0.0, # ratio
       0.0, # estimate
