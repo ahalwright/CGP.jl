@@ -12,7 +12,7 @@ using Printf
 export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
 export run_geno_robustness, geno_robustness, evo_robust, random_neutral_walk, run_random_neutral_walk
 export run_geno_complexity, geno_complexity
-export parent_child_complexity, rand_norm
+export parent_child_complexity, rand_norm, scatter_plot
 #=  Moved to aliases.jl so that this file can be included.
 mutable struct evo_result_type
   goal::Goal
@@ -492,6 +492,30 @@ function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nr
   ndf
 end
 
+# Calls the above version of run_evolve_g_pairs() with a csvfile argument.
+# Outputs the resulting dataframe to the csvfile.
+# For example runs, see data/9_15, 9_18, 10_8, 10_29
+function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nruns::Int64, 
+      numints::Int64, maxsteps::Int64, csvfile::String)
+  println("run_evolve_g_pairs: csvfile: ",csvfile)
+  p = Parameters( numinputs=df.numinputs[1], numoutputs=df.numoutputs[1], numinteriors=numints, numlevelsback=df.levsback[1] )
+  (ndf,ttime) = @timed run_evolve_g_pairs( df, sample_size, nreps, nruns, numints, maxsteps )  
+  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+  println("size(df): ",size(df))
+  println("# host: ",hostname," with ",nprocs()-1,"  processes: " )    
+  println("# date and time: ",Dates.now())
+  println("# run time in minutes: ",ttime/60)
+  println("# funcs: ", Main.CGP.default_funcs(p.numinputs))
+  open( csvfile, "w" ) do f 
+    println(f,"# date and time: ",Dates.now())
+    println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )    
+    println(f,"# run time in minutes: ",ttime/60)
+    println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+    CSV.write( f, ndf, append=true, writeheader=true )
+  end
+  ndf
+end
+
 # Test hypotheses that evolution starting with complex goals takes fewer cases than evolution starting with simple goals.
 # There are two cases:  evolution of simple goals and evolution of complex goals.
 # df is the dataframe that results from running 10 (in the 4x1) case evolutions to find each goal.
@@ -571,6 +595,8 @@ function choose_g_pair( goals1::Vector{MyInt}, goals2::Vector{MyInt}, sample_siz
   end
 end
 
+# First, evolve a circuit that outputs goal s_g.  Then starting with this circuit,
+#   evolve another circuit that outputs d_g.
 function evolve_g_pair( s_g::Goal, d_g::Goal, p::Parameters, maxsteps::Int64 )
   funcs = default_funcs(p.numinputs)
   c = random_chromosome( p, funcs)
@@ -581,27 +607,6 @@ function evolve_g_pair( s_g::Goal, d_g::Goal, p::Parameters, maxsteps::Int64 )
       mut_evolve_increase_numints(c, [d_g], funcs, maxsteps ) 
   println("dst chromsome evolved in ",step," steps.")
   step
-end
-
-function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nruns::Int64, 
-      numints::Int64, maxsteps::Int64, csvfile::String)
-  println("run_evolve_g_pairs: csvfile: ",csvfile)
-  p = Parameters( numinputs=df.numinputs[1], numoutputs=df.numoutputs[1], numinteriors=numints, numlevelsback=df.levsback[1] )
-  (ndf,ttime) = @timed run_evolve_g_pairs( df, sample_size, nreps, nruns, numints, maxsteps )  
-  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
-  println("size(df): ",size(df))
-  println("# host: ",hostname," with ",nprocs()-1,"  processes: " )    
-  println("# date and time: ",Dates.now())
-  println("# run time in minutes: ",ttime/60)
-  println("# funcs: ", Main.CGP.default_funcs(p.numinputs))
-  open( csvfile, "w" ) do f 
-    println(f,"# date and time: ",Dates.now())
-    println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )    
-    println(f,"# run time in minutes: ",ttime/60)
-    println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
-    CSV.write( f, ndf, append=true, writeheader=true )
-  end
-  ndf
 end
 
 # Test the Wagner (2008) that genotypic robustness is negatively associated with genotypic evolvability.  
@@ -955,6 +960,7 @@ function add_frequencies_to_dataframe( gdf:: DataFrame, counts_field::Symbol, co
 end
 
 # Create and save a scatter plot using Plots package
+# For examples, see notes/diary10_11.txt
 function scatter_plot( gcdf::DataFrame, y_var::Symbol, x_var::Symbol, circuit_type::String, numints::Int64, numlevsback::Int64 )
   Plots.scatter( gcdf[!,x_var], gcdf[!,y_var], title="$y_var vs $x_var $circuit_type $numints ints $numlevsback levsback", ylabel=y_var, xlabel=x_var, label="")
   fname = "$y_var@vs@$x_var@$circuit_type@$numints@ints@$numlevsback@levsback"  # "@" will be changed to "_"

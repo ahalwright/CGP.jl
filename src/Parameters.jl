@@ -44,7 +44,7 @@ function Parameters( ; numinputs=2, numoutputs=1, nodearity=2, numinteriors=4, n
     return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
 end
 
-function print_parameters(f:: IOStream, p::Parameters; comment::Bool=false )
+function print_parameters(f:: IO, p::Parameters; comment::Bool=false )
   if !comment
     println(f,"MyInt: ",MyInt)
     println(f,"numinputs: ",p.numinputs)
@@ -62,9 +62,9 @@ function print_parameters(f:: IOStream, p::Parameters; comment::Bool=false )
   end
 end
 
-function print_parameters(p::Parameters )
+function print_parameters(p::Parameters; comment::Bool=false  )
   f = Base.stdout
-  print_parameters(f,p)
+  print_parameters( f, p, comment=comment )
 end
 
 function MyIntBits( my_int::Type )

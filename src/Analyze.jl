@@ -4,7 +4,8 @@ using Statistics
 using Distributions
 using CSV
 using StatsBase
-export spearman_cor, consoidate_dataframe, read_dataframe, write_dataframe_with_comments, write_dataframe
+using Printf
+export spearman_cor, consolidate_dataframe, read_dataframe, write_dataframe_with_comments, write_dataframe
 export goal_lookup_from_df, add_edf_col_from_df, frequencies_from_counts, variance1, variance2
 
 # Returns a dataframe by reading a CSV file with comments that start with "#"
@@ -44,18 +45,27 @@ function spearman_cor( df::DataFrame, name1::Symbol, name2::Symbol )
 end
 
 # Consolidates a dataframe with the columns specified below by averaging columsn with the same paramter values
+# Revised 10/27/20
 function consolidate_dataframe( in_filename::String, out_filename::String; consolidate::Bool=true )
   new_df = DataFrame()
-  for n in names(df)
-    new_df[!,n] = typeof(df[1,n])[]
-  end
   df = read_dataframe( in_filename )
+  for n in names(df)
+    if n!= :ntries && n != :evo_count 
+      new_df[!,n] = typeof(df[1,n])[]
+    else
+      new_df[!,n] = Float64[]
+    end
+  end
+  #println("size(new_df): ",size(new_df))
+  #println("names(new_df): ",names(new_df))
+  #=
   first_pos = findfirst( "0x", df.goallist[1] )[1]
   last_pos = findnext( "]]", df.goallist[1], first_pos )[1]-1
   goals = [parse(UInt16,df.goallist[i][first_pos:last_pos]) for i = 1:length(df.goallist) ]
   df.goal = goals
-  new_names = vcat([:goal],names(df)[2:end-1])
-  #println("new_names: ",new_names)
+  =#
+  new_names = vcat([:goal],names(df)[2:end])
+  println("new_names: ",new_names)
   select!(df,new_names)
   df = sort(df,[:goal])
   if !consolidate
@@ -93,7 +103,9 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
       end
       #println()
     end
-    #println("r: ",r," ",ndf_row)
+    #println("size(new_df): ",new_df)
+    #println("length(ndf_row): ",length(ndf_row))
+    #println("r:",r," ",ndf_row)
     push!(new_df,ndf_row)
   end
   open( out_filename, "w" ) do outfile
@@ -101,9 +113,9 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
       line = readline(infile)
       while line[1] == '#'
         #println("line: ",line)
-        if line[1:6] != "# cor("
+        #if line[1:6] != "# cor("
           write(outfile,string(line,"\n"))
-        end
+        #end
         line = readline(infile)
       end
     end

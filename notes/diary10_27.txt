@@ -1,3 +1,68 @@
+Objective:  relate complexity, frequency, steps or log_steps (difficulty of evolution)
+
+Compare with Figures 2A and 2C of Schaper and Louis (2014) which plot log discovery time vs. frequency
+in support of their claim that discovery time of the phenotype p scales to the first order as 1/F_p.
+
+Ran data/10_27/run_geno_complexityE.jl on surt2 with 20 processes to produce geno_complexity10_27E.csv
+and copied to lycosa.
+julia> @time include("../data/10_27/run_geno_complexityG.jl")  # 10 gates and 5 levsback
+
+
+Revised the function consolidate_dataframe() in Analyze.jl and ran to reduced from 500 rows to 100 rows (ngoals).
+ndf = consolidate_dataframe("../data/10_27/geno_complexity10_27F.csv","../data/10_27/geno_complexity10_27Fcons.csv")
+Result:  data/10_27/geno_complexity10_27Econs.csv.
+ndf = consolidate_dataframe("../data/10_27/geno_complexity10_27G.csv","../data/10_27/geno_complexity10_27Gcons.csv")
+Result:  data/10_27/geno_complexity10_27Gcons.csv.
+
+Wrote a new function add_counts_to_dataframe() in RecordOutputs.jl to add ints11_8 counts for the goals in this file .
+pdf = add_counts_to_dataframe( ndf, "../data/counts/count_out_4x1_all_ints_10_10.csv",:ints11_8 )
+pdf = add_counts_to_dataframe( ndf, "../data/counts/count_out_4x1_all_ints_10_10.csv",:ints10_5 )
+julia> ndf = cdf[DataFrames.Not(77),:]    # removed high frequency outlier  # only for E file
+julia> logf = [ log10(ndf.ints11_8[i]) for i = 1:length(ndf.ints11_8) ]  # calculate log frequencies 
+julia> logf = [ log10(ndf.ints10_5[i]) for i = 1:length(ndf.ints10_5) ]  # calculate log frequencies for the G file
+julia> insertcols!(pdf,size(pdf)[2]+1,:log_freq=>logf )   # same for F and G files
+julia> write_dataframe_with_comments(pdf,"../data/10_27/geno_complexity10_27F.csv","../data/10_27/geno_complexity10_27Fncons.csv")  
+julia> write_dataframe_with_comments(pdf,"../data/10_27/geno_complexity10_27G.csv","../data/10_27/geno_complexity10_27Gccons.csv")  
+
+Added 10/30:  The geno_complexity10_27F.csv file was overwritten by the geno_complexity10_27G.csv file.  
+So I deleted geno_complexity10_27F.csv.
+But the geno_complexity10_27Fncons.csv and geno_complexity10_27Fncons.csv  are correct.
+
+# In Windows Julia
+# Two of three examples of scatter plots created.
+julia> scatter( cdf.complexity, cdf.log_avg_steps, title="log steps vs complexity", xlabel="complexity", ylabel="log steps",label="")
+julia> savefig("geno_complexity10_27Fncons_logsteps_vs_complexity.png")
+julia> scatter( cdf.complexity, cdf.log_freq, title="log frequency vs complexity", xlabel="complexity", ylabel="log frequency",label="")
+julia> savefig("geno_complexity10_27Fncons_logfreq_vs_complexity.png")
+
+julia> scatter( cdf.complexity, cdf.log_avg_steps, title="log steps vs complexity 10 5", xlabel="complexity", ylabel="log steps",label="")
+julia> savefig("geno_complexity10_27Gccons_logsteps_vs_complexity_10_5.png")
+julia> scatter( cdf.complexity, cdf.log_freq, title="log frequency vs complexity_10_5", xlabel="complexity", ylabel="log frequency",label="")
+julia> savefig("geno_complexity10_27Gccons_logfreq_vs_complexity_10_5.png")
+julia> scatter( cdf.log_freq, cdf.log_avg_steps,title="log steps vs log frequency 10_5", xlabel="log frequency", ylabel="log steps",label="")
+
+Conclusion:  Not all that much difference between F 11 ints 8 lb and G 10 ints 5 lb.
+logsteps vs complexity:   G has less variance about regression line
+logsteps vs log freq      G has less variance about regression line, G is more linear
+log freq vs complexity    G has more variance about regression line.
+None of these differences are necessarily significant.
+
+10/30/20 but in data/10_27:
+@time include("../data/10_27/run_geno_complexityM.jl")   # 11 ints, 8 lb
+10595 seconds
+@time include("../data/10_27/run_geno_complexityN.jl")   # 11 ints, 8 lb 
+3405 seconds
+Copied both files to lyocsa
+Combined into one file geno_complexity10_27MN.csv
+julia> cmndf = consolidate_dataframe("../data/10_27/geno_complexity10_27MN.csv","../data/10_27/geno_complexity10_27MNcons.csv") 
+Combined geno_complexity10_27MNcons.csv with geno_complexity10_27Fcons.csv  into  geno_complexity10_27FMNcons.csv
+julia> fmndf = read_dataframe("../data/10_27/geno_complexity10_27FMNcons.csv") 
+julia> cfmndf = add_counts_to_dataframe( fmndf, "../data/counts/count_out_4x1_all_ints_10_10.csv",:ints11_8 ) 
+julia> write_dataframe_with_comments(cfmndf,  "../data/10_27/geno_complexity10_27FMNcons.csv", "../data/10_27/geno_complexity10_27FMNccons.csv")
+# So now geno_complexity10_27FMNccons.csv is a 600 goal 11 ints 8 lb file.
+
+
+====================================================================================
 # Wrote functions neutral_walk_complexity() and run_neutral_walk_complexity()
 #    in file  neutral_walk_connectivity.jl.
 

@@ -193,9 +193,23 @@ function add_counts_to_dataframe( df::DataFrame, names::Vector{Symbol}, filename
   df.goal = goals
   i = 1
   for nm in names
-    insert!(df, size(df)[2]+1, counts[i], nm )
+    insertcols!(df, size(df)[2]+1, nm=>counts[i] )
     i += 1
   end
   df
 end
+
+# The counts dataframe is read from the file counts_filename
+# Assumes that the counts dataframe has a field "goals" of type String.  Examples of this field:  "0xe","0x10","0xffee".
+# Assumes that the df dataframe has a filed "goal" of type String.  Example of this field:  "UInt16[0x09b5]".
+function add_counts_to_dataframe( df::DataFrame, counts_filename::String, counts_field::Symbol )
+  cdf = read_dataframe(counts_filename)
+  # eval(Meta.parse(df.goal[i]))  converts the string df.goal[i] to Julia Vector.  Example:  UInt16[0x09b5]
+  # eval(Meta.parse(df.goal[i]))[1]  extracts the sole element of this vector
+  # @sprintf("0x%x",eval(Meta.parse(df.goal[i]))[1])   converts to a string of the same format as in the goals field of cdf.
+  counts = [cdf[cdf.goals.==@sprintf("0x%x",eval(Meta.parse(df.goal[i]))[1]),counts_field][1] for i = 1:size(df)[1]]
+  #println("counts: ",counts)
+  insertcols!(df, size(df)[2]+1, counts_field=>counts )
+  df
+end 
 

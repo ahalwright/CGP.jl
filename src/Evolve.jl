@@ -205,7 +205,11 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       fit_limit::Float64=Float64(c.params.numoutputs) )
   #println("mut_evolve fit limit: ",fit_limit)
   #println("mut evolve avgfitness: ",avgfitness,"  fault_tol: ",fault_tol,"  ftf_param: ",ftf_param)
-  #print_chromosome(c)
+  #print_build_chromosome(c)
+  #print_parameters(c.params)
+  #println("length(goallist): ",length(goallist))
+  #println("goallist: ",goallist)
+  c.fitness = 0.0  # Starting with a non-zero fitness inhibits evolution
   output = output_values(c)   # Executes c if it has not already been executed
   #println("output: ",output)
   #println("trunc(c.fitness): ",trunc(c.fitness))
@@ -272,7 +276,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
   else
     matched_g = map( x->x[1][1], matched_goals_list )
-    println("mut_evolve finished in ",step," steps for goals ",matched_g," with fitness: ", c.fitness )
+    println("mut_evolve finished in ",step," steps for goal ",matched_g," with fitness: ", c.fitness )
     #println("matched_goals: ",matched_goals,"  matched_goals_list: ",matched_goals_list)
   end
   if orig_c.fitness > c.fitness   # this should never happen
@@ -626,7 +630,7 @@ mutable struct Output_node
 end
 
 # Example call: build_chromosome( [Input_node(1),Input_node(2)], [Int_node(OR,[1,2]),Int_node(AND,[2,3])],[Output_node(4)])
-function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vector{Int_node}, output_nodes::Vector{Output_node} )
+function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vector{Int_node}, output_nodes::Vector{Output_node}, fitness::Float64 )
   num_in = length(input_nodes)
   num_ints = length(interior_nodes)
   num_outs = length(output_nodes)
@@ -634,12 +638,12 @@ function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vect
   in_nodes = [InputNode(in_node.index) for in_node in input_nodes]
   int_nodes = [InteriorNode(int_node.func, int_node.inputs) for int_node in interior_nodes]
   out_nodes = [OutputNode(outnode.input) for outnode in output_nodes]
-  Chromosome( p, in_nodes, int_nodes, out_nodes, 0.0, 0.0 )
+  Chromosome( p, in_nodes, int_nodes, out_nodes, fitness, 0.0 )
 end
 =#
 
-# Example call:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,))
-function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple )
+# Example call:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,),0.0)
+function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Float64 )
   num_in = length(inputs)
   num_ints = length(ints)
   num_outs = length(outs)
@@ -647,7 +651,7 @@ function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple )
   in_nodes = [InputNode(in_index) for in_index in inputs]
   int_nodes = [InteriorNode(int_pair[1], int_pair[2]) for int_pair in ints]
   out_nodes = [OutputNode(out_index) for out_index in outs]
-  Chromosome( p, in_nodes, int_nodes, out_nodes, 0.0, 0.0 )
+  Chromosome( p, in_nodes, int_nodes, out_nodes, fitness, 0.0 )
 end
 
 # The next functions should be in a Utilities.jl file

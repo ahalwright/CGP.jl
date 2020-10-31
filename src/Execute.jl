@@ -125,7 +125,8 @@ end
 function print_function_list( function_list::Vector{MyFunc} )
   for i = convert(MyFunc,1):length(function_list)
     if function_list[i] > 0
-      Printf.@printf("0x%0x  %d\n",i-1,function_list[i])
+      # The correct way to print when MyInt=UInt16, but wont work when MyInt is something else
+      Printf.@printf("0x%04x  %d\n",i-1,function_list[i])  
     end
   end
 end
