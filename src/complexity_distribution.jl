@@ -48,9 +48,9 @@ function run_complexity_list( goallist::GoalList, p::Parameters, num_circuits::I
     complexity_list = Float64[]
     steps_list = Int64[]
     for j = 1:num_circuits
-      #println("(i,j): ",(i,j),"  ind: ",(i-1)*ngoals+j)
-      push!(complexity_list,complexity_lists[(i-1)*ngoals+j][1])
-      push!(steps_list,complexity_lists[(i-1)*ngoals+j][2])
+      #println("(i,j): ",(i,j),"  ind: ",(i-1)*num_circuits+j)
+      push!(complexity_list,complexity_lists[(i-1)*num_circuits+j][1])
+      push!(steps_list,complexity_lists[(i-1)*num_circuits+j][2])
     end
     #println("steps_list: ",steps_list)
     row_tuple = 
