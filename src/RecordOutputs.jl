@@ -29,8 +29,10 @@
 using DataFrames
 using Distributed
 using Printf
+using Dates
+using CSV
 export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list, read_counts_files
-export add_counts_to_dataframe, write_to_dataframe_file
+export add_counts_to_dataframe, write_to_dataframe_file, circuit_complexities
 
 MyFunc = Main.CGP.MyFunc
 
@@ -213,3 +215,28 @@ function add_counts_to_dataframe( df::DataFrame, counts_filename::String, counts
   df
 end 
 
+# Create a list of the complexities of num_circuits random circuits
+function circuit_complexities( p::Parameters, num_circuits::Int64; csvfile::String="" )
+  funcs = default_funcs(p.numinputs)
+  complexity_list = zeros(Float64,num_circuits)
+  for i = 1:num_circuits
+    c = random_chromosome( p, funcs )
+    complexity = complexity5(c)
+    complexity_list[i] = complexity >= 0.0 ? complexity : 0.0
+  end
+  sort!( complexity_list, rev=true )
+  if length(csvfile) > 0
+    df = DataFrame()
+    df.complexities = complexity_list
+    open( csvfile, "w" ) do f 
+      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      print_parameters(f,p,comment=true)
+      println(f,"# num_circuits: ",num_circuits) 
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  complexity_list
+end

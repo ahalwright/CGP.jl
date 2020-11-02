@@ -201,6 +201,7 @@ end
 # Removed robust_sel and active_only keyword args on 6/6/20
 function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
+      print_steps::Bool=true,
       avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95, 
       fit_limit::Float64=Float64(c.params.numoutputs) )
   #println("mut_evolve fit limit: ",fit_limit)
@@ -264,19 +265,18 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
             next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, 
             num_mutations=num_mutations, perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol,
             ftf_param=ftf_param ) 
-      #=
-      (c, matched_goals, matched_goals_list ) = 
-            next_chromosome!(c, goallist, funcs, fitness, hamming_sel=hamming_sel, 
-            use_robustness=use_robustness, avgfitness=avgfitness ) 
-      =#
       output = output_values(c)   # Executes c if it has not already been executed
     end
   end
   if step == max_steps   # Failed to find goal
-    println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
+    if print_steps
+      println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
+    end
   else
     matched_g = map( x->x[1][1], matched_goals_list )
-    println("mut_evolve finished in ",step," steps for goal ",matched_g," with fitness: ", c.fitness )
+    if print_steps
+      println("mut_evolve finished in ",step," steps for goal ",matched_g," with fitness: ", c.fitness )
+    end
     #println("matched_goals: ",matched_goals,"  matched_goals_list: ",matched_goals_list)
   end
   if orig_c.fitness > c.fitness   # this should never happen

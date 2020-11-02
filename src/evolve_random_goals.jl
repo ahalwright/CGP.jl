@@ -147,6 +147,6 @@ sdf = read_dataframe("../data/10_27/geno_complexity10_27FMNccons.csv")
 ddf = read_dataframe("../data/10_27/geno_complexity10_27FMNccons.csv")
 run_evolve_to_random_goals( p, ddf, sdf, 8, 100000)
 
-3004340337944290
+300434033794290
 06965
 =#
