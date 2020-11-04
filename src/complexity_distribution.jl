@@ -1,6 +1,8 @@
-# Distribution of complexities for circuits evolving into a given goal
+# Includes explore_complexity()
 using DataFrames, Statistics, Dates, CSV, Distributed
 
+# Distribution of complexities for circuits evolving into a given goal
+# Results in data/10_31
 function evolve_complexity( g::Goal, p::Parameters, num_circuits::Int64, maxsteps::Int64 )
   n_repeats = 20
   funcs = default_funcs(p.numinputs)
@@ -75,6 +77,7 @@ function run_complexity_list( goallist::GoalList, p::Parameters, num_circuits::I
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
       print_parameters(f,p,comment=true)
       println(f,"# maxsteps: ",maxsteps)
+      println(f,"# num_circuits: ",num_circuits)
       CSV.write( f, df, append=true, writeheader=true )
     end
   else
@@ -83,26 +86,35 @@ function run_complexity_list( goallist::GoalList, p::Parameters, num_circuits::I
     println("# funcs: ", Main.CGP.default_funcs(p.numinputs))
     print_parameters(p,comment=true)
     println("# maxsteps: ",maxsteps)
+      println("# num_circuits: ",num_circuits)
   end
   df
 end
 
-# Run the next version of run_arrow_complexity() nreps time parallelized by pmap().
+# Run the next version of run_explore_complexity() nreps time parallelized by pmap().
 # This version generates the goallist.
-function run_arrow_complexity( nreps::Int64, nruns::Int64, p::Parameters, ngoals::Int64, num_circuits::Int64, max_ev_steps::Int64;
+function run_explore_complexity( nreps::Int64, nruns::Int64, p::Parameters, ngoals::Int64, num_circuits::Int64, max_ev_steps::Int64;
       csvfile::String="" )
   goallist = randgoallist( ngoals, p.numinputs,p.numoutputs)
-  run_arrow_complexity( nreps, nruns, p, goallist, num_circuits, max_ev_steps, csvfile=csvfile )
+  run_explore_complexity( nreps, nruns, p, goallist, num_circuits, max_ev_steps, csvfile=csvfile )
 end
 
-# Run the next version of run_arrow_complexity() nreps time parallelized by pmap().
+# Run the next version of run_explore_complexity() nreps time parallelized by pmap().
 # This version takes goallist as an argument.
-function run_arrow_complexity( nreps::Int64, nruns::Int64, p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64;
+function run_explore_complexity( nreps::Int64, nruns::Int64, p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64;
       csvfile::String="" )
   result_dfs = DataFrame[]
-  result_dfs = pmap(x->run_arrow_complexity( nruns, p, goallist, num_circuits, max_ev_steps), collect(1:nreps))
-  #result_dfs = map(x->run_arrow_complexity( nruns, p, goallist, num_circuits, max_ev_steps), collect(1:nreps))
+  result_dfs = pmap(x->run_explore_complexity( nruns, p, goallist, num_circuits, max_ev_steps), collect(1:nreps))
+  #result_dfs = map(x->run_explore_complexity( nruns, p, goallist, num_circuits, max_ev_steps), collect(1:nreps))
+  println("length(result_dfs): ",length(result_dfs))
   df = average_dataframes( result_dfs )
+  insertcols!(df, 1, :generation=>collect(1:size(df)[1]))
+  cumm_unique_goals = zeros(Float64,size(df)[1])
+  cumm_unique_goals[1] = df.unique_goals[1]
+  for i = 2:size(df)[1]
+    cumm_unique_goals[i] = df.unique_goals[i] + cumm_unique_goals[i-1]
+  end
+  insertcols!(df, size(df)[2]+1, :cumm_unique_goals=>cumm_unique_goals )
   hostname = chomp(open("/etc/hostname") do f read(f,String) end)
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
@@ -114,6 +126,7 @@ function run_arrow_complexity( nreps::Int64, nruns::Int64, p::Parameters, goalli
       println(f,"# nruns: ",nruns)
       println(f,"# num_circuits: ",num_circuits)
       println(f,"# max_ev_steps: ",max_ev_steps)
+      println(f,"# ngoals: ",ngoals)
       CSV.write( f, df, append=true, writeheader=true )
     end
   end
@@ -125,71 +138,82 @@ function run_arrow_complexity( nreps::Int64, nruns::Int64, p::Parameters, goalli
   println("# nruns: ",nruns)
   println("# num_circuits: ",num_circuits)
   println("# max_ev_steps: ",max_ev_steps)
+  println("# ngoals: ",ngoals)
   df
 end
 
-# Run arrow_complexity() nruns times with the discovered circuit_list from one run becoming the starting circuit_list for the next.
+# Run explore_complexity() nruns times with the discovered circuit_list from one run becoming the starting circuit_list for the next.
 # Also, discoverd goals are removed from goallist on subsequent runs.
-function run_arrow_complexity( nruns::Int64, p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64)
+function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64)
   df = DataFrame()
   df.steps = Int64[]
   df.unique_goals = Int64[]
   df.mean_complexity = Float64[]
   df.max_complexity = Float64[]
-  (circuit_list,goals_found,row_tuple) = arrow_complexity( p, goallist, num_circuits, max_ev_steps )
+  (circuit_list,goals_found,row_tuple) = explore_complexity( p, goallist, num_circuits, max_ev_steps )
   push!(df,row_tuple)
   reduced_goallist = goallist
   for i = 2:(nruns-1)
     extended_circuit_list = extend_list_by_dups( circuit_list, num_circuits )
     reduced_goallist = setdiff(reduced_goallist,goals_found)
     #println("run i: ",i,"  length(circuit_list): ",length(circuit_list),"  length(reduced_goallist): ",length(reduced_goallist))
-    (circuit_list,goals_found,row_tuple) = arrow_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
+    (circuit_list,goals_found,row_tuple) = explore_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
     push!(df,row_tuple)
   end
   extended_circuit_list = extend_list_by_dups( circuit_list, num_circuits )
   reduced_goallist = setdiff(reduced_goallist,goals_found)
-  (circuit_list,goals_found,row_tuple) = arrow_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
+  (circuit_list,goals_found,row_tuple) = explore_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
+  println("explore with nruns: ",nruns) 
+  println("row_tuple: ",row_tuple)
   push!(df,row_tuple)
   df
 end
 
-function arrow_complexity( p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64 )
+function explore_complexity( p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64 )
   funcs = default_funcs(p.numinputs)
   circuit_list = [ random_chromosome(p,funcs) for _=1:num_circuits ]
-  arrow_complexity( p, goallist, circuit_list, max_ev_steps )
+  explore_complexity( p, goallist, circuit_list, max_ev_steps )
 end
 
-function arrow_complexity( p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64 )
+function explore_complexity( p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64 )
   funcs = default_funcs(p.numinputs)
   circuit_list = [ random_chromosome(p,funcs) for _=1:num_circuits ]
-  arrow_complexity( p, goallist, circuit_list, max_ev_steps )
+  explore_complexity( p, goallist, circuit_list, max_ev_steps )
 end
   
-# This is the arrow_complexity() function that runs one generation starting with ciruits in circuit_list.
+# This is the explore_complexity() function that runs one generation starting with ciruits in circuit_list.
 # max_ev_steps  is the maximum number of steps in the evolution of a circuit to any of the goals in goalllist.
 # Returns a triple (circuits_list, goals_found, row_tuple) where:
 #   circuits_list is the list of evolved circuits that output one of the goals
 #   goals_found is the list of goals that are found by evolution
 #   row_tuple is the row of statistics that can be pushed onto a dataframe
-function arrow_complexity( p::Parameters, goallist::GoalList, circuit_list::Vector{Chromosome}, max_ev_steps::Int64 )
+function explore_complexity( p::Parameters, goallist::GoalList, circuit_list::Vector{Chromosome}, max_ev_steps::Int64 )
   funcs = default_funcs(p.numinputs)
   goals_found = Goal[]
   steps_list = Int64[]
   src_cmplx_list = Float64[]
   dest_cmplx_list = Float64[]
   circuits_list = Chromosome[]
-  for c in circuit_list
-    (new_c,step,worse,same,better,output,matched_goals,matched_goals_list) = 
-        mut_evolve( c, goallist, funcs, max_ev_steps, print_steps=false )
-    if step < max_ev_steps
-      #print("i: ",i,"  steps: ",step)
-      #@printf("  goal: 0x%04x\n",matched_goals_list[1][1][1])
-      push!(goals_found, [matched_goals_list[1][1][1]])
-      push!(steps_list,step)
-      push!(src_cmplx_list, complexity5(c))
-      push!(dest_cmplx_list, complexity5(new_c))
-      push!(circuits_list, new_c )
+  if length(circuit_list) > 0
+    for c in circuit_list
+      (new_c,step,worse,same,better,output,matched_goals,matched_goals_list) = 
+          mut_evolve( c, goallist, funcs, max_ev_steps, print_steps=false )
+      if step < max_ev_steps
+        #print("i: ",i,"  steps: ",step)
+        #@printf("  goal: 0x%04x\n",matched_goals_list[1][1][1])
+        push!(goals_found, [matched_goals_list[1][1][1]])
+        push!(steps_list,step)
+        push!(src_cmplx_list, complexity5(c))
+        push!(dest_cmplx_list, complexity5(new_c))
+        push!(circuits_list, new_c )
+      end
     end
+  else
+    push!(goals_found, Goal[] )
+    push!(steps_list,step)
+    push!(src_cmplx_list, complexity5(c))
+    push!(dest_cmplx_list, 0.0)
+    push!(circuits_list, Chromosome[] )
   end
   #println("succsses: ",length(steps_list),"  mean src cmplx: ",mean(src_cmplx_list),
   #    "  mean dest cmplx: ",mean(dest_cmplx_list),"  max dest cmplx: ",maximum(dest_cmplx_list))

@@ -120,6 +120,7 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
   walk_list
 end
 
+# Distribution of complexities on a neutral walk.   
 function neutral_walk_complexity( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, maxtries::Int64 )
   @assert p.numoutputs == 1
   funcs = default_funcs( p.numinputs )
@@ -179,6 +180,7 @@ function neutral_walk_complexity( g::Goal, p::Parameters, steps::Int64, maxsteps
   (walk_complexities,neighbor_complexities)
 end
 
+# Distribution of complexities on a neutral walk.   
 function run_neutral_walk_complexity( goallist::GoalList, p::Parameters, n_walks::Int64, steps::Int64, 
       maxsteps::Int64, maxtries::Int64; csvfile::String="" )
   if length(csvfile) > 0

@@ -1,5 +1,6 @@
 Results on evolvability, robustness, complexity:
-
+Include Julia scatter plots.
+Also some counts file result.
 
 4x1 results
 Used nrepeats=200, ntries = 300.
