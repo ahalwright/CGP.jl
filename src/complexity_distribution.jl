@@ -194,7 +194,7 @@ function explore_complexity( p::Parameters, goallist::GoalList, circuit_list::Ve
   src_cmplx_list = Float64[]
   dest_cmplx_list = Float64[]
   circuits_list = Chromosome[]
-  if length(circuit_list) > 0
+  #if length(circuit_list) > 0
     for c in circuit_list
       (new_c,step,worse,same,better,output,matched_goals,matched_goals_list) = 
           mut_evolve( c, goallist, funcs, max_ev_steps, print_steps=false )
@@ -206,19 +206,21 @@ function explore_complexity( p::Parameters, goallist::GoalList, circuit_list::Ve
         push!(src_cmplx_list, complexity5(c))
         push!(dest_cmplx_list, complexity5(new_c))
         push!(circuits_list, new_c )
+      else
+        push!(goals_found, Goal[] )
+        push!(steps_list,step)
+        push!(src_cmplx_list, complexity5(c))
+        push!(dest_cmplx_list, 0.0)
+        #push!(circuits_list, Chromosome[] )
       end
     end
+  #end
+  if length(steps_list) > 0
+    row_tuple = (length(steps_list), length(unique(goals_found)),mean(dest_cmplx_list), maximum(dest_cmplx_list) )
   else
-    push!(goals_found, Goal[] )
-    push!(steps_list,step)
-    push!(src_cmplx_list, complexity5(c))
-    push!(dest_cmplx_list, 0.0)
-    push!(circuits_list, Chromosome[] )
+    row_tuple = (0,0,0.0,0.0)
   end
-  #println("succsses: ",length(steps_list),"  mean src cmplx: ",mean(src_cmplx_list),
-  #    "  mean dest cmplx: ",mean(dest_cmplx_list),"  max dest cmplx: ",maximum(dest_cmplx_list))
-  #println("length(goals_found): ",length(goals_found),"  unique: ",length(unique(goals_found)))
-  row_tuple = (length(steps_list), length(unique(goals_found)),mean(dest_cmplx_list), maximum(dest_cmplx_list) )
+  println("length(circuits_list: ",length(circuits_list))
   return (circuits_list, goals_found, row_tuple)
 end
 
@@ -251,6 +253,9 @@ end
 # Extend vector v to new_length by concatenating v with itself.
 function extend_list_by_dups( v::AbstractVector, new_length::Int64 )
   len = length(v)
+  if len == 0
+    return v
+  end
   sum_lengths = len
   result = v
   while sum_lengths < new_length
