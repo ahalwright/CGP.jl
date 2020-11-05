@@ -146,26 +146,37 @@ end
 # Also, discoverd goals are removed from goallist on subsequent runs.
 function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64)
   df = DataFrame()
-  df.steps = Int64[]
-  df.unique_goals = Int64[]
-  df.mean_complexity = Float64[]
-  df.max_complexity = Float64[]
-  (circuit_list,goals_found,row_tuple) = explore_complexity( p, goallist, num_circuits, max_ev_steps )
-  push!(df,row_tuple)
-  reduced_goallist = goallist
-  for i = 2:(nruns-1)
+  done = false
+  while !done
+    #println("while !done loop.")
+    df = DataFrame()
+    df.steps = Int64[]
+    df.unique_goals = Int64[]
+    df.mean_complexity = Float64[]
+    df.max_complexity = Float64[]
+    (circuit_list,goals_found,row_tuple) = explore_complexity( p, goallist, num_circuits, max_ev_steps )
+    push!(df,row_tuple)
+    reduced_goallist = goallist
+    for i = 2:(nruns-1)
+      extended_circuit_list = extend_list_by_dups( circuit_list, num_circuits )
+      reduced_goallist = setdiff(reduced_goallist,goals_found)
+      #println("run i: ",i,"  length(circuit_list): ",length(circuit_list),"  length(reduced_goallist): ",length(reduced_goallist))
+      (circuit_list,goals_found,row_tuple) = explore_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
+      if row_tuple[1] == 0
+        println("i: ",i," break")
+        break # Try again
+      end
+      push!(df,row_tuple)
+    end
     extended_circuit_list = extend_list_by_dups( circuit_list, num_circuits )
     reduced_goallist = setdiff(reduced_goallist,goals_found)
-    #println("run i: ",i,"  length(circuit_list): ",length(circuit_list),"  length(reduced_goallist): ",length(reduced_goallist))
     (circuit_list,goals_found,row_tuple) = explore_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
+    println("  row_tuple: ",row_tuple)
     push!(df,row_tuple)
+    if row_tuple[1] > 0
+      done = true
+    end
   end
-  extended_circuit_list = extend_list_by_dups( circuit_list, num_circuits )
-  reduced_goallist = setdiff(reduced_goallist,goals_found)
-  (circuit_list,goals_found,row_tuple) = explore_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
-  println("explore with nruns: ",nruns) 
-  println("row_tuple: ",row_tuple)
-  push!(df,row_tuple)
   df
 end
 
@@ -206,12 +217,6 @@ function explore_complexity( p::Parameters, goallist::GoalList, circuit_list::Ve
         push!(src_cmplx_list, complexity5(c))
         push!(dest_cmplx_list, complexity5(new_c))
         push!(circuits_list, new_c )
-      else
-        push!(goals_found, Goal[] )
-        push!(steps_list,step)
-        push!(src_cmplx_list, complexity5(c))
-        push!(dest_cmplx_list, 0.0)
-        #push!(circuits_list, Chromosome[] )
       end
     end
   #end
@@ -220,7 +225,7 @@ function explore_complexity( p::Parameters, goallist::GoalList, circuit_list::Ve
   else
     row_tuple = (0,0,0.0,0.0)
   end
-  println("length(circuits_list: ",length(circuits_list))
+  println("length(circuits_list): ",length(circuits_list))
   return (circuits_list, goals_found, row_tuple)
 end
 
