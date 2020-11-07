@@ -1,0 +1,13 @@
+Idea for visualization of a random collection goals.
+
+Resource:  http://juliaplots.org/Makie.jl/latest/examples-scatter.html#%22Marker-sizes-Marker-colors%22-1
+
+Idea was to show that explore_complexity() wouldn't work if only complex goals were available.
+
+Wrote a function:
+function filter_goallist_by_complexity( p::Parameters, gl_init::GoalList, gl_final_length::Int64 )
+which adds goals and complexity (read from a dataframe file) to a dataframe,
+sorts the dataframe by complexity, and returns the highest complexity gl_final_length goals.
+
+So far, the idea didn't pan out.
+

@@ -1,5 +1,5 @@
 # Includes explore_complexity()
-using DataFrames, Statistics, Dates, CSV, Distributed
+using DataFrames, Statistics, Dates, CSV, Distributed, Printf
 
 # Distribution of complexities for circuits evolving into a given goal
 # Results in data/10_31
@@ -103,6 +103,7 @@ end
 # This version takes goallist as an argument.
 function run_explore_complexity( nreps::Int64, nruns::Int64, p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64;
       csvfile::String="" )
+  ngoals = length(goallist)
   result_dfs = DataFrame[]
   result_dfs = pmap(x->run_explore_complexity( nruns, p, goallist, num_circuits, max_ev_steps), collect(1:nreps))
   #result_dfs = map(x->run_explore_complexity( nruns, p, goallist, num_circuits, max_ev_steps), collect(1:nreps))
@@ -171,7 +172,7 @@ function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList
     extended_circuit_list = extend_list_by_dups( circuit_list, num_circuits )
     reduced_goallist = setdiff(reduced_goallist,goals_found)
     (circuit_list,goals_found,row_tuple) = explore_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
-    println("  row_tuple: ",row_tuple)
+    println("length(redued_goallist): ",length(reduced_goallist),"  row_tuple: ",row_tuple)
     push!(df,row_tuple)
     if row_tuple[1] > 0
       done = true
@@ -274,5 +275,39 @@ function extend_list_by_dups( v::AbstractVector, new_length::Int64 )
     #println("sum_lengths: ",sum_lengths,"  result: ",result)
   end
   result
+end
+
+function goal_complexity_frequency_dataframe( p::Parameters, gl_init::GoalList, 
+    cmplx_df_csvfile::String="../data/consolidate/geno_pheno_raman_df_all_9_13.csv", 
+    freq_df_csvfile::String="../data/counts/count_out_4x1_all_ints_10_10.csv" )
+  gl_string = map(x->@sprintf("0x%x",x[1]),gl_init) # convert goals from Vector of MyInts to strings
+  result_df = DataFrame()
+  result_df.goal = gl_init
+  cdf = read_dataframe(cmplx_df_csvfile)  # get datafrane with complex and counts
+  result_df.complexity =  [cdf[cdf.goal.==gl_string[i],:complex][1] for i = 1:length(gl_string)] # add complexity
+  fdf = read_dataframe(freq_df_csvfile)
+  result_df.ints8_5 =  [fdf[fdf.goals.==gl_string[i],:ints8_5][1] for i = 1:length(gl_string)] # add complexity
+  result_df.ints9_5 =  [fdf[fdf.goals.==gl_string[i],:ints9_5][1] for i = 1:length(gl_string)] # add complexity
+  result_df.ints10_5 =  [fdf[fdf.goals.==gl_string[i],:ints10_5][1] for i = 1:length(gl_string)] # add complexity
+  result_df.ints11_5 =  [fdf[fdf.goals.==gl_string[i],:ints11_5][1] for i = 1:length(gl_string)] # add complexity
+  result_df.ints11_8 =  [fdf[fdf.goals.==gl_string[i],:ints11_8][1] for i = 1:length(gl_string)] # add complexity
+  result_df
+end
+  
+# Uses randgoallist to generate a random goal list of length gl_init_length.
+# Reads a dataframe that contains complexities for all goals
+# Creates a dataframe with goals and complexities, and sorts by complexities
+# Returns the list of goals of length gl_final_length of greater complexity.
+# Assumes goals have 1 component
+function filter_goallist_by_complexity( p::Parameters, gl_init::GoalList, gl_final_length::Int64, 
+      cmplx_df_csvfile::String="../data/consolidate/geno_pheno_raman_df_all_9_13.csv")
+  #gl_init = randgoallist(gl_init_length,p.numinputs, p.numoutputs )
+  gl_string = map(x->@sprintf("0x%x",x[1]),gl_init) # convert goals from Vector of MyInts to strings  
+  result_df = DataFrame()
+  result_df.goal = gl_init
+  cdf = read_dataframe( cmplx_df_csvfile ) # get datafrane with :complex field
+  result_df.complexity =  [cdf[cdf.goal.==gl_string[i],:complex][1] for i = 1:length(gl_string)] # add complexity
+  sort!( result_df, order(:complexity, rev=true))
+  result_df[1:gl_final_length,:goal]
 end
   
