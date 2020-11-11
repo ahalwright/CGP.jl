@@ -6,6 +6,7 @@ export num_mutate_locations, set_active_to_false, fraction_active, check_recursi
 export output_values, number_active, number_active_gates, hamming_distance, hamming, deactivate_chromosome!
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, chromosome_code, circuit_distance
+export remove_inactive
 
 mutable struct Chromosome
     params::Parameters
@@ -419,6 +420,55 @@ end
 
 function fraction_active( c::Chromosome )
   number_active(c)/(c.params.numinputs+c.params.numinteriors)
+end
+
+function remove_inactive( c::Chromosome )
+  if !c[c.outputs[1].input].active   # if chromosome has not been executed
+    context = construct_context(c.params.numinputs)
+    execute_chromosome(c,context)
+  end
+  new_ints = InteriorNode[]
+  numinputs = length(c.inputs)
+  numints = length(c.interiors)
+  int_inds = collect(1:numints)
+  map_indices = zeros(Int64, numinputs+numints )
+  active_gate_indices = int_inds[ [c.interiors[i].active for i = 1:numints]]
+  #map_indices = ttt(numinputs,numints,active_gate_indices)
+  map_indices = collect(1:numinputs)
+  j = 1
+  for i = 1:numints
+    if active_gate_indices[j] > i
+      push!(map_indices,0)
+    else
+      push!(map_indices,j+numinputs)
+      j+= 1
+    end
+  end
+  println("map_indices: ",map_indices)
+  for j in active_gate_indices
+    new_inputs = map(x->map_indices[x],c.interiors[j].inputs)
+    println("j: ",j,"  new_inputs: ",new_inputs)
+    new_int = InteriorNode( c.interiors[j].func, new_inputs )
+    push!(new_ints,new_int)
+  end
+  new_outs = [ OutputNode( map_indices[c.outputs[i].input])  for i = 1:length(c.outputs) ]
+  p = c.params
+  new_p = Parameters( p.numinputs, p.numoutputs, length(new_ints), p.numlevelsback )
+  Chromosome( new_p, c.inputs, new_ints, new_outs, c.fitness, c.robustness )
+end             
+
+function ttt(numinputs,numints,active_gate_indices)
+  map_indices = collect(1:numinputs)
+  j = 1
+  for i = 1:numints
+    if active_gate_indices[j] > i
+      push!(map_indices,0)
+    else
+      push!(map_indices,j+numinputs)
+      j+= 1
+    end
+  end
+  map_indices
 end
 
 function getindex(c::Chromosome, index::Integer)
