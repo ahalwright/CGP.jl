@@ -422,6 +422,8 @@ function fraction_active( c::Chromosome )
   number_active(c)/(c.params.numinputs+c.params.numinteriors)
 end
 
+# Returns a chromosome with the same output values as c and with all 
+#  inactive gate nodes removed.
 function remove_inactive( c::Chromosome )
   if !c[c.outputs[1].input].active   # if chromosome has not been executed
     context = construct_context(c.params.numinputs)
@@ -431,6 +433,8 @@ function remove_inactive( c::Chromosome )
   numinputs = length(c.inputs)
   numints = length(c.interiors)
   int_inds = collect(1:numints)
+  # if i refers to a node in c, then map_indices[i] references 
+  #   the corresponding node in the new chromosome
   map_indices = zeros(Int64, numinputs+numints )
   active_gate_indices = int_inds[ [c.interiors[i].active for i = 1:numints]]
   #map_indices = ttt(numinputs,numints,active_gate_indices)
@@ -444,17 +448,19 @@ function remove_inactive( c::Chromosome )
       j+= 1
     end
   end
-  println("map_indices: ",map_indices)
+  #println("map_indices: ",map_indices)
   for j in active_gate_indices
     new_inputs = map(x->map_indices[x],c.interiors[j].inputs)
-    println("j: ",j,"  new_inputs: ",new_inputs)
+    #println("j: ",j,"  new_inputs: ",new_inputs)
     new_int = InteriorNode( c.interiors[j].func, new_inputs )
     push!(new_ints,new_int)
   end
   new_outs = [ OutputNode( map_indices[c.outputs[i].input])  for i = 1:length(c.outputs) ]
   p = c.params
   new_p = Parameters( p.numinputs, p.numoutputs, length(new_ints), p.numlevelsback )
-  Chromosome( new_p, c.inputs, new_ints, new_outs, c.fitness, c.robustness )
+  nc = Chromosome( new_p, c.inputs, new_ints, new_outs, c.fitness, c.robustness )
+  @assert output_values(nc) == output_values(c)
+  nc
 end             
 
 function ttt(numinputs,numints,active_gate_indices)

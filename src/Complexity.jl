@@ -382,7 +382,9 @@ function run_kolmogorov_complexity( p::Parameters, gl::GoalList, max_goal_tries:
   df.num_active_gates = Int64[]
   df.complexity = Float64[]
   df.tries = Int64[]
-  df.num_gates_exceptions = Int64[]
+  df.avg_robustness = Float64[]
+  df.avg_evolvability = Float64[]
+  df.num_gates_exc = Int64[]
   result_list = pmap( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
   for r in result_list
     push!(df, r )
@@ -414,14 +416,17 @@ end
 # Start with p.numinteriors and then deccrease the number of gates until the goal is found.
 # Do max_goal_tries evolutions with each number of gates.
 # Then once min number gates is found, do up to num_tries_multiplier*max_goal_tries further evolutions to get
-#    max_goal_tries further approximations of Tononi complexity.
+#    max_goal_tries further approximations of Tononi complexity, robustness, and evolvability.
+# If a chromosome with a smaller number of active gates is found in these further evolutions,
+#    then num_gates is reset and the further evaluations of complexity, robustness, evolvability are restarted
 # max_ev_steps is the maximum number of steps while doing mut_evolve()
 function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, max_ev_steps::Int64 )
   num_tries_multiplier = 3   # used in second outer while loop
   println("goal: ",g)
   num_gates_exceptions = 0
   funcs = default_funcs(p.numinputs)
-  #found_chrome_list = Chromosome[]
+  complexities_list = Float64[]
+  robust_evol_list = Tuple{Float64,Float64}[]
   num_gates = p.numinteriors+1   # decrement on the first iteration
   p_current = p
   found_c = Chromosome(p,[],[],[],0.0,0.0)  # dummy chromosome to establish scope
@@ -443,6 +448,8 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
         @assert outputs == g
         goal_found = true
         found_c = deepcopy(c)
+        num_gates = number_active_gates(found_c)
+        p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
         println("ciruit found for goal ",g," with num_gates = ",num_gates)
       end
     end
@@ -451,7 +458,8 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
     println("no goal found for goal ",g," for num_gates: ",num_gates)
     num_gates += 1  # now set to the minimum number of gates for successful circuit
   end  
-  sum_complexities = complexity5(c)
+  push!(complexities_list, complexity5(found_c))
+  push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
   p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
   tries = 1
   iter = 0  # put a bound on iterations
@@ -460,28 +468,31 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
     #println("mut_evolve for goal ",g,"  with numints : ",c.params.numinteriors)
     (c,step,worse,same,better,output,matched_goals,matched_goals_list) =
         mut_evolve( c, [g], funcs, max_ev_steps, print_steps=true ) 
-     if step < max_ev_steps
+    if step < max_ev_steps
       outputs = output_values( c )
       @assert outputs == g
-      sum_complexities += complexity5(c)
       if num_gates != number_active_gates(c)
         println("num_gates: ",num_gates,"  number_active_gates(c): ",number_active_gates(c))
         println("B  number gates not equal to number active gates for goal: ",g)
         print_build_chromosome(c)
+        found_c = c =  remove_inactive( c )
+        num_gates = number_active_gates(found_c)
+        p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
         num_gates_exceptions += 1
+        complexities_list = Float64[]  # restart complexities_list
+        robust_evol_list = Tuple{Float64,Float64}[]  # restart robust_evol_list 
+        iter = 0
+        tries = 1  # do more tries
       end
+      push!(complexities_list, complexity5(c))
+      push!(robust_evol_list, mutate_all( c, funcs,robustness_only=true))
       tries += 1
     end
     iter += 1
   end
   #println("tries: ",tries)
-  avg_complexity = sum_complexities/tries
-  c = found_c
-  if num_gates != number_active_gates(c)
-    println("num_gates: ",num_gates,"  number_active_gates(c): ",number_active_gates(c))
-    println("A  number gates not equal to number active gates for goal: ",g)
-    print_build_chromosome(c)
-    num_gates_exceptions += 1
-  end
-  (g,num_gates,number_active_gates(c),avg_complexity,tries,num_gates_exceptions)
+  avg_complexity = sum(complexities_list)/length(complexities_list)
+  avg_robustness = sum( map(x->x[1],robust_evol_list))/length(robust_evol_list)
+  avg_evolvability = sum( map(x->x[2],robust_evol_list))/length(robust_evol_list)
+  (g,num_gates,number_active_gates(found_c),avg_complexity,tries,avg_robustness,avg_evolvability,num_gates_exceptions)
 end

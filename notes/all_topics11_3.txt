@@ -1,0 +1,54 @@
+All diary topics:
+
+9/26:  outdated on effects of mutation on complexity.  Examples of get_bits(). Examples of high/low complexity: test_complexity()
+9/27:  gb_complexity meaningless.
+9/28:  Tried to understand integration version of complexity.
+9/30:  build_all_genes()
+10/2:  build_all_genes() didn't work 
+         semi_log scatter plot of counts 
+10/5:  Rewrote run_geno_robustness() and run_geno_complexity() in Evolvability.jl  Excel plots.
+10/6:  run_geno_pheno_evolution() in Genotype_phenotype.jl computes genotypic robustnes and evolvability.
+10/8:  Corrected geno_robust() and geno_complexity() in Evolvability.  Scatter plots complexity/evolvability/robustness.
+10/9:  Evolvability, complexity, robustness plots for Macia gate set.  Count results for Macia gate set.
+        Catalan 2018 claims:  rare phenotypes will not play a central role in evolution: 
+          they are hard to find in a genotype space that is filled with abundant phenotypes [12,14,37]." 
+10/11: Scatter plots of evolvability, robustness, complexity including some 4x2 results
+        A redo of some counts file results to correct ints11_8 and ints11_5.
+10/12: Wrote random_neutral_walk() and run_random_neutral_walk() in evovability.jl.  Bugs remain.
+10/13: Fixed problem with runs of random_neutral_walk() and geno_complexity()
+10/14: Parallelized geno_complexity() in Evolvability.jl
+10/15: Evolvability running for 64000 steps for a common and a rare goal.
+10/18: Determine bias as defined by Greenbury (2014).
+10/19: Scatter plot of counts includeing 8_5, 11_5, 11_8.
+10/20: Integrated estimates of phenotypic evolvability in run_geno_complexity() and geno_compexity() in Evolvability.jl.
+        Have mostly abandoned this approach.
+10/22: Smoothness of complexity landscape.  neighbor_complexity() in src/neighbor_complexity.jl
+10/23: No results.  See 10/26
+10/26: Objective:  Find the size of the components of the neutral network of a goal by joining components
+        discovered on multiple neutral walks.  Very successfule for 3x1 goals, some results for 4x1 8_5, failure for 11_8
+10/27: Part 1: relate complexity, frequency, steps or log_steps (difficulty of evolution) Scatter plots
+        functions geno_complexity() in Evolvability.jl.  cce/Complexity_frequency_difficulty_evolution10_30.docx
+       Part 2:  neutral_walk_complexity() in neutral_walk_connectivity.jl: distribution of complexities on a neutral walk.
+10/30: Additional results for 10/27
+10/31: Distribution of complexities for a list of goals
+11/2:  Arrow of complexity
+
+All plots:
+Goal Frequency vs Goal Rank: PPfig2 data/10_18
+Evolvability vs log freq PPfig3 diary10_11
+Average of Q vs number goals sampled PPfig4  data/9_14/evolvable9_14D.xlxs   Not current
+Evolvability vs robustness PPfig5 data/10_11/geno_robust_evo10_11E.csv
+complexity vs robustness PPfig6 data/10_11/geno_robust_evo10_11E.csv1
+complexity vs evolvability  PPfig7 data/10_11/ geno_robust_evo10_11E.csv
+evolvability vs epi_total PPfig8 data/9_25
+robustness vs log_freq PPfig9 diary10_11
+evolvability vs log_freq PPfig10 diary10_11
+complexity vs log_freq PPfig11 diary10_11
+average complexity of neighbors vs circut complexity PPfig12 data/10_11/geno_robust_evo10_11E.csv
+log steps vs complexity  PPfig13 diary10_27.txt and data/10_27
+log steps vs log frequency PPfig14 diary10_27.txt and data/10_27
+log frequency vs complexity PPfig15 diary10_27.txt and data/10_27/geno_complexity10_27Fncons_logfreq_vs_complexity.png
+
+Note that all plots in Complexity_frequency_difficulty_evolution10_30_20.docx are copies of some of the above plots.
+
+
