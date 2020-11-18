@@ -47,6 +47,10 @@ function run_complexity_list( goallist::GoalList, p::Parameters, num_circuits::I
   df.min = Float64[]
   df.q10 = Float64[]
   df.q90 = Float64[]
+  df.q95 = Float64[]
+  df.q90 = Float64[]
+  df.q95 = Float64[]
+  df.q99 = Float64[]
   extended_goallist = vcat([ fill(g,num_circuits) for g in goallist ]... )
   #println("length(extended_goallist): ",length(extended_goallist),"  extended_goallist: ",extended_goallist)
   complexity_lists = pmap( g->evolve_complexity( g, p, num_circuits, maxsteps ), extended_goallist )
@@ -70,7 +74,9 @@ function run_complexity_list( goallist::GoalList, p::Parameters, num_circuits::I
         maximum(complexity_list),
         minimum(complexity_list),
         quantile(complexity_list,0.10),
-        quantile(complexity_list,0.90)
+        quantile(complexity_list,0.90),
+        quantile(complexity_list,0.95),
+        quantile(complexity_list,0.99)
       )
     #println("row_tuple: ",row_tuple)
     push!(df,row_tuple)

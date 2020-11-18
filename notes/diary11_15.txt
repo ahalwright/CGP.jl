@@ -1,0 +1,12 @@
+Copied configuration files from 10_15 (run_geno_complexity) and 10_31 (run_evolve_random).
+
+run_geno_complexity:
+10_15:  Evolvability running for maxreps steps for a common and a rare goal.  
+        Measures complexity of circuits that evolve to the given goal.
+11_15:  Added .95 and .99 quantiles of  complexity. Dropped :frenken_mi
+Also, ran common goal with smaller numinteriors which very much reduced complexity statistcs.
+  with 7 gates 5 lb, mean(gcdf.complexQ99)= 4.348279382872665    geno_complexity11_15C.csv
+Suggests that this is a way to incrementally increase complexity.
+
+run_evolve_random:
+10_31:  Distribution of complexities for circuits evolving into a given goal for a list of random goals.

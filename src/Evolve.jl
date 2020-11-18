@@ -580,8 +580,8 @@ function circuit_evolve( c_src::Chromosome, c_dest::Chromosome, maxreps::Int64 )
       #println("continue")
       #continue  # continue with current ciruit c unchanged
     else
-      println("c_new code:  ",chromosome_code(c_new))
-      println("c_dest_code: ",chromosome_code(c_dest))
+      println("c_new code:  ",circuit_code(c_new))
+      println("c_dest_code: ",circuit_code(c_dest))
       new_dist = circuit_distance( c_new, c_dest )
       println("dist:     ",dist,"  new_dist: ",new_dist)
       if new_dist > dist

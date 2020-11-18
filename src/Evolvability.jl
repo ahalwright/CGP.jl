@@ -7,6 +7,7 @@ using Dates
 using CSV
 using Distributed
 using HypothesisTests
+using Statistics
 using Printf
 
 export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
@@ -755,11 +756,13 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   geno_complexity_df.unique_goals = GoalList[]
   geno_complexity_df.nactive = Float64[]
   geno_complexity_df.complexity = Float64[]
+  geno_complexity_df.complexQ95 = Float64[]
+  geno_complexity_df.complexQ99 = Float64[]
   #geno_complexity_df.epi2= Float64[]
   #geno_complexity_df.epi3= Float64[]
   #geno_complexity_df.epi4= Float64[]
   #geno_complexity_df.epi_total = Float64[]
-  geno_complexity_df.f_mutrobust= Float64[]
+  #geno_complexity_df.f_mutrobust= Float64[]
   list_goals = Goal[]
   num_iterations = Int(ceil(maxreps/iter_maxreps))
   iter_max_tries = Int(ceil(max_tries/num_iterations))
@@ -908,11 +911,13 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       all_unique_outputs,
       sum( nactive_list )/maxreps,
       sum( complexity_list )/maxreps,
+      quantile(complexity_list,0.95),
+      quantile(complexity_list,0.99)
       #p.numoutputs==0 ? epi2 : 0.0,
       #p.numoutputs==0 ? epi3 : 0.0,
       #p.numoutputs==0 ? epi4 : 0.0,
       #p.numoutputs==0 ? epi_total : 0.0,
-      sum(frenken_mi_list)/maxreps
+      #sum(frenken_mi_list)/maxreps
     )
   else  # Evolution always failed
     return ( 
@@ -929,7 +934,7 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       0,   # evo_count
       0.0, # ratio
       0.0, # estimate
-      0.0,
+      0.0, # nactive
       Goal[],
       #sum( nactive_list )/maxreps,
       #sum( complexity_list )/maxreps,
@@ -938,8 +943,8 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       #epi4,
       #epi_total,
       #sum(frenken_mi_list)/maxreps
-      0.0,
-      0.0,
+      0.0,  # complexity
+      0.0,  # quatile(complexity_list,0.95)
       #0.0,
       #0.0,
       #0.0,

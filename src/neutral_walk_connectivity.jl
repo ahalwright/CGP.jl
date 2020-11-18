@@ -24,7 +24,7 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
   println("complexity(c): ",complexity5(c))
   #@assert sort(output_values(c)) == sort(g)
   @assert output_values(c) == g    # Assumes p.numoutputs==1
-  push!( circuit_codes, chromosome_code(c) )
+  push!( circuit_codes, circuit_code(c) )
   for i = 1:steps 
     (new_c,active) = mutate_chromosome!( deepcopy(c), funcs )
     outputs = output_values(new_c)
@@ -55,7 +55,7 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
     all_chromes = map( x->x[2], mutate_all( c, funcs, output_chromosomes=true )) 
     filter!( x->output_values(c)==g, all_chromes )
     for ch in all_chromes 
-      push!( circuit_codes, chromosome_code(ch) )
+      push!( circuit_codes, circuit_code(ch) )
     end
     circuit_codes = unique(circuit_codes)  
   end # for loop

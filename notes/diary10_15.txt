@@ -1,3 +1,4 @@
 Evolvability running for 64000 steps for a common and a rare goal.
+A is for a test run with 100 steps.
 Two runs on surt2 of run_geno_complexity to compute evolvability by sampling 65536 circuits.
 B is for a common goal, D is for one of the rarest goals.
