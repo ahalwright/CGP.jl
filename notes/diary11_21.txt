@@ -1,0 +1,11 @@
+Best current idea for explaining the negative relationship between evolvability and robustness:
+
+More complex genotypes are less robust due to more components whose functionality can be destroyed by mutation.
+
+More complex phenotypes are less frequent because of the need to implement more components.
+
+It is difficult to mutate from simple genotypes to complex genotypes because simple genotypes are less likely to include multiple necessary components.
+
+Mutations of simple genotypes are likely to be simple and thus the corresponding phenotype is frequent.  Thus, mutations of simple genotypes are likely to map to the same phenotype.  In other words simple genotypes should have low evolvability.
+
+

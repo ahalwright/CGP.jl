@@ -640,6 +640,8 @@ function test_g_evolvability_g_robustness( nreps::Int64, numinputs::Int64, numou
 end
 =#
 
+# Compute average genotypic robustness, average genotypic evolvability, and phenotypic evolvability for each of ngoals random goals.
+# maxreps is attempted number of repetitions.  max_steps the the upper bound on the number of attempts including failures of mut_evolve().
 function run_geno_robustness( ngoals::Int64, maxreps::Int64, numinputs::Int64, numoutputs::Int64, 
     numinteriors::IntRange, numlevelsback::Int64, max_steps::Int64, max_tries::Int64; csvfile = "" )
   if max_tries < maxreps
@@ -661,15 +663,17 @@ function run_geno_robustness( ngoals::Int64, maxreps::Int64, numinputs::Int64, n
   result = pmap(x->geno_robustness( x[1], maxreps, p, max_steps, max_tries ), list_goals_params )
   goal_vec = [ rb[1] for rb in result ]
   robust_vec = [ rb[2] for rb in result ]
-  evolvable_vec = [ rb[3] for rb in result ]
-  numints_vec = [ rb[4] for rb in result ] 
-  ntries_vec = [ rb[5] for rb in result ]  
-  nrepeats_vec = [ rb[6] for rb in result ]
+  geno_evolvable_vec = [ rb[3] for rb in result ]
+  pheno_evolvable_vec = [ rb[4] for rb in result ]
+  numints_vec = [ rb[5] for rb in result ] 
+  ntries_vec = [ rb[6] for rb in result ]  
+  nrepeats_vec = [ rb[7] for rb in result ]
   #println("(robust_vec, evolvable_vec): ",(robust_vec, evolvable_vec))
   robust_evo_df = DataFrame() 
   robust_evo_df.goal = goal_vec 
   robust_evo_df.robust = robust_vec
-  robust_evo_df.evolvable = evolvable_vec
+  robust_evo_df.geno_evolvable = geno_evolvable_vec
+  robust_evo_df.pheno_evolvable = pheno_evolvable_vec
   robust_evo_df.numints = numints_vec
   robust_evo_df.ntries = ntries_vec
   robust_evo_df.nrepeats = nrepeats_vec
@@ -693,12 +697,16 @@ function run_geno_robustness( ngoals::Int64, maxreps::Int64, numinputs::Int64, n
   return robust_evo_df
 end
 
+# Compute average genotypic robustness, average genotypic evolvability, and phenotypic evolvability for goal.
+# Return a row of the dataframe constructed in run_geno_robustness()
+# maxreps is attempted number of repetitions.  max_steps the the upper bound on the number of attempts including failures of mut_evolve().
 function geno_robustness( goal::Goal, maxreps::Int64, p::Parameters, max_steps::Int64, max_tries::Int64 )
   #p = Parameters( numinputs = numinputs, numoutputs = numoutputs, numinteriors = numinteriors, numlevelsback = numlevelsback )
   funcs = default_funcs(p.numinputs)
   nrepeats = 0
   all_outputs_sum = 0
   robust_sum = 0
+  g_evolvable_sum = 0
   all_unique_outputs = Goal[]
   i = 0
   while i < max_tries && nrepeats < maxreps
@@ -719,16 +727,18 @@ function geno_robustness( goal::Goal, maxreps::Int64, p::Parameters, max_steps::
     all_outputs_sum += length(outputs)
     robust_outputs = filter( x->x==c_output, outputs )
     robust_sum += length(robust_outputs)
-    evolvable_outputs = unique(outputs)
-    all_unique_outputs = unique(vcat(all_unique_outputs,evolvable_outputs))
+    p_evolvable_outputs = unique(outputs)
+    g_evolvable_sum += length(p_evolvable_outputs)
+    all_unique_outputs = unique(vcat(all_unique_outputs,p_evolvable_outputs))
     nrepeats += 1
     #println((all_outputs_sum,robust_sum,length(all_unique_outputs)))
   end  
   ntries = i
   if nrepeats > 0
-    return ( goal, robust_sum/all_outputs_sum, length(all_unique_outputs)/all_outputs_sum, p.numinteriors, ntries, nrepeats )
+    return ( goal, robust_sum/all_outputs_sum, g_evolvable_sum/all_outputs_sum, length(all_unique_outputs)/all_outputs_sum, 
+        p.numinteriors, ntries, nrepeats )
   else
-    return ( goal, 0.0, 0.0, p.numinteriors, ntries, nrepeats )
+    return ( goal, 0.0, 0.0, 0.0, p.numinteriors, ntries, nrepeats )
   end
 end
 

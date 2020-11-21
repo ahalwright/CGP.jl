@@ -1,6 +1,7 @@
 # Functions to implement goal functions and testing for goal functions
 using Printf
 export Goal, GoalList, randgoal, randgoallist, rand_env_goallist, env_goal, goal_count, goal_check, my_test_goal
+export randgoal_filtered, randgoallist_filtered
 
 # Moved these to aliases.jl
 #const Goal =  Vector{MyInt}
@@ -34,7 +35,7 @@ function component_type( numinputs::Int64 )
     error("randgoal doesn't work for numinputs > 7")
   end
   comp_type
-end
+end  
 
 # generate a random goal assuming that MyInt is set correctly for numinputs
 # Creates an inexacterror if conversion to MyInt doesn't work
@@ -88,6 +89,48 @@ function rand_env_goallist( ngoals::Int64, numinputs::Int64, numoutputs::Int64,
   end
   result
 end 
+
+# return a random goal with a minimum count of min_count in the dataframe column cdf[count_field].
+# The goal is filtered by count from the dataframe column cdf[count_field].
+function randgoal_filtered( cdf::DataFrame, count_field::Symbol, min_count::Int64, numinputs::Int64, numoutputs::Int64 )
+  max_iters = 20    # prevent an infinite loop
+  goal = randgoal( numinputs, numoutputs )
+  iter = 0
+  count = cdf[cdf.goal.==@sprintf("0x%x",goal[1]),count_field][1]
+  while iter < max_iters && count < min_count
+    goal = randgoal( numinputs, numoutputs )
+    println("goal: ",goal)
+    count_array = cdf[cdf.goal.==@sprintf("0x%x",goal[1]),count_field]
+    println("count_array: ",count_array)
+    count = count_array[1]
+    iter += 1
+  end
+  if iter < max_iters
+    goal
+  else
+    error("too many iterations in randgoal filtered")
+  end
+end
+
+# generate a random goallist of length ngoals
+# The goals are filtered by count from the dataframe cdf field count_field.
+function randgoallist_filtered( cdf::DataFrame, count_field::Symbol, min_count::Int64, ngoals::Int64, numinputs::Int64, 
+     numoutputs::Int64; repetitions::Int64=1)
+  result = Vector{MyInt}[]
+  if ngoals % repetitions != 0
+    error("ngoals=",ngoals," must be a multiple of repetitions=",repetitions," in randgoallist")
+  end
+  #println("  collect(1:repetitions.ngoals): ",collect(1:repetitions:ngoals))
+  for i = 1:repetitions:ngoals
+    goal = randgoal_filtered( cdf, count_field, min_count, numinputs, numoutputs )
+    for j = 1:repetitions
+      #println("(i,j): ",(i,j)," i+j-1: ",i+j-1)
+      #result[i+j-1] = goal
+      push!(result,goal)
+    end
+  end
+  result
+end     
 
 # The bits that will be flipped to produce the additional goals in function env_goal()
 # Example (where MyInt==UInt16):
