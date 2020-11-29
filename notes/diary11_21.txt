@@ -1,3 +1,12 @@
+Plot of number of unique phenotypes in a cumulatively increasing sample size of 1-mutant neighbors of the given phenotype.
+julia> scatter( collect(4000:4000:64000), [ddf.evo_count,bdf.evo_count], title="phenotypic evolvable count for two goals vs sample size", xlabel="sample size", ylabel="evolvability count", labels=["rare goal [0xb168]" "common goal [0x0603]"], legend=:topleft,ylims=[0.0, 4.4e4])
+julia> savefig("10_15/evo_couunt_common_rare_goals_64000steps.png")
+
+Data in data/10_15.
+=========================
+See document cce/Evolvability robustness complexity11_22_20.docx for an updated version.
+
+
 Best current idea for explaining the negative relationship between evolvability and robustness:
 
 More complex genotypes are less robust due to more components whose functionality can be destroyed by mutation.
@@ -8,4 +17,7 @@ It is difficult to mutate from simple genotypes to complex genotypes because sim
 
 Mutations of simple genotypes are likely to be simple and thus the corresponding phenotype is frequent.  Thus, mutations of simple genotypes are likely to map to the same phenotype.  In other words simple genotypes should have low evolvability.
 
-
+Note:  runs plotting genotypic and phenotypic evolvability vs robustness show that both evolvabilities are negatively related to robustnes.
+Wagner (2008) reports that for the RNA GP map: 
+"Below, I will show that the tension between robustness and evolvability disappears with the distinction just introduced.
+Specifically, genotypic robustness is negatively associated with genotypic evolvability, whereas phenotypic robustness is positively associated with phenotypic evolvability."

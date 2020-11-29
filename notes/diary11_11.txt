@@ -11,6 +11,10 @@ Kolmogorov complexity:
 Functions kolmogorov_complexity, run_kolmogorov_complexity in Complexity.jl
 Function remove_inactive() in Chromosome.jl.  Debugged.
 
+k_complexity11_11F.csv contains the k complexities of all 2^16 goals.
+julia> spearman_cor(kdf,:num_gates,:complexity)
+(0.9397663729101743, 0.0)
+
 run_kolmogorov_complexity() does further evolutions both to correct for the 
 initial determination of num_gates and also to get a more accurate measurement
 of Tononi complexity, robustness, and evolvabilty.
@@ -44,3 +48,4 @@ julia> [(df5.num_gates[i],df5.avg_robustness[i],df20.num_gates[i],df20.avg_robus
  (6, 0.045325900514579756, 5, 0.014285714285714285)
  (6, 0.16981132075471697, 7, 0.010023584905660377)
 
+k_complexity11_11F.csv contains the k complexities of all 2^16 goals.

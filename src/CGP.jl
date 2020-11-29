@@ -43,7 +43,8 @@ include("Analyze.jl")
 include("RecordOutputs.jl")
 include("Evolvability.jl")
 include("Build_chromosome.jl")
-include("epistasis.jl")
+#include("epistasis.jl")
+include("Complexity.jl")
 end
 using Main.CGP
 MyInt=Main.CGP.MyInt

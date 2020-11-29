@@ -19,6 +19,7 @@ All diary topics:
 10/14: Parallelized geno_complexity() in Evolvability.jl
 10/15: Evolvability running for 64000 steps for a common and a rare goal.
 10/18: Determine bias as defined by Greenbury (2014).
+        Goal freq vs goal rank.
 10/19: Scatter plot of counts includeing 8_5, 11_5, 11_8.
 10/20: Integrated estimates of phenotypic evolvability in run_geno_complexity() and geno_compexity() in Evolvability.jl.
         Have mostly abandoned this approach.
@@ -31,7 +32,21 @@ All diary topics:
        Part 2:  neutral_walk_complexity() in neutral_walk_connectivity.jl: distribution of complexities on a neutral walk.
 10/30: Additional results for 10/27
 10/31: Distribution of complexities for a list of goals
-11/2:  Arrow of complexity
+11/1:  Distribution of complexities for a list of goals (same as 10_31)
+11/4:  Arrow of complexity
+11/5:  Working on the document "Exploring complexity11_5.docx".
+        Checking whether the values of cumm_unique_goals of over 500 in explore_complexity11_4D.csv are plausible.
+11/7:  Idea for visualization of a random collection goals.  
+       Redoing the counts file for the Raman 4x1 case.
+11/10: Kolmogorov complexity (see 11/11 for details)
+11/11: Kolmogorov complexity for a set of random goals and for all 2^16 4x1 goals (F files).
+11/15: Compute evolvability for a common and rare goal by sampling 65536 circuits.
+11/18: Generating plots of evolvability vs robustness with other parameter settings.
+11_21: Plot of number of unique phenotypes in a cumulatively increasing sample size of 1-mutant neighbors of the given phenotype.
+      Best current idea for explaining the negative relationship between evolvability and robustness:
+      Plot of both genotype and phenotype evolvability vs. robustness.
+11_22: Attempted to determine connectivity of neutral net of a goal g by finding a distance reducing path from chromosome c1.  
+      Not very successful.
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

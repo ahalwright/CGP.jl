@@ -1,0 +1,39 @@
+Created 'cce/Logic Gate Genotype Phenotype Map11_28_20.pptx'
+for presentation to family.
+
+Wrote sampling.jl to test the following hypothesis:
+
+Given an urn with $n-k$ black balls and $k$ white balls.
+Take repeated samples with the following procedure:
+  * pick a ball from the urn
+  * if the ball is black, return to the urn
+  * if the ball is white, replace with a black (or blue) ball
+Modeling the expected probability $p_i$ of a white ball on sample $i$ for $i = 0,1,2,\ldots$.
+Hypothesis:  $p_i = k/n*(1-1/n)^i$.
+
+Derivation:
+
+Clearly, $p_0 = k/n$.
+
+On trial 1, the expected number of white balls is $(k - p_0)=(k-k/n)= k*(1-1/n)$ so 
+$p_1= k/n*(1-1/n)
+
+On trial 2, the expected number of white balls is 
+$(k-p_0-p_1)=k-k/n-k/n*(1-1/n)= k*(1-1/n-(1/n)*(1-1/n) = k*(1-1/n-1/n-1/n^2) = k*(1-1/n)^2$
+so $p_2= k/n*(1-1/n)^2$
+
+Instead of modeling probabilities, model the expected number of white balls.
+
+Look at:
+julia> asl=average_sample_lists( 10000, n, k, 500 )  
+julia> ssl = asl.*n       # Expected number of white balls
+
+
+Testbed for the evolution of complexity.
+
+Random sample evolvability vs Neutral walk evolvability.
+
+Should we invite Wagner as a co-author?
+
+Hypothesis:  increasing the number of gates will weaken or reverse the negative relationship 
+between evolvavility and robustness (and the other interesting related relationships).

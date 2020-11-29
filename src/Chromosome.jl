@@ -621,14 +621,17 @@ function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Flo
   Chromosome( p, in_nodes, int_nodes, out_nodes, fitness, 0.0 )
 end
 
-function print_build_chromosome( f::IO, c::Chromosome )
+function print_build_chromosome( f::IO, c::Chromosome; include_fitness::Bool=false )
   print(f, "build_chromosome(")
   print_node_tuple(f, c.inputs )
   print(f,",")
   print_node_tuple(f, c.interiors )
   print(f,",")
   print_node_tuple(f, c.outputs )
-  println(f,", ",c.fitness,")")
+  if include_fitness
+    println(f,", ",c.fitness)
+  end
+  println(f,")")
   #print(f, ") ")
   if typeof(f) == IOStream  # Don't close Base.stdout since this kills julia
     close(f)
@@ -644,6 +647,9 @@ end
 function circuit_code( c::Chromosome )
   result = Int64[]
   funcs = default_funcs(c.params.numinputs)
+  if length(c.interiors) == 0
+    return Int64[]
+  end
   for i = 1:c.params.numinteriors
     # Determine index of gate 
     j = 1
