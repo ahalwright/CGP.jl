@@ -47,6 +47,8 @@ All diary topics:
       Plot of both genotype and phenotype evolvability vs. robustness.
 11_22: Attempted to determine connectivity of neutral net of a goal g by finding a distance reducing path from chromosome c1.  
       Not very successful.
+11_28:  sampling.jl  tests my hypothesis on sampling black, white, blue balls.
+11_29:  tests whether increasing gates will effect evolvability vs robustness relationship.
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

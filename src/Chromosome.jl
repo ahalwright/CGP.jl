@@ -5,8 +5,8 @@ export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromos
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_gates, hamming_distance, hamming, deactivate_chromosome!
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
-export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code, circuit_distance
-export remove_inactive
+export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code, circuit_int
+export circuit_distance, remove_inactive, count_circuits
 
 mutable struct Chromosome
     params::Parameters
@@ -651,23 +651,53 @@ function circuit_code( c::Chromosome )
     return Int64[]
   end
   for i = 1:c.params.numinteriors
-    # Determine index of gate 
-    j = 1
-    while j <= length(funcs) && funcs[j].func != c.interiors[1].func.func
+    # Determine index of gate function
+    j = 0
+    while j < length(funcs) && funcs[j+1].func != c.interiors[i].func.func
       j += 1
     end
     if j > length(funcs)
       error("illegal function in function circuit_code()")
     end
+    #println("i: ",i,"  function code: ",j)
     push!(result,j)
     # Add interior node inputs to result
+    index = i + c.params.numinputs  # node index in chromosome
     for k = 1:length(c.interiors[i].inputs)
-      push!(result,c.interiors[i].inputs[k])
+      code = max(c.interiors[i].inputs[k]-(index-c.params.numlevelsback),0)
+      #println("i: ",i,"  k: ",k,"  code: ",code)
+      push!(result, code)
     end
   end
   # Note:  assumes that the input fields of output nodes are set by default and thus don't need to be recorded
   result
 end
+
+# An integer that characterizes the chromosome
+# Doesn't overflow for 11 gates, 8 numlevelsback
+function circuit_int( c::Chromosome )
+  result = Int128(0)
+  multiplier = 1
+  funcs = default_funcs( c.params.numinputs )
+  c_code = circuit_code( c )
+  k = 1
+  for i = 1:c.params.numinteriors
+    multiplier = length(funcs)
+    result += c_code[k] + result*multiplier
+    #print("i: ",i,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
+    #println("  result: ",result)
+    k += 1
+    multiplier = min(c.params.numlevelsback,i-1+c.params.numinputs)
+    for j = 1:length(c.interiors[i].inputs)
+      result += c_code[k] + result*multiplier
+      #print("i: ",i,"  j: ",j,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
+      #println("  result: ",result)
+      k += 1
+    end
+  end
+  result
+end
+
 
 # Hamming distance between chromosomes normalized to be between 0.0 and 1.0
 function circuit_distance( c1::Chromosome, c2::Chromosome )
@@ -681,3 +711,29 @@ function circuit_distance( c1::Chromosome, c2::Chromosome )
   diff_count/length(code1)
 end
 
+# Return the number of circuits for parameters p and the corresponding default_funcs.
+function count_circuits( p::Parameters )
+  @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
+  funcs = default_funcs(p.numinputs)
+  multiplier = Int128(1)
+  mij = 0
+  for i = 1:p.numinteriors
+    mf = length(funcs)
+    multiplier *= mf
+    for j = 1:p.nodearity
+      mij = min(p.numlevelsback,i-1+p.numinputs)
+      multiplier *= mij
+    end
+    print("i: ",i,"  mf: ",mf,"  mij: ",mij,"  log multiplier: ",log10(multiplier))
+    exp = trunc(log10(multiplier))
+    fract = 10^(log10(multiplier)-exp)
+    println("  exp: ",exp,"  fract: ",fract)
+    @printf("  multiplier: %4.2f",fract)
+    @printf("e+%2i\n",exp)
+    try
+      @printf("  multiplier:  %8.2e\n",multiplier)
+    catch
+    end
+  end
+  multiplier
+end

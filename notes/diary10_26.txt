@@ -20,12 +20,17 @@ For the 4x1 goal, as w increases, the program slows down and is using close to t
 Conclusion:  I should use dictionaries to implement circuit code lists.  I can parallelize the neutral walks, but I
 don't see how to parallelize the combinination of circuit code lists.  Hopefully, using dictionaries will help.
 
+include("neutral_walk_connectivity.jl")
 Counts from file: data/10_26/count_out_3x1_raman_6ints_4lb_10_26.csv
 Parameters:  3 inputs 1 output 6 ints 4 levsback
 goal:  [0x0049]    count:  53
 julia> run_neutral_walk( g, p, 100, 1200, 50000, 30)
 w: 100  walk_list after add: [1, 11, 21, 25, 29, 44, 89, 96]
 w: 100  length(circuit_code_list) after add: 8  lengths circuit_code_list: [724574, 209, 840, 108, 108, 1173, 205, 39]
+
+Rerun of the above on 11/29:
+w: 100  walk_list after add: [1, 14, 16, 48, 49, 54, 92]
+w: 100  length(circuit_code_list) after add: 7  lengths circuit_code_list: [688442, 445, 138, 5840, 39, 73, 175]
 
 goal:  [0x007a]  count:  191
 w: 100  walk_list after add: [1]

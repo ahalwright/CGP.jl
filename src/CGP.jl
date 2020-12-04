@@ -11,6 +11,7 @@ using Distributed
 using DataFrames
 using StatsBase
 using Combinatorics
+using Printf
 #const MyInt = UInt8       # Type of bit string integers used in bit functions
 const MyInt = UInt16     # Type of bit string integers used in bit functions
 #const MyInt = UInt32     # Type of bit string integers used in bit functions

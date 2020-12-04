@@ -1,0 +1,3 @@
+Number of circuits:  wrote function count_circuits( p::Parameters) in Chromosome.jl 
+   which returns number of circuits.
+

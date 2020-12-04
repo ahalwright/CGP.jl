@@ -3,6 +3,9 @@ for presentation to family.
 
 Wrote sampling.jl to test the following hypothesis:
 
+See the document sampling.tex on Windows Dropbox\evotech\complexity\notes\tex
+for a revised version.
+
 Given an urn with $n-k$ black balls and $k$ white balls.
 Take repeated samples with the following procedure:
   * pick a ball from the urn
