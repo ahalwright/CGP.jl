@@ -761,8 +761,8 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   geno_complexity_df.log_avg_steps = Float64[]
   geno_complexity_df.robustness = Float64[]
   geno_complexity_df.evo_count = Int64[]
-  geno_complexity_df.ratio = Float64[]
-  geno_complexity_df.estimate = Float64[]
+  #geno_complexity_df.ratio = Float64[]
+  #geno_complexity_df.estimate = Float64[]
   geno_complexity_df.unique_goals = GoalList[]
   geno_complexity_df.nactive = Float64[]
   geno_complexity_df.complexity = Float64[]
@@ -794,13 +794,13 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
     push!(geno_complexity_df,res)
   end
   geno_complexity_df.evo_count = zeros(Int64,size(geno_complexity_df)[1] )
-  geno_complexity_df.ratio = zeros(Float64,size(geno_complexity_df)[1] )
-  geno_complexity_df.estimate = zeros(Float64,size(geno_complexity_df)[1] )
+  #geno_complexity_df.ratio = zeros(Float64,size(geno_complexity_df)[1] )
+  #geno_complexity_df.estimate = zeros(Float64,size(geno_complexity_df)[1] )
   j = 1
   for g in goallist
     all_unique_goals = Goal[]
     prev_evo_count = 0
-    sum_estimate = 0.0
+    #sum_estimate = 0.0
     for i = 1:num_iterations
       all_unique_goals = unique( vcat( all_unique_goals, geno_complexity_df[j,:unique_goals] ))
       #println("j: ",j,"  i: ",i,"  length(all_unique_goals): ",length(all_unique_goals))
@@ -808,15 +808,15 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
       new_count = evo_count - prev_evo_count
       geno_complexity_df[j,:evo_count] = evo_count
       prev_evo_count = evo_count
-      ratio = new_count/sample_size
-      geno_complexity_df[j,:ratio] = ratio
-      estimate = evo_count + ratio*num_goals   # 10/20/20: estimates always increase over multiple runs and are too low at first
-      geno_complexity_df[j,:estimate] = estimate
+      #ratio = new_count/sample_size
+      #geno_complexity_df[j,:ratio] = ratio
+      #estimate = evo_count + ratio*num_goals   # 10/20/20: estimates always increase over multiple runs and are too low at first
+      #geno_complexity_df[j,:estimate] = estimate
       #println("i: ",i,"  evo_count: ",evo_count,"  new_count: ",new_count,"  ratio: ",ratio,"  estimate: ",estimate)
-      sum_estimate += estimate
+      #sum_estimate += estimate
       j += 1
     end
-    println("estimate_avg for goal : ",g,": ",sum_estimate/num_iterations)
+    #println("estimate_avg for goal : ",g,": ",sum_estimate/num_iterations)
   end
   select!(geno_complexity_df,DataFrames.Not(:unique_goals))    # Remove :unique_goals from gcdf
   if length(csvfile) > 0
@@ -916,8 +916,8 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       sum_steps != 0.0 ? log10(sum_steps/nrepeats) : 0.0,
       robust_sum/all_outputs_sum, 
       0,   # evo_count, value filled in later
-      0.0,  # ratio, value filled in later 
-      0.0,  # estimate, value filled in later 
+      #0.0,  # ratio, value filled in later 
+      #0.0,  # estimate, value filled in later 
       all_unique_outputs,
       sum( nactive_list )/maxreps,
       sum( complexity_list )/maxreps,
@@ -942,8 +942,8 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       0,   # sum_steps
       0,   # log_sum_steps
       0,   # evo_count
-      0.0, # ratio
-      0.0, # estimate
+      #0.0, # ratio
+      #0.0, # estimate
       0.0, # nactive
       Goal[],
       #sum( nactive_list )/maxreps,

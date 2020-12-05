@@ -7,7 +7,6 @@ Ran data/10_27/run_geno_complexityE.jl on surt2 with 20 processes to produce gen
 and copied to lycosa.
 julia> @time include("../data/10_27/run_geno_complexityG.jl")  # 10 gates and 5 levsback
 
-
 Revised the function consolidate_dataframe() in Analyze.jl and ran to reduced from 500 rows to 100 rows (ngoals).
 ndf = consolidate_dataframe("../data/10_27/geno_complexity10_27F.csv","../data/10_27/geno_complexity10_27Fcons.csv")
 Result:  data/10_27/geno_complexity10_27Econs.csv.
