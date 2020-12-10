@@ -2,3 +2,10 @@ Wrote two versions of run_neutral_walk() in neutral_walk_connectivity.jl.
 One version is for a single goal, the other iterates over a goal list.
 Both versions use pmap()  for parallelism.
 
+
+# create a counts for for 3x1, 6 gates, 4 lb
+@time ol = count_outputs_parallel( 10^6, 3, 1, 6, 4 )
+write_to_dataframe_file(p, map(Int64,ol), "../data/12_7/count_outputs_3x1_raman_12_7_6gts_4lb.csv","date: 12/7/20","10^6 circuits")
+cd ../counts
+ln -s ../12_9/count_outputs_3x1_raman_12_7_6gts_4lb.csv
+

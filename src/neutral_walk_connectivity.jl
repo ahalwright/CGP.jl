@@ -20,9 +20,13 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
   funcs = default_funcs( p.numinputs )
   circuit_ints = Int64[]
   n_repeats = 10  # maximum number of tries to find c that maps to g
+  complexity_sum = 0.0
+  complexity_count = 0
   res = mut_evolve_repeat(n_repeats, p, [g], funcs, maxsteps )
   c = res[1]
   #println("complexity(c): ",complexity5(c))
+  complexity_sum += complexity5(c)
+  complexity_count += 1
   #@assert sort(output_values(c)) == sort(g)
   @assert output_values(c) == g    # Assumes p.numoutputs==1
   push!( circuit_ints, circuit_int(c) )
@@ -42,7 +46,7 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
       filter!( x->output_values(x)==g, all_chromes )  # only chromosomes that map to g
       #println(" attempts == maxtries  len(all_chromes): ",length(all_chromes))
       if length(all_chromes) == 0  
-        prinitln("unable to extend random_neutral_walk in function neutral_walk() at step: ",i)
+        println("unable to extend random_neutral_walk in function neutral_walk() at step: ",i)
         break
       else
         @assert output_values(all_chromes[1]) == g
@@ -51,6 +55,8 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
     else
       c = new_c   # neutral walk extended
     end
+    complexity_sum += complexity5(c)
+    complexity_count += 1
     @assert output_values(c) == g
     # mutate_all() returns a list of pairs where the second element of the pair is the chromosome
     all_chromes = map( x->x[2], mutate_all( c, funcs, output_chromosomes=true )) 
@@ -60,18 +66,21 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
     end
     circuit_ints = unique(circuit_ints)  
   end # for loop
-  circuit_ints
+  (Set(circuit_ints), complexity_sum/complexity_count )
 end
     
 # Does multiple random walks and combines the returned circuit code lists if they have circuits in common.
 function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64, maxsteps::Int64, maxtries::Int64 )
   walk_list = Int64[]
   circuit_int_list = Set{Int64}[]
-  #walk_results = map(x->Set(neutral_walk( g, p, steps, maxsteps, maxtries)), collect(1:n_walks))  
-  walk_results = pmap(x->Set(neutral_walk( g, p, steps, maxsteps, maxtries)), collect(1:n_walks))  
+  #walk_results = map(x->neutral_walk( g, p, steps, maxsteps, maxtries), collect(1:n_walks))  
+  walk_results = pmap(x->neutral_walk( g, p, steps, maxsteps, maxtries), collect(1:n_walks))  
+  #println("walk_results[1]: ",walk_results[1])
+  complexity_avg = 0.0
   for w = 1:n_walks
     #cclist = Set(neutral_walk( g, p, steps, maxsteps, maxtries))
-    cclist = walk_results[w]
+    cclist = walk_results[w][1]
+    complexity_avg += walk_results[w][2]
     #println("length(cclist): ",length(cclist))
     to_combine = Int64[]   # indices of circuit_int list to combine
     for i = 1:length(circuit_int_list)
@@ -115,7 +124,7 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
     end
   end  # for w = 1:n_walks
   #walk_list
-  (g,length(circuit_int_list),[length(ccl) for ccl in circuit_int_list])
+  (g,length(circuit_int_list),[length(ccl) for ccl in circuit_int_list],complexity_avg/n_walks)
 end
 
 # Do multiple runs of run_neutral_walk() defined above for each goal in goallist gl.
@@ -133,9 +142,10 @@ function run_neutral_walk( gl::GoalList, p::Parameters, n_walks::Int64, steps::I
   df.maxsteps = Int64[]
   df.maxtries = Int64[]       
   df.n_combined = Int[] 
+  df.complexity = Float64[]
   result = pmap(g->run_neutral_walk( g, p, n_walks, steps, maxsteps, maxtries ), gl )
   for r in result
-    push!(df,(r[1], p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, n_walks, steps, maxsteps, maxtries, r[2] ))
+    push!(df,(r[1], p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, n_walks, steps, maxsteps, maxtries, r[2], r[4] ))
   end
   hostname = chomp(open("/etc/hostname") do f read(f,String) end)
   println("# date and time: ",Dates.now())

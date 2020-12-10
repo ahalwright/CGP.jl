@@ -27,6 +27,7 @@ All diary topics:
 10/23: No results.  See 10/26
 10/26: Objective:  Find the size of the components of the neutral network of a goal by joining components
         discovered on multiple neutral walks.  Very successful for 3x1 goals, some results for 4x1 8_5, failure for 11_8
+       Also a run of count_outputs.
 10/27: Part 1: relate complexity, frequency, steps or log_steps (difficulty of evolution) Scatter plots
         functions geno_complexity() in Evolvability.jl.  cce/Complexity_frequency_difficulty_evolution10_30.docx
         Include plots generated on 12/4 with a larger sample of goals.
