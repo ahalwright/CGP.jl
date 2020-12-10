@@ -22,7 +22,7 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
   n_repeats = 10  # maximum number of tries to find c that maps to g
   res = mut_evolve_repeat(n_repeats, p, [g], funcs, maxsteps )
   c = res[1]
-  println("complexity(c): ",complexity5(c))
+  #println("complexity(c): ",complexity5(c))
   #@assert sort(output_values(c)) == sort(g)
   @assert output_values(c) == g    # Assumes p.numoutputs==1
   push!( circuit_ints, circuit_int(c) )
@@ -72,27 +72,27 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
   for w = 1:n_walks
     #cclist = Set(neutral_walk( g, p, steps, maxsteps, maxtries))
     cclist = walk_results[w]
-    println("length(cclist): ",length(cclist))
+    #println("length(cclist): ",length(cclist))
     to_combine = Int64[]   # indices of circuit_int list to combine
     for i = 1:length(circuit_int_list)
       if length(intersect(cclist,circuit_int_list[i])) > 0
         push!(to_combine,i)
       end  
     end
-    println("to_combine: ",to_combine)
     if length(to_combine) > 0
+      println("w: ",w,"  to_combine: ",to_combine)
       combined_list = cclist
       for i = length(to_combine):-1:1
-        println("combining circuit_int_list[",to_combine[i],"]")
+        #println("combining circuit_int_list[",to_combine[i],"]")
         combined_list = union(combined_list,circuit_int_list[to_combine[i]])
         if i > 1
           deleteat!( circuit_int_list, to_combine[i] )
-          println("removing index: ",to_combine[i]," from circuit_int_list")
-          println("walk_list before: ",walk_list)
+          #println("removing index: ",to_combine[i]," from circuit_int_list")
+          #println("walk_list before: ",walk_list)
           #walk_list = setdiff(walk_list,to_combine[i]) 
           deleteat!( walk_list, to_combine[i] )
-          println("removing index: ",to_combine[i]," from walk list")
-          println("walk_list after: ",walk_list)
+          #println("removing index: ",to_combine[i]," from walk list")
+          #println("walk_list after: ",walk_list)
         end
       end
       circuit_int_list[to_combine[1]] = combined_list
@@ -103,7 +103,7 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
       #println("   lengths circuit_int_list: ", [length(circuit_int_list[k]) for k = 1:length(circuit_int_list)])
     end
     #println("w: ",w,"  walk_list after add: ",walk_list)
-    println("   lengths circuit_int_list: ", [length(circuit_int_list[k]) for k = 1:length(circuit_int_list)])
+    println("w: ",w,"  len: ",length(circuit_int_list),"  lengths circuit_int_list: ", [length(circuit_int_list[k]) for k = 1:length(circuit_int_list)])
     #print("w: ",w,"  length(circuit_int_list) after add: ",length(circuit_int_list))
     #println("  lengths circuit_int_list: ",[length(ccl) for ccl in circuit_int_list])
     for i = 1:length(circuit_int_list)
