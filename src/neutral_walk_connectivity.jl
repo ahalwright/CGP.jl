@@ -42,8 +42,8 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
       filter!( x->output_values(x)==g, all_chromes )  # only chromosomes that map to g
       #println(" attempts == maxtries  len(all_chromes): ",length(all_chromes))
       if length(all_chromes) == 0  
-        error("unable to extend random_neutral_walk in function neutral_walk() at step: ",i)
-        #continue
+        prinitln("unable to extend random_neutral_walk in function neutral_walk() at step: ",i)
+        break
       else
         @assert output_values(all_chromes[1]) == g
         c = rand(all_chromes)
@@ -115,7 +115,7 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
     end
   end  # for w = 1:n_walks
   #walk_list
-  (length(circuit_int_list),[length(ccl) for ccl in circuit_int_list])
+  (g,length(circuit_int_list),[length(ccl) for ccl in circuit_int_list])
 end
 
 # Do multiple runs of run_neutral_walk() defined above for each goal in goallist gl.
@@ -123,6 +123,7 @@ end
 function run_neutral_walk( gl::GoalList, p::Parameters, n_walks::Int64, steps::Int64, maxsteps::Int64, maxtries::Int64;
       csvfile::String="" )
   df = DataFrame()
+  df.goal = Vector{MyInt}[]
   df.numinputs = Int64[]
   df.numoutputs = Int64[]
   df.numints = Int64[]
@@ -131,10 +132,10 @@ function run_neutral_walk( gl::GoalList, p::Parameters, n_walks::Int64, steps::I
   df.steps = Int64[]
   df.maxsteps = Int64[]
   df.maxtries = Int64[]       
-  df.n_combined_circuits = Int[] 
+  df.n_combined = Int[] 
   result = pmap(g->run_neutral_walk( g, p, n_walks, steps, maxsteps, maxtries ), gl )
   for r in result
-    push!(df,( p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, n_walks, steps, maxsteps, maxtries, r[1] ))
+    push!(df,(r[1], p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, n_walks, steps, maxsteps, maxtries, r[2] ))
   end
   hostname = chomp(open("/etc/hostname") do f read(f,String) end)
   println("# date and time: ",Dates.now())
