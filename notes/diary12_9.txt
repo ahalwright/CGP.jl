@@ -1,0 +1,4 @@
+Wrote two versions of run_neutral_walk() in neutral_walk_connectivity.jl.
+One version is for a single goal, the other iterates over a goal list.
+Both versions use pmap()  for parallelism.
+

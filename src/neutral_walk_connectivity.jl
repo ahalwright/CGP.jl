@@ -67,8 +67,11 @@ end
 function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64, maxsteps::Int64, maxtries::Int64 )
   walk_list = Int64[]
   circuit_int_list = Set{Int64}[]
+  #walk_results = map(x->Set(neutral_walk( g, p, steps, maxsteps, maxtries)), collect(1:n_walks))  
+  walk_results = pmap(x->Set(neutral_walk( g, p, steps, maxsteps, maxtries)), collect(1:n_walks))  
   for w = 1:n_walks
-    cclist = Set(neutral_walk( g, p, steps, maxsteps, maxtries))
+    #cclist = Set(neutral_walk( g, p, steps, maxsteps, maxtries))
+    cclist = walk_results[w]
     println("length(cclist): ",length(cclist))
     to_combine = Int64[]   # indices of circuit_int list to combine
     for i = 1:length(circuit_int_list)
@@ -100,9 +103,9 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
       #println("   lengths circuit_int_list: ", [length(circuit_int_list[k]) for k = 1:length(circuit_int_list)])
     end
     #println("w: ",w,"  walk_list after add: ",walk_list)
-    #println("   lengths circuit_int_list: ", [length(circuit_int_list[k]) for k = 1:length(circuit_int_list)])
-    print("w: ",w,"  length(circuit_int_list) after add: ",length(circuit_int_list))
-    println("  lengths circuit_int_list: ",[length(ccl) for ccl in circuit_int_list])
+    println("   lengths circuit_int_list: ", [length(circuit_int_list[k]) for k = 1:length(circuit_int_list)])
+    #print("w: ",w,"  length(circuit_int_list) after add: ",length(circuit_int_list))
+    #println("  lengths circuit_int_list: ",[length(ccl) for ccl in circuit_int_list])
     for i = 1:length(circuit_int_list)
       for j = 1:(i-1)
         if !isempty(intersect(circuit_int_list[i],circuit_int_list[j]))
@@ -110,8 +113,53 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
         end
       end
     end
+  end  # for w = 1:n_walks
+  #walk_list
+  (length(circuit_int_list),[length(ccl) for ccl in circuit_int_list])
+end
+
+# Do multiple runs of run_neutral_walk() defined above for each goal in goallist gl.
+# To do repeated runs on a goal, include it multiple times in the gl.
+function run_neutral_walk( gl::GoalList, p::Parameters, n_walks::Int64, steps::Int64, maxsteps::Int64, maxtries::Int64;
+      csvfile::String="" )
+  df = DataFrame()
+  df.numinputs = Int64[]
+  df.numoutputs = Int64[]
+  df.numints = Int64[]
+  df.numlevsback = Int64[]
+  df.n_walks = Int64[]
+  df.steps = Int64[]
+  df.maxsteps = Int64[]
+  df.maxtries = Int64[]       
+  df.n_combined_circuits = Int[] 
+  result = pmap(g->run_neutral_walk( g, p, n_walks, steps, maxsteps, maxtries ), gl )
+  for r in result
+    push!(df,( p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, n_walks, steps, maxsteps, maxtries, r[1] ))
   end
-  walk_list
+  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+  println("# date and time: ",Dates.now())
+  println("# host: ",hostname," with ",nprocs()-1,"  processes: " )
+  println("# funcs: ", Main.CGP.default_funcs(p.numinputs))
+  print_parameters(p,comment=true)
+  println("# n_walks: ",n_walks)
+  println("# steps: ",steps)
+  println("# maxsteps: ",maxsteps)
+  println("# maxtries: ",maxtries)
+  println("# ngoals: ",length(gl))
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f     
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      print_parameters(f,p,comment=true)
+      println(f,"# steps: ",steps)
+      println(f,"# maxsteps: ",maxsteps)
+      println(f,"# maxtries: ",maxtries)
+      println(f,"# ngoals: ",length(gl))
+      CSV.write(f, df, append=true, writeheader=true ) 
+    end
+  end
+  return df
 end
 
 # Distribution of complexities on a neutral walk.   

@@ -4,7 +4,7 @@ Also uses sets rather than lists in run_neutral_walk().
 Note that sometimes the function fails when the neutral walk cannot be extended.  
 Dramatically faster.
 
-julia> include("circuit_code.jl")
+julia> include("circuit_code.jl")   # not needed---copied into Chromosome.jl
 julia> include("neutral_walk.jl")
 julia> p = Parameters(3,1,6,4)
 julia> g = [0x0029]

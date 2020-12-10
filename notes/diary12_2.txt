@@ -1,4 +1,6 @@
 Predicting evolvability from repeated sampling.
+Failed:  see below
+
 Sets up a linear regression to predict y = log_evo_count_diff which is the number of new
   phenotypes discovered on each step.  The x variable is map(log10,collect(1:16)).
 Seems to work.

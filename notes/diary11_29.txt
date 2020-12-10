@@ -1,0 +1,4 @@
+Hypothesis:  Running with more gates will reduce or eliminate the negative relationship between
+phenotype evolvability and phenotype robustness.
+Dhe D run does geno_robustness() for 15 gates, 11lb, and the E run for 19 gates and 13lb.
+Hypothesis disproved, but both evolvability and robustness are smaller as gates increase.       

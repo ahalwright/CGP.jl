@@ -6,12 +6,22 @@ MT for use in simulating the evolution of technology, though there is
 nothing specific to that application in the library so it is (will be)
 perfectly suitable for other applications as well.
 =#
+
+using Distributed
+using DataFrames
+using StatsBase
+using Combinatorics
+using Printf
+using Dates
+using CSV
 module CGP
 using Distributed
 using DataFrames
 using StatsBase
 using Combinatorics
 using Printf
+using Dates
+using CSV
 #const MyInt = UInt8       # Type of bit string integers used in bit functions
 const MyInt = UInt16     # Type of bit string integers used in bit functions
 #const MyInt = UInt32     # Type of bit string integers used in bit functions

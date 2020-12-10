@@ -52,6 +52,6 @@ julia> pwd()
 julia> cdf = read_dataframe("10_18/scatter_data_logfreq_vs_goal_rank.csv")
 65536×6 DataFrame
 
-# Both of the next commands take a long time
+# Both of the next commands take a long time due to using these marekshapes.  
 julia> scatter( collect(1:65536), [sort(s8log,rev=true),sort(s11log,rev=true),sort(s11_8log,rev=true)], title="Goal frequency vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["8 gates 5 levsback" "11 gates 5 levsback" "11 gates 8 levsback"],markershape=[:star4, :xcross])
 julia> savefig("goal_freq_vs_goal_rank8_5__11_5__11_8__10_18.png")

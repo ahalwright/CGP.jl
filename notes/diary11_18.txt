@@ -1,0 +1,44 @@
+Generating plots of evolvability vs robustness with other parameter settings.
+Plots are in data/11_18.
+
+Overall conclusion:  All negative relationships, but not as strong as the 11 gates, 8 lb case.
+
+geno_complexity11_18C.csv data/11_18/'evo_vs_robustness 3 inputs 6 gates 4 lb.png'
+julia> cr = collect(10:10:1000);
+julia> scatter( df.robustness[cr], df.evo_count[cr], title="evo_count vs fractional robustness 3 inputs 6 gates 4 levelsback", xlabel="fractional robustness", ylabel="evolvability count", labels="")
+Negative relationship, but not nearly as strong as 4 inputs 1 output.
+corspearman( df.robustness[cr], df.evo_count[cr]) = -0.5396480832626827
+
+geno_complexity11_18N.csv 'evo_vs_robustness 4 inputs 2 outputs 16 gates 8 lb.png'
+julia> cr = collect(10:10:400); 
+julia> scatter( df.robustness[cr], df.evo_count[cr], title="evo_count vs robustness 4x2 16 gates 8 lb", xlabel="fractional robustness", ylabel="evolvability count", labels="")
+julia> savefig("11_18/evo_vs_robustness 4 inputs 2 outputs 16 gates 8 lb.png")
+Negative relationship, but not as strong as 4 inputs 1 output.
+corspearman(df.robustness[cr], df.evo_count[cr]) = -0.8961441075182446
+
+geno_complexity11_18F.csv "11_18/evo_vs_robustness 4 inputs 1 output 8 gates 5 lb filtered.png"
+Filter min_count value 100
+julia> cr = collect(10:10:500) 
+julia> scatter( df.robustness[cr], df.evo_count[cr], title="evo_count vs robustness 4 inputs 1 outputs 8 gts 5 lb", xlabel="fractional robustness", ylabel="evolvability count", labels="")  
+Negative relationship, but not nearly as strong as with more gates and levsback.
+corspearman(df.robustness[cr], df.evo_count[cr]) = -0.6612074355640161
+
+geno_complexity11_18N.csv 'evo_vs_robustness 5 inputs 1 outputs 18 gates 8 lb.png'
+julia> cr = collect(10:10:400); 
+julia> scatter( df.robustness[cr], df.evo_count[cr], title="evo_count vs robustness 5x1 18 gates 8 lb", xlabel="fractional robustness", ylabel="evolvability count", labels="")
+savefig("11_18/evo_vs_robustness 5 inputs 1 outputs 18 gates 8 lb.png")
+corspearman( df.robustness[cr], df.evo_count[cr]) = -0.7885923363429362
+runtime:  about 4 hours on surt2 28 processes.
+
+For comparison:
+geno_complexity11_18Q.csv 'evo_vs_robustness 4 inputs 1 outputs 11 gates 8 lb.png'
+corspearman( gcdf.robustness[cr], gcdf.evo_count[cr]) = -0.8203011407307441
+geno_complexity11_18R.csv 'evo_vs_robustness 4 inputs 1 outputs 11 gates 8 lb.png' overwritten
+corspearman( gcdf.robustness[cr], gcdf.evo_count[cr]) = -0.8889722792274167
+
+geno_complexity11_18R.csv 'evo_vs_robustness 4 inputs 1 outputs 11 gates 5 lb.png'
+corspearman( gcdf.robustness[cr], gcdf.evo_count[cr]) = -0.7400666208297328
+
+
+Without looking at the last iterations (by using cr), I get a triangular relationship.   
+Maybe this shows the effect of too sample size in computing evolvability.

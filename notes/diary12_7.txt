@@ -1,0 +1,12 @@
+Evolvability for 3x1 goals
+
+5 gates, 4 levels back
+Frequencies are for 8 gates rather than 5
+julia> mdf = read_dataframe("12_7/geno_complexity12_7M.csv");   # goal [0xb6] freq 90 
+julia> ndf = read_dataframe("12_7/geno_complexity12_7N.csv");   # goal [0x05] freq 13617
+julia> pdf = read_dataframe("12_7/geno_complexity12_7P.csv");   # goal [0xff] freq 161702
+
+julia> scatter(map(log10,collect(1:120)),[map(log10,ndf.evo_count),map(log10,mdf.evo_count)],labels=["goal function [0xb6] frequency 90" "goal function [0x05] frequency 13617"],xlabel="log(sample size)",ylabel="log(evolvability count)",title="log evolvability vs log sample size for 3 input goal functions",legend=:bottomright, markerstrokecolor=[:blue :orange] )
+
+savefig("12_7/log_evo_count_vs_log_sample_size_3x1_5gates_4lb.png")
+

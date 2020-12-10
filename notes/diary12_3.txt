@@ -1,3 +1,19 @@
 Number of circuits:  wrote function count_circuits( p::Parameters) in Chromosome.jl 
    which returns number of circuits.
 
+Used R poweRlaw to check if frequency distribution is a power law.
+https://www.rdocumentation.org/packages/poweRlaw/versions/0.70.6
+
+> counts <- read.csv("counts.csv")
+> cnts = counts$ints8_5;
+> cnt = displ$new(cnts)
+> cnt$setXmin(20)
+> cnt$setPars(2)
+> (est=estimate_pars(cnt))
+> (est=estimate_xmin(cnt))
+xmin search space truncated at 1e+05
+        You have three options
+                     1. Increase xmax in estimate_xmins
+                     2. Specify xmins explicitly
+                     3. Ignore and hope for the best (which may be OK)
+> plot(cnt)   #plot is not linear so it didn't work.

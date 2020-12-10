@@ -1,0 +1,13 @@
+Generating plots of evolvability vs robustness with other parameter settings.
+Plots are in data/11_18.
+
+geno_complexity11_18C.csv data/11_18/'evo_vs_robustness 3 inputs 6 gates 4 lb.png'
+Negative relationship, but not nearly as strong as 4 inputs 1 output.
+
+geno_complexity11_18N.csv 'evo_vs_robustness 4 inputs 2 outputs 16 gates 8 lb.png'
+Triangular negative relationship with points of low robustness and low evolvability.
+
+geno_complexity11_18F.csv "11_18/evo_vs_robustness 4 inputs 1 output 8 gates 5 lb filtered.png"
+Filter min_count value 100
+Triangular negative relationship with points of low robustness and low evolvability.
+spearman_cor -0.38
