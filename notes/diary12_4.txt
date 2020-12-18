@@ -1,5 +1,8 @@
-Generated 10 plots from data file geno_complexity10_27FMNcons.csv which was created on 10/30.
+Generated 10 plots from data file geno_complexity10_27FMNccons.csv which was created on 10/30.
 These plot files are in data/10_27 and all begin with gc10_27FMN_.        
+Example:
+gcdf = read_dataframe("10_27/geno_complexity10_27FMNccons.csv")
+
 
 Rerunnng determining evolvability by repeated sampling for a large number of goals.
 

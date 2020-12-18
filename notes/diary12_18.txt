@@ -1,0 +1,11 @@
+Human cancer cells become polyploid and sexual.  Page 237 of "Rebel Cell" by Kat Arney.
+
+@time db = include("../data/12_18/run_geno_phenoC.jl")
+27257 seconds
+
+A limitation is that when mut evolve fails, the numinteriors and numlevelsback parameters are increased.
+
+Will write a parallel version of circuit_complexities() in RecordOutputs.jl.
+
+
+Revised run_circuit_complexities.jl in RecordOutputs.jl to use pmap().

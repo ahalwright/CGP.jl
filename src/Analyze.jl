@@ -44,11 +44,12 @@ function spearman_cor( df::DataFrame, name1::Symbol, name2::Symbol )
   (r, p_value)
 end
 
-# Consolidates a dataframe with the columns specified below by averaging columsn with the same paramter values
+# Consolidates a dataframe with the columns specified below by averaging columns with the same parameter values
 # Revised 10/27/20
 function consolidate_dataframe( in_filename::String, out_filename::String; consolidate::Bool=true )
   new_df = DataFrame()
   df = read_dataframe( in_filename )
+  #df.n_combined = map(Float64,df.n_combined)  # Only for neutral walk files, remove otherwise
   for n in names(df)
     if n!= :ntries && n != :evo_count 
       new_df[!,n] = typeof(df[1,n])[]
@@ -65,7 +66,13 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
   df.goal = goals
   =#
   new_names = vcat([:goal],names(df)[2:end])
+  #=
   println("new_names: ",new_names)
+  for i = 1:size(new_df)[2]
+    print(typeof(new_df[1,i])," ")
+  end
+  println()
+  =#
   select!(df,new_names)
   df = sort(df,[:goal])
   if !consolidate
@@ -73,7 +80,7 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
     return df
   end
   increment = findfirst(x->x!=df.goal[1],df.goal) - 1
-  println("increment: ",increment)
+  #println("increment: ",increment)
   if Int(floor(size(df)[1]/increment)) != Int(ceil(size(df)[1]/increment))
     error("The number of rows in the dataframe must be a multiple of increment")
   end

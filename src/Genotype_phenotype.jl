@@ -63,6 +63,7 @@ function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::Int
     numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange, levelsback::IntRange ; 
     base::Float64=2.0, allgoals::Bool=false, active_only::Bool=false, gl_repetitions::IntRange=1)
   max_numinteriors = collect(numinteriors)[end]
+  maxints_for_degen = Main.CGP.maxints_for_degen
   test_MyInt(max_numinteriors)
   nodearity = 2
   hamming_sel = true
@@ -105,7 +106,7 @@ function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::Int
               for max_steps = maxsteps
                 for gl = (allgoals ? all_gl : [Vector{MyInt}[]])
                   for _ = 1:iterations
-                    p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback )
+                    p = Parameters( num_inputs, num_outputs, num_interiors, levsback )
                     rr = gp_result( gl, p, num_goals, hamming_sel, active_only, max_steps, gl_reps )
                     push!(gp_result_list,rr)
                   end
@@ -135,9 +136,11 @@ function run_gp_evolve!( rr::geno_pheno_result_type; maxints_for_degen::Int64, g
   nodearity = 2   # built-in default
   p = Parameters( numinputs=rr.numinputs, numoutputs=rr.numoutputs, numinteriors=rr.numints, numlevelsback=rr.levelsback )
   #print_parameters( p )
+  #=
   if length(rr.goallist) > 0 
     println("rr.goallist: ",rr.goallist)
   end
+  =#
   if length(rr.goallist) == 0
     rr.goallist = randgoallist(rr.ngoals,rr.numinputs,rr.numoutputs,repetitions=gl_repetitions)
   end

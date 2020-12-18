@@ -32,7 +32,7 @@ using Printf
 using Dates
 using CSV
 export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list, read_counts_files
-export add_counts_to_dataframe, write_to_dataframe_file, circuit_complexities
+export add_counts_to_dataframe, write_to_dataframe_file, circuit_complexities, run_circuit_complexities
 
 MyFunc = Main.CGP.MyFunc
 
@@ -209,25 +209,47 @@ function add_counts_to_dataframe( df::DataFrame, counts_filename::String, counts
   # eval(Meta.parse(df.goal[i]))  converts the string df.goal[i] to Julia Vector.  Example:  UInt16[0x09b5]
   # eval(Meta.parse(df.goal[i]))[1]  extracts the sole element of this vector
   # @sprintf("0x%x",eval(Meta.parse(df.goal[i]))[1])   converts to a string of the same format as in the goals field of cdf.
-  counts = [cdf[cdf.goals.==@sprintf("0x%x",eval(Meta.parse(df.goal[i]))[1]),counts_field][1] for i = 1:size(df)[1]]
+  counts = [cdf[cdf.goal.==@sprintf("0x%x",eval(Meta.parse(df.goal[i]))[1]),counts_field][1] for i = 1:size(df)[1]]
   #println("counts: ",counts)
   insertcols!(df, size(df)[2]+1, counts_field=>counts )
   df
 end 
 
-# Create a list of the complexities of num_circuits random circuits
-function circuit_complexities( p::Parameters, num_circuits::Int64; csvfile::String="" )
+# Create a pair (goal_list,complexity_list) where a pair (goal_list[i], complexity_list[i]) corresponds to a random circuit.
+function circuit_complexities( p::Parameters, num_circuits::Int64 )
+  println("circuit_complexities: num_circuits: ",num_circuits)
   funcs = default_funcs(p.numinputs)
   complexity_list = zeros(Float64,num_circuits)
+  goal_list = Goal[]
   for i = 1:num_circuits
     c = random_chromosome( p, funcs )
+    push!( goal_list, output_values(c) )
     complexity = complexity5(c)
     complexity_list[i] = complexity >= 0.0 ? complexity : 0.0
   end
-  sort!( complexity_list, rev=true )
+  ( goal_list, complexity_list )
+  #=
+  df = DataFrame()
+  df.goal = goal_list
+  df.complexity = complexity_list
+  sort!( df, [:complexity], rev=true )
+  df
+  =#
+end
+
+function run_circuit_complexities( p::Parameters, num_circuits::Int64; csvfile::String="" )
+  num_circuits_per_proc = Int(num_circuits/trunc((nprocs()-1)))
+  goal_complexity_pairs = pmap(x->circuit_complexities( p, num_circuits_per_proc), collect(1:(nprocs()-1)) )
+  goals = Goal[]
+  complexities = Float64[]
+  for gc in goal_complexity_pairs
+    goals = vcat( goals, gc[1] )
+    complexities = vcat( complexities, gc[2] )
+  end
+  df = DataFrame()
+  df.goals = goals
+  df.complexities = complexities
   if length(csvfile) > 0
-    df = DataFrame()
-    df.complexities = complexity_list
     open( csvfile, "w" ) do f 
       hostname = chomp(open("/etc/hostname") do f read(f,String) end)
       println(f,"# date and time: ",Dates.now())
@@ -238,5 +260,5 @@ function circuit_complexities( p::Parameters, num_circuits::Int64; csvfile::Stri
       CSV.write( f, df, append=true, writeheader=true )
     end
   end
-  complexity_list
+  df
 end

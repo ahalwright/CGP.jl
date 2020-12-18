@@ -41,7 +41,7 @@ function default_funcs( numinputs::Int64 )
   Ones = Main.CGP.construct_ones(numinputs)[numinputs]
   ONE = Func(One, 0, "1")
   global Ones
-#    return [NAND ]   # Macia's gate set
+#     return [NAND ]   # Macia's gate set
 #    return [AND, XOR ]
 #    return [AND, OR, XOR ]
 #    return [AND, OR, NOT, ZERO, ONE]

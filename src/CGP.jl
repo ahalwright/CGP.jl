@@ -43,7 +43,7 @@ include("Entropy.jl")
 #include("Avg_mut_robustness.jl")
 include("InfTheory.jl")
 include("Indiv_evolution.jl")
-include("Genotype_phenotype.jl")
+include("Genotype_phenotype.jl")  # computations of evolvability and robustness are not ccorrect
 #include("Env_evolution.jl")
 #include("Pop_evolution.jl")
 #include("Propsel.jl")

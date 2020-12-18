@@ -347,13 +347,16 @@ function complexity_freq_scatter_plot( p::Parameters, gl::GoalList, inverse_powe
 end
 
 #  Bin values greater than or equal to v_min with boundaries [v_min, vmin+1.0/bin_fract_denom, v_min+2.0/bin_fract_denom, ... ]
-#  Example:  to bin into intervals  [2.8, 2.9), [2.9,3.0), [3.0,3.1) ... , using bin_value( v, 2.8, 10.0 )
+#  Example:  to bin v into intervals  [2.8, 2.9), [2.9,3.0), [3.0,3.1) ... , using bin_value( v, 2.8, 10.0 )
 #  values less than v_min will be mapped to 1.
 function bin_value( v::Float64, v_min::Float64, bin_fract_denom::Float64 )  
   result = Int(floor( bin_fract_denom*(v - v_min )))
   result >= 0.0 ? result+1 : 1    # Increase by 1 since Julia uses 1-based indexing
 end
 
+# Example:  let values = [0.3, 0.47, 0.57, 0.4, 0.76, 0.67, 0.04, 0.01, 0.13, 0.88]
+# The bin_data( values, 10.0) bins values into intervals [0.0,0.1), [0.1,0.2), [0.2,0.3), . . .
+# So bin_data( values, 10.0 ) = [2, 1, 0, 1, 2, 1, 1, 1, 1]  # transposed 
 function bin_data( values::Vector{Float64}, bin_fract_denom::Float64 )
   v_min = floor(bin_fract_denom*minimum(values))/bin_fract_denom
   ind_max = bin_value(maximum(values),v_min,bin_fract_denom)
