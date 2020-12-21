@@ -238,7 +238,7 @@ function circuit_complexities( p::Parameters, num_circuits::Int64 )
 end
 
 function run_circuit_complexities( p::Parameters, num_circuits::Int64; csvfile::String="" )
-  num_circuits_per_proc = Int(num_circuits/trunc((nprocs()-1)))
+  num_circuits_per_proc = Int(trunc(num_circuits/(nprocs()-1)))
   goal_complexity_pairs = pmap(x->circuit_complexities( p, num_circuits_per_proc), collect(1:(nprocs()-1)) )
   goals = Goal[]
   complexities = Float64[]

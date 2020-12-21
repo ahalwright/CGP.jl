@@ -9,3 +9,31 @@ Will write a parallel version of circuit_complexities() in RecordOutputs.jl.
 
 
 Revised run_circuit_complexities.jl in RecordOutputs.jl to use pmap().
+
+Procedures for 8 gates, 5 lb:
+surt2:
+julia> gpdf = include("../data/12_18/run_geno_phenoC.jl")
+@time include("../data/12_18/run_circuit_complexitiesC.jl")
+julia> round2(x) = round(100*x)/100  # Reduces size of CSV file
+julia> cmplx = map(round2,db.complexities)
+julia> scdb = sort(db,[:complexities],rev=true)
+
+Windows:
+julia>scdb = read_dataframe("../../../../OneDrive\\evotech\\data\\12_18/circuit_complexities12_18CR.csv")
+julia> gpdf = read_dataframe("12_18/geno_pheno12_18C.csv")
+julia> density([scdb.complexities,gpdf.complex],xlabel="complexity",ylabel="relative_requency",title="Density of complexities in circuit and goal function space",labels=["complexities of random circuits" "complexities of random goals"])
+julia> savefig("12_18/density_of_complexities_circuit_space_8gts_5lb.png")  
+
+Procedures for 11 gates, 8 lb:
+surt2:
+@time cdf=include("../data/12_20/run_circuit_complexitiesD.jl")
+cmplx = map(round2, cdf.complexities )
+cdf.complexities = cmplx
+scdf = sort(cdf, [:complexities], rev=true )o
+write_dataframe_wa -p 4 -L CGP.jl
+write_dataframe_with_comments( scdf, "../data/12_20/circuit_complexities12_20D.csv","../data/12_20/circuit_complexities12_20DR.csv")
+@time gdf =  include("../data/12_20/run_geno_phenoD.jl")
+
+Windows:
+julia> density([scdb.complexities,gpdf.complex],xlabel="complexity",ylabel="relative_requency",title="Density of complexities in circuit and goal function space",labels=["complexities of random circuits" "complexities of random goals"])
+julia> savefig("12_18/density_of_complexities_circuit_space_11gts_8lb.png")

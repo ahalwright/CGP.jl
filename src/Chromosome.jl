@@ -6,6 +6,7 @@ export num_mutate_locations, set_active_to_false, fraction_active, check_recursi
 export output_values, number_active, number_active_gates, hamming_distance, hamming, deactivate_chromosome!
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code, circuit_int
+export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits
 
 mutable struct Chromosome
@@ -581,6 +582,84 @@ function fault_tolerance_fitness( c::Chromosome )
   1.0-sum(distances)/numints/numoutputs
 end
 
+#Assumes nodearity==2
+mutable struct Gate_node
+  node_index::Int64
+  func::Func
+  input1::Int64
+  input2::Int64
+end
+
+# Creates a Chromosome (circuit) from the concise format.
+# Example:  
+# julia>circuit((1,2,3), ((4,OR,1,2), (5,AND,2,3), (6,XOR,4,5)))
+#    creates a ciruit with 3 input nodes and 3 gate nodes and 1 implicit output node.
+# gate nodes have 4 fields: 
+#    node_index:  should be the index of the node.  Not used in construcing the circuit, but checked for correctness
+#    node_function:  See Func.jl for options
+#    node_input1:  an integer in the range from 1 to the index of the node minus 1
+#    node_input2:  an integer in the range from 1 to the index of the node minus 1
+# Assumes nodearity==2 and numoutputs == 1
+function circuit( inputs::Tuple, gates::Tuple;
+    levsback::Int64=length(inputs)+length(gates))
+  numinputs = length(inputs)
+  errors = false
+  for i = 1:length(gates)
+    if gates[i][1] != i+numinputs
+      println("index of gate ",i," not correct: it should be: ",i+numinputs)
+      errors = true
+    end
+  end
+  for i = 1:length(gates)
+    if !((1 <= gates[i][3])  && (gates[i][3] < numinputs+i))
+      error("illegal first gate input for gate: ",i)
+    end
+  end
+  for i = 1:length(gates)
+    if !((1 <= gates[i][4])  && (gates[i][4] < numinputs+i))
+      error("illegal second gate input for gate: ",i)
+    end
+  end
+  p = Parameters( numinputs=length(inputs), numoutputs=1, numinteriors=length(gates), numlevelsback=levsback )
+  in_nodes = [InputNode(i) for i in inputs]   
+  gate_nodes = [InteriorNode(g[2], [g[3],g[4]] ) for g in gates ]
+  out_nodes = [OutputNode( length(inputs)+length(gates ) ) ]
+  c = Chromosome( p, in_nodes, gate_nodes, out_nodes, 0.0, 0.0 )
+  if errors
+    println("correct input to this function should have been: ")
+    print_circuit(c)
+  end
+  c
+end
+  
+# Outputs the concise format of Chromosome (circuit) c to IO stream f
+# print_node_tuple() and gate_tuple() are defined in Node.jl
+function print_circuit( f::IO, c::Chromosome; include_fitness::Bool=false )  
+  @assert c.params.nodearity==2
+  @assert c.params.numoutputs==1
+  #@assert c.params.numinputs>1
+  print(f,"circuit(")
+  print_node_tuple(f, c.inputs )
+  print(f,",")
+  gate_tuple(f, c.interiors, c.params.numinputs )
+  if !include_fitness
+    println(f,")")
+  else
+    println(f,", 0.0)")
+  end
+  #=
+  if typeof(f) == IOStream  # Don't close Base.stdout since this kills julia
+    close(f)
+  end
+  =#
+end
+
+function print_circuit( c::Chromosome; include_fitness::Bool=false )
+  print_circuit( Base.stdout, c, include_fitness=include_fitness )
+end    
+
+# The following struct defintions and function definitions build_chromosome() and print_build_chromosome()
+#   have mostly been replaced by the above definitions of circuit() and print_circuit()
 mutable struct Int_node
   func::Func
   inputs::Vector{Int64}
@@ -595,6 +674,7 @@ mutable struct Output_node
 end
 
 # Example call: build_chromosome( [Input_node(1),Input_node(2)], [Int_node(OR,[1,2]),Int_node(AND,[2,3])],[Output_node(4)])
+# Depreciated 12/18/20
 function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vector{Int_node}, output_nodes::Vector{Output_node};
     levsback::Int64=length(input_nodes)+length(interior_nodes))
   num_in = length(input_nodes)
@@ -609,6 +689,7 @@ end
 
 # Example calls:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,))
 # Example calls:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,),0.0)
+# Depreciated 12/18/20
 function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Float64=0.0; 
     levsback::Int64=length(inputs)+length(ints))
   num_in = length(inputs)
@@ -621,6 +702,7 @@ function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Flo
   Chromosome( p, in_nodes, int_nodes, out_nodes, fitness, 0.0 )
 end
 
+# Depreciated 12/18/20
 function print_build_chromosome( f::IO, c::Chromosome; include_fitness::Bool=false )
   print(f, "build_chromosome(")
   print_node_tuple(f, c.inputs )
@@ -632,12 +714,12 @@ function print_build_chromosome( f::IO, c::Chromosome; include_fitness::Bool=fal
     println(f,", ",c.fitness)
   end
   println(f,")")
-  #print(f, ") ")
   if typeof(f) == IOStream  # Don't close Base.stdout since this kills julia
     close(f)
   end
 end
 
+# Depreciated 12/18/20
 function print_build_chromosome( c::Chromosome )
   print_build_chromosome( Base.stdout, c)
 end          

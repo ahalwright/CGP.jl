@@ -1,4 +1,4 @@
-export Integer, Node, InputNode, InteriorNode, OutputNode, print_node_tuple
+export Integer, Node, InputNode, InteriorNode, OutputNode, print_node_tuple, gate_tuple
 
 abstract type Node end  
 mutable struct Func
@@ -89,6 +89,21 @@ end
 
 function print_node_tuple( node_vect::Vector{OutputNode} )
   print_node_tuple( Base.stdout, node_vect )
+end
+
+# Outputs an vector of InteriorNodes to IO stream f in the format needed by circuit() and print_circuit() in Chromosome.jl
+function gate_tuple( f::IO, node_vect::Vector{InteriorNode}, numinputs::Int64 )
+  print(f," (")
+  len = length(node_vect)
+  for i in 1:(len-1)
+    print(f,"(",numinputs+i,",",node_vect[i].func.name,",",node_vect[i].inputs[1],",",node_vect[i].inputs[2],"), ")
+  end
+  if len > 1
+    print(f,"(",numinputs+len,",",node_vect[len].func.name,",",node_vect[len].inputs[1],",",node_vect[len].inputs[2],"))")
+  else
+    # add comma so 1-element tuple will be read as a tuple
+    print(f,"(",numinputs+leni,",",node_vect[len].func.name,",",node_vect[len].inputs[1],",",node_vect[len].inputs[2],"),)")
+  end
 end
 
 #= moved to Chromosome.jl
