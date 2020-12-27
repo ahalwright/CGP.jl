@@ -8,6 +8,7 @@ export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code, circuit_int
 export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits
+export code_to_circuit
 
 mutable struct Chromosome
     params::Parameters
@@ -702,7 +703,6 @@ function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Flo
   Chromosome( p, in_nodes, int_nodes, out_nodes, fitness, 0.0 )
 end
 
-# Depreciated 12/18/20
 function print_build_chromosome( f::IO, c::Chromosome; include_fitness::Bool=false )
   print(f, "build_chromosome(")
   print_node_tuple(f, c.inputs )
@@ -719,13 +719,13 @@ function print_build_chromosome( f::IO, c::Chromosome; include_fitness::Bool=fal
   end
 end
 
-# Depreciated 12/18/20
 function print_build_chromosome( c::Chromosome )
   print_build_chromosome( Base.stdout, c)
 end          
 
 # Returns a vector of integers which is a characterization of the chromosome for the parameters c.params
 # The length of the result should be p.numinteriors*(1+p.nodearity).
+# Not correct in that codes for gate inputs are sometimes too large.
 function circuit_code( c::Chromosome )
   result = Int64[]
   funcs = default_funcs(c.params.numinputs)
@@ -747,7 +747,7 @@ function circuit_code( c::Chromosome )
     index = i + c.params.numinputs  # node index in chromosome
     for k = 1:length(c.interiors[i].inputs)
       code = max(c.interiors[i].inputs[k]-(index-c.params.numlevelsback),0)
-      #println("i: ",i,"  k: ",k,"  code: ",code)
+      println("i: ",i,"  k: ",k,"  code: ",code)
       push!(result, code)
     end
   end
@@ -755,31 +755,80 @@ function circuit_code( c::Chromosome )
   result
 end
 
+# Not correct
+# Converts a circuit code to a Chromosome.   Inverse function to circuit_code().
+function code_to_circuit( code::Vector{Int64}, p::Parameters )
+  funcs = default_funcs( p.numinputs )
+  interior_nodes = InteriorNode[]
+  for i = 1:p.numinteriors
+    j = 3*(i-1)+1   # index of code component
+    func = funcs[code[j] + 1]
+    index = i + p.numinputs  # node index in Chromosome
+    input1 = code[j+1] + max(index-p.numlevelsback,0)
+    input2 = code[j+2] + max(index-p.numlevelsback,0)
+    #println("i: ",i,"  j: ",j,"  func: ",func,"  input1: ",input1,"  input2: ",input2)
+    push!( interior_nodes, InteriorNode(func,[input1,input2]) )
+  end
+  input_nodes = [ InputNode(j) for j = 1:p.numinputs ]
+  output_nodes = [ OutputNode(j) for j = (p.numinputs+p.numinteriors-p.numoutputs+1):(p.numinputs+p.numinteriors) ]
+  c = Chromosome(p, input_nodes, interior_nodes, output_nodes, 0.0, 0.0 )
+end
+
 # An integer that characterizes the chromosome
 # Doesn't overflow for 11 gates, 8 numlevelsback
 function circuit_int( c::Chromosome )
+  circuit_int( circuit_code(c), c.params )
+end
+
+# Not correct  See diary12_25.txt for example.
+function circuit_int( c_code::Vector{Int64}, p::Parameters )
   result = Int128(0)
   multiplier = 1
-  funcs = default_funcs( c.params.numinputs )
-  c_code = circuit_code( c )
+  funcs = default_funcs( p.numinputs )
   k = 1
-  for i = 1:c.params.numinteriors
+  for i = 1:p.numinteriors
     multiplier = length(funcs)
-    result += c_code[k] + result*multiplier
-    #print("i: ",i,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
-    #println("  result: ",result)
+    result = c_code[k] + result*multiplier
+    print("i: ",i,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
+    println("  result: ",result)
     k += 1
-    multiplier = min(c.params.numlevelsback,i-1+c.params.numinputs)
-    for j = 1:length(c.interiors[i].inputs)
-      result += c_code[k] + result*multiplier
-      #print("i: ",i,"  j: ",j,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
-      #println("  result: ",result)
+    multiplier = min(p.numlevelsback,i-1+p.numinputs)
+    for j = 1:p.nodearity
+      #println("result: ",result,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
+      result = c_code[k] + result*multiplier
+      print("i: ",i,"  j: ",j,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
+      println("  result: ",result)
       k += 1
     end
   end
   result
 end
-
+function int_to_circuit_code( c_int::Integer, p::Parameters )
+  c_int = Int128(c_int)
+  c_code = zeros(Int64,3*p.numinteriors)
+  k = 3*p.numinteriors
+  for i = p.numinteriors:-1:1
+    multiplier = min(p.numlevelsback,i-1+p.numinputs)
+    println("i: ",i,"  multiplier: ",multiplier)
+    for j = p.nodearity:-1:1
+      c_int_mod= c_int % multiplier 
+      #prev_c_int =c_int
+      c_int ÷= multiplier
+      #c_int_mod = prev_c_int - c_int
+      println("i: ",i,"  j: ",j,"  c_int: ",c_int,"  c_int_mod: ",c_int_mod)
+      c_code[k] = c_int_mod
+      k -= 1
+    end
+    multiplier = length(funcs)
+    println("i: ",i,"  multiplier: ",multiplier)
+    c_int_mod= c_int % multiplier 
+    c_int ÷= multiplier
+    println("i: ",i,"  c_int: ",c_int,"  c_int_mod: ",c_int_mod)
+    c_code[k] = c_int_mod
+    k -= 1
+  end
+  c_code
+end
 
 # Hamming distance between chromosomes normalized to be between 0.0 and 1.0
 function circuit_distance( c1::Chromosome, c2::Chromosome )

@@ -102,7 +102,7 @@ function gate_tuple( f::IO, node_vect::Vector{InteriorNode}, numinputs::Int64 )
     print(f,"(",numinputs+len,",",node_vect[len].func.name,",",node_vect[len].inputs[1],",",node_vect[len].inputs[2],"))")
   else
     # add comma so 1-element tuple will be read as a tuple
-    print(f,"(",numinputs+leni,",",node_vect[len].func.name,",",node_vect[len].inputs[1],",",node_vect[len].inputs[2],"),)")
+    print(f,"(",numinputs+len,",",node_vect[len].func.name,",",node_vect[len].inputs[1],",",node_vect[len].inputs[2],"),)")
   end
 end
 
