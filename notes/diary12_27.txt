@@ -1,0 +1,22 @@
+Implemented Hu (2020) technique for computing phenotype network and using results to compute robustenss and 
+what they call degree evolvability (which is the Wagner (2008) defintion that I have been using.)
+Implementation is in the file random_walk.jl.  Top level function is run_random_walks_parallel().
+
+Results show a postive correlation between robustness and evolvability, but not as strong as the Hu (2020)
+results (see their Figure 5a.)  This might be because of their linear genetic programming representation.
+
+Runs A, B, C, D, E, Z are preliminary with a smaller number of walks.  Runs M, N, P, Q, R, S are on sur2
+with 5 million 1000 step walks.  Runs M through R use the Raman gate set while S uses the Hu gate set
+which is the Raman gate set minus XOR.
+
+Why the difference is results?  My hypothesis is that using evolution for sampling introduces a bias.
+
+Our density plots of Figures 4 and 5 of the Paper preview document already show that there is a big difference
+in the complexity of goals selected at random and goals selected by evolution.  See data/12_18 and diary12_18.txt.
+Since complexity is inversely related to frequency, circuits evolved to map to a goal will have high complexity 
+and low frequency, while random circuits will have low complexity and high frequency.  Thus, the hypothesis is 
+that among low frequency high complexity goals, evolvability and complexity are negatively correlated.
+
+What we really need to show is that for a given goal (including complex goals) complexity of circuits
+evolved to map to that goal are more complex than randomly chosen circuits that happen to map to the goal.
+
