@@ -15,8 +15,10 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, p::Paramet
     goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
     goal_set_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
     println("len: ",length(goal_set_list))
-    goal_pair_dict = merge(+,goal_pair_dict,goal_set_list...)
-    df = robust_evolvability( goal_pair_dict, p )
+    for gp in goal_set_list
+      goal_pair_dict = union( goal_pair_dict, gp )
+    end
+    return goal_pair_dict
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
     goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
@@ -24,8 +26,8 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, p::Paramet
     for gem in goal_edge_matrix_list
       goal_edge_matrix .+= gem
     end
-    df = robust_evolvability( goal_edge_matrix )
   end
+  df = robust_evolvability( goal_edge_matrix )
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
       hostname = chomp(open("/etc/hostname") do f read(f,String) end)
@@ -42,16 +44,25 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, p::Paramet
   df
 end
 
-function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; output_dict::Bool=true) 
+function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; output_dict::Bool=true )
+      #output_dict::Bool=true, c_list::Vector{Chromosome}=Vector{Chromosome}[] )
   println("run_random_walks with nwalks: ",nwalks,"  steps: ",steps)
-  #c_list = Vector{Chromosome}[]
   @assert p.numoutputs == 1
   funcs = default_funcs(p.numinputs)
   ngoals = 2^(2^p.numinputs)
-  c_list = [ random_chromosome(p,funcs) for _ = 1:nwalks ]
+  #if length(c_list)==0
+    c_list = [ random_chromosome(p,funcs) for _ = 1:nwalks ]
+  #=
+  else
+    @assert length(c_list) >= nwalks
+    for i = 1:nwalks
+      print_circuit( c_list[i] )
+    end
+  end
+  =#
   if output_dict
     goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-    rw_list = [random_walk( c_list[i], steps, output_dict=output_dict ) for i = 1:nwalks ]
+    rw_list = [random_walk0( c_list[i], steps, output_dict=output_dict ) for i = 1:nwalks ]
     goal_pair_dict = merge(+,goal_pair_dict,rw_list...)
     return goal_pair_dict
   else
@@ -65,9 +76,17 @@ end
 
 # Outputs a node-edge adjacency matrix unless output_dict==true, 
 #      in which case a dictionary indexed on goal pairs whose values the the count of the goal pair
-function random_walk( c::Chromosome, steps::Int64; output_dict::Bool=true )
+function random_walk0( c::Chromosome, steps::Int64; output_dict::Bool=true, mutate_locs::Vector{Int64}=Int64[] )
+#function random_walk0( c::Chromosome, steps::Int64; output_dict::Bool=true ) 
+  #mutate_locs = Int64[]
   funcs = default_funcs(c.params.numinputs)
   ngoals = 2^(2^c.params.numinputs)
+  loc_index = 1
+  if length(mutate_locs) == 0
+    #nlocs = length(mutate_all(deepcopy(c),funcs))
+    nlocs = num_mutate_locations( c, funcs )
+    mutate_locs = rand(1:nlocs,steps)
+  end
   if output_dict
     goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
   else
@@ -76,8 +95,12 @@ function random_walk( c::Chromosome, steps::Int64; output_dict::Bool=true )
   goal = output_values(c)[1]
   #println("start goal: ",goal)
   for i = 1:steps 
-    (new_c,active) = mutate_chromosome!( c, funcs )
-    prev_goal = goal  
+    #println("loc_index: ",loc_index,"  mutate_locs[loc_index]: ",mutate_locs[loc_index])
+    mutate_chromosome!( c, funcs, mutate_locs[loc_index])
+    #print_circuit(c)
+    #print_circuit(new_c)
+    loc_index += 1
+    prev_goal = goal
     goal = output_values(c)[1]
     #println("i: ",i,"  goal: ",goal)
     if output_dict
@@ -91,24 +114,22 @@ function random_walk( c::Chromosome, steps::Int64; output_dict::Bool=true )
     end
   end
   if output_dict
-    #println("length(goal_pair_dict: ",length(goal_pair_dict))
+    #println("length(goal_pair_dict): ",length(goal_pair_dict))
     goal_pair_dict
   else
     goal_edge_matrix
   end
 end
 
-# Calculates robustness and degree evolvability for each goal and saves these in a dataframe.
 function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, p::Parameters )
   ngoals = 2^(2^p.numinputs)
   robustness = zeros(Float64,ngoals)
   evolvability = zeros(Float64,ngoals)
   all_goals = MyInt(0):MyInt(ngoals-1)
-  dget(x) = get(goal_pair_dict,x,0)  # get from goal_pair_dict with default value 0
-  onez(x) = x > 0 ? 1 : 0   # function that maps anything greater than zero to 1
-  for g = MyInt(0):MyInt(ngoals-1)
-    robustness[g+1] = dget((g,g))
-    evolvability[g+1] = sum( onez(dget((g,h))+dget((h,g))) for h = all_goals ) - onez(robustness[g+1])
+  dget(x) = get(goal_pair_dict,x,0)
+  for g = 1:ngoals
+    robustness[g] = dget((g,g))
+    evolvability[g] = sum( dget((g,h))+dget((h,g)) for h = all_goals ) - 2*robustness[g]
   end
   df = DataFrame()
   df.goal = collect(all_goals)
@@ -118,6 +139,7 @@ function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, p:
 end
 
 # Calculates robustness and degree evolvability for each goal and saves these in a dataframe.
+# Robustness 
 function robust_evolvability( goal_edge_matrix::Array{Int64,2} )
   ngoals = size(goal_edge_matrix)[1]
   triangularize!(goal_edge_matrix)
@@ -152,35 +174,14 @@ function triangularize!( M::Array{Int64,2} )
   end   
 end
 
-# Convert into a upper triangular matrix by adding the below-diagonal entries to the corresponding above-diagonal entry
-function triangularize!( M::Array{Int64,2} )
-  ngoals = size(M)[1]
-  @assert ngoals == size(M)[2]
-  for g = 1:(ngoals-1)
-    for h = (g+1):ngoals
-      M[g,h] += M[h,g]
-      M[h,g] = 0
-    end
-  end
-end
-
 function matrix_to_dict( M::Array{Int64,2} )
   goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-  for g = MyInt(0):(size(M)[1]-1)
-    for h = MyInt(0):(size(M)[2]-1)
-      if M[g+1,h+1] != 0
-        goal_pair_dict[(g,h)] = M[g+1,h+1]
+  for g = 1:size(M)[1]
+    for h = 1:size(M)[2]
+      if M[g,h] != 0
+        goal_pair_dict[(g,h)] = M[g,h]
       end
     end
   end
   goal_pair_dict
-end 
-
-function dict_to_matrix( d::Dict{Tuple{MyInt,MyInt}}, size::Int64 )
-  M = zeros(Int64,size,size)
-  for k in keys(d)
-    (g,h) = k
-    M[g+1,h+1] = d[k]
-  end
-  M
 end

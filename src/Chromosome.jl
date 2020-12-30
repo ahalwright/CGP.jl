@@ -747,7 +747,7 @@ function circuit_code( c::Chromosome )
     index = i + c.params.numinputs  # node index in chromosome
     for k = 1:length(c.interiors[i].inputs)
       code = max(c.interiors[i].inputs[k]-(index-c.params.numlevelsback),0)
-      println("i: ",i,"  k: ",k,"  code: ",code)
+      #println("i: ",i,"  k: ",k,"  code: ",code)
       push!(result, code)
     end
   end
@@ -789,20 +789,21 @@ function circuit_int( c_code::Vector{Int64}, p::Parameters )
   for i = 1:p.numinteriors
     multiplier = length(funcs)
     result = c_code[k] + result*multiplier
-    print("i: ",i,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
-    println("  result: ",result)
+    #print("i: ",i,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
+    #println("  result: ",result)
     k += 1
     multiplier = min(p.numlevelsback,i-1+p.numinputs)
     for j = 1:p.nodearity
       #println("result: ",result,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
       result = c_code[k] + result*multiplier
-      print("i: ",i,"  j: ",j,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
-      println("  result: ",result)
+      #print("i: ",i,"  j: ",j,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
+      #println("  result: ",result)
       k += 1
     end
   end
   result
 end
+
 function int_to_circuit_code( c_int::Integer, p::Parameters )
   c_int = Int128(c_int)
   c_code = zeros(Int64,3*p.numinteriors)

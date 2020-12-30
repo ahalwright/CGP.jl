@@ -14,6 +14,7 @@ using Combinatorics
 using Printf
 using Dates
 using CSV
+using Statistics
 module CGP
 using Distributed
 using DataFrames
@@ -22,6 +23,7 @@ using Combinatorics
 using Printf
 using Dates
 using CSV
+using Statistics
 #const MyInt = UInt8       # Type of bit string integers used in bit functions
 const MyInt = UInt16     # Type of bit string integers used in bit functions
 #const MyInt = UInt32     # Type of bit string integers used in bit functions

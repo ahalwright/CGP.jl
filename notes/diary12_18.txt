@@ -37,3 +37,8 @@ write_dataframe_with_comments( scdf, "../data/12_20/circuit_complexities12_20D.c
 Windows:
 julia> density([scdb.complexities,gpdf.complex],xlabel="complexity",ylabel="relative_requency",title="Density of complexities in circuit and goal function space",labels=["complexities of random circuits" "complexities of random goals"])
 julia> savefig("12_18/density_of_complexities_circuit_space_11gts_8lb.png")
+
+circuit_complexities12_20D.csv and  circuit_complexities12_20DR.csv are on surt2 but not on lycosa.
+These are the 11_5 circuit complexities files.
+
+An additional 8_5 file in 12_29.
