@@ -1,0 +1,3 @@
+Parallelized robust_evolvability() in random_walk.jl.
+Revised random_walks_parallel() so it returns a dataframe and writes the dataframe to csvfile 
+   if csvfile is given.

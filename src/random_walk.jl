@@ -14,11 +14,12 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, p::Paramet
   if output_dict
     goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
     goal_set_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
-    println("len: ",length(goal_set_list))
+    println("length(goal_set_list): ",length(goal_set_list))
     for gp in goal_set_list
       goal_pair_dict = union( goal_pair_dict, gp )
     end
     return goal_pair_dict
+    df = robust_evolvability( goal_pair_dict, p )
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
     goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
@@ -26,8 +27,8 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, p::Paramet
     for gem in goal_edge_matrix_list
       goal_edge_matrix .+= gem
     end
+    df = robust_evolvability( goal_edge_matrix )
   end
-  df = robust_evolvability( goal_edge_matrix )
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
       hostname = chomp(open("/etc/hostname") do f read(f,String) end)
@@ -46,23 +47,14 @@ end
 
 function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; output_dict::Bool=true )
       #output_dict::Bool=true, c_list::Vector{Chromosome}=Vector{Chromosome}[] )
-  println("run_random_walks with nwalks: ",nwalks,"  steps: ",steps)
+  #println("run_random_walks with nwalks: ",nwalks,"  steps: ",steps)
   @assert p.numoutputs == 1
   funcs = default_funcs(p.numinputs)
   ngoals = 2^(2^p.numinputs)
-  #if length(c_list)==0
-    c_list = [ random_chromosome(p,funcs) for _ = 1:nwalks ]
-  #=
-  else
-    @assert length(c_list) >= nwalks
-    for i = 1:nwalks
-      print_circuit( c_list[i] )
-    end
-  end
-  =#
+  c_list = [ random_chromosome(p,funcs) for _ = 1:nwalks ]
   if output_dict
     goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-    rw_list = [random_walk0( c_list[i], steps, output_dict=output_dict ) for i = 1:nwalks ]
+    rw_list = [random_walk( c_list[i], steps, output_dict=output_dict ) for i = 1:nwalks ]
     goal_pair_dict = merge(+,goal_pair_dict,rw_list...)
     return goal_pair_dict
   else
@@ -76,8 +68,7 @@ end
 
 # Outputs a node-edge adjacency matrix unless output_dict==true, 
 #      in which case a dictionary indexed on goal pairs whose values the the count of the goal pair
-function random_walk0( c::Chromosome, steps::Int64; output_dict::Bool=true, mutate_locs::Vector{Int64}=Int64[] )
-#function random_walk0( c::Chromosome, steps::Int64; output_dict::Bool=true ) 
+function random_walk( c::Chromosome, steps::Int64; output_dict::Bool=true, mutate_locs::Vector{Int64}=Int64[] )
   #mutate_locs = Int64[]
   funcs = default_funcs(c.params.numinputs)
   ngoals = 2^(2^c.params.numinputs)
@@ -121,21 +112,30 @@ function random_walk0( c::Chromosome, steps::Int64; output_dict::Bool=true, muta
   end
 end
 
+function robust_evolvability( goal_pair_list::Array{Pair{Tuple{UInt16,UInt16},Int64},1}, p::Parameters)
+  robust_evolvability( pairs_to_dict( goal_pair_list ), p )
+end
+
 function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, p::Parameters )
   ngoals = 2^(2^p.numinputs)
   robustness = zeros(Float64,ngoals)
   evolvability = zeros(Float64,ngoals)
   all_goals = MyInt(0):MyInt(ngoals-1)
   dget(x) = get(goal_pair_dict,x,0)
-  for g = 1:ngoals
-    robustness[g] = dget((g,g))
-    evolvability[g] = sum( dget((g,h))+dget((h,g)) for h = all_goals ) - 2*robustness[g]
-  end
+  re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), all_goals )
   df = DataFrame()
   df.goal = collect(all_goals)
-  df.robustness = robustness
-  df.evolvability = evolvability
+  df.robustness = [ re[1] for re in re_list ]
+  df.evolvability = [ re[2] for re in re_list ]  
   df
+end
+
+# Helper function using in pmap() in robust_evolvability()
+function robust_evo( g::MyInt, goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, ngoals::Int64 )
+  all_goals = MyInt(0):MyInt(ngoals-1)
+  robustness = get(goal_pair_dict,(g,g),0)
+  evolvability = sum( get(goal_pair_dict,(g,h),0)+get(goal_pair_dict,(h,g),0) for h = all_goals ) - 2*robustness
+  (robustness,evolvability)
 end
 
 # Calculates robustness and degree evolvability for each goal and saves these in a dataframe.
@@ -185,3 +185,33 @@ function matrix_to_dict( M::Array{Int64,2} )
   end
   goal_pair_dict
 end
+
+function pairs_to_dict( pairs::Array{Pair{Tuple{MyInt,MyInt},Int64},1})
+  println("pairs to dict")
+  pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
+  for p in pairs
+    pair_dict[p[1]] = p[2]
+  end
+  pair_dict
+end 
+
+# Run robust_evolvability and then write to csvfile if it is given
+function robust_evolvability_to_df( goal_pair_list::Array{Pair{Tuple{UInt16,UInt16},Int64},1}, p::Parameters; 
+      csvfile::String="" ) 
+  df = robust_evolvability( pairs_to_dict( goal_pair_list ), p )
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      print_parameters(f,p,comment=true)
+      #println(f,"# nwalks: ",nwalks)
+      #println(f,"# steps: ",steps)
+      #println(f,"# nprocesses: ",nprocesses)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
