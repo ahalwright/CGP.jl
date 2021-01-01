@@ -1,0 +1,4 @@
+Found a major bug in run_walks_parallel() in random_walk.jl.
+union() was used to combine dictionaries rather than merge().
+Rewrote function to take a goal list as an argument and return frequency, robustness,
+   s_evolvbility, and d_evolvabilty for these goals only.

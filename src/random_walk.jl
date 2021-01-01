@@ -7,7 +7,7 @@ using DataFrames, CSV, Dates
 # goal_edge_matrix[g,h] is the number of mutations discovered from goal g to goal h.
 # The methodology is to do nprocesses*nwalks random walks each of length steps, and record all of the transitions made.
 # If csvfile is specified, writes the dataframe to this file.
-function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, p::Parameters, steps::Int64; 
+function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector{MyInt}, p::Parameters, steps::Int64; 
       csvfile::String="", output_dict::Bool=true )
       #c_list::Vector{Chromosome}=Vector{Chromosome}[] 
   ngoals = 2^(2^p.numinputs)
@@ -16,10 +16,10 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, p::Paramet
     goal_set_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
     println("length(goal_set_list): ",length(goal_set_list))
     for gp in goal_set_list
-      goal_pair_dict = union( goal_pair_dict, gp )
+      goal_pair_dict = merge(+, goal_pair_dict, gp )
     end
-    return goal_pair_dict
-    df = robust_evolvability( goal_pair_dict, p )
+    #return goal_pair_dict
+    df = robust_evolvability( goal_pair_dict, gl, p )
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
     goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
@@ -116,26 +116,32 @@ function robust_evolvability( goal_pair_list::Array{Pair{Tuple{UInt16,UInt16},In
   robust_evolvability( pairs_to_dict( goal_pair_list ), p )
 end
 
-function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, p::Parameters )
+# 
+# Note that gl is a list of MyInts, not a list of goals 
+function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl::Vector{MyInt}, p::Parameters )
   ngoals = 2^(2^p.numinputs)
-  robustness = zeros(Float64,ngoals)
-  evolvability = zeros(Float64,ngoals)
-  all_goals = MyInt(0):MyInt(ngoals-1)
-  dget(x) = get(goal_pair_dict,x,0)
-  re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), all_goals )
+  allgoals = MyInt(0):MyInt(ngoals-1)
+  re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
+  #re_list = map( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
   df = DataFrame()
-  df.goal = collect(all_goals)
-  df.robustness = [ re[1] for re in re_list ]
-  df.evolvability = [ re[2] for re in re_list ]  
+  df.goal = gl
+  df.frequency= [ re[1] for re in re_list ]
+  df.robustness = [ re[2] for re in re_list ]
+  df.s_evolvability = [ re[3] for re in re_list ]  
+  df.d_evolvability = [ re[4] for re in re_list ]  
   df
 end
 
-# Helper function using in pmap() in robust_evolvability()
+# Helper function used in pmap() in robust_evolvability()
 function robust_evo( g::MyInt, goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, ngoals::Int64 )
-  all_goals = MyInt(0):MyInt(ngoals-1)
+  allgoals = MyInt(0):MyInt(ngoals-1)
+  dget(x) = get(goal_pair_dict,x,0)
+  dget10(x) = get(goal_pair_dict,x,0)>0 ? 1 : 0
+  frequency = sum( dget((g,h)) + dget((h,g)) for h in allgoals )
   robustness = get(goal_pair_dict,(g,g),0)
-  evolvability = sum( get(goal_pair_dict,(g,h),0)+get(goal_pair_dict,(h,g),0) for h = all_goals ) - 2*robustness
-  (robustness,evolvability)
+  s_evolvability = sum( dget((g,h)) + dget((h,g)) for h = allgoals ) - 2*robustness
+  d_evolvability = sum( dget10((g,h)) + dget10((h,g)) for h = allgoals ) - 2*(robustness>0 ? 1 : 0)
+  (frequency,robustness,s_evolvability,d_evolvability)
 end
 
 # Calculates robustness and degree evolvability for each goal and saves these in a dataframe.
@@ -196,6 +202,7 @@ function pairs_to_dict( pairs::Array{Pair{Tuple{MyInt,MyInt},Int64},1})
 end 
 
 # Run robust_evolvability and then write to csvfile if it is given
+# Ran for over 24 hours on a large goal_pair_list.
 function robust_evolvability_to_df( goal_pair_list::Array{Pair{Tuple{UInt16,UInt16},Int64},1}, p::Parameters; 
       csvfile::String="" ) 
   df = robust_evolvability( pairs_to_dict( goal_pair_list ), p )
@@ -215,3 +222,31 @@ function robust_evolvability_to_df( goal_pair_list::Array{Pair{Tuple{UInt16,UInt
   df
 end
 
+# Computes frequency, robustess, strength_evolvability, degree_evolvabilty of a list of MyInts (interpreted as goals)
+
+# Note that gl is a list of MyInts, not a list of goals 
+function dict_to_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl::Vector{MyInt}, p::Parameters )
+  @assert p.numoutputs == 1
+  dget(x) = get(goal_pair_dict,x,0)
+  dget10(x) = get(goal_pair_dict,x,0)>0 ? 1 : 0
+  frequency = zeros(Int64,length(gl))
+  robustness = zeros(Int64,length(gl))
+  s_evolvability = zeros(Int64,length(gl))
+  d_evolvability = zeros(Int64,length(gl))
+  allgoals = MyInt(0):MyInt(2^2^p.numinputs-1)
+  i = 1
+  for g in gl
+    frequency[i] = sum( get( goal_pair_dict, (g,h), 0 ) + get( goal_pair_dict, (h,g), 0 ) for h in allgoals ) 
+    robustness[i] = get( goal_pair_dict, (g,g), 0 )
+    s_evolvability[i] = sum( dget((g,h)) + dget((h,g)) for h in allgoals ) - 2*robustness[i]
+    d_evolvability[i] = sum( dget10((g,h)) + dget10((h,g)) for h in allgoals ) - 2*(robustness[i]>0 ? 1 : 0)
+    i += 1
+  end
+  df = DataFrame()
+  df.goal = gl
+  df.frequency = frequency
+  df.robustness = robustness
+  df.s_evolvability = s_evolvability
+  df.d_evolvability = d_evolvability
+  df
+end

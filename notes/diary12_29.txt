@@ -36,7 +36,7 @@ mean(gdf.complexity)  # 4.389416841841202
 pvalue(OneSampleTTest(diff)) #  7.437681191950176e-10
 
 For 4x1 11 gates, 8 levelsback:
-Copied data/10_27/geno_complexity10_27FMNccons.csv to surt2.
+Cmeopied data/10_27/geno_complexity10_27FMNccons.csv to surt2.
 data/12_20/circuit_complexities12_20DR.csv is a circ data set for 11gts8lb, but 1/10 the size of above.
 @time ddf = include("../data/12_29/run_circuit_complexitiesD.jl")   # 59404 seconds
 cmplx = map(round2,ddf.complexities)
