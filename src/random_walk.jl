@@ -60,7 +60,7 @@ function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; output_di
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
     for i = 1:nwalks
-      goal_edge_matrix .+= random_walk( c_list[i], steps )
+      goal_edge_matrix .+= random_walk( c_list[i], steps, output_dict=output_dict )
     end
     return goal_edge_matrix 
   end
@@ -121,6 +121,7 @@ end
 function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl::Vector{MyInt}, p::Parameters )
   ngoals = 2^(2^p.numinputs)
   allgoals = MyInt(0):MyInt(ngoals-1)
+  println("allgoals: ",allgoals)
   re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
   #re_list = map( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
   df = DataFrame()
@@ -133,38 +134,42 @@ function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl
 end
 
 # Helper function used in pmap() in robust_evolvability()
+# Corrected 1/2/21
 function robust_evo( g::MyInt, goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, ngoals::Int64 )
   allgoals = MyInt(0):MyInt(ngoals-1)
   dget(x) = get(goal_pair_dict,x,0)
   dget10(x) = get(goal_pair_dict,x,0)>0 ? 1 : 0
-  frequency = sum( dget((g,h)) + dget((h,g)) for h in allgoals )
-  robustness = get(goal_pair_dict,(g,g),0)
-  s_evolvability = sum( dget((g,h)) + dget((h,g)) for h = allgoals ) - 2*robustness
-  d_evolvability = sum( dget10((g,h)) + dget10((h,g)) for h = allgoals ) - 2*(robustness>0 ? 1 : 0)
+  sum_gh = sum( dget((g,h)) for h in allgoals )
+  sum_hg = sum( dget((h,g)) for h in allgoals )
+  gg = dget((g,g))
+  frequency = sum_gh
+  robustness = gg    
+  s_evolvability = sum_gh - gg  # count of mutations that take g to a different phenotype
+  d_evolvability = sum(dget10((g,h)) for h in allgoals) - ((gg>0) ? 1 : 0)  #count of number of phenotypes by mutation of g
   (frequency,robustness,s_evolvability,d_evolvability)
 end
 
 # Calculates robustness and degree evolvability for each goal and saves these in a dataframe.
 # Robustness 
-function robust_evolvability( goal_edge_matrix::Array{Int64,2} )
+function robust_evolvability( goal_edge_matrix::Array{Int64,2}, gl::Vector{MyInt} )
   ngoals = size(goal_edge_matrix)[1]
-  triangularize!(goal_edge_matrix)
-  robustness = zeros(Float64,ngoals)
-  evolvability = zeros(Float64,ngoals)
-  for g = 1:ngoals
+  #triangularize!(goal_edge_matrix)
+  frequency = zeros(Int64,ngoals)
+  robustness = zeros(Int64,ngoals)
+  s_evolvability = zeros(Int64,ngoals)
+  d_evolvability = zeros(Int64,ngoals)
+  for g in map(x->x+1,gl)   # convert to 1-based indexing
     robustness[g] = goal_edge_matrix[g,g]
-    sum1 = g==ngoals ? 0 : sum( ((goal_edge_matrix[g,h] != 0) ? 1 : 0) for h = (g+1):ngoals )
-    pairs1 = g==ngoals ? 0 : [ (g,h) for h = (g+1):ngoals ] 
-    sum2 = g==1 ? 0 : sum( ((goal_edge_matrix[h,g] != 0) ? 1 : 0) for h = 1:(g-1))
-    pairs2 = g==1 ? 0 : [ ((h,g),goal_edge_matrix[h,g]) for h = 1:(g-1)] 
-    #println("g: ",g,"  pairs1: ",pairs1,"  sum1: ",sum1)
-    #println("g: ",g,"  pairs2: ",pairs2,"  sum2: ",sum2)
-    evolvability[g] = sum1 + sum2
+    frequency[g] = sum( goal_edge_matrix[g,h]  for h = 1:ngoals )
+    s_evolvability[g] = frequency[g] - robustness[g]
+    d_evolvability[g] = sum( ((goal_edge_matrix[g,h] != 0) ? 1 : 0) for h = 1:ngoals ) - ((goal_edge_matrix[g,g]>0) ? 1 : 0)
   end
   df = DataFrame()
   df.goal = collect(MyInt(0):MyInt(ngoals-1))
+  df.frequency = frequency
   df.robustness = robustness
-  df.evolvability = evolvability
+  df.s_evolvability = s_evolvability
+  df.d_evolvability = d_evolvability
   df
 end
 
