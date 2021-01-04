@@ -1,0 +1,32 @@
+Major revision of robust_evolvability() in random_walk.jl.
+Now the matrix and dict versions agree, and give freq, robust, s_evolvabity 
+(strength evolvability) and d_evolvability (degree evolvability) results.
+
+1/3:  Decided that robustness should be previous robusteness (frequency of (g,g)) divided by frequency.
+Below I adjust for this by adding column robust to dataframes.  
+But as of 1/3 I am revising the code in random_walk.jl to do this computatation.
+
+# Shows that sampling is not an effective way to computed degree evolvability.
+# With enough samples, the degree evolvability of most goals goes to the maximum possible.
+adf = read_dataframe("1_2/robust_evo_by_walks1_2A.csv")
+bdf = read_dataframe("1_2/robust_evo_by_walks1_2B.csv")
+cdf = read_dataframe("1_2/robust_evo_by_walks1_2C.csv")
+adf.robust = adf.robustness./adf.frequency
+bdf.robust = bdf.robustness./bdf.frequency
+cdf.robust = cdf.robustness./cdf.frequency
+plta=scatter(adf.robust,adf.d_evolvability,labels="2E7 samples",xlabel="robustness",ylabel="degree evolvability",title="degree evolvability vs robustness 7gts 5lb",legend=:bottomright)
+scatter!(plta,bdf.robust,bdf.d_evolvability,labels="1E8 samples",legend=:bottomright,xlabel="robustness",ylabel="degree evolvability",title="degree evolvability vs robustness 7gts 5lb")
+scatter!(plta,cdf.robust,cdf.d_evolvability,labels="5E8 samples",xlabel="robustness",ylabel="degree evolvability",title="degree evolvability vs robustness 7gts 5lb",legend=:bottomright)
+savefig("1_2/deg_evolvability_vs_robustness_3x1_7gts5lb.png")
+
+# Plot evolvability vs robustness ffor 8 gates 5 lb   1E10 samples
+mdf = read_dataframe("1_2/robust_evo_by_walks1_2M.csv")
+mdf.robust = mdf.robustness./mdf.frequency
+scatter(mdf.robust,mdf.d_evolvability,xlabel="robustness",ylabel="degree evolvability",title="degree evolvability vs robustness 4x1 8gts 5lb",legend=:topleft,labels="1E10 samples")
+savefig("1_2/evolvability_vs_robustness_4x1_8gts_5lb_1E10samples")
+
+L10(x) = map(log10,x)
+p=scatter(L10(adf.frequency[2:254]),adf.robust[2:254],legend=:bottomright,labels="2E7 samples")
+scatter!(L10(bdf.frequency[2:254]),bdf.robust[2:254],legend=:bottomright,labels="1E8 samples")
+scatter!(p,L10(cdf.frequency[2:254]),cdf.robust[2:254],legend=:bottomright,labels="5E7 samples",xlabel="log frequency",ylabel="robustness",title="robustness vs log frequency by sampling 3x1 7gts 5lb")
+savefig("1_2/log_freq_vs_robustness_sampline_3x1_7gts5lb.png")

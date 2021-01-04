@@ -75,7 +75,8 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
 end
 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer ) 
+function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer; csvfile::String="" ) 
+  p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
   if nprocs() > 1
     nreps_p = Int(round(nreps/(nprocs()-1)))
   else
@@ -83,7 +84,26 @@ function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::I
   end
   println("nreps_p: ",nreps_p)
   #mapreduce(x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback ), +, collect(1:nprocs()))
-  reduce(+, pmap( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback ), collect(1:nprocs())))
+  outlist = reduce(+, pmap( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback ), collect(1:nprocs())))
+  println("typeof(outlist): ",typeof(outlist))
+  if length(csvfile) > 0
+    write_to_dataframe_file( p, outlist, csvfile=csvfile )
+  end
+end
+
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}; csvfile::String="" )
+  df = DataFrame()
+  df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  #println("len goals: ",length(df.:goals))
+  sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
+  df[!,sym] = outputs_list
+  open( csvfile, "w" ) do f
+    hostname = chomp(open("/etc/hostname") do f read(f,String) end) 
+    println(f,"# date and time: ",Dates.now())
+    println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )     
+    print_parameters(f,p,comment=true)
+    CSV.write( f, df, append=true, writeheader=true )
+  end
 end
 
 # print the elements of the output list that are greater than increment
@@ -126,20 +146,6 @@ function write_to_file( outputs_list::Vector{MyFunc}, filename::String, comments
         println(f, outputs_list[i] )
       end
     end
-  end
-end
-
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Int64}, csvfile::String, comments::String... ) 
-  df = DataFrame()
-  df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
-  #println("len goals: ",length(df.:goals))
-  sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
-  df[!,sym] = outputs_list
-  open( csvfile, "w" ) do f
-    for s in comments
-      println(f,"# ",s)
-    end
-    CSV.write( f, df, append=true, writeheader=true )
   end
 end
 

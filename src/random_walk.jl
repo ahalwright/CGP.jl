@@ -8,18 +8,23 @@ using DataFrames, CSV, Dates
 # The methodology is to do nprocesses*nwalks random walks each of length steps, and record all of the transitions made.
 # If csvfile is specified, writes the dataframe to this file.
 function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector{MyInt}, p::Parameters, steps::Int64; 
-      csvfile::String="", output_dict::Bool=true )
-      #c_list::Vector{Chromosome}=Vector{Chromosome}[] 
+      csvfile::String="", output_dict::Bool=true, save_complex::Bool=false)
   ngoals = 2^(2^p.numinputs)
+  addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
   if output_dict
-    goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-    goal_set_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
-    println("length(goal_set_list): ",length(goal_set_list))
-    for gp in goal_set_list
-      goal_pair_dict = merge(+, goal_pair_dict, gp )
-    end
-    #return goal_pair_dict
-    df = robust_evolvability( goal_pair_dict, gl, p )
+    goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
+    #goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
+    dict_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, save_complex=save_complex ), 
+        collect(1:nprocesses) )
+    println("length(dict_list): ",length(dict_list))
+    #println("dict_list[1]: ",dict_list[1])
+    println("typeof(goal_pair_dict): ",typeof(goal_pair_dict))
+    #for gp in dict_list
+      goal_pair_dict = save_complex ? merge(addvalues,goal_pair_dict,dict_list...) : merge(+,goal_pair_dict,dict_list...)
+      #goal_pair_dict = merge(+, goal_pair_dict, gp )
+   # end
+    return goal_pair_dict
+    #df = robust_evolvability( goal_pair_dict, gl, p )
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
     goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
@@ -45,17 +50,16 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
   df
 end
 
-function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; output_dict::Bool=true )
-      #output_dict::Bool=true, c_list::Vector{Chromosome}=Vector{Chromosome}[] )
-  #println("run_random_walks with nwalks: ",nwalks,"  steps: ",steps)
+function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; output_dict::Bool=true, save_complex::Bool=false )
   @assert p.numoutputs == 1
   funcs = default_funcs(p.numinputs)
+  addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
   ngoals = 2^(2^p.numinputs)
   c_list = [ random_chromosome(p,funcs) for _ = 1:nwalks ]
   if output_dict
-    goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-    rw_list = [random_walk( c_list[i], steps, output_dict=output_dict ) for i = 1:nwalks ]
-    goal_pair_dict = merge(+,goal_pair_dict,rw_list...)
+    goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
+    rw_list = [random_walk( c_list[i], steps, output_dict=output_dict, save_complex=save_complex ) for i = 1:nwalks ]
+    goal_pair_dict = save_complex ? merge(addvalues,goal_pair_dict,rw_list...) :  merge(+,goal_pair_dict,rw_list...)
     return goal_pair_dict
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
@@ -68,37 +72,35 @@ end
 
 # Outputs a node-edge adjacency matrix unless output_dict==true, 
 #      in which case a dictionary indexed on goal pairs whose values the the count of the goal pair
-function random_walk( c::Chromosome, steps::Int64; output_dict::Bool=true, mutate_locs::Vector{Int64}=Int64[] )
-  #mutate_locs = Int64[]
+function random_walk( c::Chromosome, steps::Int64; output_dict::Bool=true, save_complex::Bool=false  )
   funcs = default_funcs(c.params.numinputs)
   ngoals = 2^(2^c.params.numinputs)
-  loc_index = 1
-  if length(mutate_locs) == 0
-    #nlocs = length(mutate_all(deepcopy(c),funcs))
-    nlocs = num_mutate_locations( c, funcs )
-    mutate_locs = rand(1:nlocs,steps)
-  end
-  if output_dict
+  #addvalues(x,y) = (x[1]+y[1],(x[2]+y[2])/2.0)
+  addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
+  if output_dict && !save_complex
     goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
+  elseif output_dict && save_complex
+    goal_pair_dict = Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}()
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
   end
+  cmplx = 0.0
   goal = output_values(c)[1]
   #println("start goal: ",goal)
   for i = 1:steps 
-    #println("loc_index: ",loc_index,"  mutate_locs[loc_index]: ",mutate_locs[loc_index])
-    mutate_chromosome!( c, funcs, mutate_locs[loc_index])
-    #print_circuit(c)
-    #print_circuit(new_c)
-    loc_index += 1
+    cmplx = save_complex ? complexity5(c) : 0  # complexity of circuit mapping to prev_goal
     prev_goal = goal
+    mutate_chromosome!( c, funcs )
+    #print_circuit(c)
     goal = output_values(c)[1]
-    #println("i: ",i,"  goal: ",goal)
-    if output_dict
+    #println("i: ",i,"  prev_goal: ",prev_goal,"  goal: ",goal)
+    if output_dict 
+      value = save_complex ? (1,cmplx) : 1
       if haskey(goal_pair_dict,(prev_goal,goal))
-        goal_pair_dict[(prev_goal,goal)] += 1
+        prev_value = goal_pair_dict[(prev_goal,goal)]
+        goal_pair_dict[(prev_goal,goal)] = save_complex ?  addvalues(prev_value,value) : prev_value+value
       else
-        goal_pair_dict[(prev_goal,goal)] = 1
+        goal_pair_dict[(prev_goal,goal)] = value
       end
     else
       goal_edge_matrix[Int64(prev_goal)+1,Int64(goal)+1] += 1
@@ -118,6 +120,43 @@ end
 
 # 
 # Note that gl is a list of MyInts, not a list of goals 
+function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, gl::Vector{MyInt}, p::Parameters )
+  ngoals = 2^(2^p.numinputs)
+  allgoals = MyInt(0):MyInt(ngoals-1)
+  println("allgoals: ",allgoals,"  ngoals: ",ngoals)
+  re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
+  #re_list = map( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
+  df = DataFrame()
+  df.goal = gl
+  df.frequency= [ re[1] for re in re_list ]
+  df.robustness = [ re[2] for re in re_list ]
+  df.s_evolvability = [ re[3] for re in re_list ]  
+  df.d_evolvability = [ re[4] for re in re_list ]  
+  df.complexity= [ re[5] for re in re_list ]  
+  df
+end
+
+# Helper function used in pmap() in robust_evolvability()
+# Corrected 1/2/21 and 1/3/21
+function robust_evo( g::MyInt, goal_pair_dict::Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, ngoals::Int64 )
+  allgoals = MyInt(0):MyInt(ngoals-1)
+  dget(x) = get(goal_pair_dict,x,(0,0.0))
+  dget10(x) = get(goal_pair_dict,x,(0,0.0))[1]>0 ? 1 : 0
+  #println("dget((g,g)): ",dget((g,g)),"  dget((g,g))[2]: ",dget((g,g))[2])
+  sum_gh = sum( dget((g,h))[1] for h in allgoals )
+  #sum_hg = sum( dget((h,g))[1] for h in allgoals )
+  #for h in allgoals println("  dget((g,h)): ",dget((g,h))) end
+  sum_gh_c = sum( dget((g,h))[1]*dget((g,h))[2] for h in allgoals )
+  gg = dget((g,g))[1]
+  frequency = sum_gh
+  robustness = gg/frequency    
+  s_evolvability = sum_gh - gg  # count of mutations that take g to a different phenotype
+  d_evolvability = sum(dget10((g,h)) for h in allgoals) - ((gg>0) ? 1 : 0)  #count of number of phenotypes by mutation of g
+  complexity = sum_gh_c/frequency
+  (frequency,robustness,s_evolvability,d_evolvability,complexity)
+end
+# 
+# Note that gl is a list of MyInts, not a list of goals 
 function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl::Vector{MyInt}, p::Parameters )
   ngoals = 2^(2^p.numinputs)
   allgoals = MyInt(0):MyInt(ngoals-1)
@@ -134,16 +173,16 @@ function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl
 end
 
 # Helper function used in pmap() in robust_evolvability()
-# Corrected 1/2/21
+# Corrected 1/2/21 and 1/3/21
 function robust_evo( g::MyInt, goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, ngoals::Int64 )
   allgoals = MyInt(0):MyInt(ngoals-1)
   dget(x) = get(goal_pair_dict,x,0)
   dget10(x) = get(goal_pair_dict,x,0)>0 ? 1 : 0
   sum_gh = sum( dget((g,h)) for h in allgoals )
-  sum_hg = sum( dget((h,g)) for h in allgoals )
+  #sum_hg = sum( dget((h,g)) for h in allgoals )
   gg = dget((g,g))
   frequency = sum_gh
-  robustness = gg    
+  robustness = gg/frequency    
   s_evolvability = sum_gh - gg  # count of mutations that take g to a different phenotype
   d_evolvability = sum(dget10((g,h)) for h in allgoals) - ((gg>0) ? 1 : 0)  #count of number of phenotypes by mutation of g
   (frequency,robustness,s_evolvability,d_evolvability)
@@ -155,13 +194,13 @@ function robust_evolvability( goal_edge_matrix::Array{Int64,2}, gl::Vector{MyInt
   ngoals = size(goal_edge_matrix)[1]
   #triangularize!(goal_edge_matrix)
   frequency = zeros(Int64,ngoals)
-  robustness = zeros(Int64,ngoals)
+  robustness = zeros(Float64,ngoals)
   s_evolvability = zeros(Int64,ngoals)
   d_evolvability = zeros(Int64,ngoals)
   for g in map(x->x+1,gl)   # convert to 1-based indexing
-    robustness[g] = goal_edge_matrix[g,g]
     frequency[g] = sum( goal_edge_matrix[g,h]  for h = 1:ngoals )
-    s_evolvability[g] = frequency[g] - robustness[g]
+    robustness[g] = goal_edge_matrix[g,g]/frequency[g]
+    s_evolvability[g] = frequency[g] - goal_edge_matrix[g,g]
     d_evolvability[g] = sum( ((goal_edge_matrix[g,h] != 0) ? 1 : 0) for h = 1:ngoals ) - ((goal_edge_matrix[g,g]>0) ? 1 : 0)
   end
   df = DataFrame()
@@ -187,14 +226,22 @@ end
 
 function matrix_to_dict( M::Array{Int64,2} )
   goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-  for g = 1:size(M)[1]
-    for h = 1:size(M)[2]
-      if M[g,h] != 0
-        goal_pair_dict[(g,h)] = M[g,h]
+  for g = 0:(size(M)[1]-1)
+    for h = 0:(size(M)[2]-1)
+      if M[g+1,h+1] != 0
+        goal_pair_dict[(g,h)] = M[g+1,h+1]
       end
     end
   end
   goal_pair_dict
+end
+
+function dict_to_matrix( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, p::Parameters )
+  M = zeros(Int64,2^2^p.numinputs,2^2^p.numinputs)
+  for (g,h) in keys(goal_pair_dict)
+    M[g+1,h+1] = goal_pair_dict[(g,h)] 
+  end
+  M
 end
 
 function pairs_to_dict( pairs::Array{Pair{Tuple{MyInt,MyInt},Int64},1})
@@ -228,23 +275,24 @@ function robust_evolvability_to_df( goal_pair_list::Array{Pair{Tuple{UInt16,UInt
 end
 
 # Computes frequency, robustess, strength_evolvability, degree_evolvabilty of a list of MyInts (interpreted as goals)
-
 # Note that gl is a list of MyInts, not a list of goals 
 function dict_to_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl::Vector{MyInt}, p::Parameters )
   @assert p.numoutputs == 1
   dget(x) = get(goal_pair_dict,x,0)
   dget10(x) = get(goal_pair_dict,x,0)>0 ? 1 : 0
   frequency = zeros(Int64,length(gl))
-  robustness = zeros(Int64,length(gl))
+  robustness = zeros(Float64,length(gl))
   s_evolvability = zeros(Int64,length(gl))
   d_evolvability = zeros(Int64,length(gl))
   allgoals = MyInt(0):MyInt(2^2^p.numinputs-1)
   i = 1
   for g in gl
-    frequency[i] = sum( get( goal_pair_dict, (g,h), 0 ) + get( goal_pair_dict, (h,g), 0 ) for h in allgoals ) 
-    robustness[i] = get( goal_pair_dict, (g,g), 0 )
-    s_evolvability[i] = sum( dget((g,h)) + dget((h,g)) for h in allgoals ) - 2*robustness[i]
-    d_evolvability[i] = sum( dget10((g,h)) + dget10((h,g)) for h in allgoals ) - 2*(robustness[i]>0 ? 1 : 0)
+    #frequency[i] = sum( get( goal_pair_dict, (g,h), 0 ) + get( goal_pair_dict, (h,g), 0 ) for h in allgoals ) 
+    frequency[i] = sum( dget((g,h)) for h in allgoals ) 
+    #robustness[i] = get( goal_pair_dict, (g,g), 0 )
+    robustness[i] = dget((g,g))/frequency[i]
+    s_evolvability[i] = sum( dget((g,h)) for h in allgoals ) - dget((g,g))
+    d_evolvability[i] = sum( dget10((g,h)) for h in allgoals ) - (dget((g,g))>0 ? 1 : 0)
     i += 1
   end
   df = DataFrame()

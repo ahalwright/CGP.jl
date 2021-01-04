@@ -1,0 +1,6 @@
+Decided that robustness should be previous robusteness (frequency of (g,g)) divided by frequency.
+For the 1/2 data I adjust for this by adding column robust to dataframes.
+But as of 1/3 I am revising the code in random_walk.jl to do this computatation.    
+
+I revised the random_walk functions that use a dictionary to optionally include a second value complexity.
+complexity is accumulated by averaging.
