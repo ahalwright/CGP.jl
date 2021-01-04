@@ -163,6 +163,8 @@ function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList
   while !done
     #println("while !done loop.")
     df = DataFrame()
+    df.numgates = Int64[]
+    df.levelsback = Int64[]
     df.steps = Int64[]
     df.unique_goals = Int64[]
     df.mean_complexity = Float64[]
@@ -186,7 +188,7 @@ function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList
     (circuit_list,goals_found,row_tuple) = explore_complexity( p, reduced_goallist, extended_circuit_list, max_ev_steps )
     println("length(redued_goallist): ",length(reduced_goallist),"  row_tuple: ",row_tuple)
     push!(df,row_tuple)
-    if row_tuple[1] > 0
+    if row_tuple[3] > 0
       done = true
     end
   end
@@ -234,9 +236,9 @@ function explore_complexity( p::Parameters, goallist::GoalList, circuit_list::Ve
     end
   #end
   if length(steps_list) > 0
-    row_tuple = (length(steps_list), length(unique(goals_found)),mean(dest_cmplx_list), maximum(dest_cmplx_list) )
+    row_tuple = (p.numinteriors, p.numlevelsback, length(steps_list), length(unique(goals_found)),mean(dest_cmplx_list), maximum(dest_cmplx_list) )
   else
-    row_tuple = (0,0,0.0,0.0)
+    row_tuple = (p.numinteriors, p.numlevelsback,0,0,0.0,0.0)
   end
   println("length(circuits_list): ",length(circuits_list))
   return (circuits_list, goals_found, row_tuple)
