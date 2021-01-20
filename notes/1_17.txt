@@ -1,0 +1,27 @@
+Wrote extract_component_sizes() and add_component_sizes_to_df() in neutral_walk.jl 
+to extract info in _ints.txt files in 1_13 and 1_15 and add it to the corresponding csv file.
+
+csvfile = "../data/1_13/neutral_walks1_13N.csv"
+add_component_sizes_to_df(csvfile)
+Did not actually add data to csv files except in this one case.
+
+================================================================
+
+Created a Word file Pp_sizes.docx copied from Paper_preview1_15.docx.  
+
+Words in Paper_preview1_15.docx:  11601
+
+I deleted extraneous comments and sections (such as spaghetti noodle visualization) to see the word count.
+Words:  9400?
+
+Drop "Evolving between pairs of phenotypes":  Words:  9000?
+
+Drop "Difficulty of evolution":  Words: 8758
+
+Drop "Components of neutral networks"  Words:  8131
+
+Drop paragraphs of "Digital logic gate circuits" on compact linear representation and circuit codes  7617.
+
+Additional reduction will come from dropping comments enclosed by [ and ] on each figure.
+
+

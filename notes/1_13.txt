@@ -1,0 +1,94 @@
+Reran simulations for finding components of neutral networks.
+Previous runs were 12_1.
+
+3x1 6 gates 4lb is the smallest paramteres for which I am confident of some accuracy.
+Code parallelizes the extension of the neutral walks, but not the combination of
+the sets resulting from neutral walks.  So I did two parallel runs with phenotyps
+0x0000:0x007f and 0x0080:0x00ff.  Then the parallel neutral walk computation can partly 
+overlap the serial combination computation.
+
+Also, saved the distribution of component sizes into a separate file, 
+e. g. neutral_walks1_13M_ints.txt.
+
+All runs were for 3x1 6 gates 4lb.
+Runs M and N were for 100 walks of length 2000, 
+and runs R and S were for 140 walks of length 4000. 
+The MN and RS files combined the M and N files and R and S files respectively.
+
+The RS files gave a smaller mean n_combined of 5.0 versus 6.3 for MN.  
+RS had 1 n_combined value > 30.0 whereas MN had 7.
+
+scatter(nwdf.n_combined,nwdf.complexity,xlabel="number discovered components",ylabel="Tononi complexity",title="number components vs. complexity 3x1 6gts 4lb",legend=:none)
+savefig("1_13/num_components_vs_complexity_3x1_6gts_4lb.png")
+
+So this suggests that components are not being combined.
+
+However, using data file data/11_18/run_geno_complexityV.jl produced a robustness vs evo_count file
+which shows a strong negative relationship between evolution evolvability and robustness with
+some outliers.  
+
+scatter(gcdf.robustness,gcdf.evo_count,xlabel="robustness",ylabel="evolution evolvability",title="evolution evolvability vs. robustness 3x1 6gts 4lb",legend=:none)
+savefig("11_18/evo_count_vs_robustness_3x1_6gts_4lb.png")
+
+gcdf = read_dataframe("../data/11_18/geno_complexity11_18Vcons.csv")
+# outliers
+gc_goals =  gcdf[(gcdf.evo_count.>200) .& (gcdf.robustness.>0.3),:goal]
+13-element Array{String,1}:
+ "UInt16[0x0001]"
+ "UInt16[0x0002]"
+ "UInt16[0x0004]"
+ "UInt16[0x0008]"
+ "UInt16[0x0010]"
+ "UInt16[0x0020]"
+ "UInt16[0x0040]"
+ "UInt16[0x00bf]"
+ "UInt16[0x00df]"
+ "UInt16[0x00ef]"
+ "UInt16[0x00f7]"
+ "UInt16[0x00fb]"
+ "UInt16[0x00fd]"
+
+nwdf = read_dataframe("../data/1_13/neutral_walks1_13RS.csv") 
+# high number of components
+nw_goals =  nwdf[nwdf.n_combined.>=20,:goal]
+13-element Array{String,1}:
+ "UInt16[0x0016]"
+ "UInt16[0x0029]"
+ "UInt16[0x0049]"
+ "UInt16[0x0061]"
+ "UInt16[0x006d]"
+ "UInt16[0x0071]"
+ "UInt16[0x0079]"
+ "UInt16[0x0086]"
+ "UInt16[0x008e]"
+ "UInt16[0x0092]"
+ "UInt16[0x009e]"
+ "UInt16[0x00b6]"
+ "UInt16[0x00e9]"
+
+intersect(gc_goals,nw_goals)
+0-element Array{String,1}
+
+mnnwdf = read_dataframe("../data/1_13/neutral_walks1_13MN.csv") 
+mnnw_goals = mnnwdf[nwdf.n_combined.>=22,:goal]
+8-element Array{String,1}:
+ "UInt16[0x0016]"
+ "UInt16[0x0049]"
+ "UInt16[0x0061]"
+ "UInt16[0x0071]"
+ "UInt16[0x0086]"
+ "UInt16[0x0092]"
+ "UInt16[0x009e]"
+ "UInt16[0x00b6]"
+
+# Show that the mn results are consistent with the rs results
+ intersect(nw_goals,mnnw_goals)
+8-element Array{String,1}:
+ "UInt16[0x0016]"
+ "UInt16[0x0049]"
+ "UInt16[0x0061]"
+ "UInt16[0x0071]"
+ "UInt16[0x0086]"
+ "UInt16[0x0092]"
+ "UInt16[0x009e]"
+ "UInt16[0x00b6]"

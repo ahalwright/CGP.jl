@@ -7,4 +7,5 @@ julia> df.generation=collect(1:size(df)[1])
 julia>  plot(df.generation,[df.max_complexity,df.mean_complexity], title="max and mean complexity by generation",xlabel="generation",ylabel="complexity",label=["max complexity" "mean complexity"],legend=:bottomright)
 julia> savefig("arrow_max_mean_11gate_8lb.png")
 
-
+On surt2 concatenated explore_complexity1_4A.csv to explore_complexity1_4E.csv to explore_complexity1_4all.csv/
+expdf =read_dataframe("1_4/explore_complexity1_4all.csv")

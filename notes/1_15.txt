@@ -1,0 +1,12 @@
+lycosa:
+@time kcdf = include("../data/11_11/run_k_complexityG.jl") 
+nwdf.k_complex = kcdf.num_gates
+write_dataframe_with_comments(nwdf,"../data/1_15/neutral_walks1_15MN.csv","../data/neutral_walks1_15MNk.csv")
+IOStream(<file ../data/neutral_walks1_15MNk.csv>)
+Windows:
+nwdf = read_dataframe("1_15/neutral_walks1_15MNk.csv")   # Includes k_complexity.
+mwdf = read_dataframe("1_13/neutral_walks1_13MN.csv")
+plt=scatter(mwdf.n_combined,nwdf.k_complex.+0.05,labels="6 gates 4 levelsback",xlabel="number discovered components",ylabel="Kolmogorov complexity",title="number components vs. Kolmogorov complexity")
+scatter!(nwdf.n_combined,nwdf.k_complex.-0.05,labels="5 gates 4 levelsback",legend=:bottomright)
+savefig("1_15/k_complexity_vs_number_components_4_5gates_4lb.png")             
+

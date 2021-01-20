@@ -111,3 +111,29 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
   end
   walk_list
 end
+
+# Extract the list of discovered component sizes from an *_ints.txt file created by neutral_walks() function in this file
+# Return a dataframe with two fields:  goal, and comp_sizes.
+function extract_component_sizes( intsfile::String )
+  csdf = DataFrame()
+  csdf.goal = String[]
+  csdf.comp_sizes = String[]
+  open( intsfile, "r" ) do f
+    for line in readlines(f)
+      m = match(r"(\[0x.*\]).*(\[.*\])",line) 
+      push!(csdf,m.captures)
+    end
+  end
+  csdf
+end
+
+# Add the component sizes lists returned by function extract_component_sizes() to the dataframe of csvfile.
+#  The resulting dataframe is written to a csvfile with "cs" appended to the file name (before the ".csv")
+function add_component_sizes_to_df( csvfile::String )
+  df = read_dataframe(csvfile)
+  ints_file = string( csvfile[1:(end-4)], "_ints.txt" )
+  csdf = extract_component_sizes( ints_file )
+  df.comp_sizes = csdf.comp_sizes
+  dfcs_file = string( csvfile[1:(end-4)], "cs.csv" )
+  write_dataframe_with_comments(df,csvfile,dfcs_file)
+end

@@ -1,0 +1,25 @@
+More plots for evolvability by sampling variable relationships:
+Variables:  robustness, evolvabity, frequency, complexity
+
+adf = read_dataframe("1_3/robust_evo_by_walks1_3A.csv")
+julia> scatter( adf.d_evolvability,adf.robustness,title="robustness vs. sampling evolvability 3x1 7gts 5lb",xlabel="samplng evolvability",ylabel="robustness",legend=:none)
+julia> savefig("1_3/robustness_vs_sampling_evolvability_3x1_7gts_5lb.png")
+# reverse axes for compatibility with paper_preview plot
+julia> scatter(adf.robustness, adf.d_evolvability,title="sampling evolvability vs. robustness 3x1 7gts 5lb",ylabel="sampling evolvability",xlabel="robustness",legend=:none)
+julia> savefig("1_3/sampling_evolvability_vs_robuatness_3x1_7gts_5lb.png")
+
+julia> scatter( adf.d_evolvability,adf.complexity,title="complexity vs. sampling evolvability 3x1 7gts 5lb",xlabel="samplng evolvability",ylabel="complexity",legend=:none)
+julia> savefig("1_3/complexity_vs_sampling_evolvability_3x1_7gts_5lb.png")
+julia> scatter( adf.d_evolvability,L10(adf.frequency),title="log frequency vs. sampling evolvability 3x1 7gts 5lb",xlabel="samplng evolvability",ylabel="log frequency",legend=:none)
+julia> savefig("1_3/log_frequency_vs_sampling_evolvability_3x1_7gts_5lb.png")
+# reverse axes for compatibility with paper_preview plot
+julia> scatter( L10(adf.frequency),adf.d_evolvability,title="sampling evolvability vs. log frequency 3x1 7gts 5lb",ylabel="samplng evolvability",xlabel="log frequency",legend=:none)
+julia> savefig("1_3/sampling_evolvability_vs_log_frequency_3x1_7gts_5lb.png")
+
+julia> scatter( adf.d_evolvability,adf.complexity,title="complexity vs. sampling evolvability 3x1 7gts 5lb",xlabel="samplng evolvability",ylabel="complexity",legend=:none)
+julia> savefig("1_3/complexity_vs_sampling_evolvability_3x1_7gts_5lb.png")
+# reverse axes for compatibility with paper_preview plot
+julia> scatter(adf.complexity, adf.d_evolvability,title="sampling evolvability vs. complexity 3x1 7gts 5lb",ylabel="samplng evolvability",xlabel="complexity",legend=:none)
+julia> savefig("1_3/sampling_evolvability_vs_complexity_3x1_7gts_5lb.png")
+
+

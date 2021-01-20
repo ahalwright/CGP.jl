@@ -1,6 +1,8 @@
 Generating plots of evolvability vs robustness with other parameter settings.
 Plots are in data/11_18.
 
+See new data and plot from 1_13 in data/11_18.  See notes/1_13.txt.
+
 Overall conclusion:  All negative relationships, but not as strong as the 11 gates, 8 lb case.
 
 geno_complexity11_18C.csv data/11_18/'evo_vs_robustness 3 inputs 6 gates 4 lb.png'

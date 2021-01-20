@@ -70,11 +70,12 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
 end
     
 # Does multiple random walks and combines the returned circuit code lists if they have circuits in common.
-function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64, maxsteps::Int64, maxtries::Int64 )
+function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64, maxsteps::Int64, maxtries::Int64, int_list_file::IOStream )
   walk_list = Int64[]
   circuit_int_list = Set{Int64}[]
-  #walk_results = map(x->neutral_walk( g, p, steps, maxsteps, maxtries), collect(1:n_walks))  
   walk_results = pmap(x->neutral_walk( g, p, steps, maxsteps, maxtries), collect(1:n_walks))  
+  println("after pmap()")
+  #walk_results = map(x->neutral_walk( g, p, steps, maxsteps, maxtries), collect(1:n_walks))  
   #println("walk_results[1]: ",walk_results[1])
   complexity_avg = 0.0
   for w = 1:n_walks
@@ -113,6 +114,9 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
     end
     #println("w: ",w,"  walk_list after add: ",walk_list)
     println("w: ",w,"  len: ",length(circuit_int_list),"  lengths circuit_int_list: ", [length(circuit_int_list[k]) for k = 1:length(circuit_int_list)])
+    if w == n_walks
+      println(int_list_file,"goal: ",g,"  len: ",length(circuit_int_list),"  lengths circuit_int_list: ", [length(circuit_int_list[k]) for k = 1:length(circuit_int_list)])
+    end
     #print("w: ",w,"  length(circuit_int_list) after add: ",length(circuit_int_list))
     #println("  lengths circuit_int_list: ",[length(ccl) for ccl in circuit_int_list])
     for i = 1:length(circuit_int_list)
@@ -141,9 +145,14 @@ function run_neutral_walk( gl::GoalList, p::Parameters, n_walks::Int64, steps::I
   df.steps = Int64[]
   df.maxsteps = Int64[]
   df.maxtries = Int64[]       
-  df.n_combined = Int[] 
+  df.n_combined = Float64[] 
   df.complexity = Float64[]
-  result = pmap(g->run_neutral_walk( g, p, n_walks, steps, maxsteps, maxtries ), gl )
+  if length(csvfile) > 0
+    println("file: ","$(csvfile[1:(end-4)])_ints.txt")
+    int_list_file=open("$(csvfile[1:(end-4)])_ints.txt","w")
+  end
+  result = map(g->run_neutral_walk( g, p, n_walks, steps, maxsteps, maxtries, int_list_file ), gl )
+  #println("after map()")
   for r in result
     push!(df,(r[1], p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, n_walks, steps, maxsteps, maxtries, r[2], r[4] ))
   end
@@ -158,6 +167,7 @@ function run_neutral_walk( gl::GoalList, p::Parameters, n_walks::Int64, steps::I
   println("# maxtries: ",maxtries)
   println("# ngoals: ",length(gl))
   if length(csvfile) > 0
+    close(int_list_file)
     open( csvfile, "w" ) do f     
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )

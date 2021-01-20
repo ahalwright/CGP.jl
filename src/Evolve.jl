@@ -301,6 +301,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   (c,step,worse,same,better,output,matched_goals,matched_goals_list)
 end 
 
+# Does up to n_repeats tries to evolve a chromosome which maps to a goal in goallist
 function mut_evolve_repeat(n_repeats::Int64, p::Parameters, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
       avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95, 
