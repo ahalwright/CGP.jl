@@ -6,7 +6,10 @@ Count cicuits
 3x1 4 gates 3 levsback 
 3 input options for each input of each gate.  num circuits = 5^4 * 3^8  (5 gate types),  4 gates with 3 options each
 
-
+julia> L10(x::Int64) = x > 0 ? log10(x) : 0.0
+julia> s8log = map(L10,df.ints8_5) 
+julia> s11_5log = map(L10,df.ints11_5) 
+julia> s11_8log = map(L10,df.ints11_8) 
 
 On Windows
 julia> spdf = DataFrame()

@@ -843,14 +843,15 @@ function circuit_distance( c1::Chromosome, c2::Chromosome )
   diff_count/length(code1)
 end
 
-# Return the number of circuits for parameters p and the corresponding default_funcs.
-function count_circuits( p::Parameters )
+# Return the number of circuits for parameters p and number of funcs nfuncs if nfuncs>0
+# If nfuncs==0, nfuncs is reset to be length(default_funcs(p.numinputs))
+function count_circuits( p::Parameters; nfuncs::Int64=0 )
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
-  funcs = default_funcs(p.numinputs)
+  nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
   multiplier = Int128(1)
   mij = 0
   for i = 1:p.numinteriors
-    mf = length(funcs)
+    mf = nfuncs
     multiplier *= mf
     for j = 1:p.nodearity
       mij = min(p.numlevelsback,i-1+p.numinputs)
