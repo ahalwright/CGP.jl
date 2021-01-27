@@ -1,0 +1,29 @@
+Moved random_neutral_walk functions from Evolvavbility.jl to random_neutral_walk.jl
+
+Procedure for 4x1 circuits
+
+bins = [0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0]
+p = Parameters(4,1,11,8)
+cxl4 = binned_circuit_complexities( p, 20000, 20, bins);
+map(length,cxl4)
+11-element Array{Int64,1}:
+ 20
+ 20
+ 20
+ 20
+ 20
+ 20
+ 20
+ 20
+ 20
+ 11
+  2
+clst4 = vcat(cxl4...);
+run_random_neutral_walk( clst4, 50, 500, 10, csvfile="../data/1_23/random_neutral_walk1_13B.csv")
+run_random_neutral_walk( clst4, 80, 500, 10, csvfile="../data/1_23/random_neutral_walk1_13C.csv")
+
+Windows:  For 50 steps:
+df=read_dataframe("1_23/random_neutral_walk1_13B.csv")
+scatter(df.complexity,df.evolvable_count,title="neighborhood evolvability vs. complexity 50 steps 11gts 8lb",xlabel="complexity",ylabel="neighborhood evolvable count",legend=:none)
+savefig("1_23/neighbor_evolvability_vs_complexity_50stps_4x1_11gts_8lb.png")
+For 80 steps: replace "B" with "C" and 50 with 80.

@@ -1,0 +1,6 @@
+
+L10(x) = x > 0.0 ? log10(x) : 0.0
+edf = read_dataframe("../data/10_27/geno_complexity10_27FMNccons.csv")
+edf.log_freq = map(L10,ddf.ints11_8)
+sdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3B.csv")
+sdf.log_freq = map(L10,sdf.frequency)
