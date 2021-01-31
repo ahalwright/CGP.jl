@@ -17,7 +17,7 @@ function neighbor_complexity( g::Goal, p::Parameters, maxreps::Int64, maxsteps::
     (c,step,worse,same,better,output,matched_goals,matched_goals_list) =
       mut_evolve( c, [g], funcs, maxsteps )
     if step == maxsteps
-      println("mut evolve failed for goal: ",goal)
+      println("mut evolve failed for goal: ",g)
       continue
     end
     #print("c: ")
@@ -40,11 +40,15 @@ function neighbor_complexity( g::Goal, p::Parameters, maxreps::Int64, maxsteps::
     #println("  n_count: ",n_count,"  n_complex_sum: ",neighbor_complexity_sum)
     nrepeats += 1
   end
-  (chrome_complexity_sum/c_count, neighbor_complexity_sum/n_count)
+  (g, chrome_complexity_sum/c_count, neighbor_complexity_sum/n_count)
 end
 
-function run_neighbor_complexity( ngoals::Int64, p::Parameters, maxreps::Int64, maxsteps::Int64, maxtries::Int64=2*maxreps;
-    csvfile=csvfile )
+function run_neighbor_complexity( ngoals::Int64, p::Parameters, maxreps::Int64, maxsteps::Int64, maxtries::Int64=2*maxreps; csvfile::String="")
+  goallist = randgoallist( ngoals, p.numinputs, p.numoutputs )
+  run_neighbor_complexity(goallist, p, maxreps,maxsteps,maxtries, csvfile=csvfile )
+end
+  
+function run_neighbor_complexity( goallist::Vector{Vector{MyInt}}, p::Parameters, maxreps::Int64, maxsteps::Int64, maxtries::Int64=2*maxreps; csvfile::String="")
   df = DataFrame()
   df.goal = Goal[]
   df.numinputs = Int64[]
@@ -53,11 +57,11 @@ function run_neighbor_complexity( ngoals::Int64, p::Parameters, maxreps::Int64, 
   df.numlevelsback = Int64[]
   df.circuit_complexity = Float64[]
   df.neighbor_complexity = Float64[]
-  goallist = randgoallist( ngoals, p.numinputs, p.numoutputs )
-  for g in goallist
-    println("g: ",g)
-    (chr_complexity, nbr_complexity) = neighbor_complexity( g, p, maxreps, maxsteps, maxtries )
-    push!(df, (g, chr_complexity, nbr_complexity))
+  tuple_list = pmap( g->neighbor_complexity( g, p, maxreps, maxsteps, maxtries ), goallist )
+  #tuple_list = map( g->neighbor_complexity( g, p, maxreps, maxsteps, maxtries ), goallist )
+  for tpl in tuple_list
+    row_tuple = (tpl[1], p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, tpl[2], tpl[3])
+    push!(df, row_tuple) 
   end
   df
   hostname = chomp(open("/etc/hostname") do f read(f,String) end)

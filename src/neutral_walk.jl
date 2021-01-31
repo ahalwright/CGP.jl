@@ -113,11 +113,11 @@ function run_neutral_walk( g::Goal, p::Parameters, n_walks::Int64, steps::Int64,
 end
 
 # Extract the list of discovered component sizes from an *_ints.txt file created by neutral_walks() function in this file
-# Return a dataframe with two fields:  goal, and comp_sizes.
-function extract_component_sizes( intsfile::String )
+# Return a dataframe with two fields:  goal, and comp_list.
+function extract_component_lists( intsfile::String )
   csdf = DataFrame()
   csdf.goal = String[]
-  csdf.comp_sizes = String[]
+  csdf.comp_list = String[]
   open( intsfile, "r" ) do f
     for line in readlines(f)
       m = match(r"(\[0x.*\]).*(\[.*\])",line) 
@@ -132,8 +132,13 @@ end
 function add_component_sizes_to_df( csvfile::String )
   df = read_dataframe(csvfile)
   ints_file = string( csvfile[1:(end-4)], "_ints.txt" )
-  csdf = extract_component_sizes( ints_file )
-  df.comp_sizes = csdf.comp_sizes
-  dfcs_file = string( csvfile[1:(end-4)], "cs.csv" )
+  csdf = extract_component_lists( ints_file )
+  size_lists = [ eval(Meta.parse(csdf.comp_list[i])) for i = 1:size(csdf)[1] ]
+  size_lists = map(x->sort(x,rev=true),size_lists)
+  df.size_sum = map( sum, size_lists )
+  df.size_ratio = [ (df.size_sum[i] - size_lists[i][1])/df.size_sum[i] for i = 1:size(df)[1] ]
+  df.comp_list= csdf.comp_list
+  dfcs_file = string( csvfile[1:(end-4)], "ccs.csv" )
+  println("dfcs_file: ",dfcs_file )
   write_dataframe_with_comments(df,csvfile,dfcs_file)
 end

@@ -1,14 +1,11 @@
 Reran simulations for finding components of neutral networks.
 Previous runs were 12_1.
 
-3x1 6 gates 4lb is the smallest paramteres for which I am confident of some accuracy.
+3x1 6 gates 4lb is the smallest parameters for which I am confident of some accuracy.
 Code parallelizes the extension of the neutral walks, but not the combination of
 the sets resulting from neutral walks.  So I did two parallel runs with phenotyps
 0x0000:0x007f and 0x0080:0x00ff.  Then the parallel neutral walk computation can partly 
 overlap the serial combination computation.
-
-Also, saved the distribution of component sizes into a separate file, 
-e. g. neutral_walks1_13M_ints.txt.
 
 All runs were for 3x1 6 gates 4lb.
 Runs M and N were for 100 walks of length 2000, 
@@ -22,6 +19,37 @@ scatter(nwdf.n_combined,nwdf.complexity,xlabel="number discovered components",yl
 savefig("1_13/num_components_vs_complexity_3x1_6gts_4lb.png")
 
 So this suggests that components are not being combined.
+
+Also, saved the distribution of component sizes into a separate file, 
+e. g. neutral_walks1_13RS_ints.txt.  Theh I wrote function add_component_sizes_to_df( csvfile::String )
+in neutral_walks.jl that read these _ints.txt files and added fields :size_sum, :size_ratio, and
+:comp_list to the dataframe, and saved the resulting dataframe in a file whose name ended with ccs.csv.
+e. g. neutral_walks1_13RSccs.csv.  The :comp_list field has the list of discovered component sizes.
+The :size_sum contains the sum of the component sizes, and the :size_ratio field has the ratio
+of the sum of the sizes of components other than the largest to the sum of the sizes.
+
+julia> rsdf=read_dataframe("../data/1_13/neutral_walks1_13RSccs.csv")
+julia> findall(x->x>=0.05,rsdf.size_ratio)
+6-element Array{Int64,1}:
+  23
+  98
+ 105
+ 135
+ 159
+ 183
+
+julia> rsdf.size_ratio[ans]
+6-element Array{Float64,1}:
+ 0.06393945606794617
+ 0.07155448998664518
+ 0.06082311291257976
+ 0.16894284778996507
+ 0.05064602773317827
+ 0.05380729105401041 
+
+
+
+
 
 However, using data file data/11_18/run_geno_complexityV.jl produced a robustness vs evo_count file
 which shows a strong negative relationship between evolution evolvability and robustness with

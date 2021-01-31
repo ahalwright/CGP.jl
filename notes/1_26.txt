@@ -1,3 +1,7 @@
+The file src/regression.jl contains code for creating a regression properties table.
+data/1_26/ contains run_regresseionA.jl and run_regresseionB.jl
+which created regression_stats1_26A.csv and regression_stats1_26B.csv.
+On 1/30 created regression_stats1_26C.csv.
 
 L10(x) = x > 0.0 ? log10(x) : 0.0
 edf = read_dataframe("../data/10_27/geno_complexity10_27FMNccons.csv")

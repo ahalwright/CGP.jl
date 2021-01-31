@@ -1,0 +1,53 @@
+Redoing evolvability plots for GECCO paper using layouts.  
+See below for redoing neighbor complexity plot.
+
+First, put evolution and sampling evolvability vs robustness as subplots of a plot.
+
+edf = read_dataframe("10_27/geno_complexity10_27FMNccons.csv")
+sdf = read_dataframe("1_3/robust_evo_by_walks1_3B.csv")
+
+gr()    # GR backend
+pe = scatter(edf.robustness,edf.evo_count,framestyle=:box,xlabel="robustness",ylabel="evolution evolvability",ylim=[900,6900],smooth=:true, ann=(0.2, 6800,text("a")))
+ps = scatter(sdf.robustness, sdf.d_evolvability,ylim=[150,270],framestyle=:box,xlabel="robustness",ylabel="sampling evolvability",smooth=:true,ann=(0.28,265,"b"))
+plot(pe,ps,layout=(2,1),legend=:false)
+plot(pe,ps,layout=(2,1),legend=:false,size=(1024,768),tickfontsize=14,guidefontsize=14)
+#  plots with layout=(2,2) didn't work in mulitple backends
+savefig("1_29/e_s_evolvability_vs_robustness_11g_8_7g_5.png")
+
+Next, do evolvability vs. log redundancy (log frequency) using the same edf and sdf dataframes.
+For edf the redundancy column is ints11_8.  For sdf it is frequency.
+L10(x) = x > 0.0 ? log10(x) : 0.0
+edf.log_redund = map(L10,edf.ints11_8)
+pe = scatter(edf.log_redund,edf.evo_count,framestyle=:box,xlabel="log redundancy",ylabel="evolution evolvability",ylim=[900,6900],smooth=:true, ann=(1.05, 6800,text("a")))
+sdf.log_redund = map(L10,sdf.frequency
+ps = scatter(sdf.log_redund, sdf.d_evolvability,ylim=[145,270],framestyle=:box,xlabel="log redundancy",ylabel="sampling evolvability",smooth=:true,ann=(3.19,266,text("b")))
+plot(pe,ps,layout=(2,1),legend=:false,size=(1024,768),tickfontsize=14,guidefontsize=14)
+savefig("1_29/e_s_evolvability_vs_log_redund.png")
+
+Next, do evolvability vs. complexity using the same edf and sdf dataframes.
+pe = scatter(edf.complexity,edf.evo_count,framestyle=:box,xlabel="complexity",ylabel="evolution evolvability",ylim=[990,6900],smooth=:true, ann=(4.17, 6800,text("a"))) 
+ps = scatter(sdf.complexity, sdf.d_evolvability,ylim=[150,270],framestyle=:box,xlabel="complexity",ylabel="sampling evolvability",smooth=:true,ann=(0.87,265,"b"))
+plot(pe,ps,layout=(2,1),legend=:false,size=(1024,768),tickfontsize=14,guidefontsize=14)
+savefig("1_29/e_s_evolvability_vs_complexity.png")
+
+Do robustness vs. complexity using the same edf and sdf dataframes.
+pe = scatter(edf.complexity,edf.robustness,framestyle=:box,xlabel="complexity",ylabel="robustness",ylim=[0.2,0.65],smooth=:true, ann=(4.17,0.65,text("a"))) 
+ps = scatter(sdf.complexity, sdf.robustness,ylim=[0.27,0.81],framestyle=:box,xlabel="complexity",ylabel="robustness",smooth=:true,ann=(0.9,0.795,"b"))
+plot(pe,ps,layout=(2,1),legend=:false,size=(1024,768),tickfontsize=14,guidefontsize=14)
+savefig("1_29/robustness_vs_complexity.png") 
+
+Do log redundancy vs. complexity using the same edf and sdf dataframes.
+pe = scatter(edf.complexity,edf.log_redund,framestyle=:box,xlabel="complexity",ylabel="log redundancy",ylim=[1,8.15],smooth=:true, ann=(4.2,8.0,text("a")))
+ps = scatter(sdf.complexity, sdf.log_redund,ylim=[3.1,6.95],framestyle=:box,xlabel="complexity",ylabel="log redundancy",smooth=:true,ann=(0.9,6.8,"b"))
+savefig("1_29/log_redunc_vs_complexity.png")
+
+
+====================================================
+Redo neighbor complexity plot.
+Code:  neighbor_complexity.jl
+Edited and parallelized
+@time include("../data/1_30/run_neighbor_complexityD.jl")  # 1512 seconds
+scdf = read_dataframe("1_30/neighbor_complexity1_30D.csv")
+Pkg.add("Measures")
+using Measures
+scatter( scdf.circuit_complexity,scdf.neighbor_complexity,size=(1024,512),ylabel="neighbor complexity",xlabel="circuit_complexity",legend=:none,tickfontsize=14,guidefontsize=14,bottom_margin=Measures.Length(:mm,1))

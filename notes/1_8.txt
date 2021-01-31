@@ -6,7 +6,7 @@ julia> scatter( adf.d_evolvability,adf.robustness,title="robustness vs. sampling
 julia> savefig("1_3/robustness_vs_sampling_evolvability_3x1_7gts_5lb.png")
 # reverse axes for compatibility with paper_preview plot
 julia> scatter(adf.robustness, adf.d_evolvability,title="sampling evolvability vs. robustness 3x1 7gts 5lb",ylabel="sampling evolvability",xlabel="robustness",legend=:none)
-julia> savefig("1_3/sampling_evolvability_vs_robuatness_3x1_7gts_5lb.png")
+julia> savefig("1_3/sampling_evolvability_vs_robustness_3x1_7gts_5lb.png")
 
 julia> scatter( adf.d_evolvability,adf.complexity,title="complexity vs. sampling evolvability 3x1 7gts 5lb",xlabel="samplng evolvability",ylabel="complexity",legend=:none)
 julia> savefig("1_3/complexity_vs_sampling_evolvability_3x1_7gts_5lb.png")
@@ -22,4 +22,9 @@ julia> savefig("1_3/complexity_vs_sampling_evolvability_3x1_7gts_5lb.png")
 julia> scatter(adf.complexity, adf.d_evolvability,title="sampling evolvability vs. complexity 3x1 7gts 5lb",ylabel="samplng evolvability",xlabel="complexity",legend=:none)
 julia> savefig("1_3/sampling_evolvability_vs_complexity_3x1_7gts_5lb.png")
 
+scatter(adf.complexity, adf.robustness, title="robustness vs. complexity 3x1 7gts 5lb",xlabel="Tononi complexity",ylabel="robustness",legend=:none)
+savefig("1_3/robustness_vs_complexity_3x1_7gts_5lb.png")
+
+scatter(adf.complexity, L10(adf.frequency), title="log frequency vs. complexity 3x1 7gts 5lb",xlabel="Tononi complexity",ylabel="log frequency",legend=:none)
+savefig("1_3/log_frequency_vs_complexity_3x1_7gts_5lb.png")
 

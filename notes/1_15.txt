@@ -1,3 +1,4 @@
+Number components vs complexity
 lycosa:
 @time kcdf = include("../data/11_11/run_k_complexityG.jl") 
 nwdf.k_complex = kcdf.num_gates

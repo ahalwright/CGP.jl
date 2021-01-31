@@ -2,6 +2,7 @@
 using GLM, Distributions
 
 function lin_reg( df::DataFrame, Y::Symbol, X::Symbol )
+  println("X: ",X,"  Y: ",Y)
   @assert Y in names(df)
   @assert X in names(df)
   d = TDist(size(df)[1]-2)

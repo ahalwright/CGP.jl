@@ -70,6 +70,7 @@ function run_random_neutral_walk( c_list::Vector{Chromosome}, steps::Int64, maxs
     println(f,"# date : ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
     println(f,"# funcs: ", funcs)
+    print_parameters(f,p,comment=true),
     println(f,"# steps: ",steps)
     println(f,"# maxsteps: ",maxsteps)
     println(f,"# nreps: ",nreps)        
