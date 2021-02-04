@@ -1,0 +1,25 @@
+using Plots
+using Measures
+cdf = read_dataframe("10_18/scatter_data_logfreq_vs_goal_rank.csv")
+
+scatter( collect(1:65536), [sort(s8log,rev=true),sort(s11log,rev=true),sort(s11_8log,rev=true)], title="Goal redundancy vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["8 gates 5 levsback" "11 gates 5 levsback" "11 gates 8 levsback"],markershape=[:star4, :xcross]) 
+
+scatter( collect(1:65536), [sort(cdf,s8_5log,rev=true),sort(cdf.s11_5log,rev=true),sort(cdf.s11_8log,rev=true)], title="Goal redundancy vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["8 gates 5 levsback" "11 gates 5 levsback" "11 gates 8 levsback"],markershape=[:star4, :xcross]) 
+
+p1=scatter( collect(1:65536), [sort(cdf.s8_5log,rev=true),sort(cdf.s11_5log,rev=true),sort(cdf.s11_8log,rev=true)],size=(1024,512),markershape=[:circle, :square, :utriangle],markerstrokecolor=[:blue,:orange,:green]) 
+
+plot!(p1,xlabel="phenotype rank",ylabel="log(goal redundancy)",label=["8 gates 5 levsback" "11 gates 5 levsback" "11 gates 8 levsback"],framestyle=:box)
+
+numpoints=2^16
+X=collect(1:numpoints)
+Y1 = sort(cdf.s8_5log,rev=true)[1:numpoints]
+Y2 = sort(cdf.s11_5log,rev=true)[1:numpoints]
+Y3 = sort(cdf.s11_8log,rev=true)[1:numpoints]
+p1 = scatter(X,Y1,size=(1024,512),markershape=:circle,markerstrokecolors=:blue,label="8 gates 5 levsback")
+scatter!(p1,X,Y2,size=(1024,512),markershape=:square,markerstrokecolors=:orange,label="11 gates 5 levsback")
+scatter!(p1,X,Y3,size=(1024,512),markershape=:utriangle,markerstrokecolors=:green,label="11 gates 8 levsback")
+plot!(p1,xlabel="phenotype rank",ylabel="log(phenotype redundancy)",framestyle=:box,tickfontsize=16,guidefontsize=16,legendfontsize=14)
+plot!(bottom_margin=Measures.Length(:mm,5))
+plot!(left_margin=Measures.Length(:mm,3))
+savefig("1_31/log_pheno_redund_vs_pheno_rank_8gt5_11gt5_11gt8.png")
+

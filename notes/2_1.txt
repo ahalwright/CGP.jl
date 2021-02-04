@@ -1,0 +1,8 @@
+Redo Kolmogorov complexity vs Tononi complexity, plot saved in data/11_11.
+df = read_dataframe("11_11/k_complexity11_11D.csv")
+p1 = scatter(df.complexity,df.num_gates,size=(1024,512))
+plot!(p1,xlabel="Tononi complexity",ylabel="Kolmogorov complexity",framestyle=:box,tickfontsize=16,guidefontsize=16,legendfontsize=14,legend=:none)
+plot!(p1,bottom_margin=Measures.Length(:mm,5))
+plot!(p1,left_margin=Measures.Length(:mm,3))
+plot!(p1,ylim=(1.7,7.4))
+savefig("11_11/kolmogorov_vs_tononi_complexity_8lb.png")

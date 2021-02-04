@@ -1,5 +1,7 @@
 Human cancer cells become polyploid and sexual.  Page 237 of "Rebel Cell" by Kat Arney.
 
+Revisions to plot construction in notes/2_2.txt.
+
 @time db = include("../data/12_18/run_geno_phenoC.jl")
 27257 seconds
 
@@ -24,17 +26,17 @@ julia> gpdf = read_dataframe("12_18/geno_pheno12_18C.csv")
 julia> density([scdb.complexities,gpdf.complex],xlabel="complexity",ylabel="relative_requency",title="Density of complexities in circuit and goal function space",labels=["complexities of random circuits" "complexities of random goals"])
 julia> savefig("12_18/density_of_complexities_circuit_space_8gts_5lb.png")  
 
-Procedures for 11 gates, 8 lb:
+Procedures for 11 gates, 8 lb:   
 surt2:
 @time cdf=include("../data/12_20/run_circuit_complexitiesD.jl")
 cmplx = map(round2, cdf.complexities )
 cdf.complexities = cmplx
-scdf = sort(cdf, [:complexities], rev=true )o
+scdf = sort(cdf, [:complexities], rev=true )
 write_dataframe_wa -p 4 -L CGP.jl
 write_dataframe_with_comments( scdf, "../data/12_20/circuit_complexities12_20D.csv","../data/12_20/circuit_complexities12_20DR.csv")
 @time gdf =  include("../data/12_20/run_geno_phenoD.jl")
 
-Windows:
+Windows: (See below for redo on 2/2/21.)
 julia> density([scdb.complexities,gpdf.complex],xlabel="complexity",ylabel="relative_requency",title="Density of complexities in circuit and goal function space",labels=["complexities of random circuits" "complexities of random goals"])
 julia> savefig("12_18/density_of_complexities_circuit_space_11gts_8lb.png")
 
@@ -42,3 +44,13 @@ circuit_complexities12_20D.csv and  circuit_complexities12_20DR.csv are on surt2
 These are the 11_5 circuit complexities files.
 
 An additional 8_5 file in 12_29.
+================================================
+Redo 11 gts 8 lb on 2/2/21:
+using StatsPlots
+scdb = read_dataframe("../../../../OneDrive\\evotech\\data\\12_20\\circuit_complexities12_20DR.csv")
+gpdf = read_dataframe("../../../../OneDrive\\evotech\\data\\12_20\\geno_pheno12_20D.csv")
+p1=density([scdb.complexities,gpdf.complex],labels=["complexities of random circuits" "complexities of random goals"])
+p1=density([scdb.complexities,gpdf.complex],labels=["complexities of random circuits" "complexities of random goals"])
+plot!(p1,size=(1024,512),tickfontsize=14,guidefontsize=14,legendfontsize=14)
+plot!(p1,bottom_margin=Measures.Length(:mm,4),left_margin=Measures.Length(:mm,1))
+

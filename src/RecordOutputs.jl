@@ -268,3 +268,41 @@ function run_circuit_complexities( p::Parameters, num_circuits::Int64; csvfile::
   end
   df
 end
+
+#=
+function check_geno_exist_for_phenotypes( p::Parameters, gl::GoalList, max_evolve_tries::Int64, max_ev_steps::Int64, outfile::String )
+  funcs = default_funcs(p.numinputs)
+  found_list = Vector{UInt16}[]
+  not_found_list = Vector{UInt16}[]
+  for g in gl
+    i = 1
+    while i < max_evolve_tries
+      println("i: ",i)
+      c = random_chromosome(p,funcs)
+      (c,step,worse,same,better,output,matched_goals,matched_goals_list) =
+          mut_evolve( c, [g], funcs, max_ev_steps, print_steps=false )
+      if step < max_ev_steps
+        break
+      end
+      i += 1
+    end
+    if i < max_evolve_tries
+      @printf("circuit found for goal: [0x%04x]\n",g[1])
+      push!(found_list,g)
+    else
+      @printf("circuit not found for goal: [0x%04x]\n",g[1])
+      push!(not_found_list,g)
+    end
+  end  
+  open( outfile, "w" ) do f
+    print_parameters(f,p)
+    println(f,"max_evolve_tries: ",max_evolve_tries)
+    println(f,"max_ev_steps: ",max_ev_steps)
+    println(f,"found_list")
+    println(f,found_list)
+    println(f,"not found_list")
+    println(f,not_found_list)
+  end
+end
+=#
+

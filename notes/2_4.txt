@@ -1,0 +1,18 @@
+fa = findall(x->x==0,cntdf.ints11_5)
+gfl = map(x->[UInt16(x)],fa)
+@time check_geno_exist_for_phenotypes( p, gfl, 100, 100000, "../data/2_4/find_genos_for_phenos.txt" )
+
+
+
+kcomdf = read_dataframe("../data/11_11/k_complexity11_11F.csv") # k-complexities of all 4x1 goals
+
+kcomdf[59438,[:goal,:num_gates]]
+DataFrameRow
+│ Row   │ goal           │ num_gates │
+│       │ String         │ Int64     │
+├───────┼────────────────┼───────────┤
+│ 59438 │ UInt16[0xe82d] │ 9         │
+
+kgl = map(x->[UInt16(x-1)],findall(x->x==9,kcomdf.num_gates))
+check_geno_exist_for_phenotypes( p, kgl, 100, 100000, "../data/2_4/find_genos_for_phenos_8gts5lb_5phenos.txt" )
+# genotype found for all phenotypes
