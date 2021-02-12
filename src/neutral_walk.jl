@@ -1,3 +1,4 @@
+# Purpose: identify components of phenotype neutral network.
 
 # steps is the number of random walk steps.
 # maxsteps is the number of steps in mut_evolve().

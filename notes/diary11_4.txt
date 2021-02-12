@@ -2,7 +2,7 @@ Idea:  My "arrow of complexity" simulation is showing how complex goal space can
 
 
 
-julia> df = read_dataframe("explore_complexities11_4A.csv")
+julia> df = read_dataframe("11_4/explore_complexities11_4A.csv")
 julia> df.generation=collect(1:size(df)[1])
 julia>  plot(df.generation,[df.max_complexity,df.mean_complexity], title="max and mean complexity by generation",xlabel="generation",ylabel="complexity",label=["max complexity" "mean complexity"],legend=:bottomright)
 julia> savefig("arrow_max_mean_11gate_8lb.png")

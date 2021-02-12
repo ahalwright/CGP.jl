@@ -1,0 +1,14 @@
+Ideas on evolvability.
+
+First revisit my discovery that almost all phenotypes have near maximum evolvability.
+
+See Figure 8 of Paper_preview_1_3_21.docx and 
+data/1_2/robust_evo_by_walks1_1X.csv  for X = A, B, C.  See notes/1_2.txt for procedure.
+
+See Figures 22, 23, and 24 of Paper_preview_1_3_21.docx 
+Figure 22:  from 12/7
+Figure 23:  from 12/6 or 12/7
+
+Second, compute evolvability by following a random walk.
+
+Third, compute evolvability by exploring all mutations up to some limit.

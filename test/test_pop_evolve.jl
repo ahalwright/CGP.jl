@@ -1,6 +1,7 @@
 # Test the mut_evolve_subgoal() function from src/Evolve.jl
 
 #include("../src/CGP.jl")
+include("../src/Pop_evolution.jl")
 using Main.CGP
 MyInt = Main.CGP.MyInt
 

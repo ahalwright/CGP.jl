@@ -1,0 +1,30 @@
+Removed random_neutral_walk functions from Evolvability.jl since they were duplicated in
+random_neutral_walk.jl
+
+
+All but one of the test functions in CGP.jl/runtests.jl now run, but many do not do any test.
+
+Summary of the "walk" functions in src:
+
+random_walk.jl  
+# Calculates robustness and evolvability for all phenotypes by sampling circuits as in Hu et al. (2020). 
+# Notes:  1_2.txt, 1_3.txt
+  run_random_walks_parallel()
+  run_random_walks()
+  random_walk()  # outputs a node-edge adjacency matrix or a dictionary.
+  # Calculates robustness and degree evolvability for each goal and saves these in a dataframe.
+  robust_evolvability()
+  robust_evo()
+  triangularize!()
+  matrix_to_dict()
+  dict_to_matrix()
+  pairs_to_dict()
+  robust_evolvability_to_df() # Run robust_evolvability and then write to csvfile
+  # Computes frequency, robustess, strength_evolvability, degree_evolvabilty of a list of MyInts (interpreted as goals)
+  dict_to_evolvability() 
+
+random_neutral_walk.jl
+# Notes:  diary10_13.txt  
+# Results compare with geno_complexity() in Evolvability.jl
+
+

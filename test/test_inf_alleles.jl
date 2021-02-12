@@ -2,6 +2,8 @@
 # to run from the test folder:  julia -p 4 -L CGP.jl test_inf_alleles.jl
 
 #include("../src/CGP.jl")
+include("../src/Inf_alleles.jl")
+include("../src/Propsel.jl")
 using Main.CGP
 MyInt = Main.CGP.MyInt
 

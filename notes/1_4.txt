@@ -1,5 +1,14 @@
 Added numgates and levelsback as output dataframe fields for explore_complexity() in Complexity.jl.
 
 expdf =read_dataframe("1_4/explore_complexity1_4all60.csv")
-plot(expdf.generation[1:60],[expdf[expdf.numgates.==x,:cumm_unique_goals] for x in 12.0:-1.0:8.0],title="Cummulative unique phenotypes for 8 to 12 gates",xlabel="Generation",ylabel="cummulative number of unique phenotypes",legend=:bottomright,labels=["12 gates 9 levelsback" "11 gates 8 levelsback" "10 gates 7 levelsback" "9 gates 6 levelsback" "8 gates 5 levelsback"])
+plot(expdf.generation[1:60],[expdf[expdf.numgates.==x,:cumm_unique_goals] for x in 12.0:-1.0:8.0],xlabel="Generation",ylabel="cummulative number of unique phenotypes",legend=:bottomright,labels=["12 gates 9 levelsback" "11 gates 8 levelsback" "10 gates 7 levelsback" "9 gates 6 levelsback" "8 gates 5 levelsback"])
+plot!(size=(1024,512),framestyle=:box,tickfontsize=16,guidefontsize=16,legendfontsize=14)
+plot!(bottom_margin=Measures.Length(:mm,5),left_margin=Measures.Length(:mm,3))
 savefig("1_4/cumm_unique_goals_12_11_10_9_8gates.png")
+
+mmdf11=expdf[expdf.numgates.==11,[:generation,:mean_complexity,:max_complexity]]
+mmdf12=expdf[expdf.numgates.==12,[:generation,:mean_complexity,:max_complexity]]
+plot(mmdf12.generation,[mmdf12.max_complexity,mmdf12.mean_complexity],legend=:bottomright,labels=["Maximum complexity" "Mean complexity"]))
+plot!(size=(1024,512),framestyle=:box,tickfontsize=16,guidefontsize=16,legendfontsize=14)
+plot!(bottom_margin=Measures.Length(:mm,5),left_margin=Measures.Length(:mm,3))
+plot!(xlabel="generation",ylabel="Tononi complexity")

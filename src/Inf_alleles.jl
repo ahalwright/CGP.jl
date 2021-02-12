@@ -4,6 +4,20 @@ export run_inf_alleles, inf_alleles, inf_alleles_to_tuple
 using DataFrames
 using CSV
 
+mutable struct inf_alleles_result_type
+  numinputs::Int64
+  numoutputs::Int64
+  numints::Int64
+  levsback::Int64
+  gl::Vector{Goal}
+  popsize::Int64
+  max_pop_gens::Int64
+  tourn_size::Int64
+  func_evals::Int64
+  fitness::Float64
+  gen_finished::Int64
+end
+
 # This is the top-level function to run multiple simulations in parallel using pmap.
 # Parameters of type IntRange can be Int64s or Bools or AbstractRanges{Int64} or AbstractRanges{Bool}.
 function run_inf_alleles( nreps::Int64, 
@@ -35,7 +49,7 @@ function run_inf_alleles( nreps::Int64,
             for max_pop_gens = max_pop_gens_rng 
               for popsize = popsize_rng
                 for i = 1:nreps
-                  p = Parameters( num_inputs, num_outputs, nodearity, num_interiors, levsback ) 
+                  p = Parameters( num_inputs, num_outputs, num_interiors, levsback ) 
                   #println("run inf_alleles: iter: ",iter)
                   ia = inf_alleles_result( p, gl, popsize=popsize,  max_pop_gens=max_pop_gens, tourn_size=tournsize )
                   push!(inf_alleles_param_list,ia)

@@ -1,3 +1,4 @@
 See diary12_18.txt for details.
 circuit_complexities12_20D.csv and  circuit_complexities12_20DR.csv are on surt2 but not on lycosa.
 These are the 11_5 circuit complexities file.
+Look in OneDrive/evotech/data/12_20

@@ -1,11 +1,22 @@
-fa = findall(x->x==0,cntdf.ints11_5)
-gfl = map(x->[UInt16(x)],fa)
-@time check_geno_exist_for_phenotypes( p, gfl, 100, 100000, "../data/2_4/find_genos_for_phenos.txt" )
+# Check that every phenotype is mapped to by a genotype for 8 gates, 5 lb.
+# On surt2
+# Method 1
+p = Parameters(4,1,8,5)
+cntdf = read_dataframe("../data/counts/count_out_4x1_all_ints_10_10.csv") 
+zeros8_5 = findall(x->x==0,cntdf.ints8_5)
+1388-element Array{Int64,1}:
+   415
+   732
+cgl = map(x->[UInt16(x-1)],zeros8_5)
+run_check_geno_exist_for_phenotypes( p, cgl, 100, 100000, "../data/2_4/find_genos_for_phenos_8gts5lb.csv")
+gfpdf=read_dataframe("../data/2_4/find_genos_for_phenos_8gts5lb.csv")
+maximum(gfpdf.steps)
+79
 
-
-
+# Method 2
+# on lycosa
+# K complexity check
 kcomdf = read_dataframe("../data/11_11/k_complexity11_11F.csv") # k-complexities of all 4x1 goals
-
 kcomdf[59438,[:goal,:num_gates]]
 DataFrameRow
 │ Row   │ goal           │ num_gates │
@@ -16,3 +27,4 @@ DataFrameRow
 kgl = map(x->[UInt16(x-1)],findall(x->x==9,kcomdf.num_gates))
 check_geno_exist_for_phenotypes( p, kgl, 100, 100000, "../data/2_4/find_genos_for_phenos_8gts5lb_5phenos.txt" )
 # genotype found for all phenotypes
+run_check_geno_exist_for_phenotypes( p, kgl, 100, 100000, "../data/2_4/find_genos_for_phenos_8gts5lb_5phenos.csv" )

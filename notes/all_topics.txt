@@ -59,7 +59,53 @@ All diary topics:
         Rerunnng determining evolvability by repeated sampling for a large number of goals including new goal [0x6b18]
 12_6:
 12_7:   Evolvability count plot for three 3x1 goals and large number of samples
+12_9:  Connected components.  neutral_walk_connectivity. run_neutral_walk().
+12_15: Worked on paper.  Shape space covering property, Kashtan.
+12_16: Unable to replicate Kashtan results.
+12_17: examples.jl to produce examples showing the relationships between robust, cmplx, freq, evo_count, logsteps
+12_18: Density of complexities. Code in Genotype_phenotype.jl run_geno_pheno_evolution().
+       Code also in RecordOutputs.jl  run_circuit_complexities().  Modified on 2/2/21
+12_20: Some large circuit complexity files are in OneDrive/evotech/data/12_20 and 12_18.
+12_21: Evolve.jl neutral_evolution() is a simplified version of mut_evolve() for 1 output.
+       geno_circuits(), geno_properties(), geno_list_properties() compute robust, cmplx,
+       geno_evo_evol, pheno_evo_evol, evo_steps for a list of goals.  More runs on 12/24.
+12_22: mutational_evolvability.jl mutational_evolvability().  
+       Compute unique phenotypes in neighborhoods of increasing size of starting circuit.
+12_24: Start to replicate Hu (2020) results.
+12_26: Discussion of implications of Hu (2020) for our results.
+12_27: random_walk.jl run_random_walks_parallele().  Duplicate Hu (2020) results.
+12_29: Testing hypothesis that complexities of phenotypes by evolution is greater than complexities by sampling.
+        Using circuit_complexities as in 12_18 and 10_27 results.  Strongly significant.
+12_30: Found and corrected a bug in mutate_chromosome!() and mutate_all().  Bias is not large.
+        Also demonstrates that circuit_int() returns unique integers.
+12_31: Parallelized robust_evolvability() in random_walk.jl.  Degree of parallelism to high.
+1_1:   Found a major bug in run_walks_parallel() in random_walk.jl.
+        union() was used to combine dictionaries rather than merge().
+1_2:   Major revision of robust_evolvability() in random_walk.jl.
+        With enough samples, the degree evolvability of most goals goes to the maximum possible.
+1_3:   Shows that log frequency DOES NOT scale with robustness as is the case when circuits are evolved.
+1_4:   Evolving increasing complexity.  Complexity.jl run_explore_complexity()
+1_8:   Redo plots for evolvability by sampling.
+1_13:  Reran simulations for finding components of neutral networks.  Previous runs were 12_1.
+1_15:  Number components vs complexity.  Maximum complexity does increase with k complexity,
+        but hard to separate from uncertainties in measuring number of components.
+1_17:  Extract component sizes from text files.
+       Drop sections from Paper_preview to save space.
+1_23:  random_neutral_walk.jl.  neighborhood evolvability vs complexity.
+        Shows that nearby (neighborhood) evolvability increases with complexity.
+        Used binned circuit complexities.
+1_25:  Fitting regression line to scatter plot data using GLM package.
+1_26:  regression.jl   Produced a regression properties table.
+1_29:  Double plots using layouts.
+1_30:  Redo neighbor complexity plot.  neighbor_complexity.jl
+1_31:  Redo redundancy vs phenotype rank plot
+2_1:   Redo K complexity vs T complexity plot
+2_2:   Redo circuit density plot as described in 12_18.txt.
+2_4:   Check that every phenotype is mapped to by a genotype for 8 gates, 5 lb.  2 methods.
+2_9:   Summarize and create test functions for random walk functions.
+2_10:  Ideas on evolvability.
         
+
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

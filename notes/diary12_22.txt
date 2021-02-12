@@ -12,13 +12,14 @@ Required many attempts on several goals:  num_circuits=6, max_attempts=80, max_s
 Note:  max_steps=300000 is sufficient.
 
 
-Moreover, abundant phenotypes are typically found just a few mutations away from a random genotype [5,9,30]—i.e. they are highly evolvable. This means that these phenotypes are easily accessible from any other phenotype, so that the search for new phenotypes among abundant ones is a fast evolutionary process.” [This property is not going to be true for the circuit GP map for complex phenotypes when tend to be rare.  It might be true for abundant phenotypes.]  (Catalán, Wagner et al. 2018)  
+"Moreover, abundant phenotypes are typically found just a few mutations away from a random genotype [5,9,30]—i.e. they are highly evolvable. This means that these phenotypes are easily accessible from any other phenotype, so that the search for new phenotypes among abundant ones is a fast evolutionary process.” [This property is not going to be true for the circuit GP map for complex phenotypes when tend to be rare.  It might be true for abundant phenotypes.]  (Catalán, Wagner et al. 2018)  
 
-Idea:  Plot the number of genotypes in neighborhoods of increasing mutational size of a given genotype.
+Idea:  Plot the number of unique phenotypes in neighborhoods of increasing mutational size of a given genotype.
    Hypothesis:  This increases more rapidly for complex genotypes than simple genotypes. 
    If one has these genotype neighborhoods, one can test the shape-space covering property.
 See mutational_evolvability.jl
 Example 1:  
+include("mutational_evolvability.jl")
 p = Parameters(3,1,6,4) 
 c = random_chromosome(p,default_funcs(p.numinputs))
 @time mutational_evolvability(c,3)

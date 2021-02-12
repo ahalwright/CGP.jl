@@ -1,7 +1,7 @@
 using Statistics, Printf
 using DataFrames, CSV, Dates
 
-# Calculates robustness and evolvability for all goal functions by sampling circuits as in Hu et al. (2020).
+# Calculates robustness and evolvability for all phenotypes by sampling circuits as in Hu et al. (2020).
 # The node-adjacency matrix for the network of phenotypes is computed as goal_edge_matrix.
 # Diagonal entries are the number of self edges which is the robustness count.
 # goal_edge_matrix[g,h] is the number of mutations discovered from goal g to goal h.
@@ -32,7 +32,7 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
     for gem in goal_edge_matrix_list
       goal_edge_matrix .+= gem
     end
-    df = robust_evolvability( goal_edge_matrix )
+    df = robust_evolvability( goal_edge_matrix, gl )
   end
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
@@ -213,6 +213,7 @@ function robust_evolvability( goal_edge_matrix::Array{Int64,2}, gl::Vector{MyInt
 end
 
 # Convert into a upper triangular matrix by adding the below-diagonal entries to the corresponding above-diagonal entry
+# Never used.
 function triangularize!( M::Array{Int64,2} )
   ngoals = size(M)[1]
   @assert ngoals == size(M)[2]

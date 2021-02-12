@@ -1,44 +1,8 @@
-
-function run_random_neutral_walk( p::Parameters, ngoals::Int64, steps::Int64, maxsteps::Int64 )
-  df = DataFrame()
-  df.goal = Goal[]
-  df.evolvable_count = Int64[]
-  df.complexity = Float64[]
-  funcs = default_funcs( p.numinputs )
-  for gc = 1:ngoals
-    g = randgoal( p.numinputs, p.numoutputs )
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
-    res = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
-    if res == nothing
-      error("run_random_neutral_walk: mut_evolve_repeat() failed.  Try increasing maxsteps.")
-    end
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = res
-    @assert output_values(c) == g
-    complexity = complexity5(c)
-    ev_count = random_neutral_walk( c, steps, maxsteps, evo_count_only=true )
-    push!(df, (g, ev_count, complexity ))
-  end
-  df
-end
-
-# See diary10_13.txt for example runs
-function run_random_neutral_walk( p::Parameters, g::Goal, steps::Int64, maxsteps::Int64, nreps::Int64=1; skip_steps::Int64=1 )
-  funcs = default_funcs(p.numinputs)
-  ev_count = 0
-  for _ = 1:nreps
-    # evolve a chromosome that outputs goal g.
-    res = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
-    if res == nothing
-      error("run_random_neutral_walk: mut_evolve_repeat() failed.  Try increasing maxsteps.")
-    end
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = res
-    #(c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
-    @assert output_values(c) == g
-    ev_count += random_neutral_walk( c, steps, maxsteps, skip_steps=skip_steps, evo_count_only=true )
-  end
-  ev_count/nreps
-end
-
+# Moved to "old" versions of run_random_neutral_walk() to the end of this file.  2/9/21.
+# Generates walks (in parallel) for circuits in a circult list c_list
+# Does not compute a combined evolvability for the multiple walks.  
+# Instead computes average evolability of the walks.
+# This makes sense because the circuits in c_list do not map to the same phenotype
 function run_random_neutral_walk( c_list::Vector{Chromosome}, steps::Int64, maxsteps::Int64, nreps::Int64;
     csvfile::String="" )
   df = DataFrame()
@@ -92,6 +56,7 @@ function avg_random_neutral_walks( c::Chromosome, steps::Int64, maxsteps::Int64,
 end 
       
 # Returns an evolvable_count or a dataframe row depending on whether evo_count_only is true or false
+# Does NOT use mut_evolve().  Instead implements basic version of neutral walk algorithm.
 function random_neutral_walk( c::Chromosome, steps::Int64, maxsteps::Int64; evo_count_only::Bool=false )
   orig_complexity =  complexity5(c)
   c_orig = deepcopy(c)
@@ -165,3 +130,46 @@ function binned_circuit_complexities( p::Parameters, n_circuits::Int64, max_bin_
   end
   complexity_bins
 end
+
+# Seems to be superceded by later versions of the same function.
+function run_random_neutral_walk( p::Parameters, ngoals::Int64, steps::Int64, maxsteps::Int64 )
+  df = DataFrame()
+  df.goal = Goal[]
+  df.evolvable_count = Int64[]
+  df.complexity = Float64[]
+  funcs = default_funcs( p.numinputs )
+  for gc = 1:ngoals
+    g = randgoal( p.numinputs, p.numoutputs )
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
+    res = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
+    if res == nothing
+      error("run_random_neutral_walk: mut_evolve_repeat() failed.  Try increasing maxsteps.")
+    end
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = res
+    @assert output_values(c) == g
+    complexity = complexity5(c)
+    ev_count = random_neutral_walk( c, steps, maxsteps, evo_count_only=true )
+    push!(df, (g, ev_count, complexity ))
+  end
+  df
+end
+
+# Starts with a goal.  Then evolves a circuit to map to that goal
+# See diary10_13.txt for example runs
+function run_random_neutral_walk( p::Parameters, g::Goal, steps::Int64, maxsteps::Int64, nreps::Int64=1; skip_steps::Int64=1 )
+  funcs = default_funcs(p.numinputs)
+  ev_count = 0
+  for _ = 1:nreps
+    # evolve a chromosome that outputs goal g.
+    res = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
+    if res == nothing
+      error("run_random_neutral_walk: mut_evolve_repeat() failed.  Try increasing maxsteps.")
+    end
+    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = res
+    #(c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat( 10, p, [g], funcs, maxsteps)
+    @assert output_values(c) == g
+    ev_count += random_neutral_walk( c, steps, maxsteps, skip_steps=skip_steps, evo_count_only=true )
+  end
+  ev_count/nreps
+end
+
