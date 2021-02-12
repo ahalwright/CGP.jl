@@ -7,6 +7,7 @@ using Dates
 
 function mutational_evolvability( c::Chromosome, num_mutations::Int64 )
   funcs = default_funcs( c.params.numinputs )
+  robustness = -1.0   # establish scope
   g = output_values(c)
   goal_sets = Set{Goal}[]
   circuit_set = Set{Chromosome}[]
@@ -15,7 +16,9 @@ function mutational_evolvability( c::Chromosome, num_mutations::Int64 )
     if i == 1
       goal_circuit_pairs = mutate_all( c, funcs, output_chromosomes=true ) 
       circuit_set = Set( map( x->x[2], goal_circuit_pairs ))
-      goal_set = Set( map( x->x[1], goal_circuit_pairs ) )
+      goal_list =  map( x->x[1], goal_circuit_pairs )
+      robustness = length(filter(x->x==g,goal_list))/length(goal_list)
+      goal_set = Set( goal_list )
     else
       circuit_set_previous = deepcopy( circuit_set )
       circuit_set = Set{Chromosome}[]
@@ -38,10 +41,10 @@ function mutational_evolvability( c::Chromosome, num_mutations::Int64 )
       println("i: ",i,"  goal: ",g,"  length(goal_sets[i]): ",length(goal_sets[i]))
     end
   end
-  goal_sets
+  (robustness,goal_sets)
 end
     
-# Run mutational_evolvability() for a single goal.  
+# Run the above defined mutational_evolvability() for a single goal.  
 # Use neutral_evolution() to find the genotype that maps to the given goal (phenotype).
 function mutational_evolvability( g::Goal, p::Parameters, num_mutations::Integer, max_steps::Integer,  max_attempts::Integer)
   println("mut evolve g: ",g)
@@ -57,8 +60,8 @@ function mutational_evolvability( g::Goal, p::Parameters, num_mutations::Integer
   complexity = complexity5(nc)
   #println("output values(nc): ",output_values(nc),"  complexity: ",complexity)
   print_circuit(nc)
-  gs=mutational_evolvability(nc, num_mutations )
-  (complexity,length(gs[end]))
+  (robustness,goal_sets) = mutational_evolvability(nc, num_mutations )
+  (complexity,robustness,length(goal_sets[end-2]),length(goal_sets[end-1]),length(goal_sets[end]))
 end
     
 # Parallel map run_mutational_evolvability() over the goals of gl.  Output a dataframe csv file.
@@ -66,13 +69,18 @@ function run_mutational_evolvability( gl::GoalList, p::Parameters, num_mutations
     csvfile::String="" )
   gl_sav = deepcopy(gl)
   println("gl: ",gl)
-  #complexity_geno_counts_pairs = map( g->mutational_evolvability( g, p, num_mutations, max_steps, max_attempts ), gl )
-  complexity_geno_counts_pairs = pmap( g->mutational_evolvability( g, p, num_mutations, max_steps, max_attempts ), gl )
-  println("length pairs: ",length(complexity_geno_counts_pairs))
+  complexity_robustness_geno_counts = map( g->mutational_evolvability( g, p, num_mutations, max_steps, max_attempts ), gl )
+  #complexity_robustness_geno_counts = pmap( g->mutational_evolvability( g, p, num_mutations, max_steps, max_attempts ), gl )
+  println("length pairs: ",length(complexity_robustness_geno_counts))
   df = DataFrame()
   df.goal = gl_sav
-  df.complexity = map(x->x[1],complexity_geno_counts_pairs)
-  df.geno_count = map(x->x[2],complexity_geno_counts_pairs)
+  df.complexity = map(x->x[1],complexity_robustness_geno_counts)
+  df.robusness = map(x->x[2],complexity_robustness_geno_counts)
+  for i = 1:num_mutations
+    insert!(df,size(df)[2]+1,map(x->x[i+2],complexity_robustness_geno_counts),Symbol("geno_count$i"))
+  end
+  #df.geno_count_endminus1 = map(x->x[3],complexity_robustness_geno_counts)
+  #df.geno_count_end = map(x->x[4],complexity_robustness_geno_counts)
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
       hostname = chomp(open("/etc/hostname") do f read(f,String) end)

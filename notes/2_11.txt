@@ -1,0 +1,18 @@
+Evolvability of a mutational neighborhood of a circuit and of a goal.
+Code:  mutational_evolvability.jl
+
+200 3x1 goals with 7 gates, 5 lb.
+Windows:
+medf=read_dataframe("2_11/mutational_evolvability2_11E.csv")
+scatter(medf.complexity,medf.geno_count,smooth=:true)
+Simple scatter plot doesn't look too good, but highly significant.
+lreg = lm(@formula( geno_count ~ complexity), medf )
+StatsModels.TableRegressionModel{LinearModel{GLM.LmResp{Array{Float64,1}},GLM.DensePredChol{Float64,LinearAlgebra.Cholesky{Float64,Array{Float64,2}}}},Array{Float64,2}}
+geno_count ~ 1 + complexity
+Coefficients:
+────────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error      t  Pr(>|t|)  Lower 95%  Upper 95%
+────────────────────────────────────────────────────────────────────────
+(Intercept)  136.682     10.471    13.05    <1e-27   116.033    157.331
+complexity    25.9776     3.37532   7.70    <1e-12    19.3214    32.6338
+────────────────────────────────────────────────────────────────────────
