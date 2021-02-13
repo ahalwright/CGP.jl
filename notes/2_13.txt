@@ -1,0 +1,11 @@
+Revised mutational_evolvability.jl to compute number of unique phenotypes
+in mutational neighborhoods of a given goals of increasing size.
+Also saves Tononi complexity and robustness of the circuit that is evolved
+to map to the given goal.  If no circuit is found that maps to the given goal,
+then the goal is replaced by a random goal.  This allows numgates to be set
+so that some goals have K complexity less than numgates.
+
+numinteriors (numgates) and levelsback must be kept small or memory will overflow.
+
+Successful runs in data/2_12 for all 3x1 goals with 7 gates, 4 levelsback (F)
+and with 7 gates 5 levelsback (H).
