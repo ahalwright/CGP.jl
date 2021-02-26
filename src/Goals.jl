@@ -43,6 +43,10 @@ function randgoal(numinputs::Int64, numoutputs::Int64 )
   map(x->convert( MyInt, x), rand( component_type( numinputs ), numoutputs ) )
 end
 
+function randgoal(p::Parameters)
+  randgoal(p.numinputs,p.numoutputs)
+end
+
 # generate a random goallist of length ngoals
 function randgoallist(ngoals::Int64, numinputs::Int64, numoutputs::Int64; repetitions::Int64=1)
   result = Vector{MyInt}[]
@@ -60,6 +64,10 @@ function randgoallist(ngoals::Int64, numinputs::Int64, numoutputs::Int64; repeti
   end
   result
 end     
+
+function randgoallist(ngoals::Int64, p::Parameters; repetitions::Int64=1)
+  randgoallist( ngoals, p.numinputs, p.numoutputs, repetitions=repetitions )
+end
 
 # Returns a goal list of ngoals which is obtained by generating div(ngoals,repetitions)
 #   goals, and then perturing these base goals repetitions-1 times to generate

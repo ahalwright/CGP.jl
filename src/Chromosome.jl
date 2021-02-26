@@ -1,7 +1,7 @@
 using DataFrames
 using CSV
 import Base.getindex
-export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all
+export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all, PredType
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_gates, hamming_distance, hamming, deactivate_chromosome!
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
@@ -10,27 +10,37 @@ export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits
 export code_to_circuit
 
+PredType = Int64
 mutable struct Chromosome
     params::Parameters
     inputs::Vector{InputNode}
     interiors::Vector{InteriorNode}
     outputs::Vector{OutputNode}
-    fitness::Real
-    robustness::Real
+    fitness::Float64
+    robustness::Union{Float64,PredType}
 end
 
 CPopulation = Vector{Chromosome}
 
-function Chromosome(p::Parameters)
+function Chromosome(p::Parameters; ident::PredType=PredType(0))
     inputs = Array{InputNode}( undef, p.numinputs)
     interiors = Array{InteriorNode}( undef, p.numinteriors )
     outputs = Array{OutputNode}( undef, p.numoutputs)
     fitness = 0.0
-    robustness = 0.0
+    if ident == PredType(0)
+      robustness = 0.0
+    else
+      robustness = ident
+    end
     return Chromosome(p, inputs, interiors, outputs, fitness, robustness )
 end
 
-function random_chromosome(p::Parameters, funcs::Vector{Func})
+function random_chromosome(p::Parameters; ident::PredType=PredType(0))
+  funcs = default_funcs(p.numinputs)
+  random_chromosome(p,funcs, ident=ident)
+end
+
+function random_chromosome(p::Parameters, funcs::Vector{Func}; ident::PredType=PredType(0))
     #println("Creating random Chromosome")
     c = Chromosome(p)
 
@@ -62,6 +72,9 @@ function random_chromosome(p::Parameters, funcs::Vector{Func})
         c[index].active = true  #  Output nodes are always active
     end
     set_active_to_false(c)
+    if ident != PredType(0)
+      c.robustness = ident
+    end
     return c
 end
 
@@ -635,28 +648,44 @@ end
   
 # Outputs the concise format of Chromosome (circuit) c to IO stream f
 # print_node_tuple() and gate_tuple() are defined in Node.jl
-function print_circuit( f::IO, c::Chromosome; include_fitness::Bool=false )  
+function print_circuit( f::IO, c::Chromosome; include_fitness::Bool=false, include_robustness::Bool=false,
+    include_pheno::Bool=false ) 
   @assert c.params.nodearity==2
-  @assert c.params.numoutputs==1
-  #@assert c.params.numinputs>1
+  @assert c.params.numinputs>1
   print(f,"circuit(")
   print_node_tuple(f, c.inputs )
   print(f,",")
   gate_tuple(f, c.interiors, c.params.numinputs )
-  if !include_fitness
-    println(f,")")
-  else
-    println(f,", 0.0)")
+  if c.params.numoutputs>1
+    print_node_tuple(f, c.outputs )
   end
-  #=
-  if typeof(f) == IOStream  # Don't close Base.stdout since this kills julia
-    close(f)
+  if include_fitness
+    @printf(f,", %5.3f",c.fitness)
   end
-  =#
+  if include_robustness
+    if typeof(c.robustness) == PredType
+      print(f,", ",c.robustness)
+    elseif typeof(c.robustness) == Float64
+      @printf(f,", %5.3f",c.robustness)
+    end
+  end
+  if include_pheno   
+    if c.params.numoutputs == 1
+      @printf(f,", 0x%x",output_values(c)[1])
+    else
+      print(f,", [")
+      for i = 1:(c.params.numoutputs-1)
+        @printf(f,"0x%x, ",output_values(c)[i])
+      end
+      @printf(f,"0x%x]",output_values(c)[c.params.numoutputs])
+    end
+  end
+  println(f,")")
 end
 
-function print_circuit( c::Chromosome; include_fitness::Bool=false )
-  print_circuit( Base.stdout, c, include_fitness=include_fitness )
+function print_circuit( c::Chromosome; include_fitness::Bool=false, include_robustness::Bool=false, include_pheno::Bool=false ) 
+  print_circuit( Base.stdout, c, include_fitness=include_fitness, include_robustness=include_robustness,
+    include_pheno=include_pheno ) 
 end    
 
 # The following struct defintions and function definitions build_chromosome() and print_build_chromosome()

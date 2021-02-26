@@ -1,5 +1,6 @@
 Verified that Robust_evolve works as in the files in data/8_19
 Verified that Pop_evolve works as in the files in data/7_27  (no modification)
+Note:  revisited Pop_evolve on 
 
 Tentatively decided to write code to implement comparison of different functions
 applied to a Chromosome by implementing 1+lambda evolution.  function next_chromosome()

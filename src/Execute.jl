@@ -43,8 +43,8 @@ function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
         evaluate_node(c, c[index], context)
     end
     result = apply(func.func, args) 
-    #print("func: ",func,"  args: ",args,"  result: ")
-    #Printf.@printf("0x%2x\n",result)
+#    print("func: ",func,"  args: ",args,"  result: ")
+#    Printf.@printf("0x%2x\n",result)
     if node.active 
       @assert result == node.cache 
     end

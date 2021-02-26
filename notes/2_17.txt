@@ -1,0 +1,65 @@
+From an e-mail to Cheyenne on 2/15/21:
+
+Hi Cheyenne,
+
+I have an idea on how to replicate the Labar/Adami results using the digital 
+circuit GP map.  My current neutral evolution and epochal evolution methods are 
+close to what would happen with a large population.  Each member of the 
+population would do a neutral walk starting from the given circuit.  When some 
+population member discovers a circuit with a higher fitness, then strong 
+selection would convert the remaining population members to this circuit.  
+In my simulations, this happens with the next generation, but with a large 
+population this would take some time.  As the difficulty of the target phenotype 
+increases, the neutral/epochal evolution approximation to the large population 
+situation get better.
+
+For the small population case, one would just have to run a population-based 
+simulation.  The fitness of a circuit is a scaling of Hamming distance from 
+the output of the circuit to the target phenotype.  Population size and fitness 
+would have to be such that a circuit that increased the distance to the phenotype 
+by 1 would have a moderate fitness decrease from the fitness of the parent circuit.  
+What "moderate" means would have to be determined by running the simulation.
+
+Assuming that this works, I am not proposing that it be included in the nearly 
+neutral paper.  Explaining the digital circuit background would make the paper 
+too long.  Maybe a short paper could be written, submitted, and posted to bioRxiv.
+
+In any case, it helps me to write down my ideas.  Often ideas like this don't 
+exactly pan out and are more complicated to implement than what I anticipate now.  
+I need to read Labar/Adami carefully.
+
+End of e-mail to Cheyenne.
+
+Some quotes from LaBar/Adami (2016):
+
+While any individual neutral
+mutation has a low probability of fixation, a large population would be able to accumulate
+many neutral mutations at any given time allowing for the exploration of its fitness landscape.
+Work by Wagner and colleagues suggests that many phenotypic traits are connected to each
+other by sequences of phenotypically neutral mutations [18, 24].  page 2
+
+Meanwhile, weakened purifying selection and increased genetic drift in small populations
+results in the accumulation of slightly deleterious excess genome content [3, 29]. At a later time,
+this slightly deleterious genome content may be mutated into novel beneficial traits [4, 33].  page 3
+
+However, the small population sizes that enhance the evolution
+of phenotypic complexity also enhance the likelihood of population extinction. We also found
+that the largest populations evolved similar complexity to the smallest populations. Large 
+populations evolved longer genomes and greater phenotypic complexity through the fixation of
+rare beneficial insertions instead. Large populations were able to discover these rare beneficial
+mutations due to an increased mutation supply. Finally, we found that a strong deletion bias
+can prevent the evolution of greater complexity in small, but not in large, populations.  page 3
+
+However, it is possible that multiple small populations could reduce the risk of extinction
+without reducing the evolution of complexity; future work should consider the interplay
+between population size and the evolution of complexity within a metapopulation of small
+populations.  page 9
+
+Ideas:
+If the number of inputs and outputs is fixed, then numgates coresponds to a measure of genome size.
+So we should have a mutation that decreases/increases num_gates.  Deletion can just delete a gate.
+The output of the deleted gate would just be replaced by one of the inputs to the deleted gate.
+Insertion can insert a gate at a random position in the sequence of gates (not sure about as the last
+gate).  The output of the gate can replace one of the inputs of subsequent gates.  The inputs can be 
+chosen randomly according the the levelsback parameter.  Most insertions and deletions will be 
+deleterious, but that is OK.

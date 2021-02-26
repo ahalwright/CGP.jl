@@ -46,6 +46,7 @@ end
 
 # Consolidates a dataframe with the columns specified below by averaging columns with the same parameter values
 # Revised 10/27/20
+# Similar to R aggregate function.
 function consolidate_dataframe( in_filename::String, out_filename::String; consolidate::Bool=true )
   new_df = DataFrame()
   df = read_dataframe( in_filename )
