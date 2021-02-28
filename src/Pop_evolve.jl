@@ -3,6 +3,122 @@
 using Main.CGP
 using Statistics
 
+function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goallist::GoalList, ngens::Int64, numpops::Int64;
+    csvfile::String="", uniform_start::Bool=true, prdebug::Bool=false )
+  df=DataFrame()
+  df.goal = Goal[]
+  df.ngens = Int64[]
+  df.num_pops = Int64[]
+  df.popsize = Int64[]
+  df.evolvability = Int64[]
+  df.maxfit = Float64[]
+  df.maxfit_gen = Int64[]
+  df_list = pmap(goal->run_both_one_goal(nreps,p,popsize,goal,ngens,numpops,uniform_start=uniform_start),goallist)
+  df = vcat( df_list... )
+  #=
+  for goal in goallist
+    println("goal: ",goal)
+    df = run_pop_evolve(nreps,p,popsize,goal,ngens,df=df,uniform_start=uniform_start)
+    mpopsize = Int64(round(popsize/numpops))   # popsize should be divisible by numpops
+    df = run_multiple_pop_evolve(nreps,p,mpopsize,goal,ngens,numpops,df=df,uniform_start=uniform_start)
+  end
+  =#
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      print_parameters(f,p,comment=true)
+      println(f,"# ngens: ",ngens)
+      println(f,"# nreps: ",nreps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, goal::Goal, ngens::Int64, numpops::Int64;
+    uniform_start::Bool=true, prdebug::Bool=false )
+  df = DataFrame()
+  df.goal = Goal[]
+  df.ngens = Int64[]
+  df.num_pops = Int64[]
+  df.popsize = Int64[]
+  df.evolvability = Int64[]
+  df.maxfit = Float64[]
+  df.maxfit_gen = Int64[]
+  println("goal: ",goal)
+  df = run_pop_evolve(nreps,p,popsize,goal,ngens,df=df,uniform_start=uniform_start)
+  mpopsize = Int64(round(popsize/numpops))   # popsize should be divisible by numpops
+  df = run_multiple_pop_evolve(nreps,p,mpopsize,goal,ngens,numpops,df=df,uniform_start=uniform_start)  
+end
+
+function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, ngens::Int64, numpops::Int64;
+    df::DataFrame=DataFrame(), csvfile::String="", uniform_start::Bool=true, prdebug::Bool=false )
+  if size(df)[1] == 0
+    df.goal = Goal[]
+    df.ngens = Int64[]
+    df.num_pops = Int64[]
+    df.popsize = Int64[]
+    df.evolvability = Int64[]
+    df.maxfit = Float64[]
+    df.maxfit_gen = Int64[]
+  end
+  for rep = 1:nreps
+    (mphenotypes,mpredecessors,mfitnesses,mcomplexities,mnumgates)=multiple_pop_evolve(p,popsize,g,ngens,numpops,uniform_start=false)
+    push!(df.goal,g)
+    push!(df.ngens,ngens)
+    push!(df.num_pops,numpops)
+    push!(df.popsize,popsize)
+    push!(df.evolvability,final_evolvability(mphenotypes))
+    findmax_mfh=findmax(max_fitness_history(mfitnesses))
+    push!(df.maxfit,findmax_mfh[1])
+    push!(df.maxfit_gen,findmax_mfh[2])
+  end
+  df
+end
+    
+function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, ngens::Int64;
+    df::DataFrame=DataFrame(), csvfile::String="", uniform_start::Bool=true, prdebug::Bool=false )
+  if size(df)[1] == 0
+    df.goal = Goal[]
+    df.ngens = Int64[]
+    df.num_pops = Int64[]
+    df.popsize = Int64[]
+    df.evolvability = Int64[]
+    df.maxfit = Float64[]
+    df.maxfit_gen = Int64[]
+  end
+  for rep = 1:nreps
+    (pop,phenotypes,predecessors,fitnesses,complexities,numgates)=pop_evolve(p,popsize,g,ngens,uniform_start=false)
+    push!(df.goal,g)
+    push!(df.ngens,ngens)
+    push!(df.num_pops,1)
+    push!(df.popsize,popsize)
+    push!(df.evolvability,final_evolvability(phenotypes))
+    findmax_mfh=findmax(max_fitness_history(fitnesses))
+    push!(df.maxfit,findmax_mfh[1])
+    push!(df.maxfit_gen,findmax_mfh[2])
+  end
+  df
+end
+    
+function multiple_pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, numpops::Int64;
+    uniform_start::Bool=true, prdebug::Bool=false )
+  mphenotypes = fill(zeros(MyInt,0,0),numpops)
+  mpredecessors = fill(zeros(PredType,0,0),numpops)
+  mfitnesses = fill(zeros(Float64,0,0),numpops)  
+  mcomplexities = fill(zeros(Float64,0,0),numpops)
+  mnumgates = fill(zeros(Int64,0,0),numpops)
+  for pind = 1:numpops
+    #println("pind: ",pind)
+    (pop,mphenotypes[pind],mpredecessors[pind],mfitnesses[pind],mcomplexities[pind],mnumgates[pind]) = 
+        pop_evolve(p,popsize,g,ngens,uniform_start=false)
+  end
+  (mphenotypes,mpredecessors,mfitnesses,mcomplexities,mnumgates)
+end
+
 function pop_evolve( p::Parameters, popsize::Int64, g::Goal, maxgenerations::Int64; 
     uniform_start::Bool=true, prdebug::Bool=false )
   funcs = default_funcs( p.numinputs )
@@ -26,6 +142,7 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, maxgenerations::Int
   end
   for gen = 1:maxgenerations
     fitness_vector = rescale_fitnesses([ pop[i].fitness for i = 1:popsize ])
+    prdebug ? println("fit_vect: ",fitness_vector) : nothing
     prdebug ? println("gen: ",gen,"  max fit: ",maximum(fitness_vector)) : nothing
     propsel!( pop, fitness_vector, maxfit=findmax(fitness_vector)[1] )
     prdebug ? println("after propsel gen: ",gen) : nothing
@@ -72,7 +189,50 @@ function rescale_fitnesses( fit_vect::Vector{Float64} )
   fit_min = quantile( fit_vect, 0.20 )
   fit_max = maximum( fit_vect )
   frange = fit_max - fit_min
-  return [ (f-fit_min)/frange for f in fit_vect ]
+  if frange > 0.0
+    return [ (f-fit_min)/frange for f in fit_vect ]
+  else
+    return fit_vect
+  end
+end
+
+function pheno_history( phenotypes::Array{MyInt,2} )
+  (num_gens, popsize) = size(phenotypes)
+  pheno_history = fill(Set(MyInt[]),num_gens)
+  pheno_set = Set(MyInt[])
+  for g = 1:num_gens
+    union!(pheno_set,Set(phenotypes[g,:]))
+    pheno_history[g] = deepcopy(pheno_set)
+  end
+  pheno_history
+end
+
+# Result should agree with evolvability()
+function pheno_history( mphenotypes::Array{Array{MyInt,2},1} )
+  npops = length(mphenotypes)
+  (num_gens, popsize) = size(mphenotypes[1])
+  #phenohistories = [pheno_history( mphenotypes[i] ) for i = npops ]  # fails due to a bug in Julia
+  phenohistories =  Array{Set{UInt16},1}[]
+  for i = 1:npops
+    push!(phenohistories,pheno_history( mphenotypes[i]))
+  end
+  phenoHistory = fill(Set(MyInt[]),num_gens)
+  for g = 1:num_gens
+    phenoHistory[g] = phenohistories[1][g]
+    for i = 1:npops
+      phenoHistory[g] = union!(phenoHistory[g],phenohistories[i][g])
+    end
+  end
+  pheno_set = Set(MyInt[])
+  for g = 1:num_gens
+    union!(pheno_set,Set(phenoHistory[g]))
+    phenoHistory[g] = deepcopy(pheno_set)
+  end
+  phenoHistory
+end
+
+function final_pheno_history( mphenotypes::Array{Array{MyInt,2},1} )
+  length(pheno_history(mphenotypes)[end])
 end
 
 function evolvability( phenotypes::Array{MyInt,2} )
@@ -83,13 +243,43 @@ function evolvability( phenotypes::Array{MyInt,2} )
     union!(pheno_set,Set(phenotypes[i,:]))
     evo_history[i] = length(pheno_set)
   end
-  #pheno_set
-  evo_history
+  pheno_set
+  #evo_history
+end
+
+function final_evolvability( phenotypes::Array{MyInt,2} )
+  length(evolvability(phenotypes))
+end
+
+# Result should agree with pheno_history()
+function evolvability( mphenotypes::Array{Array{MyInt,2},1} )
+  npops = length(mphenotypes)
+  (num_gens, popsize) = size(mphenotypes[1])
+  # Take the union of the phenotypes of each population for each generation g
+  ph_gen = [union( map( union, [ mphenotypes[j][g,:] for j = 1:npops] )... ) for g = 1:num_gens]
+  pheno_history = fill(Set(MyInt[]),num_gens)
+  pheno_set = Set(MyInt[])
+  for g = 1:num_gens
+    union!(pheno_set,Set(ph_gen[g]))
+    pheno_history[g] = deepcopy(pheno_set)
+  end
+  pheno_history
+end
+
+function final_evolvability( mphenotypes::Array{Array{MyInt,2},1} )
+  length(evolvability(mphenotypes)[end])
 end
 
 function max_fitness_history( fitnesses::Array{Float64,2} )
   (num_gens, popsize) = size(fitnesses)
   history = [maximum( fitnesses[g,:]) for g = 1:num_gens ]
+end
+
+function max_fitness_history( mfitnesses::Array{Array{Float64,2},1} )
+  numpops = length(mfitnesses)
+  (num_gens, popsize) = size(mfitnesses[1])
+  histories = [[ maximum(mfitnesses[i][g,:]) for g = 1:num_gens ] for i = 1:numpops ]
+  history = [maximum( histories[i][g] for i = 1:numpops ) for g = 1:num_gens ]
 end
 
 function mean_fitness_history( fitnesses::Array{Float64,2} )
