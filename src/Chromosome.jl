@@ -88,6 +88,7 @@ end
 # mutates chromosome c by changing a random node or function
 # if length(funcs) == 1, then only connections are mutated
 # Returns new chromosome c and Bool active which is true if the node mutated was active
+# BUG!! as of 3/3/21:  Does not modify c, instead returns the mutated c.
 function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location::Int64=0 )
   num_mutate_locs = num_mutate_locations( c, funcs )
   if mutate_location == 0 

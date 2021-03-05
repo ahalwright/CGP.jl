@@ -1,0 +1,14 @@
+File Pop_evolve.jl
+
+Functions to implement population-based evolution for the circuit model and maybe also
+test the LaBar/Adami 2016 hypothesis that small and large populations can achieve goals in 
+different ways.
+
+The basic function is pop_evolve() which evolves one population of circuits with fitness
+defined by Hamming distance to one goal.  I found that selection was not seeming to 
+be strong enough, so wrote a function to rescale fitness which is applied to the fitness
+vector before each proportional selection.  It increases fitnesses below the 20% quantile 
+up to this quantile, and then linearly rescales fitness so that the minimum fitness goes
+to 0 and the maximum fitness goes to 1.  Maybe I will want to remove this.
+
+Then multiple_pop_evolve() calls pop_evolve() 
