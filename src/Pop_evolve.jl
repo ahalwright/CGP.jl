@@ -3,6 +3,7 @@
 using Main.CGP
 using Statistics
 using DataFramesMeta
+using HypothesisTests
 
 # Run both one population and numpops subpopulations to eithe return a dataframe or
 #   write the dataframe to csvfile if it is given as a keyword argument
@@ -12,6 +13,10 @@ function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goall
     csvfile::String="", uniform_start::Bool=false, prdebug::Bool=false )
   df=DataFrame()
   df.goal = Goal[]
+  df.numinputs = Int64[]
+  df.numoutputs = Int64[]
+  df.numgates = Int64[]
+  df.levelsback = Int64[]
   df.ngens = Int64[]
   df.numpops = Int64[]
   df.popsize = Int64[]
@@ -56,6 +61,10 @@ function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, ngens::
   (mutrate,goal) = mr_goal_pair 
   df = DataFrame()
   df.goal = Goal[]
+  df.numinputs = Int64[]
+  df.numoutputs = Int64[]
+  df.numgatess = Int64[]
+  df.levelsback = Int64[]
   df.ngens = Int64[]
   df.numpops = Int64[]
   df.popsize = Int64[]
@@ -79,6 +88,10 @@ function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g
   println("run_multiple_pop_evolve goal: ",g)
   if size(df)[1] == 0
     df.goal = Goal[]
+    df.numinputs = Int64[]
+    df.numoutputs = Int64[]
+    df.numgates = Int64[]
+    df.levelsback = Int64[]
     df.ngens = Int64[]
     df.numpops = Int64[]
     df.popsize = Int64[]
@@ -92,6 +105,10 @@ function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g
     (mutrate,mphenotypes,mpredecessors,mfitnesses,mcomplexities,mnumgates)=multiple_pop_evolve(p,popsize,g,ngens,numpops,mutrate,uniform_start=uniform_start)
     #println("run_multiple_pop_evolve size(mphenotypes): ",size(mphenotypes),"  size(mphenotypes[1]): ",size(mphenotypes[1]))
     push!(df.goal,g)
+    push!(df.numinputs,p.numinputs)
+    push!(df.numoutputs,p.numoutputs)
+    push!(df.numgates,p.numinteriors)
+    push!(df.levelsback,p.numlevelsback)
     push!(df.ngens,ngens)
     push!(df.numpops,numpops)
     push!(df.popsize,popsize)
@@ -110,6 +127,10 @@ function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, n
   println("run_pop_evolve goal: ",g)
   if size(df)[1] == 0
     df.goal = Goal[]
+    df.numinputs = Int64[]
+    df.numoutputs = Int64[]
+    df.numgates = Int64[]
+    df.levelsback = Int64[]
     df.ngens = Int64[]
     df.numpops = Int64[]
     df.popsize = Int64[]
@@ -124,6 +145,10 @@ function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, n
         pop_evolve(p,popsize,g,ngens,mutrate,uniform_start=uniform_start)
     #println("run_pop_evolve size(phenotypes): ",size(phenotypes))
     push!(df.goal,g)
+    push!(df.numinputs,p.numinputs)
+    push!(df.numoutputs,p.numoutputs)
+    push!(df.numgates,p.numinteriors)
+    push!(df.levelsback,p.numlevelsback)
     push!(df.ngens,ngens)
     push!(df.numpops,1)
     push!(df.popsize,popsize)
@@ -584,11 +609,7 @@ end
 # Returns a triple of the large population mean, the small population mean, and the p-value of the Mann Whitney test
 function compare_fract_decreases( df::DataFrame )
   df.fract_dec = df.fit_decreases./df.maxfit_gen
-  ldf = @where(df,(:maxfit.>=1.0).&(:numpops.==1))
-  large_pop_fract_dec = mean(ldf.fract_dec)   
-  sdf = @where(df,(:maxfit.>=1.0) .& (:numpops.==4))
-  small_pops_fract_dec = mean(sdf.fract_dec)   
-  MWT = pvalue(MannWhitneyUTest( ldf.fract_dec, sdf.fract_dec ))
+  num_small_pops = unique(df.numpops)[2]    # The number of pops in the small pop case
   cdf=DataFrame()
   cdf.ngens=Int64[]
   cdf.popsize = Int64[]
@@ -599,8 +620,9 @@ function compare_fract_decreases( df::DataFrame )
   for mr in unique(df.mutrate)
     ldf = @where(df,(:maxfit.>=1.0).&(:numpops.==1).&(:mutrate.==mr))
     large_pop_fract_dec = mean(ldf.fract_dec)   
-    sdf = @where(df,(:maxfit.>=1.0).&(:numpops.==4).&(:mutrate.==mr))
+    sdf = @where(df,(:maxfit.>=1.0).&(:numpops.==num_small_pops).&(:mutrate.==mr))
     small_pops_fract_dec = mean(sdf.fract_dec)   
+    MWT = length( sdf.fract_dec ) > 0 ?  MWT = pvalue(MannWhitneyUTest( ldf.fract_dec, sdf.fract_dec )) : 0.0
     push!(cdf,(sdf.ngens[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
   end
   cdf

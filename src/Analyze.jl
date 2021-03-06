@@ -10,7 +10,7 @@ export goal_lookup_from_df, add_edf_col_from_df, frequencies_from_counts, varian
 
 # Returns a dataframe by reading a CSV file with comments that start with "#"
 function read_dataframe( df_filename::String )
-  df = CSV.read(df_filename,header=true,comment="#")
+  df = CSV.read(df_filename,DataFrame,header=true,comment="#")
   df
 end  
 
