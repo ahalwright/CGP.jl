@@ -1,0 +1,14 @@
+Results:  3/3, 3/4, 3/5  See README.txt in data directories.
+
+Write functions compare_fract_decreases() in Pop_evolve.jl  to test whether the fraction 
+fit_decreases/maxfig_gen is significantly different for 1 "large" population and numpops 
+"small" populations.
+
+using DataFramesMeta
+@time df=include("../data/3_5/run_pop_evolveF.jl")
+df.fract_dec = df.fit_decreases./df.maxfit_gen
+ldf = @where(df,(:maxfit.>=1.0).&(:numpops.==1))
+mean(ldf.fract_dec)   # 0.22331843985399544
+
+sdf = @where(df,(:maxfit.>=1.0) .& (:numpops.==4))
+mean(sdf.fract_dec)   # 0.24392093991739972

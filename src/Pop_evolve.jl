@@ -2,11 +2,14 @@
 # The Julia type PredType is defined in Chromosome.jl
 using Main.CGP
 using Statistics
+using DataFramesMeta
 
+# Run both one population and numpops subpopulations to eithe return a dataframe or
+#   write the dataframe to csvfile if it is given as a keyword argument
 # mutrate is the probability that a chromosome (circuit) will be mutation in a generation
 function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goallist::GoalList, 
-    ngens::Int64, numpops::Int64, mutrate::Float64=1.0;
-    csvfile::String="", uniform_start::Bool=true, prdebug::Bool=false )
+    ngens::Int64, numpops::Int64, mutrate::CGP.FloatRange=1.0;
+    csvfile::String="", uniform_start::Bool=false, prdebug::Bool=false )
   df=DataFrame()
   df.goal = Goal[]
   df.ngens = Int64[]
@@ -17,8 +20,10 @@ function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goall
   df.maxfit = Float64[]
   df.maxfit_gen = Int64[]
   df.fit_decreases = Int64[]
-  df_list = pmap(goal->run_both_one_goal(nreps,p,popsize,goal,ngens,numpops,mutrate,uniform_start=uniform_start),goallist)
-  #df_list = map(goal->run_both_one_goal(nreps,p,popsize,goal,ngens,numpops,mutrate,uniform_start=uniform_start),goallist)
+  mr_goals_list = [ (mutr,g) for mutr = mutrate for g in goallist ]
+  #df_list = pmap(mr_goal_pair->run_both_one_goal(nreps,p,popsize,ngens,numpops,mr_goal_pair,uniform_start=uniform_start),mr_goals_list)
+  df_list = pmap(mr_goal_pair->run_both_one_goal(nreps,p,popsize,ngens,numpops,mr_goal_pair,uniform_start=uniform_start),mr_goals_list)
+  #df_list = map(mr_goal_pair->run_both_one_goal(nreps,p,popsize,ngens,numpops,mr_goal_pair,uniform_start=uniform_start),mr_goals_list)
   df = vcat( df_list... )
   #=
   for goal in goallist
@@ -37,16 +42,18 @@ function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goall
       print_parameters(f,p,comment=true)
       println(f,"# ngens: ",ngens)
       println(f,"# nreps: ",nreps)
+      println(f,"# uniform start: ",uniform_start)
       CSV.write( f, df, append=true, writeheader=true )
     end
   end
   df
 end
 
-function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, goal::Goal, ngens::Int64, numpops::Int64,
-    mutrate::Float64=1.0;
-    uniform_start::Bool=true, prdebug::Bool=false )
-  println("run both one goal: ",goal)
+# Helper function for run_both_pop_evolve().  Used in pmap()
+#function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, goal::Goal, ngens::Int64, numpops::Int64,
+function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, ngens::Int64, numpops::Int64,
+    mr_goal_pair; uniform_start::Bool=false, prdebug::Bool=false )
+  (mutrate,goal) = mr_goal_pair 
   df = DataFrame()
   df.goal = Goal[]
   df.ngens = Int64[]
@@ -68,7 +75,7 @@ end
 
 function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, ngens::Int64, numpops::Int64,
     mutrate::Float64=1.0;
-    df::DataFrame=DataFrame(), csvfile::String="", uniform_start::Bool=true, prdebug::Bool=false )
+    df::DataFrame=DataFrame(), csvfile::String="", uniform_start::Bool=false, prdebug::Bool=false )
   println("run_multiple_pop_evolve goal: ",g)
   if size(df)[1] == 0
     df.goal = Goal[]
@@ -99,7 +106,7 @@ function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g
 end
  
 function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutrate::Float64=1.0;
-    df::DataFrame=DataFrame(), csvfile::String="", uniform_start::Bool=true, prdebug::Bool=false )
+    df::DataFrame=DataFrame(), csvfile::String="", uniform_start::Bool=false, prdebug::Bool=false )
   println("run_pop_evolve goal: ",g)
   if size(df)[1] == 0
     df.goal = Goal[]
@@ -134,7 +141,7 @@ function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, n
 end
     
 function multiple_pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, numpops::Int64, mutrate::Float64=1.0;
-    uniform_start::Bool=true, prdebug::Bool=false )
+    uniform_start::Bool=false, prdebug::Bool=false )
   mphenotypes = fill(zeros(MyInt,0,0),numpops)
   mpredecessors = fill(zeros(PredType,0,0),numpops)
   mfitnesses = fill(zeros(Float64,0,0),numpops)  
@@ -149,7 +156,7 @@ function multiple_pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int
 end
 
 function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutrate::Float64=1.0; 
-    uniform_start::Bool=true, prdebug::Bool=false )
+    uniform_start::Bool=false, prdebug::Bool=false )
   #println("pop_evolve: goal: ",g,"  psize: ",popsize,"  ngens: ",ngens,"  mutrate: ",mutrate)
   count_mutations = 0
   funcs = default_funcs( p.numinputs )
@@ -244,7 +251,7 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
     end
     =#
   end
-  println("end pop evolve: len(pop): ",length(pop),"  size: ",size(phenotypes))
+  #println("end pop evolve: len(pop): ",length(pop),"  size: ",size(phenotypes))
   (pop,phenotypes,predecessors,fitnesses,complexities,numgates)
 end
 
@@ -568,3 +575,33 @@ function test_insert_gate( n::Int64, p::Parameters )
     end
   end
 end 
+
+function compare_fract_decreases( csvfile::String )
+  df = read_dataframe( csvfile )
+  compare_fract_decreases( df )
+end
+
+# Returns a triple of the large population mean, the small population mean, and the p-value of the Mann Whitney test
+function compare_fract_decreases( df::DataFrame )
+  df.fract_dec = df.fit_decreases./df.maxfit_gen
+  ldf = @where(df,(:maxfit.>=1.0).&(:numpops.==1))
+  large_pop_fract_dec = mean(ldf.fract_dec)   
+  sdf = @where(df,(:maxfit.>=1.0) .& (:numpops.==4))
+  small_pops_fract_dec = mean(sdf.fract_dec)   
+  MWT = pvalue(MannWhitneyUTest( ldf.fract_dec, sdf.fract_dec ))
+  cdf=DataFrame()
+  cdf.ngens=Int64[]
+  cdf.popsize = Int64[]
+  cdf.mutrate = Float64[]
+  cdf.lge_pop_fdecr = Float64[]
+  cdf.sml_pop_fdecr = Float64[]
+  cdf.MannWhitPval = Float64[]
+  for mr in unique(df.mutrate)
+    ldf = @where(df,(:maxfit.>=1.0).&(:numpops.==1).&(:mutrate.==mr))
+    large_pop_fract_dec = mean(ldf.fract_dec)   
+    sdf = @where(df,(:maxfit.>=1.0).&(:numpops.==4).&(:mutrate.==mr))
+    small_pops_fract_dec = mean(sdf.fract_dec)   
+    push!(cdf,(sdf.ngens[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
+  end
+  cdf
+end

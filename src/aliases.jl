@@ -29,6 +29,7 @@ const PopVect = Union{Vector{Vector{Int64}},Vector{Vector{MyInt}},Vector{Vector{
 const FPopulation = Array{Float64,1}
 #const CPopulation = Vector{Chromosome}   # population of chromosomes
 const IntRange = Union{Integer, Bool, AbstractRange{Int64}, AbstractRange{Bool}}
+const FloatRange = Union{Float64,AbstractRange{Float64}}
 const Goal =  Vector{MyInt}
 const GoalList = Vector{Goal}
 #Ones = 0x0f
