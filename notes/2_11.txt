@@ -16,3 +16,10 @@ Coefficients:
 (Intercept)  136.682     10.471    13.05    <1e-27   116.033    157.331
 complexity    25.9776     3.37532   7.70    <1e-12    19.3214    32.6338
 ────────────────────────────────────────────────────────────────────────
+
+Note:  see 2_13.txt for corrections.
+
+Plots are in data/2_13/complexity_vs_geno_count_4x1_7gts4lb.png
+2_13/complexity_vs_geno_count_4x1_7gts5lb.png
+2_13/robustness_vs_geno_count_4x1_7gts4lb.png
+2_13/robustness_vs_geno_count_4x1_7gts5lb.png

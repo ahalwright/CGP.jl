@@ -26,7 +26,6 @@ function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goall
   df.maxfit_gen = Int64[]
   df.fit_decreases = Int64[]
   mr_goals_list = [ (mutr,g) for mutr = mutrate for g in goallist ]
-  #df_list = pmap(mr_goal_pair->run_both_one_goal(nreps,p,popsize,ngens,numpops,mr_goal_pair,uniform_start=uniform_start),mr_goals_list)
   df_list = pmap(mr_goal_pair->run_both_one_goal(nreps,p,popsize,ngens,numpops,mr_goal_pair,uniform_start=uniform_start),mr_goals_list)
   #df_list = map(mr_goal_pair->run_both_one_goal(nreps,p,popsize,ngens,numpops,mr_goal_pair,uniform_start=uniform_start),mr_goals_list)
   df = vcat( df_list... )
@@ -63,7 +62,7 @@ function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, ngens::
   df.goal = Goal[]
   df.numinputs = Int64[]
   df.numoutputs = Int64[]
-  df.numgatess = Int64[]
+  df.numgates = Int64[]
   df.levelsback = Int64[]
   df.ngens = Int64[]
   df.numpops = Int64[]
@@ -199,13 +198,14 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
   for i in 1:popsize
     c = pop[i]
     c.robustness = i
-    c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
+    #c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
+    c.fitness = fitness_funct( p, c, g )
     prdebug ? print(c.robustness,"  ") : nothing
     prdebug ? print_circuit(c,include_fitness=true,include_robustness=true,include_pheno=true) : nothing
   end
   for gen = 1:ngens
-    #fitness_vector = rescale_fitnesses([ pop[i].fitness for i = 1:popsize ])
-    fitness_vector = ([ pop[i].fitness for i = 1:popsize ])
+    fitness_vector = rescale_fitnesses([ pop[i].fitness for i = 1:popsize ])
+    #fitness_vector = ([ pop[i].fitness for i = 1:popsize ])
     prdebug ? println("fit_vect: ",fitness_vector) : nothing
     prdebug ? println("gen: ",gen,"  max fit: ",maximum(fitness_vector)) : nothing
     propsel!( pop, fitness_vector, maxfit=findmax(fitness_vector)[1] )
@@ -242,7 +242,8 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
         #print_circuit(c)
         #print("newc:      ")
         #print_circuit(new_c)
-        c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
+        #c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
+        c.fitness = fitness_funct( p, c, g )
         #println("mutation count: ",count_mutations,"  phenotype: ",@sprintf("0x%x",(output_values(c)[1])),"  fitness: ",c.fitness)
         count_mutations += 1
       end
@@ -252,8 +253,10 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
     for i in 1:length(pop)
       phenotypes[gen,i] = output_values(pop[i])[1]
       predecessors[gen,i] = pop[i].robustness
-      fitnesses[gen,i] = pop[i].fitness = 1.0-hamming_distance( g, output_values(pop[i]), p.numinputs )
-      @assert pop[i].fitness == 1.0-hamming_distance( g, output_values(pop[i]), p.numinputs )  
+      #fitnesses[gen,i] = pop[i].fitness = 1.0-hamming_distance( g, output_values(pop[i]), p.numinputs )
+      fitnesses[gen,i] = pop[i].fitness = fitness_funct( p, c, g ) 
+      #@assert pop[i].fitness == 1.0-hamming_distance( g, output_values(pop[i]), p.numinputs )  
+      @assert pop[i].fitness == fitness_funct( p, c, g )
       complexities[gen,i] = complexity5(pop[i])
       numgates[gen,i] = pop[i].params.numinteriors
     end
@@ -270,7 +273,8 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
     for i in 1:popsize
       c = pop[i]
       c.robustness = i  # Robustness is not robustness; instead it is an identifier of the index of circut in the population
-      c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
+      #c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
+      c.fitness = fitness_funct( p, c, g )
       prdebug ? print(c.robustness,"  ") : nothing
       prdebug ? print_circuit(c,include_fitness=true,include_robustness=true,include_pheno=true) : nothing
     end
@@ -278,6 +282,11 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
   end
   #println("end pop evolve: len(pop): ",length(pop),"  size: ",size(phenotypes))
   (pop,phenotypes,predecessors,fitnesses,complexities,numgates)
+end
+
+function fitness_funct( p::Parameters, c::Chromosome, g::Goal )
+  #1.0-hamming_distance( g, output_values(c), p.numinputs ) 
+  complexity5(c)
 end
 
 function rescale_fitnesses( fit_vect::Vector{Float64} )
@@ -496,114 +505,11 @@ function test_successors_preds( predecessors::Array{Int64,2} )
   end
 end
 
-# Insert a gate into c so that output_values(c) is unchanged.
-# The new gate is inserted at position new_gate_index.
-# The following gates are shifted right by 1.
-# The new gate replaces an input connection to the existing gate a position new_gate_index (before the shift)
-# The output of the new gate is the input to the existing gate.
-# One input to the new gate is the source of the input to the exisiting gate. 
-# The other is chosen randomly according to the levelsback constraint.
-function insert_gate!( c::Chromosome )
-  funcs = default_funcs(c.params.numinputs)
-  p = c.params
-  # Chose a random interior node as the "new gate".
-  # Don't insert a gate to replace an output gate:
-  new_gate_index = rand(1:(p.numinteriors-p.numoutputs+1))  # Position of the new gate
-  println("new_gate_index: ",new_gate_index)
-  p = c.params = Parameters( p.numinputs, p.numoutputs, p.numinteriors+1, p.numlevelsback+1 )
-  new_gate = deepcopy(c.interiors[new_gate_index])  # will be modified below
-  input_index = rand(1:2)
-  new_gate.func = input_index == 1 ? IN1 : IN2
-  c.interiors = vcat(c.interiors[1:(new_gate_index-1)],[new_gate],c.interiors[new_gate_index:end])
-  for i = 1:p.numoutputs
-    index = p.numinputs + p.numinteriors + i - p.numoutputs # use the last numoutputs interiors 
-    c.outputs[i] = OutputNode(index) 
-  end
-  for i = (new_gate_index+1):p.numinteriors
-    for j = 1:p.nodearity
-      if c.interiors[i].inputs[j] >= p.numinputs + new_gate_index 
-        c.interiors[i].inputs[j] += 1
-      end
-    end
-  end
-  # Modify one of the inputs of interiors[new_gate_index+1] to point to the new gate
-  c.interiors[new_gate_index+1].inputs[input_index] = p.numinputs + new_gate_index
-  set_active_to_false(c)
-  c
-end
-
-function delete_gate!( c::Chromosome, interior_to_delete::Int64 )
-  #println("delete_gate! interior_to_delete: ",interior_to_delete,"  active: ",c.interiors[interior_to_delete].active)
-  p = c.params
-  @assert interior_to_delete <= p.numinteriors - p.numoutputs
-  gate_to_delete = c.interiors[interior_to_delete]
-  new_levelsback = (p.numlevelsback > p.numinputs) ? p.numlevelsback-1 : p.numlevelsback
-  p = c.params = Parameters( p.numinputs, p.numoutputs, p.numinteriors-1, new_levelsback )
-  c.interiors = vcat(c.interiors[1:(interior_to_delete-1)],c.interiors[(interior_to_delete+1):end])
-  for i = 1:p.numoutputs
-    index = p.numinputs + p.numinteriors + i - p.numoutputs # use the last numoutputs interiors 
-    c.outputs[i] = OutputNode(index) 
-  end
-  for i = interior_to_delete:p.numinteriors
-    for j = 1:p.nodearity
-      if c.interiors[i].inputs[j] >= interior_to_delete + p.numinputs
-        c.interiors[i].inputs[j] -= 1
-      end
-    end
-  end
-  c
-end
-
-function delete_gate!( c::Chromosome )
-  output_values(c)  # needed to set active gates to active  
-  if number_active_gates(c) == c.params.numinteriors
-    dg = rand(1:(c.params.numinteriors-p.numoutputs))
-    return delete_gate!( c, dg )
-  end
-  inactive_interior_list = filter!(i->!c.interiors[i].active, collect(1:c.params.numinteriors))
-  dg = rand(inactive_interior_list)
-  return delete_gate!( c, dg )
-end
-
-function test_delete_gate( n::Int64, p::Parameters )
-  for i = 1:n
-    c = random_chromosome(p)
-    sav_c = deepcopy(c)
-    output_values(sav_c)  # needed to set active gates to active
-    #dg = rand(1:(c.params.numinteriors-p.numoutputs))
-    #println("dg: ",dg,"  active: ",sav_c.interiors[dg].active)
-    #delete_gate!(c,dg)
-    #if sav_c.interiors[dg].active == false
-    delete_gate!(c)
-    if number_active_gates(sav_c) < sav_c.params.numinteriors
-      println("test for i = ",i)
-      if output_values(c) != output_values(sav_c)
-        println((output_values(c),output_values(sav_c)))
-        print_circuit(c)
-        print_circuit(sav_c)
-        return (sav_c,c)
-      end
-    end
-  end
-end 
-
-function test_insert_gate( n::Int64, p::Parameters )
-  for i = 1:n
-    c = random_chromosome(p)
-    sav_c = deepcopy(c)
-    insert_gate!(c)
-    if output_values(c) != output_values(sav_c)
-      println((output_values(c),output_values(sav_c)))
-      print_circuit(c)
-      print_circuit(sav_c)
-      return (sav_c,c)
-    end
-  end
-end 
-
 function compare_fract_decreases( csvfile::String )
   df = read_dataframe( csvfile )
-  compare_fract_decreases( df )
+  cdf=compare_fract_decreases( df )
+  write_dataframe_with_comments(cdf,csvfile,"$(csvfile[1:(end-4)])fract_dec.csv")
+  cdf 
 end
 
 # Returns a triple of the large population mean, the small population mean, and the p-value of the Mann Whitney test
@@ -611,8 +517,15 @@ function compare_fract_decreases( df::DataFrame )
   df.fract_dec = df.fit_decreases./df.maxfit_gen
   num_small_pops = unique(df.numpops)[2]    # The number of pops in the small pop case
   cdf=DataFrame()
+  if ("numinputs" in names(df)) || (:numinputs in names(df))
+    cdf.numinputs = Int64[]
+    cdf.numoutputs = Int64[]
+    cdf.numgates = Int64[]
+    cdf.levelsback = Int64[]
+  end
   cdf.ngens=Int64[]
-  cdf.popsize = Int64[]
+  cdf.lg_popsize = Int64[]
+  cdf.sm_popsize = Int64[]
   cdf.mutrate = Float64[]
   cdf.lge_pop_fdecr = Float64[]
   cdf.sml_pop_fdecr = Float64[]
@@ -623,7 +536,12 @@ function compare_fract_decreases( df::DataFrame )
     sdf = @where(df,(:maxfit.>=1.0).&(:numpops.==num_small_pops).&(:mutrate.==mr))
     small_pops_fract_dec = mean(sdf.fract_dec)   
     MWT = length( sdf.fract_dec ) > 0 ?  MWT = pvalue(MannWhitneyUTest( ldf.fract_dec, sdf.fract_dec )) : 0.0
-    push!(cdf,(sdf.ngens[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
+    if ("numinputs" in names(df)) || (:numinputs in names(df))
+      push!(cdf,(sdf.numinputs[1],sdf.numoutputs[1],sdf.numgates[1],sdf.levelsback[1],
+        sdf.ngens[1],ldf.popsize[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
+    else
+      push!(cdf,(sdf.ngens[1],ldf.popsize[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
+    end
   end
   cdf
 end

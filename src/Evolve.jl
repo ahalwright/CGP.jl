@@ -43,13 +43,13 @@ end
 #=
 function match_score( output::Vector{MyInt}, goal::Vector{MyInt},numinputs::Int64)
   nc = length(output)  # number of components
-  #println("output: ",output,"  goal: ",goal)
+  println("match_score: output: ",output,"  goal: ",goal)
   @assert nc == length(goal)
   H = [ hamming_distance(output[i],goal[j],numinputs) for i = 1:nc, j=1:nc]  
-  #println("H: ",H)
+  println("H: ",H)
   P = permutations(collect(1:nc))
   mxscores = [ maxscore([H[i,p[i]] for i = 1:nc]) for p in P ]
-  #println("mxscores: ",mxscores)
+  println("mxscores: ",mxscores)
   findmaxall(mxscores)[1]
 end
 =#
@@ -136,7 +136,7 @@ end
 # Note that fitness does not take robustness into account
 function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numinputs::Int64; 
     avgfitness::Bool=false, perm_heuristic::Bool=false  )
-  #println("hamming")
+  #println("goals_matched_hamming")
   if perm_heuristic
     goallist_scores = map( g->match_score_perm_heuristic(output,g,numinputs,avgfitness=avgfitness), goallist )
   else
@@ -145,7 +145,7 @@ function goals_matched_hamming( output::Vector{MyInt}, goallist::GoalList, numin
   matched_goals = map( g->components_matched(output,g), goallist )
   #println("goallist_scores: ",goallist_scores)
   #println("matched_goals: ",matched_goals)
-  (best_score,best_score_list) = findmaxall( goallist_scores )
+  (best_score,best_score_list) = length(goallist_scores)>0 ? findmaxall( goallist_scores ) : (0.0,[])
   (best_score, best_score_list, matched_goals[best_score_list])
 end
 
@@ -154,7 +154,8 @@ end
 # See equation 3.3 of Macia and Sole (2009)
 function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}, fitness::Float64=0.0; 
       use_robustness::Bool=false, hamming_sel::Bool=true, active_only::Bool=false, num_mutations::Int64=1,
-      avgfitness::Bool=false, perm_heuristic=perm_heuristic, fault_tol::Bool=false, ftf_param::Float64=0.95 )
+      avgfitness::Bool=false, perm_heuristic=perm_heuristic, fault_tol::Bool=false, ftf_param::Float64=0.95,
+      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
   context = construct_context(c.params.numinputs)
   #println("next_chromosome!:  fault_tol: ",fault_tol,"  ftf_param: ",ftf_param)
   #print_build_chromosome( c )
@@ -164,7 +165,7 @@ function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}
   end
   new_c = deepcopy(c)
   for _ = 1:num_mutations
-    mutate_chromosome!( new_c, funcs )
+    mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
   end
   output = execute_chromosome(new_c,context)
   #println("new_c output: ",output,"  new_c.fitness: ",new_c.fitness)
@@ -204,7 +205,8 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
       print_steps::Bool=true,
       avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95, 
-      fit_limit::Float64=Float64(c.params.numoutputs) )
+      fit_limit::Float64=Float64(c.params.numoutputs), 
+      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
   #println("mut_evolve fit limit: ",fit_limit)
   #println("mut evolve avgfitness: ",avgfitness,"  fault_tol: ",fault_tol,"  ftf_param: ",ftf_param)
   #print_build_chromosome(c)
@@ -231,7 +233,8 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
   #    next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, avgfitness=avgfitness ) 
   (c, matched_goals, matched_goals_list ) = 
       next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, 
-      perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol, ftf_param=ftf_param ) 
+      perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol, ftf_param=ftf_param, insert_gate_prob=insert_gate_prob, 
+      delete_gate_prob=delete_gate_prob ) 
   output = output_values(c)   # Executes c if it has not already been executed
   #println("output: ",output)
   #while step < max_steps && new_fitness < c.params.numoutputs
@@ -263,9 +266,12 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     prev_c = deepcopy(c)
     if step < max_steps   # Construct c for next generation
       (c, matched_goals, matched_goals_list ) = 
-            next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, 
-            num_mutations=num_mutations, perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol,
-            ftf_param=ftf_param ) 
+          next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, 
+          perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol, ftf_param=ftf_param, 
+          insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob ) 
+            #next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, 
+            #num_mutations=num_mutations, perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol,
+            #ftf_param=ftf_param ) 
       output = output_values(c)   # Executes c if it has not already been executed
     end
   end
@@ -820,15 +826,19 @@ end
 # Evolves a chromosome (cirucit) that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
+# insert_gate_prob is the probability of inserting a gate on a mutation of a chromosome.
+# delete_gate_prob is similar for deleting a gate.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
-function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_steps::Bool=false )
+function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_steps::Bool=false,
+      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
   funcs = default_funcs( c.params.numinputs )
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )
+  new_c = deepcopy(c)
   while step < max_steps && ov != g
     step += 1
-    (new_c,active) = mutate_chromosome!( deepcopy(c), funcs )
+    (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
     new_ov = output_values( new_c )
     new_distance = hamming_distance( new_ov, g, c.params.numinputs )
     #println("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance )

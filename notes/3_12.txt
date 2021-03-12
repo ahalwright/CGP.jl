@@ -1,0 +1,10 @@
+I have essentially abandoned or at least postponed the LaBar Adami replication effort.
+
+I added the insert_gates!() and delete_gates!() to explore_complexity() and run_explore_complexity()
+in Complexity.jl.  The code for insert_gates!() and delete_gates!() is in Chromosome.jl.
+I also modified mutate_chromosome!() in Chromosome.jl.
+
+I added insert_gate_prob and delete_gate_prob as keywords to mut_evolve() and neutral_evolution()
+in Evolve.jl.
+
+New results are in data/3_12/   (modified from data/1_4/)..

@@ -104,8 +104,17 @@ All diary topics:
 2_4:   Check that every phenotype is mapped to by a genotype for 8 gates, 5 lb.  2 methods.
 2_9:   Summarize and create test functions for random walk functions.
 2_10:  Ideas on evolvability.
-        
-
+2_11:  Complexity versus evolvability in a mutaitonal neighborhood.  Code:  mutational_evolvability.jl
+2_13:  Complexity and robustness versus evolvability in a mutaitonal neighborhood.  Code:  mutational_evolvability.jl
+2_15_21:  Redoing NN plots
+2_18:  Preliminary ideas on LaBar/Adami replication
+2_18_21: More details on redoing NN plots, replicating x axis labels
+2_21_21: More details on redoing NN plots, replicating x axis labels
+2_22:  Hypotheses to test for LaBar/Adami (2016) simulation:
+3_2:  Initial summary of pop-based evolution and LaBar/Adami hypothesis. Selection rescaling.
+3_3:  pred_phenos_fits() and preds_fit_decreases()
+3_5:  compare_fract_decreases(),  Filtering dataframe by row using @where.
+3_7:  Summary of LaBar/Adami test, code in Pop_evolve.jl
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

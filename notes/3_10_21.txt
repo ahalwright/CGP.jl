@@ -1,0 +1,16 @@
+Re-running inf alleles for nearly neutral:
+
+pwd    # ~/evotech/nearly-neutral/src
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens200K/nn_neut_Nmulist_fm45_N25_6400
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens200K/nn_del_Nmulist_fm45_N25_6400_theta0.5
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens200K/nn_del_Nmulist_fm45_N25_6400_theta1
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens200K/nn_mixed_Nmulist_fm45_prob0.01_N25_6400_theta0.5_0.01
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens200K/nn_mixed_Nmulist_fm45_prob0.01_N25_6400_theta0.5_0.02
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens200K/nn_mixed_Nmulist_fm45_prob0.01_N25_6400_theta0.5_0.005
+
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens800K/nn_neut_Nmulist_fm45_N25_6400
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens800K/nn_del_Nmulist_fm45_N25_6400_theta0.5
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens800K/nn_del_Nmulist_fm45_N25_6400_theta1
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens800K/nn_mixed_Nmulist_fm45_prob0.01_N25_6400_theta0.5_0.01
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens800K/nn_mixed_Nmulist_fm45_prob0.01_N25_6400_theta0.5_0.02
+time julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens800K/nn_mixed_Nmulist_fm45_prob0.01_N25_6400_theta0.5_0.005

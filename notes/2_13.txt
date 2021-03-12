@@ -1,3 +1,4 @@
+See 2_11.txt for regression results
 Revised mutational_evolvability.jl to compute number of unique phenotypes
 in mutational neighborhoods of a given goals of increasing size.
 Also saves Tononi complexity and robustness of the circuit that is evolved
@@ -9,3 +10,8 @@ numinteriors (numgates) and levelsback must be kept small or memory will overflo
 
 Successful runs in data/2_12 for all 3x1 goals with 7 gates, 4 levelsback (F)
 and with 7 gates 5 levelsback (H).
+
+Plots are in data/2_13/complexity_vs_geno_count_4x1_7gts4lb.png
+2_13/complexity_vs_geno_count_4x1_7gts5lb.png
+2_13/robustness_vs_geno_count_4x1_7gts4lb.png
+2_13/robustness_vs_geno_count_4x1_7gts5lb.png

@@ -9,6 +9,7 @@ export build_chromosome, Input_node, Int_node, Output_node, print_build_chromoso
 export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits
 export code_to_circuit
+export insert_gate!, delete_gate!
 
 PredType = Int64
 mutable struct Chromosome
@@ -88,8 +89,15 @@ end
 # mutates chromosome c by changing a random node or function
 # if length(funcs) == 1, then only connections are mutated
 # Returns new chromosome c and Bool active which is true if the node mutated was active
-# BUG!! as of 3/3/21:  Does not modify c, instead returns the mutated c.
-function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location::Int64=0 )
+# BUG!! as of 3/3/21:  Does not modify c, instead returns the mutated c.  Probably OK:  3/8/21
+function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location::Int64=0;
+    insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
+  #println("mutate_chromosome! insert_gate_prob: ",insert_gate_prob)
+  if rand() < insert_gate_prob && c.params.numinteriors < MyIntBits( MyInt )
+    return(insert_gate!(c),false)
+  elseif rand() < delete_gate_prob && c.params.numinteriors > c.params.numinputs # don't do both insert and delete
+    return (delete_gate!(c),true)  # active set to true, but has no meaning here
+  end
   num_mutate_locs = num_mutate_locations( c, funcs )
   if mutate_location == 0 
     mutate_location = rand(1:num_mutate_locs)
@@ -899,4 +907,85 @@ function count_circuits( p::Parameters; nfuncs::Int64=0 )
     end
   end
   multiplier
+end
+
+# Mutates chromosome c by inserting a gate or deleting a gate
+function mutate_num_gates!( c::Chromosome; prob_insert::Float64=0.5 )
+  if rand() <= prob_insert 
+    c = insert_gate!(c) 
+  else 
+    c = insert_gate!(c) 
+  end
+  c
+end
+
+# Insert a gate into c so that output_values(c) is unchanged.
+# The new gate is inserted at position new_gate_index.
+# The following gates are shifted right by 1.
+# The new gate replaces an input connection to the existing gate a position new_gate_index (before the shift)
+# The output of the new gate is the input to the existing gate.
+# One input to the new gate is the source of the input to the exisiting gate. 
+# The other is chosen randomly according to the levelsback constraint.
+function insert_gate!( c::Chromosome )
+  funcs = default_funcs(c.params.numinputs)
+  p = c.params
+  # Chose a random interior node as the "new gate".
+  # Don't insert a gate to replace an output gate:
+  new_gate_index = rand(1:(p.numinteriors-p.numoutputs+1))  # Position of the new gate
+  #println("new_gate_index: ",new_gate_index)
+  p = c.params = Parameters( p.numinputs, p.numoutputs, p.numinteriors+1, p.numlevelsback+1 )
+  new_gate = deepcopy(c.interiors[new_gate_index])  # will be modified below
+  input_index = rand(1:2)
+  new_gate.func = input_index == 1 ? IN1 : IN2  # IN1 and IN2 are gates that return input1 and input 2 respectively.
+  c.interiors = vcat(c.interiors[1:(new_gate_index-1)],[new_gate],c.interiors[new_gate_index:end])
+  for i = 1:p.numoutputs
+    index = p.numinputs + p.numinteriors + i - p.numoutputs # use the last numoutputs interiors 
+    c.outputs[i] = OutputNode(index) 
+  end
+  for i = (new_gate_index+1):p.numinteriors
+    for j = 1:p.nodearity
+      if c.interiors[i].inputs[j] >= p.numinputs + new_gate_index 
+        c.interiors[i].inputs[j] += 1
+      end
+    end
+  end
+  # Modify one of the inputs of interiors[new_gate_index+1] to point to the new gate
+  c.interiors[new_gate_index+1].inputs[input_index] = p.numinputs + new_gate_index
+  set_active_to_false(c)
+  #println("insert_gate!  new interiors: ",c.params.numinteriors)
+  c
+end
+
+function delete_gate!( c::Chromosome, interior_to_delete::Int64 )
+  #println("delete_gate! interior_to_delete: ",interior_to_delete,"  active: ",c.interiors[interior_to_delete].active)
+  p = c.params
+  @assert interior_to_delete <= p.numinteriors - p.numoutputs
+  gate_to_delete = c.interiors[interior_to_delete]
+  new_levelsback = (p.numlevelsback > p.numinputs) ? p.numlevelsback-1 : p.numlevelsback  # Don't set numlevelsback to less than p.numinputs.
+  p = c.params = Parameters( p.numinputs, p.numoutputs, p.numinteriors-1, new_levelsback )
+  c.interiors = vcat(c.interiors[1:(interior_to_delete-1)],c.interiors[(interior_to_delete+1):end])
+  for i = 1:p.numoutputs
+    index = p.numinputs + p.numinteriors + i - p.numoutputs # use the last numoutputs interiors 
+    c.outputs[i] = OutputNode(index) 
+  end
+  for i = interior_to_delete:p.numinteriors
+    for j = 1:p.nodearity
+      if c.interiors[i].inputs[j] >= interior_to_delete + p.numinputs
+        c.interiors[i].inputs[j] -= 1
+      end
+    end
+  end
+  #println("delete_gate!  new interiors: ",c.params.numinteriors)
+  c
+end
+
+function delete_gate!( c::Chromosome )
+  output_values(c)  # needed to set active gates to active  
+  if number_active_gates(c) == c.params.numinteriors
+    dg = rand(1:(c.params.numinteriors-c.params.numoutputs))
+    return delete_gate!( c, dg )
+  end
+  inactive_interior_list = filter!(i->!c.interiors[i].active, collect(1:c.params.numinteriors))
+  dg = rand(inactive_interior_list)
+  return delete_gate!( c, dg )
 end

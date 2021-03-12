@@ -1,0 +1,58 @@
+Trying to replicate the claim of LaBar/Adami 2016 that small and large populations
+evolve complexity in different ways.
+
+Tried to test this hypotesis that the number of deleterious mutations is
+the number of fitness decreases in the history of a maximum fitness element
+of the first generation to reach maximum fitness.  Hypothesis did not turn
+out to be true.
+
+Code in Pop_evolve.jl
+
+First, implemented population-based evolution in function pop_evolve().
+Simple GA algorithm repeating proportional selection and mutation.
+Record population history in 5 ngens by popsize matrices:
+  phenotypes
+  predecessors
+  fitnesses
+  complexities
+  numgates
+
+Implemented function multiple_pop_evolve() which implements multiple small
+populations whose size sums to popsize.
+
+Implemented run_both_pop_evolve() which runs pop_evolve() and multiple_pop_evolve()
+in a common framework parallelizing over goals, and then over mutation rates.
+
+Options include rescaling fitnesses which depends on code of pop_evolve().
+Also, can optimize for complexity instead of hamming distance to goal
+by changing code of function fitness_funct().
+
+Functions on population history matrices.  There are two versions, one
+applies to the history matrix of type Array{T,2} produced by pop_evolve(),
+and the other applies to the vector of history matrices of type 
+Array{Array{T,2},1} produced by multiple_pop_evolve.  Type T is Int64, Float64,
+or MyInt.
+
+Implemented two versions of computation of evolvability, namely functions 
+evolvability() and pheno_history() and verified that they give the same results.
+
+Implemented functions preds() and successors().  Preds() starts with a circuit
+in the populatio of  generation gen and follows it back to the first population.
+Successors() starts with a circuit in the population of generation gen and finds
+the descentant circuits in following generations.  Verified that these functions
+are inverses of each other.
+
+Implemented function preds_phenos_fits() which returns the list of phenotype-fitness
+pairs of a maximum fitness element of the first population to reach maximum fitness.
+
+Implemented function compare_fract_decreases() which compared the number of fitness
+decreases in the history of the large population first max fitness element with
+the number of fitness decreases in the history of the small population that found
+the first maximum fitness element.  One version applies to the output dataframe,
+the other applies to the csvfile of the output dataframe.
+
+Also wrote code to insert a gate into a chromsome and to delete a gate from a 
+chromosome.  The gate insertion is always neutral, and the gate deletion is neutral
+if there are any inactive gates.
+
+
