@@ -8,3 +8,30 @@ I added insert_gate_prob and delete_gate_prob as keywords to mut_evolve() and ne
 in Evolve.jl.
 
 New results are in data/3_12/   (modified from data/1_4/)..
+
+Plotting in Windows
+cd("complexity/data")
+cd("3_12")
+expdf = read_dataframe("explore_complexity3_12E.csv")
+plot(expdf.generation,[expdf.max_complexity,expdf.mean_complexity],labels=["Maximum complexity" "Mean complexity"])
+plot!(xlabel="Generation",ylabel="Complexity",legend=:bottomright)
+savefig("max_mean_complexity_variable_gates_50gens_insp0.05_delp0.03.png")
+
+plot(expdf.generation,expdf.cumm_unique_goals,labels="Cummulative unique phenotypes")
+plot!(xlabel="Generation",ylabel="Cummulative number unique phenotypes",legend=:bottomright)
+savefig("cumm_unique_phenotypes_variable_gates_50gens_insp0.05_delp0.03.png")
+
+plot(expdf.generation,[expdf.max_complexity,expdf.numgates,expdf.mean_complexity],labels=["Maximum complexity" "Number gates" "Mean complexity"])
+plot!(xlabel="Generation",ylabel="Complexity or Number gates",legend=:bottomright)  
+savefig("max_mean_complexity_numgates_80steps_50gens_insp0.05_delp0.03.png")
+
+expdf = read_dataframe("explore_complexity3_12D.csv")
+plot(expdf.generation,[expdf.max_complexity,expdf.numgates,expdf.mean_complexity],labels=["Maximum complexity" "Number gates" "Mean complexity"])
+plot!(xlabel="Generation",ylabel="Complexity or Number gates",legend=:bottomright)  
+plot!(title="Max mean complexity numgates 120 steps 45 gens")
+savefig("max_mean_complexity_numgates_120steps_45gens_insp0.05_delp0.03.png")
+
+plot(expdf.generation,expdf.cumm_unique_goals,labels="Cummulative unique phenotypes")
+plot!(xlabel="Generation",ylabel="Cummulative number unique phenotypes",legend=:bottomright)
+plot!(title="Cummulative unique goals 120 steps 45 gens")
+savefig("cumm_unique_phenotypes_120steps_45gens_insp0.05_delp0.03.png") 

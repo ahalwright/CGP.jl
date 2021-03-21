@@ -55,4 +55,4 @@ Also wrote code to insert a gate into a chromsome and to delete a gate from a
 chromosome.  The gate insertion is always neutral, and the gate deletion is neutral
 if there are any inactive gates.
 
-
+3/21/21:  Modified code to evolve to a goallist instead of a goal.  See 3_21.txt.

@@ -8,11 +8,11 @@ using HypothesisTests
 # Run both one population and numpops subpopulations to eithe return a dataframe or
 #   write the dataframe to csvfile if it is given as a keyword argument
 # mutrate is the probability that a chromosome (circuit) will be mutation in a generation
-function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goallist::GoalList, 
+function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goallistlist::Vector{GoalList}, 
     ngens::Int64, numpops::Int64, mutrate::CGP.FloatRange=1.0;
     csvfile::String="", uniform_start::Bool=false, prdebug::Bool=false )
   df=DataFrame()
-  df.goal = Goal[]
+  df.goallist = GoalList[]
   df.numinputs = Int64[]
   df.numoutputs = Int64[]
   df.numgates = Int64[]
@@ -25,16 +25,18 @@ function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goall
   df.maxfit = Float64[]
   df.maxfit_gen = Int64[]
   df.fit_decreases = Int64[]
-  mr_goals_list = [ (mutr,g) for mutr = mutrate for g in goallist ]
-  df_list = pmap(mr_goal_pair->run_both_one_goal(nreps,p,popsize,ngens,numpops,mr_goal_pair,uniform_start=uniform_start),mr_goals_list)
-  #df_list = map(mr_goal_pair->run_both_one_goal(nreps,p,popsize,ngens,numpops,mr_goal_pair,uniform_start=uniform_start),mr_goals_list)
+  
+  mr_goallists_list = [ (mutr,gl) for mutr = mutrate for gl in goallistlist ]
+  df_list = pmap(mr_goallist_pair->run_both_one_goallist(nreps,p,popsize,ngens,numpops,mr_goallist_pair,uniform_start=uniform_start),mr_goallists_list)
+  #df_list = map(mr_goallist_pair->run_both_one_goallist(nreps,p,popsize,ngens,numpops,mr_goallist_pair,uniform_start=uniform_start),mr_goallists_list)
   df = vcat( df_list... )
+  
   #=
-  for goal in goallist
-    println("goal: ",goal)
-    df = run_pop_evolve(nreps,p,popsize,goal,ngens,df=df,uniform_start=uniform_start)
+  for goallist in goallistlist
+    println("goallist: ",goallist)
+    df = run_pop_evolve(nreps,p,popsize,goallist,ngens,df=df,uniform_start=uniform_start)
     mpopsize = Int64(round(popsize/numpops))   # popsize should be divisible by numpops
-    df = run_multiple_pop_evolve(nreps,p,mpopsize,goal,ngens,numpops,mutrate,df=df,uniform_start=uniform_start)
+    df = run_multiple_pop_evolve(nreps,p,mpopsize,goallist,ngens,numpops,mutrate,df=df,uniform_start=uniform_start)
   end
   =#
   if length(csvfile) > 0
@@ -54,12 +56,11 @@ function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goall
 end
 
 # Helper function for run_both_pop_evolve().  Used in pmap()
-#function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, goal::Goal, ngens::Int64, numpops::Int64,
-function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, ngens::Int64, numpops::Int64,
+function run_both_one_goallist( nreps::Int64, p::Parameters, popsize::Int64, ngens::Int64, numpops::Int64,
     mr_goal_pair; uniform_start::Bool=false, prdebug::Bool=false )
   (mutrate,goal) = mr_goal_pair 
   df = DataFrame()
-  df.goal = Goal[]
+  df.goallist = GoalList[]
   df.numinputs = Int64[]
   df.numoutputs = Int64[]
   df.numgates = Int64[]
@@ -81,12 +82,12 @@ function run_both_one_goal( nreps::Int64, p::Parameters, popsize::Int64, ngens::
   df
 end
 
-function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, ngens::Int64, numpops::Int64,
+function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, gl::GoalList, ngens::Int64, numpops::Int64,
     mutrate::Float64=1.0;
     df::DataFrame=DataFrame(), csvfile::String="", uniform_start::Bool=false, prdebug::Bool=false )
-  println("run_multiple_pop_evolve goal: ",g)
+  println("run_multiple_pop_evolve  mutrate: ",mutrate,"   goallist: ",gl)
   if size(df)[1] == 0
-    df.goal = Goal[]
+    df.goallist = GoalList[]
     df.numinputs = Int64[]
     df.numoutputs = Int64[]
     df.numgates = Int64[]
@@ -101,9 +102,9 @@ function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g
     df.fit_decreases = Int64[]
   end
   for rep = 1:nreps
-    (mutrate,mphenotypes,mpredecessors,mfitnesses,mcomplexities,mnumgates)=multiple_pop_evolve(p,popsize,g,ngens,numpops,mutrate,uniform_start=uniform_start)
+    (mutrate,mphenotypes,mpredecessors,mfitnesses,mcomplexities,mnumgates)=multiple_pop_evolve(p,popsize,gl,ngens,numpops,mutrate,uniform_start=uniform_start)
     #println("run_multiple_pop_evolve size(mphenotypes): ",size(mphenotypes),"  size(mphenotypes[1]): ",size(mphenotypes[1]))
-    push!(df.goal,g)
+    push!(df.goallist,gl)
     push!(df.numinputs,p.numinputs)
     push!(df.numoutputs,p.numoutputs)
     push!(df.numgates,p.numinteriors)
@@ -121,11 +122,11 @@ function run_multiple_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g
   df
 end
  
-function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutrate::Float64=1.0;
+function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, gl::GoalList, ngens::Int64, mutrate::Float64=1.0;
     df::DataFrame=DataFrame(), csvfile::String="", uniform_start::Bool=false, prdebug::Bool=false )
-  println("run_pop_evolve goal: ",g)
+  println("run_pop_evolve  mutrate: ",mutrate,"   goallist: ",gl)
   if size(df)[1] == 0
-    df.goal = Goal[]
+    df.goallist = GoalList[]
     df.numinputs = Int64[]
     df.numoutputs = Int64[]
     df.numgates = Int64[]
@@ -141,9 +142,9 @@ function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, n
   end
   for rep = 1:nreps
     (pop,phenotypes,predecessors,fitnesses,complexities,numgates)=
-        pop_evolve(p,popsize,g,ngens,mutrate,uniform_start=uniform_start)
+        pop_evolve(p,popsize,gl,ngens,mutrate,uniform_start=uniform_start)
     #println("run_pop_evolve size(phenotypes): ",size(phenotypes))
-    push!(df.goal,g)
+    push!(df.goallist,gl)
     push!(df.numinputs,p.numinputs)
     push!(df.numoutputs,p.numoutputs)
     push!(df.numgates,p.numinteriors)
@@ -164,7 +165,7 @@ function run_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, g::Goal, n
   df
 end
     
-function multiple_pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, numpops::Int64, mutrate::Float64=1.0;
+function multiple_pop_evolve( p::Parameters, popsize::Int64, gl::GoalList, ngens::Int64, numpops::Int64, mutrate::Float64=1.0;
     uniform_start::Bool=false, prdebug::Bool=false )
   mphenotypes = fill(zeros(MyInt,0,0),numpops)
   mpredecessors = fill(zeros(PredType,0,0),numpops)
@@ -174,14 +175,14 @@ function multiple_pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int
   for pind = 1:numpops
     #println("pind: ",pind)
     (pop,mphenotypes[pind],mpredecessors[pind],mfitnesses[pind],mcomplexities[pind],mnumgates[pind]) = 
-        pop_evolve(p,popsize,g,ngens,mutrate,uniform_start=false)
+        pop_evolve(p,popsize,gl,ngens,mutrate,uniform_start=false)
   end
   (mutrate,mphenotypes,mpredecessors,mfitnesses,mcomplexities,mnumgates)
 end
 
-function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutrate::Float64=1.0; 
+function pop_evolve( p::Parameters, popsize::Int64, gl::GoalList, ngens::Int64, mutrate::Float64=1.0; 
     uniform_start::Bool=false, prdebug::Bool=false )
-  #println("pop_evolve: goal: ",g,"  psize: ",popsize,"  ngens: ",ngens,"  mutrate: ",mutrate)
+  #println("pop_evolve: goals: ",gl,"  psize: ",popsize,"  ngens: ",ngens,"  mutrate: ",mutrate)
   count_mutations = 0
   funcs = default_funcs( p.numinputs )
   phenotypes = zeros(MyInt,ngens,popsize)
@@ -198,8 +199,7 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
   for i in 1:popsize
     c = pop[i]
     c.robustness = i
-    #c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
-    c.fitness = fitness_funct( p, c, g )
+    c.fitness = fitness_funct( p, c, gl )
     prdebug ? print(c.robustness,"  ") : nothing
     prdebug ? print_circuit(c,include_fitness=true,include_robustness=true,include_pheno=true) : nothing
   end
@@ -211,7 +211,8 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
     propsel!( pop, fitness_vector, maxfit=findmax(fitness_vector)[1] )
     prdebug ? println("after propsel gen: ",gen) : nothing
     for c in pop
-      c.fitness = hamming_distance( g, output_values(c), p.numinputs )
+      #c.fitness = hamming_distance( gl, output_values(c), p.numinputs )
+      c.fitness = fitness_funct( p, c, gl )
       prdebug ? print(c.robustness,"  ") : nothing
       prdebug ? print_circuit(c,include_fitness=true,include_robustness=true,include_pheno=true) : nothing
     end
@@ -243,7 +244,7 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
         #print("newc:      ")
         #print_circuit(new_c)
         #c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
-        c.fitness = fitness_funct( p, c, g )
+        c.fitness = fitness_funct( p, c, gl )
         #println("mutation count: ",count_mutations,"  phenotype: ",@sprintf("0x%x",(output_values(c)[1])),"  fitness: ",c.fitness)
         count_mutations += 1
       end
@@ -253,10 +254,8 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
     for i in 1:length(pop)
       phenotypes[gen,i] = output_values(pop[i])[1]
       predecessors[gen,i] = pop[i].robustness
-      #fitnesses[gen,i] = pop[i].fitness = 1.0-hamming_distance( g, output_values(pop[i]), p.numinputs )
-      fitnesses[gen,i] = pop[i].fitness = fitness_funct( p, c, g ) 
-      #@assert pop[i].fitness == 1.0-hamming_distance( g, output_values(pop[i]), p.numinputs )  
-      @assert pop[i].fitness == fitness_funct( p, c, g )
+      fitnesses[gen,i] = pop[i].fitness = fitness_funct( p, c, gl ) 
+      @assert pop[i].fitness == fitness_funct( p, c, gl )
       complexities[gen,i] = complexity5(pop[i])
       numgates[gen,i] = pop[i].params.numinteriors
     end
@@ -274,7 +273,7 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
       c = pop[i]
       c.robustness = i  # Robustness is not robustness; instead it is an identifier of the index of circut in the population
       #c.fitness = 1.0-hamming_distance( g, output_values(c), p.numinputs )
-      c.fitness = fitness_funct( p, c, g )
+      c.fitness = fitness_funct( p, c, gl )
       prdebug ? print(c.robustness,"  ") : nothing
       prdebug ? print_circuit(c,include_fitness=true,include_robustness=true,include_pheno=true) : nothing
     end
@@ -284,9 +283,9 @@ function pop_evolve( p::Parameters, popsize::Int64, g::Goal, ngens::Int64, mutra
   (pop,phenotypes,predecessors,fitnesses,complexities,numgates)
 end
 
-function fitness_funct( p::Parameters, c::Chromosome, g::Goal )
-  #1.0-hamming_distance( g, output_values(c), p.numinputs ) 
-  complexity5(c)
+function fitness_funct( p::Parameters, c::Chromosome, gl::GoalList )
+  maximum( 1.0-hamming_distance( g, output_values(c), p.numinputs ) for g in gl )
+  #complexity5(c)
 end
 
 function rescale_fitnesses( fit_vect::Vector{Float64} )
@@ -299,6 +298,10 @@ function rescale_fitnesses( fit_vect::Vector{Float64} )
   else
     return fit_vect
   end
+end
+
+function randgoallistlist( ngoals::Int64, ngoallists::Int64, p::Parameters )
+  [ randgoallist( ngoals, p ) for _ = 1:ngoallists ]
 end
 
 function pheno_history( phenotypes::Array{MyInt,2} )
@@ -505,6 +508,12 @@ function test_successors_preds( predecessors::Array{Int64,2} )
   end
 end
 
+function compare_fract_decreases( df::DataFrame, csvfile::String )
+  cdf=compare_fract_decreases( df )
+  write_dataframe_with_comments(cdf,csvfile,"$(csvfile[1:(end-4)])fract_dec.csv")
+  cdf 
+end
+
 function compare_fract_decreases( csvfile::String )
   df = read_dataframe( csvfile )
   cdf=compare_fract_decreases( df )
@@ -535,12 +544,17 @@ function compare_fract_decreases( df::DataFrame )
     large_pop_fract_dec = mean(ldf.fract_dec)   
     sdf = @where(df,(:maxfit.>=1.0).&(:numpops.==num_small_pops).&(:mutrate.==mr))
     small_pops_fract_dec = mean(sdf.fract_dec)   
-    MWT = length( sdf.fract_dec ) > 0 ?  MWT = pvalue(MannWhitneyUTest( ldf.fract_dec, sdf.fract_dec )) : 0.0
-    if ("numinputs" in names(df)) || (:numinputs in names(df))
-      push!(cdf,(sdf.numinputs[1],sdf.numoutputs[1],sdf.numgates[1],sdf.levelsback[1],
-        sdf.ngens[1],ldf.popsize[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
+    println("mr: ",mr,"  length(ldf.fract_dec): ",length(ldf.fract_dec),"  length(sdf.fract_dec): ",length(sdf.fract_dec))
+    if length( sdf.fract_dec ) == 0 || length( ldf.fract_dec ) == 0
+      println("warning: length(sdf) == 0  or length(ldf) == 0 for mutrate: ",mr)
     else
-      push!(cdf,(sdf.ngens[1],ldf.popsize[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
+      MWT = pvalue(MannWhitneyUTest( ldf.fract_dec, sdf.fract_dec )) 
+      if ("numinputs" in names(df)) || (:numinputs in names(df))
+        push!(cdf,(sdf.numinputs[1],sdf.numoutputs[1],sdf.numgates[1],sdf.levelsback[1],
+            sdf.ngens[1],ldf.popsize[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
+      else
+        push!(cdf,(sdf.ngens[1],ldf.popsize[1],sdf.popsize[1],mr,large_pop_fract_dec,small_pops_fract_dec,MWT))
+      end
     end
   end
   cdf

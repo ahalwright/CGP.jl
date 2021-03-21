@@ -1,0 +1,7 @@
+Revised Pop_evolve.jl so that each evolution is to a list of goals rather than a single goal.
+The idea is that a large population will be "consolidated" by selection into a smaller region
+of the search space while multiple small populations will be able to do more exploration.
+Probably we will need to report on the variation of the multiple solutions returned by 
+the small populations.
+
+And eventually we will need a migration or horizontal transfer between small populations..
