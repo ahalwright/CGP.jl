@@ -1,4 +1,4 @@
-export Func, default_funcs, eval_func
+export Func, default_funcs, eval_func, alt_funcs
 export Ones, AND, OR, XOR, Nand, NAND, Nor, NOR, NOT, Not, Zero, ZERO, One, ONE, In1, IN1, In2, IN2
 export func_names, setup_funcs
 using Main.CGP
@@ -67,9 +67,9 @@ function alt_funcs( numinputs::Int64 )
 #    return [AND, OR, NOT, ZERO, ONE]
 #    return [ZERO, ONE]
 #    return [AND, OR, XOR, NAND, NOR, NOT, ZERO, ONE]
-#    return [AND, OR, NAND, NOR]   # Hu's gate set
+    return [AND, OR, NAND, NOR]   # Hu's gate set
 #     return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
-     return [AND, OR, XOR, NAND, NOR, IN1, IN2 ]   # Raman's gate set plus IN1 and IN2
+#     return [AND, OR, XOR, NAND, NOR, IN1, IN2 ]   # Raman's gate set plus IN1 and IN2
 end
 
 # Evaluate a Func for debugging purposes

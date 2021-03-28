@@ -1,0 +1,38 @@
+Linear GP representation of circuits.
+
+Idea:  use the linear GP representation of circuits described in Hu 2012 and 2020.
+Should be able to replicate my circuit results except those that involve complexity.
+
+A circuit/chromosome is a sequence of instructions.  Each instruction has four components: 
+an operation (AND, OR, NAND, NOR), and three register operands chosen from R0, R1, R2, R3 
+and maybe more.
+
+Representations of an instruction for a 2-input gate:
+  1.  Vector of 4 integers:  operator, src1, src2, dest.
+      Parameter:  cardinality of possible operations and cardinality of possible operands
+      Function to convert this vector into a function or an expression.
+  2.  Function (or expression) that executes the instruction.
+      Probably no arguments:  operands are in the execution scope (containing function)
+
+Representation of a circuit/chromosome:
+  Vector of instructions or vector of functions/expressions
+  Function to execute a circuit (like output_values()) which maps genotype to phenotype.
+
+Parameters for a circuit:
+  numinputs
+  numoutputs
+  numinstructions   (analagous to numinteriors)
+  numregisters      (analagouse to numlevelsback)
+
+Functions to write:
+  vect_to_funct()   # converts instruction vector to instruction function
+  int_to_vect()     # converts an integer to an instruction vector
+  vect_to_int()
+  execute()  (like output_values())
+  random_lincircuit()
+  mutate!()
+  mutate_all()
+  lincircuit_to_chromosome()
+  print_circuit()
+  build_circuit()
+  
