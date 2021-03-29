@@ -146,7 +146,7 @@ function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::I
   end
 end
 
-function mycat( lsts::Vector{Vector{Int64}} ) 
+function mycat( lsts::Vector{Vector{Vector{Int64}}} ) 
   result = Vector{Int64}[]
   for lst in lsts
     if length(lst) > 0

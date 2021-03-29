@@ -14,6 +14,8 @@
 #  4.  The index of the element of R which is the second operand of the logical operation
 # The functions vect_to_int() and int_to_vect() convert between these representations.
 # See notes/3_24.txt for outline
+export execute_lcircuit, numinstructions, vect_to_int, int_to_vect, rand_ivect, execute_random_circuit
+export rand_lcircuit
 OutputType = Int64
 
 # Not used.  Assumes that R and funcs are in the execution environment
