@@ -1,0 +1,19 @@
+Gecco reviews summmary:
+
+file:///C:/Users/oldmtnbiker/Dropbox/evotech/CGP.jl/notes/pap507%20Reviews%20Details.html
+
+Reviewer 1:  
+Why is this essential now?
+Pseudocode in section 2.3.
+GP --> GPM
+What is a genotype and a phenotype?
+
+Reviewew 2:
+Detailed comments only.
+
+Reviewer 3:
+Do results depend on choice of gates?
+Do results depend on mutation?  Such as insert and delete.
+Why do we care about selection for increasing complexity?
+Detailed comments.
+

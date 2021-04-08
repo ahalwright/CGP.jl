@@ -1,0 +1,16 @@
+Rewriting the GECCO paper introduction.
+
+Better relating the results to genetic programming.
+
+Explain choice of mutation method.
+
+Explain gate set.
+
+Justifying complexity results---more explanation of Arrow of complexity hypothesis.
+
+Redoing some results with different gate set.
+
+Reviewer1:  
+* Pseudo-code
+
+

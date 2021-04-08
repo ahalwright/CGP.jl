@@ -1,0 +1,14 @@
+Ran evolvability simulation with only NAND gate and 15 gates and 9 levelsback.
+
+On surt2:
+@time include("../data/4_6/run_geno_complexityF.jl")
+
+On lycosa:
+cdf = consolidate_dataframe("../data/4_6/geno_complexity4_6EF.csv","../data/4_6/geno_complexity4_6EFcons.csv")
+
+On windows:
+pwd()   # "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data"
+cdf=read_dataframe("4_6/geno_complexity4_6EF.csv")
+scatter(cdf.robustness,cdf.evo_count,title="robustness vs evolvability vs robustness",xlabel="robustnes",ylabel="evolution evolvability",legend=:none)
+savefig("4_6/geno_complexity_robustness_vs_evolvability_NAND.png")
+

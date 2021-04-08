@@ -52,12 +52,13 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
   df = read_dataframe( in_filename )
   #df.n_combined = map(Float64,df.n_combined)  # Only for neutral walk files, remove otherwise
   for n in names(df)
-    if n!= :ntries && n != :evo_count 
+    if n!= "ntries" && n != "evo_count" 
       new_df[!,n] = typeof(df[1,n])[]
     else
       new_df[!,n] = Float64[]
     end
   end
+  println("typeof(new_df.evo_count): ",typeof(new_df.evo_count))
   #println("size(new_df): ",size(new_df))
   #println("names(new_df): ",names(new_df))
   #=
@@ -66,14 +67,16 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
   goals = [parse(UInt16,df.goallist[i][first_pos:last_pos]) for i = 1:length(df.goallist) ]
   df.goal = goals
   =#
-  new_names = vcat([:goal],names(df)[2:end])
-  #=
+  new_names = vcat(["goal"],names(df)[2:end])
+  
   println("new_names: ",new_names)
+  #=
   for i = 1:size(new_df)[2]
     print(typeof(new_df[1,i])," ")
   end
   println()
   =#
+  
   select!(df,new_names)
   df = sort(df,[:goal])
   if !consolidate

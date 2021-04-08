@@ -1,0 +1,68 @@
+# Do circuit sampling for 3x1 circuits using linear GP representation.
+# Discovered that all 3x1 goals are reachable using 6 gates and 1 register.
+nreps=10^10
+julia> (outlist,cll)=count_outputs_parallel( nreps, numinputs, numoutputs, n_instructions, numregisters, use_lincircuit=true, csvfile="../data/3_28/outlist_circ_lists_reps1e10.csv" )
+MyInt: UInt16
+numinputs: 3
+numoutputs: 1
+numinteriors: 6
+numlevelsback: 2
+nodearity: 2
+nprocs: 25
+nreps_p: 416666667
+csvfile: ../data/3_28/outlist_circ_lists_reps1e10.csv
+len(result): 25     
+
+res=deepcopy(ans)
+ counts = res[1]  
+icounts= map(x->Int64(x),counts) 
+julia> findall(x->x==0,icounts)
+5-element Array{Int64,1}:
+ 108
+ 122
+ 147
+ 159
+ 215 
+
+From: data/3_28/outlist_circ_lists_reps1e11.jl on surt2
+
+nreps = 10^11
+@time (outlist,cll)=count_outputs_parallel( nreps, numinputs, numoutputs, n_instructions, numregisters, use_lincircuit=true, csvfile="../data/3_28/outlist_circ_lists_reps1e11.csv" )
+numinputs: 3
+numoutputs: 1
+numinteriors: 6  # n_instructions
+numlevelsback: 2 # numregisters
+nodearity: 2
+nprocs: 25
+nreps_p: 4166666667
+csvfile: ../data/3_28/outlist_circ_lists_reps1e11.csv
+len(result): 25
+11450.744785 seconds (542.47 k allocations: 39.247 MiB, 0.00% gc time)
+
+df = read_dataframe("outlist_circ_lists_reps1e11.csv")
+findmin(df.ints6_2)  # (7, 159)
+julia> df[159,:]
+DataFrameRow
+ Row │ goals   ints6_2  circuts_list
+     │ String  Int64    String
+─────┼────────────────────────────────────────────────────
+ 159 │ 0x9e          7  [[98, 157, 36, 180, 23, 51], [12…
+julia> df.circuts_list[159]
+"[[98, 157, 36, 180, 23, 51], [123, 27, 73, 126, 52, 1], [169, 35, 160, 151, 148, 105], [123, 94, 10, 101, 82, 1], [69, 27, 160, 155, 48, 51], [198, 7, 186, 55, 48, 55], [173, 148, 36, 80, 102, 101]]"
+julia> execute_lcircuit([123, 27, 73, 126, 52, 1],2,3,funcs)
+5-element Array{UInt16,1}:
+ 0x009e
+ 0x009f
+ 0x00f0
+ 0x00cc
+ 0x00aa
+julia> lll=[[98, 157, 36, 180, 23, 51], [123, 27, 73, 126, 52, 1], [169, 35, 160, 151, 148, 105], [123, 94, 10, 101, 82, 1], [69, 27, 160, 155, 48, 51], [198, 7, 186, 55, 48, 55], [173, 148, 36, 80, 102, 101]]
+julia> map(x->execute_lcircuit(x,2,3,funcs),lll)
+7-element Array{Array{UInt16,1},1}:
+ [0x009e, 0x001e, 0x00f0, 0x00cc, 0x00aa]
+ [0x009e, 0x009f, 0x00f0, 0x00cc, 0x00aa]
+ [0x009e, 0x0077, 0x00f0, 0x00cc, 0x00aa]
+ [0x009e, 0x00fe, 0x00f0, 0x00cc, 0x00aa]
+ [0x009e, 0x0088, 0x00f0, 0x00cc, 0x00aa]
+ [0x009e, 0x0088, 0x00f0, 0x00cc, 0x00aa]
+ [0x009e, 0x0071, 0x00f0, 0x00cc, 0x00aa]

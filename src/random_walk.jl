@@ -23,8 +23,8 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
       goal_pair_dict = save_complex ? merge(addvalues,goal_pair_dict,dict_list...) : merge(+,goal_pair_dict,dict_list...)
       #goal_pair_dict = merge(+, goal_pair_dict, gp )
    # end
-    return goal_pair_dict
-    #df = robust_evolvability( goal_pair_dict, gl, p )
+    #return goal_pair_dict
+    df = robust_evolvability( goal_pair_dict, gl, p )
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
     goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
@@ -35,6 +35,7 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
     df = robust_evolvability( goal_edge_matrix, gl )
   end
   if length(csvfile) > 0
+    println("csvfile: ",csvfile)
     open( csvfile, "w" ) do f
       hostname = chomp(open("/etc/hostname") do f read(f,String) end)
       println(f,"# date and time: ",Dates.now())
@@ -45,6 +46,7 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
       println(f,"# steps: ",steps)
       println(f,"# nprocesses: ",nprocesses)
       CSV.write( f, df, append=true, writeheader=true )
+      println("csvfile written")
     end
   end
   df
