@@ -1,0 +1,39 @@
+Checking the example given in the supplementary information document
+"Explanation of Tononi complexity".
+
+Some useful functions:
+
+# Same as function in entropy.jl, only with a more general type for pop
+function pop_to_dist( pop::AbstractVector )
+  N = length(pop)
+  result = DIST_TYPE()
+  for i in pop
+    #pval = get(result,i,0.0)
+    result[i] = get(result,i,0.0) + 1.0/N
+    #println("i: ",i,"  pval: ",pval,"  result: ",result)
+  end
+  dist_check(result)
+  result
+end    
+
+# Shorter name for convenience
+function ent( pop, base::Float64=2.0 )
+  entropy( pop_to_dist(p), base=base )
+end
+
+# Entropy of a subset of X corresponding to the rows in the list inds.
+function ent( X::Array{Int64,2}, inds::Vector{Int64} )
+  XX = X[inds,:]
+  ent( [XX[:,i] for i = 1:8] )
+end
+
+# Examples:
+X = [1 1 1 1 1 1 0 0; 1 0 0 0 1 0 0 0; 0 1 1 1 0 1 0 0] 
+# H(X) = H(X,[1,2,3]) = 1.5
+#H(X_1^2) = H(X{4,5})
+ent(X,[1,2]) #  1.5
+#H(X_3^1) = H(X{6})
+ent(X,[3]) # 1.0
+# MI( X_1^2; X_3^1 ) = ent(X,[1,2]) + ent(X,[3]) - ent(X,[1,2,3]) = 1.5 + 1.0 = 1.5 = 1.0
+
+

@@ -1,0 +1,15 @@
+Locations of configuration files and plots for GECCO 21 paper.
+
+Figure 2 redundancy vs pheno rank notes/1_31.txt
+Figure 3 Kolmogorov vs Tononi complexity notes/2_1.txt
+Figure 4 Smoothness of neighbor complexity notes/1_30.txt
+Figure 5 density of complexities  notes/diary12_18.txt
+Figure 6 evolvability vs robustness notes/diary1_29.txt complexity/data/1_29/
+Figure 7 evolvability vs log redundancy notes/diary1_29.txt complexity/data/1_29/
+Figure 8 evolvability vs complexity notes/diary1_29.txt complexity/data/1_29/
+Figure 9 robustness vs complexity notes/diary1_29.txt complexity/data/1_29/
+Figure 10 log redundancy vs complexity notes/diary1_29.txt complexity/data/1_29/
+Figure 11 robustness vs log frequency notes/diary1_29.txt complexity/data/1_29/
+Figure 12 Mean and maximum complexity notes/diary1_4.txt complexity/data/1_4/
+Figure 13 Cumulative desirable phenotypes notes/diary1_4.txt complexity/data/1_4/
+Supplementary info NAND gate figures:  notes/4_6.txt and notes/4_8.txt

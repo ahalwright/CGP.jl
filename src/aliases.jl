@@ -9,7 +9,7 @@ using Statistics
 using Distributed
 using Printf
 import Random.seed!
-export MyInt, DIST_TYPE, Population, PopVect, IPopulation, IntRange
+export MyInt, DIST_TYPE, Population, PopVect, IPopulation, IntRange, Circuit
 
 if !@isdefined(MyInt)  # MyInt should be defined in CGP.jl
   const MyInt = UInt16
@@ -35,6 +35,54 @@ const GoalList = Vector{Goal}
 #Ones = 0x0f
 Ones = 0xffff
 #Ones = 0xffffffff
+
+struct Parameters
+    mu::Integer
+    lambda::Integer
+    mutrate::Real
+    targetfitness::Real
+    numinputs::Integer
+    numoutputs::Integer
+    nodearity::Integer
+    numinteriors::Integer   # Number of gates
+    numlevelsback::Integer  # For LinCircuits, number of registers
+end
+abstract type Node end
+mutable struct Func
+    func::Function
+    arity::Integer
+    name::AbstractString
+end
+mutable struct InputNode <: Node
+    index::Integer
+    active::Bool
+    cache::MyInt
+end
+mutable struct InteriorNode <: Node
+    func::Func
+    inputs::Vector{Integer}
+    active::Bool
+    cache::MyInt
+end
+mutable struct OutputNode <: Node
+    input::Integer
+end
+PredType = Int64
+mutable struct Chromosome
+    params::Parameters
+    inputs::Vector{InputNode}
+    interiors::Vector{InteriorNode}
+    outputs::Vector{OutputNode}
+    fitness::Float64
+    robustness::Union{Float64,PredType}
+end
+mutable struct LinCircuit
+    # Here, numinteriors represents number of gates, numlevelsback represents number of computational registers
+    # the First numoutputs registers are the output registers
+    params::Parameters
+    circuit_vects::Vector{Vector{MyInt}}
+end
+Circuit = Union{Chromosome,LinCircuit}
 
 # indiv_result_type is used to parallelize population evolution in Indiv_evolution.jl
 mutable struct indiv_result_type

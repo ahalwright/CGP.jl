@@ -16,6 +16,8 @@ using Printf
 using Dates
 using CSV
 using Statistics
+using Revise
+
 module CGP
 using Distributed
 using DataFrames
@@ -56,7 +58,7 @@ include("Propsel.jl")
 include("Analyze.jl")
 include("RecordOutputs.jl")
 include("Evolvability.jl")
-include("Build_chromosome.jl")
+#include("Build_chromosome.jl")
 #include("epistasis.jl")
 include("Complexity.jl")
 end

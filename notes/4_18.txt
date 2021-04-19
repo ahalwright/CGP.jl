@@ -1,0 +1,8 @@
+Revised functions in src/LinChromsome.jl to use a parameter argument
+in addition to the numregister and numinputs arguments.  
+
+Updated test/testLinChromosome.jl to test these new version, and found
+some problems with other function.
+
+neutral_evolution() in Evolve.jl now works with both LinCircuits and
+with Chromosomes.  

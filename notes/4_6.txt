@@ -1,7 +1,9 @@
 Ran evolvability simulation with only NAND gate and 15 gates and 9 levelsback.
 
 On surt2:
+@time include("../data/4_6/run_geno_complexity#.jl")
 @time include("../data/4_6/run_geno_complexityF.jl")
+Concatenate the two csv files.
 
 On lycosa:
 cdf = consolidate_dataframe("../data/4_6/geno_complexity4_6EF.csv","../data/4_6/geno_complexity4_6EFcons.csv")
@@ -9,6 +11,13 @@ cdf = consolidate_dataframe("../data/4_6/geno_complexity4_6EF.csv","../data/4_6/
 On windows:
 pwd()   # "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data"
 cdf=read_dataframe("4_6/geno_complexity4_6EF.csv")
-scatter(cdf.robustness,cdf.evo_count,title="robustness vs evolvability vs robustness",xlabel="robustnes",ylabel="evolution evolvability",legend=:none)
-savefig("4_6/geno_complexity_robustness_vs_evolvability_NAND.png")
+scatter(cdf.robustness,map(log10,cdf.evo_count),title="log evolution evolvability vs robustness",xlabel="robustness",ylabel="log evolution evolvability",label="NAND 15 gates 9 levelsback",legend=:topright)
+savefig("4_6/log_evolution_evolvability_vs_robustness_NAND.png")
 
+scatter(cdf.complexity,map(log10,cdf.evo_count),title="log evolution evolvability vs complexity",xlabel="complexity",ylabel="log evolution evolvability",label="NAND 15 gates 9 levelsback",legend=:topleft)
+savefig("4_6/log_evolution_evolvability_vs_complexity_NAND.png")
+
+scatter(cdf.complexity,cdf.evo_count,title="evolvability vs complexity",xlabel="complexity",ylabel="evolution evolvability",legend=:none)
+savefig("4_6/geno_NAND_evolvability_vs_complexity.png")
+
+Results are correlated in the right direction, but the correlation is much weaker.

@@ -3,7 +3,7 @@ using CSV
 import Base.getindex
 export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all, PredType
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
-export output_values, number_active, number_active_gates, hamming_distance, hamming, deactivate_chromosome!
+export output_values, number_active, number_active_gates, hamming_distance, hamming, deactivate_chromosome!, number_active_old
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code, circuit_int
 export circuit, print_circuit

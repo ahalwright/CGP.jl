@@ -1,0 +1,18 @@
+Doing a sampling evolvability vs robustness and complexity plot using only NAND gate.
+
+Two runs in data/4_8/
+include("../data/4_8/run_random_walksB.jl")   # Lycosa  9 gates 6 lb 200 walks 100 steps 400 processes 8e7 steps
+include("../data/4_8/run_random_walksC.jl")   # surt2  10 gates 6 lb 400 walks 1000 steps 400 processes 1.6e8 steps
+
+Both found no copies of goal 22 (base 10) but copies of every other goal.
+Both found very high evolvability for the 0x00ff (all ones) goal.
+bdf = read_dataframe("4_8/robust_evo_by_walks4_8B.csv")
+cdf = read_dataframe("4_8/robust_evo_by_walks4_8C.csv")
+
+plta=scatter(bdf.robustness,map(log10,bdf.s_evolvability),labels="NAND 16E7 samples",xlabel="robustness",ylabel="log sampling evolvability",title="Log sampling evolvability vs robustness 9 gates 6lb",legend=:topleft)
+savefig("4_8/log_sampling_evolvability_vs_robustness_NAND_3x1_9gts6lb.png")
+
+plta=scatter(bdf.complexity,map(log10,bdf.s_evolvability),labels="NAND 8E7 samples",xlabel="complexity",ylabel="log sampling evolvability",title="Log sampling evolvability vs complexity 9 gates 6lb",legend=:topright)
+savefig("4_8/sampling_evolvability_vs_robustness_NAND_3x1_9gts6lb.png")
+
+

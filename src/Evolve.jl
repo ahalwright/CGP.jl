@@ -623,33 +623,8 @@ function copy_chromosome!( c::Chromosome, c_to_copy::Chromosome )
   c.outputs = c_to_copy.outputs
   c.interiors = c_to_copy.interiors
 end
-#=
-mutable struct Int_node
-  func::Func
-  inputs::Vector{Int64}
-end
 
-mutable struct Input_node
-  index::Int64
-end
-
-mutable struct Output_node
-  input::Integer
-end
-
-# Example call: build_chromosome( [Input_node(1),Input_node(2)], [Int_node(OR,[1,2]),Int_node(AND,[2,3])],[Output_node(4)])
-function build_chromosome( input_nodes::Vector{Input_node}, interior_nodes::Vector{Int_node}, output_nodes::Vector{Output_node}, fitness::Float64 )
-  num_in = length(input_nodes)
-  num_ints = length(interior_nodes)
-  num_outs = length(output_nodes)
-  p = Parameters( numinputs=num_in, numoutputs=num_outs, numinteriors=num_ints, numlevelsback=num_ints+num_outs )
-  in_nodes = [InputNode(in_node.index) for in_node in input_nodes]
-  int_nodes = [InteriorNode(int_node.func, int_node.inputs) for int_node in interior_nodes]
-  out_nodes = [OutputNode(outnode.input) for outnode in output_nodes]
-  Chromosome( p, in_nodes, int_nodes, out_nodes, fitness, 0.0 )
-end
-=#
-
+#=  Commented out on 4/17/21
 # Example call:  build_chromosome((1,2), ((OR,[1,2]),(AND,[2,3])),(4,),0.0)
 function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Float64 )
   num_in = length(inputs)
@@ -661,6 +636,7 @@ function build_chromosome( inputs::Tuple, ints::Tuple, outs::Tuple, fitness::Flo
   out_nodes = [OutputNode(out_index) for out_index in outs]
   Chromosome( p, in_nodes, int_nodes, out_nodes, fitness, 0.0 )
 end
+=#
 
 # The next functions should be in a Utilities.jl file
 #  Returns a double whose first component is the maximum value in X, and whose second component is
@@ -822,7 +798,6 @@ function test_evolve()
   circuit_evolve(c,c_dest, 1000 )
 end
 
-
 # Evolves a chromosome (cirucit) that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
@@ -858,6 +833,63 @@ function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_st
       if print_steps
         print("step: ",step,"  new_output: ",new_ov,"  new circuit: ")
         print_circuit( new_c )
+      end 
+    end
+  end
+  if step == max_steps
+    println("neutral evolution failed with ",step," steps for goal: ",g)
+    return (nothing, step)
+  else
+    println("neutral evolution succeeded at step ",step," for goal: ",g)
+    @assert output_values(c) == g
+    return (c, step)
+  end
+end
+
+# Evolves a LinCirucit that maps to g starting with chromosome c.
+# max_steps is the maximum number of evolutionary steps.
+# If evolution hasn't succeeeded in max_steps, return nothing.
+# insert_gate_prob is the probability of inserting a gate on a mutation of a chromosome.
+# delete_gate_prob is similar for deleting a gate.
+# Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
+function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps::Bool=false,
+      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
+  LinCirc = typeof(c) == LinCircuit ? :true : :false
+  funcs = default_funcs( c.params.numinputs )
+  step = 0
+  ov = output_values( c) 
+  current_distance = hamming_distance( ov, g, c.params.numinputs )
+  new_c = deepcopy(c)
+  while step < max_steps && ov != g
+    step += 1
+    if typeof(c) == Chromosome
+      (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
+    elseif typeof(c) == LinCircuit
+      new_c = mutate_circuit!( new_c, funcs )
+    end
+    new_ov = output_values( new_c )
+    new_distance = hamming_distance( new_ov, g, c.params.numinputs )
+    #println("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance )
+    if new_ov == ov 
+      c = new_c
+      if print_steps
+        println("step: ",step," is neutral.")
+      end
+    elseif new_distance < current_distance
+      if print_steps
+        println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
+      end
+      c = new_c
+      ov = new_ov
+      current_distance = new_distance
+    else
+      if print_steps
+        print("step: ",step,"  new_output: ",new_ov,"  new circuit: ")
+        if LinCirc
+          print_circuit( new_c, funcs )
+        else
+          print_circuit( new_c )
+        end
       end 
     end
   end

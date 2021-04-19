@@ -1,0 +1,7 @@
+Finally got GECCO paper submitted.
+Problems with PDF format.  From e-mail to Alberto Tonda:
+I finally found the problem.  I had been using Foxit PDF reader to embed fonts.  There are two steps.  
+First, I use either Foxit or Word to save to a pdf file.  Second, I would open the resulting pdf file 
+in Foxit and print to another pdf file using the embed fonts option.  This second step changed the page 
+size.  So when I changed to doing the second step with Adobe Acrobat Reader DC printing to "Microsoft 
+Print to PDF", it did not change the page size and this file was accepted.  So the problem was not in Word.

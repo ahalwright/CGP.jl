@@ -1,4 +1,4 @@
-export Func, default_funcs, eval_func, alt_funcs
+export Func, default_funcs, eval_func, lin_funcs
 export Ones, AND, OR, XOR, Nand, NAND, Nor, NOR, NOT, Not, Zero, ZERO, One, ONE, In1, IN1, In2, IN2
 export func_names, setup_funcs
 using Main.CGP
@@ -19,7 +19,7 @@ Func(f::Function, a::Integer) = Func(f, a, string(f))
 const AND = Func(&, 2, "AND")
 const OR = Func(|, 2, "OR")
 const XOR = Func(⊻, 2, "XOR")
-Nand(x,y) = ~(x & y) & Ones
+Nand(x,y) = ~(x & y) & Main.Ones
 const NAND = Func(Nand, 2, "NAND")
 Nor(x,y) = ~(x | y) & Ones
 const NOR = Func(Nor, 2, "NOR")
@@ -46,18 +46,18 @@ function default_funcs( numinputs::Int64 )
   Ones = Main.CGP.construct_ones(numinputs)[numinputs]
   ONE = Func(One, 0, "1")
   global Ones
-      return [NAND ]   # Macia's gate set
+#    return [NAND ]   # Macia's gate set
 #    return [AND, XOR ]
 #    return [AND, OR, XOR ]
 #    return [AND, OR, NOT, ZERO, ONE]
 #    return [ZERO, ONE]
 #    return [AND, OR, XOR, NAND, NOR, NOT, ZERO, ONE]
-#    return [AND, OR, NAND, NOR]   # Hu's gate set
-#    return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
+    return [AND, OR, NAND, NOR]   # Hu's gate set
+#     return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
 #    return [AND, OR, XOR, NAND, NOR, IN1, IN2 ]   # Raman's gate set plus IN1 and IN2
 end
 
-function alt_funcs( numinputs::Int64 )
+function lin_funcs( numinputs::Int64 )
   Ones = Main.CGP.construct_ones(numinputs)[numinputs]
   ONE = Func(One, 0, "1")
   global Ones
@@ -67,7 +67,7 @@ function alt_funcs( numinputs::Int64 )
 #    return [AND, OR, NOT, ZERO, ONE]
 #    return [ZERO, ONE]
 #    return [AND, OR, XOR, NAND, NOR, NOT, ZERO, ONE]
-    return [AND, OR, NAND, NOR]   # Hu's gate set
+     return [AND, OR, NAND, NOR]   # Hu's gate set
 #     return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
 #     return [AND, OR, XOR, NAND, NOR, IN1, IN2 ]   # Raman's gate set plus IN1 and IN2
 end

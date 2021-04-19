@@ -1,1 +1,4 @@
 Revised generation of circuit density plot as described in diary12_18.txt.
+The revised plot description is at the end of diary12_18.txt.
+Further updated on 4/13/21, but description is still in diary12_18.txt and 
+plot file is in complexity/data/12_18.

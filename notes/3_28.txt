@@ -1,0 +1,13 @@
+Programming LinChrommosome.jl to implement the linear GP representation of circuits.\
+Finally got count_ountputs_parallel() to work and to also record chromosomes for each circuit found.
+Result for nreps = 10^10
+
+numinputs=3 ; numoutputs=1; nreps=1000; n_instructions=6 ; numregisters=2
+(outlist,cll)=count_outputs_parallel( nreps, numinputs, numoutputs, n_instructions, numregisters, use_lincircuit=true, csvfile="../data/3_28/outlist_circ_lists_reps10000.csv" );
+findall(x->x==0,icounts)
+5-element Array{Int64,1}:
+ 0x6b 108
+ 0x79 122
+ 0x92 147
+ 0x9e 159
+ 0xd6 215

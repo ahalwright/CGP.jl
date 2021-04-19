@@ -11,8 +11,8 @@ struct Parameters
     numoutputs::Integer
     nodearity::Integer
 
-    numinteriors::Integer
-    numlevelsback::Integer
+    numinteriors::Integer   # Number of gates
+    numlevelsback::Integer  # For LinCircuits, number of registers
 end
 
 function Parameters(numinputs, numoutputs, numinteriors, numlevelsback)

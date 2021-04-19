@@ -47,10 +47,11 @@ An additional 8_5 file in 12_29.
 ================================================
 Redo 11 gts 8 lb on 2/2/21:
 using StatsPlots
-scdb = read_dataframe("../../../../OneDrive\\evotech\\data\\12_20\\circuit_complexities12_20DR.csv")
-gpdf = read_dataframe("../../../../OneDrive\\evotech\\data\\12_20\\geno_pheno12_20D.csv")
-p1=density([scdb.complexities,gpdf.complex],labels=["complexities of random circuits" "complexities of random goals"])
-p1=density([scdb.complexities,gpdf.complex],labels=["complexities of random circuits" "complexities of random goals"])
+homedir()
+scdb = read_dataframe("OneDrive\\evotech\\data\\12_20\\circuit_complexities12_20DR.csv")
+gpdf = read_dataframe("OneDrive\\evotech\\data\\12_20\\geno_pheno12_20D.csv")
+p1=density([scdb.complexities,gpdf.complex],labels=["complexities of random circuits" "complexities of random phenotypes"])
 plot!(p1,size=(1024,512),tickfontsize=14,guidefontsize=14,legendfontsize=14)
 plot!(p1,bottom_margin=Measures.Length(:mm,4),left_margin=Measures.Length(:mm,1))
-
+plot!(p1,ylims=[0.0,0.34])
+cd("../Dropbox\\evotech\\complexity\\data")
