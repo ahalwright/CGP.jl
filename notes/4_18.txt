@@ -6,3 +6,7 @@ some problems with other function.
 
 neutral_evolution() in Evolve.jl now works with both LinCircuits and
 with Chromosomes.  
+
+Wrote test/test_neutral_evolution.jl to find the best parameter settings
+for neutral evolution for both linear and cartesian circuits.  
+Data in data/4_19/

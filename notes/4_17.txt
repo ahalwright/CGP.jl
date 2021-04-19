@@ -5,3 +5,5 @@ First, I use either Foxit or Word to save to a pdf file.  Second, I would open t
 in Foxit and print to another pdf file using the embed fonts option.  This second step changed the page 
 size.  So when I changed to doing the second step with Adobe Acrobat Reader DC printing to "Microsoft 
 Print to PDF", it did not change the page size and this file was accepted.  So the problem was not in Word.
+
+Submitted PDF file:  Dropbox/evotech/complexity/GECCO/GECCO4_16_21 (3)M.pdf

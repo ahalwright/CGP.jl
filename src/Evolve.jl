@@ -837,10 +837,10 @@ function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_st
     end
   end
   if step == max_steps
-    println("neutral evolution failed with ",step," steps for goal: ",g)
+    #println("neutral evolution failed with ",step," steps for goal: ",g)
     return (nothing, step)
   else
-    println("neutral evolution succeeded at step ",step," for goal: ",g)
+    #println("neutral evolution succeeded at step ",step," for goal: ",g)
     @assert output_values(c) == g
     return (c, step)
   end
@@ -894,10 +894,10 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
     end
   end
   if step == max_steps
-    println("neutral evolution failed with ",step," steps for goal: ",g)
+    #println("neutral evolution failed with ",step," steps for goal: ",g)
     return (nothing, step)
   else
-    println("neutral evolution succeeded at step ",step," for goal: ",g)
+    #println("neutral evolution succeeded at step ",step," for goal: ",g)
     @assert output_values(c) == g
     return (c, step)
   end
