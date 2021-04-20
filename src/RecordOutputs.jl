@@ -53,13 +53,15 @@ function create_circuits_list( numinputs::Integer, numoutputs::Integer )
 end
 
 # increments the circuit_list corresponding to output if it contains less than numcircuits circuits
-function increment_circuits_list!( circuits_list::Vector{Vector{Vector{Int64}}}, output::Goal, circ::Vector{Vector{MyInt}}, 
+#function increment_circuits_list!( circuits_list::Vector{Vector{Vector{Int64}}}, output::Goal, circ::Vector{Vector{MyInt}}, 
+#    numcircuits::Int64, numinputs::Int64, numregisters::Int64, funcs::Vector{Func} )
+function increment_circuits_list!( circuits_list::Vector{Vector{Vector{Int64}}}, output::Goal, circ::LinCircuit, 
     numcircuits::Int64, numinputs::Int64, numregisters::Int64, funcs::Vector{Func} )
   index = concatenate_outputs(output,numinputs)+1
   if length(circuits_list[index]) >= numcircuits
     return
   end
-  c_ints = map(lc->vect_to_int(lc,numregisters,numinputs,funcs), circ)
+  c_ints = map(lc->vect_to_int(lc,numregisters,numinputs,funcs), circ.circuit_vects)
   #println("index: ",index,"  output: ",output,"  execute: ", execute_lcircuit( c_ints, numregisters, numinputs, funcs ))
   push!(circuits_list[index], c_ints )
 end
@@ -80,9 +82,9 @@ function concatenate_outputs( output::Goal, numinputs::Int64 )
 end
 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer; use_lincircuit::Bool=:false )
+function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, funcs::Vector{Func}; use_lincircuit::Bool=:false )
   p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback ) 
-  funcs = use_lincircuit ? alt_funcs(numinputs) : default_funcs(numinputs)
+  funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
   outlist = create_count_outputs_list( numinputs, numoutputs )
   ncircuits=1  # must have function scope, but only used when use_lincircuit==:true
   if use_lincircuit
@@ -91,7 +93,8 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
   for _ = 1:nreps
     if use_lincircuit
       c = rand_lcircuit( p.numinteriors, p.numlevelsback, p.numinputs, funcs )
-      output = execute_lcircuit( c, p.numlevelsback, p.numinputs, funcs )[1:numoutputs]
+      #output = execute_lcircuit( c, p.numlevelsback, p.numinputs, funcs )[1:numoutputs]
+      output = execute_lcircuit( c, p, funcs )[1:numoutputs]
       increment_circuits_list!( circuits_list, output, c, numinteriors, numinputs, numlevelsback, funcs ) # numlevelsback is numregisters
     else
       c = random_chromosome( p, funcs )
@@ -109,18 +112,19 @@ end
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
 function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer; csvfile::String="", use_lincircuit::Bool=:false ) 
   p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
+  funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
   print_parameters( p )
   println("nprocs: ",nprocs())
   #n_procs=nprocs()
   if nprocs() > 1
     nreps_p = Int(round(nreps/(nprocs()-1)))
   else
-    nreps_p = 1
+    nreps_p = nreps 
   end
   println("nreps_p: ",nreps_p)
   println("csvfile: ",csvfile) 
-  result =  pmap( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, use_lincircuit=use_lincircuit ), collect(1:nprocs()))
-  #result =  map( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, use_lincircuit=use_lincircuit ), collect(1:nprocs()))
+  result =  pmap( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, funcs, use_lincircuit=use_lincircuit ), collect(1:nprocs()))
+  #result =  map( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, funcs, use_lincircuit=use_lincircuit ), collect(1:nprocs()))
   println("len(result): ",length(result))
   if use_lincircuit
     outlist = reduce(+,map(x->x[1],result))
@@ -134,13 +138,13 @@ function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::I
       push!(circ_list, mycat(length(circ_list_lists[i])>0 ? [circ_list_lists[i][j] for j = 1:length(circ_list_lists[i])] : Vector{Int64}[])) 
     end
     if length(csvfile) > 0
-      write_to_dataframe_file( p, outlist, circ_list, csvfile=csvfile )
+      write_to_dataframe_file( p, outlist, circ_list, funcs, csvfile=csvfile )
     end
     (outlist,circ_list)
   else
     outlist = reduce(+,result)
     if length(csvfile) > 0
-      write_to_dataframe_file( p, outlist, csvfile=csvfile )
+      write_to_dataframe_file( p, outlist, funcs, csvfile=csvfile )
     end
     outlist
   end
@@ -156,7 +160,7 @@ function mycat( lsts::Vector{Vector{Vector{Int64}}} )
   result
 end
 
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, funcs::Vector{Func}; csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
   #println("len goals: ",length(df.:goals))
@@ -167,11 +171,12 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}; 
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )     
     print_parameters(f,p,comment=true)
+    println(f,"# funcs: ",funcs)
     CSV.write( f, df, append=true, writeheader=true )
   end
 end
 
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}; csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
   #println("len goals: ",length(df.:goals))
@@ -183,6 +188,7 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )     
     print_parameters(f,p,comment=true)
+    println(f,"# funcs: ",funcs)
     CSV.write( f, df, append=true, writeheader=true )
   end
 end

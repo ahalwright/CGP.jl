@@ -54,10 +54,11 @@ function execute_lcircuit( circuit_ints::Vector{OutputType}, numregisters::Int64
   execute_lcircuit( lcv, numregisters, numinputs, funcs )
 end
 
-function execute_lcircuit( circuit_vects::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func} )
+#function execute_lcircuit( circuit_vects::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func} )
+function execute_lcircuit( circuit::LinCircuit, p::Parameters, funcs::Vector{Func} )
   R = fill(MyInt(0), p.numlevelsback + p.numinputs )
   R[(p.numlevelsback+1):end] = construct_context(p.numinputs)
-  for lc in circuit_vects
+  for lc in circuit.circuit_vects
     #println("lc: ",lc,"  R: ",R)
     R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]])
   end
@@ -145,6 +146,7 @@ end
 # Random circuit as a list of instruction integers
 # Assumes gates are arity 2
 function rand_lcircuit( n_instructions::Int64, numregisters::Int64, numinputs::Int64, funcs::Vector{Func} )
+  p = Parameters( numinputs, 1, n_instructions, numregisters )
   LinCircuit( p, [ rand_ivect( numregisters, numinputs, funcs ) for _ = 1:n_instructions ] )
 end
 
