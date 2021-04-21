@@ -804,6 +804,7 @@ end
 # insert_gate_prob is the probability of inserting a gate on a mutation of a chromosome.
 # delete_gate_prob is similar for deleting a gate.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
+#=
 function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_steps::Bool=false,
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
   funcs = lin_funcs( c.params.numinputs )
@@ -845,6 +846,7 @@ function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_st
     return (c, step)
   end
 end
+=#
 
 # Evolves a LinCirucit that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
@@ -856,6 +858,7 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
   LinCirc = typeof(c) == LinCircuit ? :true : :false
   funcs = lin_funcs( c.params.numinputs )
+  println("LinCirc: ",LinCirc)
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )
