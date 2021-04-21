@@ -806,7 +806,7 @@ end
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
 function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_steps::Bool=false,
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
-  funcs = default_funcs( c.params.numinputs )
+  funcs = lin_funcs( c.params.numinputs )
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )
@@ -855,7 +855,7 @@ end
 function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps::Bool=false,
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
   LinCirc = typeof(c) == LinCircuit ? :true : :false
-  funcs = default_funcs( c.params.numinputs )
+  funcs = lin_funcs( c.params.numinputs )
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )

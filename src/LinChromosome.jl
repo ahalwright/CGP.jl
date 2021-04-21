@@ -31,6 +31,7 @@ end
 
 function output_values( c::LinCircuit )
   funcs = lin_funcs( c.params.numinputs )
+  #println("funcs: ",funcs)
   R = execute_lcircuit( c.circuit_vects, c.params.numlevelsback, c.params.numinputs, funcs, nodearity=c.params.nodearity )
   R[1:c.params.numoutputs]
 end  

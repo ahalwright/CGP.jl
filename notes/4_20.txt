@@ -1,0 +1,87 @@
+Debugged RecordOutputs.jl and LinChromosome.jl to replicate the results of 3_29, namely
+all 3x1 phenotypes are represented with LinCircuts with 6 instructions and 2 registers.
+
+In particular, ran for 10^8 reps in data/4_20/run_lin_count_outputs_3x1_10_8repsE.jl
+and for 2*10^8 reps by data/4_20/run_lin_count_outputs_3x1_2_10_8repsF.jl
+using Hu funcs.  The 10^8 reps run did not discover 2 goals, namely
+
+Found that using the 5 gate Raman gate set dramatically increased the represention of
+rare gates versus using the 4 gat Hu gate set for 3x1 circuits.  
+For 10^8 reps lin_count_outputs4_20A.csv  Hu gate set, 17 phenoytpes not found. 
+For 10^10 reps lin_count_outputs4_20E.csv Hu gate set goals not found are 182 and 214.
+
+edf = read_dataframe("../data/4_20/lin_count_outputs4_20E.csv");
+findall(x->Int64(x)==0,edf.ints6_2)  # [183, 215] = [0xb6, 0xd6]
+
+From the df = read_dataframe("../data/4_20/lin_count_outputs4_20F.csv") 
+julia> df[df.ints6_2.<=2000,[:goals,:ints6_2]]
+36×2 DataFrame
+ Row │ goals   ints6_2
+     │ String  Int64
+─────┼─────────────────
+   1 │ 0x16         15
+   2 │ 0x18        612
+   3 │ 0x24        654
+   4 │ 0x29          2
+   5 │ 0x2d       1688
+   6 │ 0x39       1613
+   7 │ 0x42        629
+   8 │ 0x49          3
+   9 │ 0x4b       1651
+  10 │ 0x59       1708
+  11 │ 0x61          3
+  12 │ 0x63       1790
+  13 │ 0x65       1709
+  14 │ 0x68         11
+  15 │ 0x69         11
+  16 │ 0x6b          3
+  17 │ 0x6d          4
+  18 │ 0x79          2
+  19 │ 0x86          5
+  20 │ 0x92          3
+  21 │ 0x94          2
+  22 │ 0x96         13
+  23 │ 0x97          5
+  24 │ 0x9a       1775
+  25 │ 0x9c       1640
+  26 │ 0x9e          2
+  27 │ 0xa6       1683
+  28 │ 0xb4       1649
+  29 │ 0xb6          4
+  30 │ 0xbd        622
+  31 │ 0xc6       1666
+  32 │ 0xd2       1743
+  33 │ 0xd6          6
+  34 │ 0xdb        578
+  35 │ 0xe7        629
+  36 │ 0xe9          5 
+
+using function test_goal() defined below:
+p = Parameters(3,1,6,2)
+Of particular interest is goal 0xb4 = 180 which is a special goal in Hu 2020.
+Using gates AND, OR, XOR, NAND, NOR, successes: 100/100  average steps: 7766.51
+Using gates AND, OR, NAND, NOR, successes: 1/200  average steps: 156446.0
+
+Using gates AND, OR, XOR, NAND, NOR, successes: 100/100  average steps: 7766.51
+For goal 0x00d6, successes: 79/200  average steps: 86238
+For goal 0x00b6, successes: 85/200  average steps: 109217
+Using gates AND, OR, NAND, NOR, successes: 1/200  average steps: 156446.0
+For goal 0x00b6, successes: 0/200  average steps: NaN
+For goal 0x00d6, successes: 0/200  average steps: NaN
+
+
+function test_goal( p::Parameters, reps::Int64,  gl::Goal, funcs::Vector{Func}, max_steps::Int64 )
+  successes = 0
+  sum_steps = 0
+  for i = 1:reps 
+    (c0,step) = neutral_evolution( rand_lcircuit(p,funcs), gl, max_steps ); 
+    if step < max_steps
+      println("i: ",i," step: ",step)
+      successes += 1
+      sum_steps += step
+    end
+  end
+  println("successes: ",successes,"  average steps: ",sum_steps/successes)
+end
+
+

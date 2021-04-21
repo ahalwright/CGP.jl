@@ -42,7 +42,7 @@ function test_neutral_evolution( repetitions::Int64, numinputs::Int64, numinstru
   end
   df.steps = Float64[]
   df.fail_fract = Float64[]
-  funcs = default_funcs(numinputs)
+  funcs = lin_funcs(numinputs)
   for ni in numinstructions_rng
     for nr in numregisters_rng
       p = Parameters(numinputs,1,ni,nr)
@@ -85,5 +85,3 @@ function average_compatible_dataframes( df1::DataFrame, df2::DataFrame )
   end
   result_df
 end
-      
-      
