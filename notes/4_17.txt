@@ -7,3 +7,5 @@ size.  So when I changed to doing the second step with Adobe Acrobat Reader DC p
 Print to PDF", it did not change the page size and this file was accepted.  So the problem was not in Word.
 
 Submitted PDF file:  Dropbox/evotech/complexity/GECCO/GECCO4_16_21 (3)M.pdf
+
+Resolved:  I should have set letter paper size in Phantom PDF printer.

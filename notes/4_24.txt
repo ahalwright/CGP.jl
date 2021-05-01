@@ -1,0 +1,7 @@
+Spent way too long finding out why neutral evolution() gave inferior results to mut_evolve().
+
+The problem was that mutate_chromomsome!() was modifying c along with new_c, which meant that
+when there was a fitness descrease, the current chromosome was not being discarded.
+
+I debugged by running neutral_evolution() and mut_evolve() on the same starting chromosome with
+the same goal and with the same random number seed (set by Random.seed!(1)).

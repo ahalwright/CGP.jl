@@ -1,0 +1,17 @@
+Simulation results on the even parity problem.  Code:  src/parity.jl
+Uses MyInt == BigInt and neutral_evolution()  for number of inputs greater than 7.
+The function even_parity() computes the goal, and then neutral_evolution finds 
+    the circuit that computes the goal.
+Results:  data/4_28/even_parity3:12_4_28CE.csv
+Shows that instances with up to 14 inputs can be computed in reasonable execution time. 
+
+Demonstration of a single evolution for 10 inputs:
+p = Parameters(10,1,50,25) 
+maxsteps=5000000
+c = random_chromosome(p)
+string(even_parity(p.numinputs)[1],base=16)
+"6996966996696996966969966996966996696996699696696996966996696996966969966996966969969669966969966996966996696996966969966996966996696996699696696996966996696996699696699669699696696996699696696996966996696996966969966996966996696996699696696996966996696996"
+(nc,steps)=neutral_evolution(c,[even_parity(p.numinputs)],maxsteps)
+# neutral evolution succeeded at step 19670 for goal: . . . 
+even_parity(p.numinputs)[1] == output_values(nc)[1]   # true
+
