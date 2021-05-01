@@ -62,21 +62,22 @@ function MyInt_to_binary_list( x::MyInt, size::Int64 )
   result
 end
 
-function shift_extend( p::Parameters, maxsteps::Int64; parity::Bool=:true )
-      c = random_chromosome(p)
-      if parity
-        goal = [even_parity(p.numinputs)]
-      else
-        goal= [rand_shift_extend(4,ni)]
-      end
-      #println("goal: ",goal)
-      (nc,steps)=neutral_evolution(c,goal,maxsteps)
-      ssteps =  steps < maxsteps ? steps : 0
-      failure = ssteps == 0 ? 1 : 0
-      (parity,p.numinputs,p.numinteriors,p.numlevelsback,ssteps,failure)
+function shift_extend( p::Parameters, maxsteps::Int64; parity::Bool=:true, extend::Int64=3 )
+  c = random_chromosome(p)
+  if parity
+    goal = [even_parity(p.numinputs)]
+  else
+    goal= [rand_shift_extend(extend,p.numinputs)]
+  end
+  #println("goal: ",goal)
+  (nc,steps)=neutral_evolution(c,goal,maxsteps)
+  ssteps =  steps < maxsteps ? steps : 0
+  failure = ssteps == 0 ? 1 : 0
+  (parity,p.numinputs,p.numinteriors,p.numlevelsback,ssteps,failure)
 end
 
-function run_shift_extend( numinputs::IntRange, reps::Int64, maxsteps::Int64; csvfile::String="", parity::Bool=:true )
+function run_shift_extend( numinputs::IntRange, reps::Int64, maxsteps::Int64; 
+    csvfile::String="", parity::Bool=:true, extend::Int64=3 )
   number_gates_multiplier = 5
   #number_gates_multiplier = 7  # Changed from 5 to 7 on 4/29 to do experiment with 15 inputs
   df = DataFrame()
@@ -85,14 +86,20 @@ function run_shift_extend( numinputs::IntRange, reps::Int64, maxsteps::Int64; cs
   df.numgates = Int64[]
   df.levelsback = Int64[]
   df.repetitions = Int64[]
+  if !parity
+    df.extend = Int64[]
+  end
   df.average_steps = Float64[]
   df.median_steps = Float64[]
   for ni in numinputs
+    if extend >= ni
+      error("The keywork parameter extend=",extend,"  must be less than numinputsi=",ni)
+    end  
     ng = number_gates_multiplier*ni
     levelsback = Int(floor(ng/2))
     p = Parameters( ni, 1, ng, levelsback )
     funcs = default_funcs(p.numinputs)
-    rows = pmap(x->shift_extend(p,maxsteps,parity=parity),collect(1:reps))
+    rows = pmap(x->shift_extend(p,maxsteps,parity=parity,extend=extend),collect(1:reps))
     sum_steps = 0
     sum_failures = 0
     steps_list = Int64[]
@@ -104,7 +111,11 @@ function run_shift_extend( numinputs::IntRange, reps::Int64, maxsteps::Int64; cs
       end
     end
     r = rows[1]
-    row = (r[1],r[2],r[3],r[4],reps-sum_failures,mean(steps_list),median(steps_list))
+    if parity
+      row = (r[1],r[2],r[3],r[4],reps-sum_failures,mean(steps_list),median(steps_list))
+    else
+      row = (r[1],r[2],r[3],r[4],reps-sum_failures,extend,mean(steps_list),median(steps_list))
+    end 
     push!(df,row)
   end
   if length(csvfile) > 0
@@ -114,6 +125,8 @@ function run_shift_extend( numinputs::IntRange, reps::Int64, maxsteps::Int64; cs
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ", Main.CGP.default_funcs(numinputs[end]))
       println(f,"# MyInt: ", MyInt )
+      println(f,"# reps: ",reps)
+      println(f,"# extend: ",extend)
       println(f,"# maxsteps: ", maxsteps )
       println(f,"# number_gates_multiplier: ",number_gates_multiplier)
       CSV.write( f, df, append=true, writeheader=true )

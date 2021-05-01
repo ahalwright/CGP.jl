@@ -1,0 +1,5 @@
+Testing hypotheses on parity and shift_extend. 
+Shift_extend goals are goals that start with a 3-input or 4-input goal, extend it for another input by adding 
+the reverse goal to the bit string, and then further extend to more inputs by adding copies of the goal to the bit string.
+
+Some files/results are in 4_28, 4_29, 4_30.
