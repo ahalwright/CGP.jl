@@ -1,0 +1,10 @@
+Checking correctness of even_parity() in parity.jl
+
+include("parity.jl")
+test_parity(3)
+test_parity(4)  # requires that MyInt == UInt16 or larger
+test_parity(5)  # requires that MyInt == UInt32 or larger
+test_parity(6)  # requires that MyInt == UInt64 or larger
+test_parity(7)  # requires that MyInt == UInt128 
+
+Assertion will fail if MyInt is not large enough

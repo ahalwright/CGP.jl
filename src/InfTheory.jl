@@ -11,6 +11,7 @@ export get_probs, get_bits, degeneracy, degeneracy1
 export degeneracy, degeneracy1, complexity4, complexity5, complexity6, complexity7, redundancy, integration
 export mutinf1, mutinf2, test_MyInt, MyIntBits, to_binary
 export fmutual_information, fmi_chrome, gb_complexity, gb_complexity_chrome, gb_degeneracy_chrome
+export gb_mutinf
 
 # if function degeneracy() or complexity() is called with numinteriors > MyIntBits(MyInt), the results of get_bits() will overflow
 #   and be inaccurate.
@@ -35,6 +36,8 @@ function MyIntBits( my_int::Type )
     64
   elseif my_int == UInt128
     128
+  elseif my_int == BigInt
+    4096
   else
     error("error in MyIntBits")
   end
@@ -245,7 +248,7 @@ function redundancy( c::Chromosome; mutinf::Function=mutinf1, base=Float64=2.0 )
   (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
   gbX = get_bits( X, numinputs )
   gbO = get_bits( O, numinputs )
-  ent_X = entropy(gbX,base=base)
+  ent_X = CGP.entropy(gbX,base=base)
   sum([ mutinf(get_bits([s],numinputs),gbO,base=base) for s in X ]) - ent_X
 end
 
@@ -266,8 +269,8 @@ function complexity5( X::Vector{MyInt}, numinputs::Int64; base=Float64=2.0 )
   n = length(X)
   gbX = get_bits( X, numinputs )
   #println("X: ",X,"  gbX: ",gbX)  
-  ent_X = entropy(gbX,base=base)
-  ents = [map(x->entropy(x,base=base),map(x->get_bits(x,numinputs),[s for s in combinations(X,k)])) 
+  ent_X = CGP.entropy(gbX,base=base)
+  ents = [map(x->CGP.entropy(x,base=base),map(x->get_bits(x,numinputs),[s for s in combinations(X,k)])) 
         for k = 1:(length(X))]
   #println("ents: ",ents)
   ents_avg = map(x->sum(x)/length(x), ents )
@@ -298,15 +301,15 @@ function complexity6( X::Vector{MyInt}, numinputs::Int64; mutinf::Function=mutin
   for k = 1:Int(floor(n/2))
   #for k = 1:n
     subset_pairs = [(s,setdiff(Xinds,s)) for s in combinations(Xinds,k)]
-    println("k: ",k,"  subset_pairs: ",subset_pairs)
+    #println("k: ",k,"  subset_pairs: ",subset_pairs)
     X_pairs = map( i->( X[subset_pairs[i][1]], X[subset_pairs[i][2]] ), collect(1:length(subset_pairs)))
-    println("X_pairs: ",X_pairs)
+    #println("X_pairs: ",X_pairs)
     gbX_pairs = [ (get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
-    println("gbX_pairs: ",gbX_pairs)
+    #println("gbX_pairs: ",gbX_pairs)
     mutints = [ mutinf(get_bits(Xp[1],numinputs), get_bits(Xp[2],numinputs)) for Xp in X_pairs ]
-    println("k: ",k,"  mutints: ",mutints)
+    #println("k: ",k,"  mutints: ",mutints)
     summand = sum(mutints)/length(mutints)
-    println("k: ",k,"  sum mutual informaiton: ",summand)
+    #println("k: ",k,"  sum mutual informaiton: ",summand)
     if k == Int(ceil(n/2))
       summand /= 2
     end
@@ -373,29 +376,29 @@ end
 # Does not use get_bits()
 function integration( XI::Vector{Vector{MyInt}}; base::Float64=2.0 )
   X = vcat( XI... )   # Combines all of the lists in XI into a long list
-  sum( entropy( x ) for x in XI ) - entropy( X )
+  sum( CGP.entropy( x ) for x in XI ) - CGP.entropy( X )
 end
 
 # Seems to always give a negative answer.
 # Does not use get_bits()
 # Integration assuming that the components are the individual elements of X
 function integration( X::Vector{MyInt}; base::Float64=2.0 )
-  ent_list =  [ entropy([x]) for x in X ]
-  sum(ent_list) - entropy(X)
+  ent_list =  [ CGP.entropy([x]) for x in X ]
+  sum(ent_list) - CGP.entropy(X)
 end
 
 # Integration of XI where get_bits is applied both to XI and the components of XI
 function integration( XI::Vector{Vector{MyInt}}, numinputs::Int64; base::Float64=2.0 )
   X = vcat( XI... )   # Combines all of the lists in XI into a long list
-  sum( entropy( get_bits(x,numinputs)) for x in XI ) - entropy( get_bits(X,numinputs))
+  sum( CGP.entropy( get_bits(x,numinputs)) for x in XI ) - CGP.entropy( get_bits(X,numinputs))
 end
 
 # Integration of X where get_bits is applied both to X and the components of X
 # Integration assuming that the components are the individual elements of X
 # This is the definition used in the function complexity4() defined below.
 function integration( X::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
-  ent_list =  [ entropy(get_bits([x],numinputs)) for x in X ]
-  sum(ent_list) - entropy(get_bits(X,numinputs))
+  ent_list =  [ CGP.entropy(get_bits([x],numinputs)) for x in X ]
+  sum(ent_list) - CGP.entropy(get_bits(X,numinputs))
 end
 
 # Tononi complexity as defined by equaion 4 of Tononi et al. (1994).
@@ -488,6 +491,10 @@ function product_marginals( s::MyInt, marginals::Vector{Float64} )
     mask >>= 1
   end
 result
+end
+
+function gb_mutinf( x::Vector{MyInt}, y::Vector{MyInt}, numinputs::Int64; base::Float64=2.0 )
+  mutual_information( get_bits(x,numinputs), get_bits(y,numinputs), base=base )
 end
 
 # Based on equation (7) of Frenken and Nuvolari (2004)
@@ -586,3 +593,4 @@ function test_correlation( nreps::Int64, function1::Function, function2::Functio
   end
   Statistics.cor( result1, result2 )
 end
+

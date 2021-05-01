@@ -12,7 +12,7 @@ function run_test_neutral_evolution( repetitions::Int64, numinputs::Int64, numin
       result_df = average_compatible_dataframes( result_df, df_list[i] )
     end
   else
-    result_df = test_neutral_evolution( repetitions, numinputs, numinstructions_rng, numregisters_rng, max_steps )
+    result_df = test_neutral_evolution( repetitions, numinputs, numinstructions_rng, numregisters_rng, max_steps, cartesian=cartesian  )
   end
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
@@ -29,8 +29,14 @@ function run_test_neutral_evolution( repetitions::Int64, numinputs::Int64, numin
   result_df
 end
 
-function test_neutral_evolution( repetitions::Int64, numinputs::Int64, numinstructions_rng::IntRange, numregisters_rng::IntRange, 
-      max_steps::Int64; cartesian::Bool=:false )
+function test_neutral_evolution( repetitions::Int64, p::Parameters, max_steps::Int64; 
+      cartesian::Bool=:false, print_steps::Bool=:false )
+  test_neutral_evolution( repetitions, p.numinputs, p.numinteriors, p.numlevelsback, max_steps, 
+      cartesian=cartesian, print_steps=print_steps )
+end
+
+function test_neutral_evolution( repetitions::Int64, numinputs::Int64, numinstructions_rng::IntRange, numregisters_rng::IntRange,
+      max_steps::Int64; cartesian::Bool=:false, print_steps::Bool=:false )
   df = DataFrame()
   df.numinputs = Int64[]
   if cartesian
@@ -55,7 +61,7 @@ function test_neutral_evolution( repetitions::Int64, numinputs::Int64, numinstru
         else
           c = rand_lcircuit(p,funcs)
         end
-        (c,step) = neutral_evolution( c, gl, max_steps )
+        (c,step) = neutral_evolution( c, gl, max_steps, print_steps=print_steps )
         if repetitions > 1000 && i % 100 == 0
           println("i: ",i,"  gl: ",@sprintf("0x%x",gl[1]),"  ni: ",ni,"  nr: ",nr,"  step: ",step)
         elseif repetitions <= 1000
@@ -70,7 +76,6 @@ function test_neutral_evolution( repetitions::Int64, numinputs::Int64, numinstru
   end
   df
 end
-
 
 function average_compatible_dataframes( df1::DataFrame, df2::DataFrame )
   @assert names(df1) == names(df2)

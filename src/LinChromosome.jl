@@ -24,8 +24,8 @@ OutputType = Int64
 mutable struct LinCircuit
     # Here, numinteriors represents number of gates, numlevelsback represents number of computational registers
     # the First numoutputs registers are the output registers
-    params::Parameters   
     circuit_vects::Vector{Vector{MyInt}}
+    params::Parameters   
 end
 =#
 
@@ -130,14 +130,19 @@ function int_to_vect( inst_int::OutputType, numregisters::Int64, numinputs::Int6
   #println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
   result
 end 
+
+function circuit_vect_to_circuit_int( cv::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
+    nodearity::Int64=2 )
+  map(x->vect_to_int(x, numregisters, numinputs, funcs, nodearity=nodearity ), cv )
+end
   
-# Random circuit as a list of instruction vectors
+# Random instruction  
 # Assumes gates are arity 2
 function rand_ivect( numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )
   MyInt[ rand(1:length(funcs)), rand(1:numregisters),  rand(1:(numregisters+numinputs)), rand(1:(numregisters+numinputs)) ]
 end
 
-# Random circuit as a list of instruction vectors
+# Random instruction  
 # Assumes gates are arity 2
 function rand_ivect( p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 )
   MyInt[ rand(1:length(funcs)), rand(1:p.numlevelsback),  rand(1:(p.numlevelsback+p.numinputs)), 
@@ -148,24 +153,13 @@ end
 # Assumes gates are arity 2
 function rand_lcircuit( n_instructions::Int64, numregisters::Int64, numinputs::Int64, funcs::Vector{Func} )
   p = Parameters( numinputs, 1, n_instructions, numregisters )
-  LinCircuit( p, [ rand_ivect( numregisters, numinputs, funcs ) for _ = 1:n_instructions ] )
+  LinCircuit( [ rand_ivect( numregisters, numinputs, funcs ) for _ = 1:n_instructions ], p )
 end
 
-function rand_lcircuit( p::Parameters, funcs::Vector{Func} )
-  LinCircuit( p, [ rand_ivect( p.numlevelsback, p.numinputs, funcs ) for _ = 1:p.numinteriors] )
-end
-
-# Not used:  consider deleting
-function lin_chromosome( lcircuits::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func} )
-  R = fill(MyInt(0), numregisters+numinputs )
-  R[numregisters+1:end] = construct_context(numinputs)
-  #lfuncts = [  (lc)->R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]]) for ic in lcircuits ]
-  println("R: ",R)
-  for lc in lcircuits
-    R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]])
-    println("R: ",R)
-  end
-  R
+# Random circuit as a list of instruction integers
+# Assumes gates are arity 2
+function rand_lcircuit( p::Parameters, funcs::Vector{Func}=lin_funcs(p.numinputs) )
+  LinCircuit( [ rand_ivect( p.numlevelsback, p.numinputs, funcs ) for _ = 1:p.numinteriors], p )
 end
 
 function execute_random_circuits( ncircuits::Int64, prog_length::Int64, numregisters::Int64, numinputs::Int64, funcs::Vector{Func} )
@@ -186,24 +180,23 @@ function mutate_instruction( instruction_vect::Vector{MyInt}, numregisters::Int6
   result_vect = deepcopy(instruction_vect)
   num_mutate_locations = ((lfuncs>1) ? (lfuncs-1) : 0) + (numregisters-1) + nodearity*(numregisters+numinputs-1)
   @assert 1 <= mut_loc && mut_loc <= num_mutate_locations
-    if mut_loc <= lfuncs-1
-      result_vect[1] = (mut_loc<instruction_vect[1]) ? mut_loc : (mut_loc+1) 
-      #println("result_vect[1]: ",result_vect[1])
-    elseif mut_loc <= (lfuncs-1) + (numregisters-1)
-      loc = mut_loc - (lfuncs-1)
-      result_vect[2] = (loc<instruction_vect[2]) ? loc : (loc+1)
-      #println("result_vect[2]: ",result_vect[2])
-    else
-      for i = 1:nodearity
-        if mut_loc <= (lfuncs-1) + (numregisters-1) + (numregisters+numinputs-1)*i
-          loc = mut_loc - (lfuncs-1) - (numregisters-1) - (numregisters+numinputs-1)*(i-1)
-          result_vect[2+i] = (loc<instruction_vect[2+i]) ? loc : (loc+1)
-          #println("result_vect[",2+i,"]: ",result_vect[2+i])
-          break
-        end
+  if mut_loc <= lfuncs-1
+    result_vect[1] = (mut_loc<instruction_vect[1]) ? mut_loc : (mut_loc+1) 
+    #println("result_vect[1]: ",result_vect[1])
+  elseif mut_loc <= (lfuncs-1) + (numregisters-1)
+    loc = mut_loc - (lfuncs-1)
+    result_vect[2] = (loc<instruction_vect[2]) ? loc : (loc+1)
+    #println("result_vect[2]: ",result_vect[2])
+  else
+    for i = 1:nodearity
+      if mut_loc <= (lfuncs-1) + (numregisters-1) + (numregisters+numinputs-1)*i
+        loc = mut_loc - (lfuncs-1) - (numregisters-1) - (numregisters+numinputs-1)*(i-1)
+        result_vect[2+i] = (loc<instruction_vect[2+i]) ? loc : (loc+1)
+        #println("result_vect[",2+i,"]: ",result_vect[2+i])
+        break
       end
     end
-    done = (result_vect != instruction_vect)
+  end
   result_vect
 end
 
@@ -214,7 +207,6 @@ end
 
 # Mutates the instruction instruction_vect at a random location, returns the instruction vector of the mutated instruction 
 # Returns the mutated instruction as a vector of MyInts
-# There is no restriction that the mutated instruction is different from instruction_vect
 function mutate_instruction( instruction_vect::Vector{MyInt}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )  
   lfuncs = length(funcs)
   num_mutate_locations = ((lfuncs>1) ? (lfuncs-1) : 0) + (numregisters-1) + nodearity*(numregisters+numinputs-1)
@@ -227,38 +219,50 @@ function mutate_instruction( instruction_vect::Vector{MyInt}, p::Parameters, fun
   mutate_instruction( instruction_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
-function mutate_circuit!( instruction_vect::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )  
-  numinstructions = length(instruction_vect)
+function mutate_instruction_all( instruction_vect::Vector{MyInt}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
+      nodearity::Int64=2 )  
+  lenfuncs = length(funcs)
+  num_mutate_locations = ((lenfuncs>1) ? (lenfuncs-1) : 0) + (numregisters-1) + nodearity*(numregisters+numinputs-1)
+  instructions = Vector{MyInt}[]
+  for mut_loc = 1:num_mutate_locations
+    new_instruction = mutate_instruction( instruction_vect, numregisters, numinputs, funcs, mut_loc, nodearity=nodearity )
+    push!(instructions,new_instruction)
+  end
+  instructions
+end
+
+function mutate_circuit!( circuit_vect::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )  
+  numinstructions = length(circuit_vect)
   ind = rand(1:numinstructions)
   #println("ind: ",ind)
-  instruction_vect[ind] = mutate_instruction( instruction_vect[ind], numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity=nodearity )
-  instruction_vect
+  circuit_vect[ind] = mutate_instruction( circuit_vect[ind], numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity=nodearity )
+  circuit_vect
 end 
 
-function mutate_circuit!( instruction_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 )  
-  mutate_circuit!( instruction_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
+function mutate_circuit!( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 )  
+  mutate_circuit!( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
 function mutate_circuit!( circuit::LinCircuit, funcs::Vector{Func}; nodearity::Int64=2 )
   LinCircuit( circuit.params, mutate_circuit!( circuit.circuit_vects, circuit.params, funcs ))
 end
 
-function mutate_all( instruction_vect::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 ) 
-  lfuncs = length(funcs)
-  result = Vector{MyInt}[]
-  num_mutate_locations = ((lfuncs>1) ? (lfuncs-1) : 0) + (numregisters-numinputs-1) + nodearity*(numregisters-1)
-  for ind = 1:length(instruction_vect)
-    for mut_loc = 1:num_mutate_locations
-      mi = mutate_instruction(instruction_vect[ind],numregisters,numinputs,funcs,mut_loc,nodearity=nodearity)
-      #println("ind: ",ind,"  mut_loc: ",mut_loc,"  mi: ",mi)
-      push!(result,mi)
+function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 ) 
+  lenfuncs = length(funcs)
+  result = Vector{Vector{MyInt}}[]
+  for ind = 1:length(circuit_vect)
+    mutated_instructions=mutate_instruction_all(circuit_vect[ind],numregisters,numinputs,funcs,nodearity=nodearity) 
+    for mi in mutated_instructions
+      mutated_circuit = deepcopy(circuit_vect)
+      mutated_circuit[ind] = mi
+      push!(result,mutated_circuit)
     end
   end
   result
 end
 
-function mutate_all( instruction_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 ) 
-  mutate_all( instruction_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
+function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 ) 
+  mutate_circuit_all( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
 function print_circuit( f::IO, circuit::LinCircuit, funcs::Vector{Func} )
@@ -275,3 +279,22 @@ end
 function print_circuit( circuit::LinCircuit, funcs::Vector{Func} )
   print_circuit( Base.stdout, circuit, funcs )
 end
+
+function instruction_distance( instruction_vect1::Vector{MyInt}, instruction_vect2::Vector{MyInt} )
+  @assert length(instruction_vect1) == length(instruction_vect2)
+  count_diffs = 0
+  for i in 1:length(instruction_vect1)
+    count_diffs += instruction_vect1[i] == instruction_vect2[i] ? 0 : 1
+  end
+  count_diffs
+end
+
+function circuit_distance( circuit_vect1::Vector{Vector{MyInt}},circuit_vect2::Vector{Vector{MyInt}} )
+  @assert length(circuit_vect1) == length(circuit_vect2)
+  sum_distances = 0
+  for i in 1:length(circuit_vect1)
+    sum_distances += instruction_distance( circuit_vect1[i], circuit_vect2[i] )
+  end
+  sum_distances
+end  
+

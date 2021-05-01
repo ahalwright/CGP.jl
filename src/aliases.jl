@@ -79,8 +79,8 @@ end
 mutable struct LinCircuit
     # Here, numinteriors represents number of gates, numlevelsback represents number of computational registers
     # the First numoutputs registers are the output registers
-    params::Parameters
     circuit_vects::Vector{Vector{MyInt}}
+    params::Parameters
 end
 Circuit = Union{Chromosome,LinCircuit}
 

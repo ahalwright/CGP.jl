@@ -166,6 +166,8 @@ function next_chromosome!(c::Chromosome, goallist::GoalList, funcs::Vector{Func}
   new_c = deepcopy(c)
   for _ = 1:num_mutations
     mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
+    #print("next chromosome: ")
+    #print_circuit(new_c)
   end
   output = execute_chromosome(new_c,context)
   #println("new_c output: ",output,"  new_c.fitness: ",new_c.fitness)
@@ -235,12 +237,14 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, 
       perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol, ftf_param=ftf_param, insert_gate_prob=insert_gate_prob, 
       delete_gate_prob=delete_gate_prob ) 
+  #print_circuit(c)
   output = output_values(c)   # Executes c if it has not already been executed
   #println("output: ",output)
   #while step < max_steps && new_fitness < c.params.numoutputs
   #println("c.fitness: ",c.fitness,"  fit_limit: ",fit_limit)
   while step < max_steps && c.fitness < fit_limit
-    #println("step: ",step,"  output: ",output,"   ")
+    #print("step: ",step,"  output: ",output," ")
+    #print_circuit(c)
     #println("trunc(c.fitness): ",trunc(c.fitness))
     if c.fitness > fitness
       if print_improvements
@@ -257,22 +261,26 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
     else
       #println("discarded chromosome with new_fitness: ",c.fitness)
       c = prev_c
+      #print_circuit(c)
       worse += 1
     end
     if prev_c.fitness < orig_c.fitness
-      #println("step: ",step,"  prev_c.fitness: ",prev_c.fitness,"  orig_c.fitness: ",orig_c.fitness)
+      println("step: ",step,"  prev_c.fitness: ",prev_c.fitness,"  orig_c.fitness: ",orig_c.fitness)
     end
     step += 1
     prev_c = deepcopy(c)
+    #println("end loop ",rand(1:100))
     if step < max_steps   # Construct c for next generation
       (c, matched_goals, matched_goals_list ) = 
           next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, 
-          perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol, ftf_param=ftf_param, 
-          insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob ) 
+            perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol, ftf_param=ftf_param, 
+            insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob ) 
             #next_chromosome!(c, goallist, funcs, hamming_sel=hamming_sel, use_robustness=use_robustness, 
             #num_mutations=num_mutations, perm_heuristic=perm_heuristic, avgfitness=avgfitness, fault_tol=fault_tol,
             #ftf_param=ftf_param ) 
       output = output_values(c)   # Executes c if it has not already been executed
+      #println("step: ",step+1,"  output: ",output)
+      #print_circuit(c)
     end
   end
   if step == max_steps   # Failed to find goal
@@ -798,56 +806,6 @@ function test_evolve()
   circuit_evolve(c,c_dest, 1000 )
 end
 
-# Evolves a chromosome (cirucit) that maps to g starting with chromosome c.
-# max_steps is the maximum number of evolutionary steps.
-# If evolution hasn't succeeeded in max_steps, return nothing.
-# insert_gate_prob is the probability of inserting a gate on a mutation of a chromosome.
-# delete_gate_prob is similar for deleting a gate.
-# Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
-#=
-function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_steps::Bool=false,
-      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
-  funcs = lin_funcs( c.params.numinputs )
-  step = 0
-  ov = output_values( c) 
-  current_distance = hamming_distance( ov, g, c.params.numinputs )
-  new_c = deepcopy(c)
-  while step < max_steps && ov != g
-    step += 1
-    (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
-    new_ov = output_values( new_c )
-    new_distance = hamming_distance( new_ov, g, c.params.numinputs )
-    #println("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance )
-    if new_ov == ov 
-      c = new_c
-      if print_steps
-        println("step: ",step," is neutral.")
-      end
-    elseif new_distance < current_distance
-      if print_steps
-        println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
-      end
-      c = new_c
-      ov = new_ov
-      current_distance = new_distance
-    else
-      if print_steps
-        print("step: ",step,"  new_output: ",new_ov,"  new circuit: ")
-        print_circuit( new_c )
-      end 
-    end
-  end
-  if step == max_steps
-    #println("neutral evolution failed with ",step," steps for goal: ",g)
-    return (nothing, step)
-  else
-    #println("neutral evolution succeeded at step ",step," for goal: ",g)
-    @assert output_values(c) == g
-    return (c, step)
-  end
-end
-=#
-
 # Evolves a LinCirucit that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
@@ -857,28 +815,36 @@ end
 function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps::Bool=false,
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
   LinCirc = typeof(c) == LinCircuit ? :true : :false
-  funcs = lin_funcs( c.params.numinputs )
-  println("LinCirc: ",LinCirc)
+  funcs = LinCirc ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) 
+  #println("LinCirc: ",LinCirc,"  Ones: ",Ones,"  CGP.Ones: ",CGP.Ones)
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )
-  new_c = deepcopy(c)
   while step < max_steps && ov != g
     step += 1
     if typeof(c) == Chromosome
-      (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
+      (new_c,active) = mutate_chromosome!( deepcopy(c), funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
     elseif typeof(c) == LinCircuit
-      new_c = mutate_circuit!( new_c, funcs )
+      new_c = mutate_circuit!( deepcopy(c), funcs )
     end
     new_ov = output_values( new_c )
     new_distance = hamming_distance( new_ov, g, c.params.numinputs )
     #println("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance )
+    #print("new_c: ")
+    #print_circuit(new_c)
+    #print("    c: ")
+    #print_circuit(c)
     if new_ov == ov 
       c = new_c
       if print_steps
-        println("step: ",step," is neutral.")
+        println("step: ",step," is pheno neutral.")
       end
-    elseif new_distance < current_distance
+    elseif new_distance == current_distance
+      c = new_c
+      if print_steps
+        println("step: ",step," is fitness neutral.")
+      end
+    elseif new_distance < current_distance   # improvement
       if print_steps
         println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
       end
@@ -887,20 +853,24 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
       current_distance = new_distance
     else
       if print_steps
-        print("step: ",step,"  new_output: ",new_ov,"  new circuit: ")
+        #print("worse step: ",step,"  new_output: ",new_ov,"  new circuit: ")
+        println("step: ",step,"  new_output: ",new_ov," current distance: ",current_distance," new: ",new_distance)
+        #=
         if LinCirc
           print_circuit( new_c, funcs )
         else
           print_circuit( new_c )
         end
+        =#
       end 
     end
+    #println("end while ",rand(1:100))
   end
   if step == max_steps
-    #println("neutral evolution failed with ",step," steps for goal: ",g)
+    println("neutral evolution failed with ",step," steps for goal: ",g)
     return (nothing, step)
   else
-    #println("neutral evolution succeeded at step ",step," for goal: ",g)
+    println("neutral evolution succeeded at step ",step," for goal: ",g)
     @assert output_values(c) == g
     return (c, step)
   end

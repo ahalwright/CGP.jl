@@ -40,8 +40,8 @@ function construct_contexts( numinputs::Integer )
   for i = 2:numinputs
     Contexts[i][1] = Ones[i-1] << 2^(i-1) 
     for j = 2:i
-      #println("(i,j):",(i,j))
       Contexts[i][j] = Contexts[i-1][j-1] << 2^(i-1) | Contexts[i-1][j-1] 
+      #println("(i,j):",(i,j),Contexts[i][j])
     end
   end
   Contexts

@@ -643,6 +643,7 @@ function geno_robustness( goal::Goal, maxreps::Int64, p::Parameters, max_steps::
   end
 end
 
+#=
 # For each of ngoals randomly chosen goals, evolves maxreps chromosomes whose output is that goal.
 # Computes properties of these goals and chromosomes. 
 # Returns a dataframe with one row per goal.
@@ -864,6 +865,7 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
     )
   end
 end
+=#
 
 function add_frequencies_to_dataframe( gdf:: DataFrame, counts_field::Symbol, count_csv_file::String="../data/counts/count_out_4x1_all_ints_10_10.csv" )
   cdf = read_dataframe(count_csv_file)

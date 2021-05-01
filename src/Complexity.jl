@@ -256,6 +256,8 @@ function explore_complexity( p::Parameters, goallist::GoalList, circuit_list::Ve
   return (circuits_list, goals_found, row_tuple)
 end
 
+# Averages a list of dataframes which should all be the same size with the same names.
+# All columns should be numerical.  All columns of the result are Float64.
 function average_dataframes( dataframes_list::Vector{DataFrame} )
   if length(dataframes_list) == 0
     return nothing
@@ -280,7 +282,6 @@ function average_dataframes( dataframes_list::Vector{DataFrame} )
   end
   df
 end
-  
 
 # Extend vector v to new_length by concatenating v with itself.
 function extend_list_by_dups( v::AbstractVector, new_length::Int64 )

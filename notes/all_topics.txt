@@ -105,7 +105,7 @@ All diary topics:
 2_9:   Summarize and create test functions for random walk functions.
 2_10:  Ideas on evolvability.
 2_11:  Complexity versus evolvability in a mutational neighborhood.  Code:  mutational_evolvability.jl
-2_13:  Complexity and robustness versus evolvability in a mutaitonal neighborhood.  Code:  mutational_evolvability.jl
+2_13:  Complexity and robustness versus evolvability in a mutational neighborhood.  Code:  mutational_evolvability.jl
 2_15_21:  Redoing NN plots
 2_18:  Preliminary ideas on LaBar/Adami replication
 2_18_21: More details on redoing NN plots, replicating x axis labels
@@ -115,7 +115,7 @@ All diary topics:
 3_3:  pred_phenos_fits() and preds_fit_decreases()
 3_5:  compare_fract_decreases(),  Filtering dataframe by row using @where.
 3_7:  Summary of LaBar/Adami test, code in Pop_evolve.jl
-3_12: Abandoned LaBar/Adami.  Revisions of explore_complexity() in Complexity.jl
+3_12: Abandoned LaBar/Adami.  Revisions of explore_complexity() with add/delete gates in Complexity.jl
 3_21:  Revised Pop_evolve.jl so that each evolution is to a list of goals rather than a single goal.
         Recall that Pop_evolve.jl is Population-based evolution to try to approximately replicate Labar & Adami 2016.
 3_24: Overview of Linear GP representation of circuits.
@@ -127,6 +127,9 @@ All diary topics:
 4_6:  Ran evolvability simulation with only NAND gate and 15 gates and 9 levelsback.k
 4_8:  Doing a sampling evolvability vs robustness plot using only NAND gate.
 4_13: Checking computation of Tononi complexity
+4_18: Testing neutral_evolution() on lcircuits.  See 4_24.txt: results not valid.
+4_24: Debugged neutral_evolution() (problem: neutral evolution not consistent with mut_evolve()) in Evolve.jl. Fixed bug.
+4_25: Testing neutral_evolution() on lcircuits and chromosomes. 
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

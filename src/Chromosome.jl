@@ -136,7 +136,9 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
     c.interiors[mutate_location] = InteriorNode(new_func,new_inputs)
     #println("new interior node: ",c.interiors[mutate_location])
     #println("new interior node: ",c[mutate_location+c.params.numinputs])
+    #println("func ",rand(1:100))
   elseif mutate_location <= num_funcs_to_mutate + sum(num_inputs_list)  # mutate an interior
+    ml = mutate_location
     #println("mutate a interior node ml:",mutate_location)
     interior_mutate_location = mutate_location - num_funcs_to_mutate
     #println("interior mutate_location: ",interior_mutate_location)
@@ -163,6 +165,9 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
     #println("minindex: ",minindex,"  maxindex: ",maxindex,"  intindex: ",intindex)
     c.interiors[i].inputs[j] = intindex
     #println("(i,j): ",(i,j),"  c.interiors[i].inputs: ",c.interiors[i].inputs)
+    #print("ml: ",mutate_location,"  ")
+    #print_circuit(c)
+    #println("inputs: ",rand(1:100))
   elseif mutate_location > num_funcs_to_mutate + sum(num_inputs_list)   # mutate an output
     # Mutating an output node should never happen because random chromosomes always use that last interior nodes as input,
     #   and num_mutate_locations() returns a value that does not include mutation of output nodes.

@@ -2,6 +2,7 @@
 # Defines functions to compute goals for 2-bit and 3-bit multiplier circuits.
 # Note that the computed goal for the 2-bit multiplier circuit does not agree with the output of the two_bit_multipler() circuit of Fig. 15b.
 # Then defines functions to evolve 2 and 3 bit
+# Successfully checked with one minor bug fix on 4/25/21.
 #include("build_circuit.jl")
 using Statistics
 
@@ -38,7 +39,7 @@ end
 
 # result should agree with result of two_bit_multiplier()
 function check_two_bit_multiplier()
-  c = construct_context(4)
+  context = construct_context(4)
   g1 = context[1] 
   g2 = context[2] 
   g3 = context[3]
@@ -155,7 +156,7 @@ function evolve_two_bit_multiplier( numinteriors::Int64=10, max_steps::Int64=100
 end
 
 # Evolves a three_bit multipler circuit with the goal defined by goal_for_three_bit_multiplier() defined above
-# Usually succeeds (based on a sample of 4) with numinteriors=35 and max_steps=50000000
+# Usually succeeds (based on a sample of 5) with numinteriors=35 and max_steps=50000000
 # Note:  MyInt must be UInt64
 function evolve_three_bit_multiplier( numinteriors::Int64, max_steps::Int64; 
       iterations::Int64=1, num_mutations::Int64=1, outfile::String="")
@@ -185,7 +186,7 @@ function evolve_three_bit_multiplier( numinteriors::Int64, max_steps::Int64;
     steps = Statistics.mean(steps_list)
   end
   num_active = number_active(current_chromosome)
-  fname = length(outfile)==0 ? "../data/7_12/three_bit_mult.csv" : outfile
+  fname = length(outfile)==0 ? "../data/4_25/three_bit_mult.csv" : outfile
   println("evolve, steps, num_active, num_muts, num_ints, max_steps")
   println("3bit_mul,", steps, ",",  num_active,",",num_mutations,",",numinteriors,",",max_steps)
   open(fname,"a") do f
