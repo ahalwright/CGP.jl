@@ -27,11 +27,11 @@ mutable struct InteriorNode <: Node
 end
 
 function InteriorNode(func::Func, inputs::Vector{Int64})
-    return InteriorNode(func, inputs, false, 0 )
+    return InteriorNode(func, inputs, false, MyInt(0) )
 end
 
 function InteriorNode(func::Func, inputs::Vector{Integer})
-    return InteriorNode(func, inputs, false, 0 )
+    return InteriorNode(func, inputs, false, MyInt(0) )
 end
 
 mutable struct OutputNode <: Node

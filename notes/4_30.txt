@@ -2,4 +2,17 @@ Testing hypotheses on parity and shift_extend.
 Shift_extend goals are goals that start with a 3-input or 4-input goal, extend it for another input by adding 
 the reverse goal to the bit string, and then further extend to more inputs by adding copies of the goal to the bit string.
 
+See the file complexity/cce/parity_shift_extend5_1_21.docx for more verbose details.
+See data/4_30/parity_shift_extend.xlsx for summary of results.
+
 Some files/results are in 4_28, 4_29, 4_30.
+
+Conclusions:
+
+1.  The difficulty of the parity problem strong depends on whether the 4-function Hu gate set or the 5-function 
+    Raman data set is used.  
+2.  With the Raman gate set, I can very reliably evolve circuits for up to 15 inputs using MyInt==BigInt.  Complexity as
+    number evaluations grows not much faster than linear.  Execution time grows faster because the implementation
+    of BigInt is exponential in the number of inputs.
+3.  With the Hu gate set, I can evolve circuits for up to 7 inputs using MyInt==UInt128.  Average steps 413635 with
+    reliability 0.22.

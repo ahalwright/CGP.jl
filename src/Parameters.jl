@@ -1,7 +1,7 @@
 
 export Parameters, default_parameters, print_parameters
 
-struct Parameters
+mutable struct Parameters
     mu::Integer
     lambda::Integer
     mutrate::Real

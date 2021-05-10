@@ -12,6 +12,7 @@ export code_to_circuit
 export insert_gate!, delete_gate!
 
 PredType = Int64
+#= Commented out.  The included definition is in aliases.jl.
 mutable struct Chromosome
     params::Parameters
     inputs::Vector{InputNode}
@@ -20,6 +21,7 @@ mutable struct Chromosome
     fitness::Float64
     robustness::Union{Float64,PredType}
 end
+=#
 
 CPopulation = Vector{Chromosome}
 
@@ -631,8 +633,10 @@ end
 function circuit( inputs::Tuple, gates::Tuple;
     levsback::Int64=length(inputs)+length(gates))
   numinputs = length(inputs)
+  println("gates: ",gates,"length(gates): ",length(gates))
   errors = false
   for i = 1:length(gates)
+    println("i: ",i," gates: ",gates)
     if gates[i][1] != i+numinputs
       println("index of gate ",i," not correct: it should be: ",i+numinputs)
       errors = true

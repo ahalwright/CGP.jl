@@ -1,0 +1,12 @@
+Wrote test_evolve_function.jl.  Includes combine_circuits() that combines two 1-output
+circuits with the same number of gates into one 2-output circuit.  
+
+Decided that evolve_function() needs to be rewritten.  
+Objective:
+  Given two 1-output circuits, combine them into a 2-output circuit, and then evolve
+    to minimize the number of gates while retaining the same output.  I tried this
+    once before, and it didn't work very well.  Perhaps do evolution with more than
+    1 mutation per step.
+
+5/10:  function reduce_numactive() in src/evolve_function.jl and test/test_evolve_function.jl
+data in data/5_10/

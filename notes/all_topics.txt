@@ -130,6 +130,7 @@ All diary topics:
 4_18: Testing neutral_evolution() on lcircuits.  See 4_24.txt: results not valid.
 4_24: Debugged neutral_evolution() (problem: neutral evolution not consistent with mut_evolve()) in Evolve.jl. Fixed bug.
 4_25: Testing neutral_evolution() on lcircuits and chromosomes. 
+4_30: Results on even parity and shift extend.
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

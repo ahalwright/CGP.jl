@@ -754,58 +754,6 @@ function findminrand( A::AbstractVector )
     return (val,ind)
   end
 end
-
-# Use neutral evolution to find a chromosome c that maximizes funct(c)
-# funct( c::Chromosome ) returns a Float64.
-function evolve_function( funct::Function, p::Parameters, funcs::Vector{Func}, max_steps::Int64;
-    goallist::Vector{Vector{MyInt}}=[MyInt[]], max_evolve_steps::Int64=10000 )
-  println("goallist: ",goallist)
-  use_goal = !(goallist==[MyInt[]])
-  c = random_chromosome( p, funcs )
-  orig_c = deepcopy(c)
-  goal = goallist[1]
-  println("goal: ",goal)
-  if use_goal
-    result = mut_evolve( c, goallist, funcs, max_evolve_steps, print_improvements = true ) 
-    steps = result[2]
-    if steps == max_evolve_steps
-      error("evolution to goal failed in function evolve_function()")
-    else
-      println("evolution to goal suceeded in function evolve_function()")
-    end 
-    c = result[1]
-    goal = output_values(c)
-    orig_c = deepcopy(c)
-  end
-  current_fitness = funct(c)
-  println("starting fitness: ",current_fitness)
-  for i = 1:max_steps
-    prev_c = deepcopy(c)
-    (c,active) = mutate_chromosome!(c,funcs)
-    if use_goal && output_values(c) != goal
-      c = prev_c
-      continue
-    end  
-    new_fitness = funct(c)
-    if new_fitness < current_fitness 
-      c = prev_c
-    elseif new_fitness > current_fitness
-      println("i: ",i,"  new_fitness: ", new_fitness,"  funct(c): ",funct(c) )
-      current_fitness = new_fitness
-    end
-    println("i: ",i,"  current_fitness: ", current_fitness, "  funct(c): ",funct(c)  )
-  end
-  (c,orig_c)
-end
-
-# to test circuit_evolve()
-function test_evolve()
-  p = Parameters(numinputs=2,numoutputs=1,numinteriors=3,numlevelsback=3); 
-  funcs=default_funcs(p.numinputs);c = random_chromosome(p,funcs); goal=output_values(c)
-  res = mut_evolve(c,[goal],funcs,1000); c_dest=res[1]
-  circuit_evolve(c,c_dest, 1000 )
-end
-
 # Evolves a LinCirucit that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
@@ -813,9 +761,10 @@ end
 # delete_gate_prob is similar for deleting a gate.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
 function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps::Bool=false,
-      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
+      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0,
+      funcs::Vector{Func}=typeof(c) == LinCircuit ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) )
   LinCirc = typeof(c) == LinCircuit ? :true : :false
-  funcs = LinCirc ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) 
+  #funcs = LinCirc ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) 
   #println("LinCirc: ",LinCirc,"  Ones: ",Ones,"  CGP.Ones: ",CGP.Ones)
   step = 0
   ov = output_values( c) 
@@ -868,7 +817,7 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
   end
   if step == max_steps
     println("neutral evolution failed with ",step," steps for goal: ",g)
-    return (nothing, step)
+    return (c, step)
   else
     println("neutral evolution succeeded at step ",step," for goal: ",g)
     @assert output_values(c) == g
