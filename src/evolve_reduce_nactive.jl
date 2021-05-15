@@ -8,6 +8,8 @@ function combine_circuits( c1::Chromosome, c2::Chromosome )
   @assert c1.params.numinputs == c2.params.numinputs
   @assert c1.params.numoutputs == 1
   @assert c2.params.numoutputs == 1
+  @assert c1.params.numinteriors == c2.params.numinteriors
+  @assert c1.params.numlevelsback == c2.params.numlevelsback
   if length(c1.interiors) < length(c2.interiors)
     println("  c1ints: ",length(c1.interiors),"  c2ints: ",length(c2.interiors))
     ctemp = c1
@@ -257,9 +259,9 @@ function test_reduce_numactive( p::Parameters, numpairs::Int64, numtrials::Int64
     #c2 = random_chromosome(p); print(output_values(c2),"  "); print_circuit(c2) 
     goal1 = randgoal(p)
     c = random_chromosome(p)
-    (nc1,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_increase_numints(c, [goal1], funcs, maxsteps, n_repeats )
+    (nc1,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat(n_repeats, p, [goal1], funcs, maxsteps )
     goal2 = randgoal(p)
-    (nc2,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_increase_numints(c, [goal2], funcs, maxsteps, n_repeats )
+    (nc2,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_repeat(n_repeats, p, [goal2], funcs, maxsteps )
     c = combine_circuits(nc1,nc2)
     rowlist = [ output_values(c), p.numinputs, p.numinteriors, p.numlevelsback, numpairs, numtrials, maxsteps ]
     #@assert [output_values(nc1)[1],output_values(nc1)[1]] == output_values(c)

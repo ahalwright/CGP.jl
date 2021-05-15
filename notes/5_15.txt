@@ -8,3 +8,44 @@ Also reduced the number of trials used in the computation of kolmogorov complexi
 Modified test_reduce_numactive() in evolve_reduce_numactive.jl to choose random goals instead of random chromosomes.
 
 Rerun all runs in data/5_15
+
+Problem:  combine_circuits requires that the two to-be-combined circuits must have the same parameters.
+Thus, trying to use mut_evolve_increase_numints() is not valid.  So changed to mut_evolve_repeat().
+
+
+Bug for test_reduce_numactive() in evolve_reduce_numactive.jl:
+BoundsError: attempt to access 20-element Array{InteriorNode,1} at index [21]
+getindex at ./array.jl:809 [inlined]
+#15 at ./none:0 [inlined]
+iterate at ./generator.jl:47 [inlined]
+collect_to! at ./array.jl:732 [inlined]
+collect_to_with_first! at ./array.jl:710 [inlined]
+collect at ./array.jl:691
+num_mutate_locations at /home/aw167054e/evotech/CGP.jl/src/Chromosome.jl:351
+#mutate_chromosome!#9 at /home/aw167054e/evotech/CGP.jl/src/Chromosome.jl:103
+mutate_chromosome! at /home/aw167054e/evotech/CGP.jl/src/Chromosome.jl:98 [inlined] (repeats 2 times)
+#evolve_reduce_numactive#3 at /home/aw167054e/evotech/CGP.jl/src/evolve_reduce_nactive.jl:55
+#reduce_nactive_helper#33 at /home/aw167054e/evotech/CGP.jl/src/evolve_reduce_nactive.jl:315
+#19 at /home/aw167054e/evotech/CGP.jl/src/evolve_reduce_nactive.jl:269
+#106 at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.5/Distributed/src/process_messages.jl:294
+run_work_thunk at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.5/Distributed/src/process_messages.jl:79
+macro expansion at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.5/Distributed/src/process_messages.jl:294 [inline
+d]
+#105 at ./task.jl:356
+Stacktrace:
+ [1] (::Base.var"#770#772")(::Task) at ./asyncmap.jl:178
+ [2] foreach(::Base.var"#770#772", ::Array{Any,1}) at ./abstractarray.jl:2009
+ [3] maptwice(::Function, ::Channel{Any}, ::Array{Any,1}, ::Array{Int64,1}) at ./asyncmap.jl:178
+ [4] wrap_n_exec_twice(::Channel{Any}, ::Array{Any,1}, ::Distributed.var"#206#209"{WorkerPool}, ::Function, ::Array{Int64,1}) at ./async
+map.jl:154
+ [5] async_usemap(::Distributed.var"#190#192"{Distributed.var"#190#191#193"{WorkerPool,var"#19#26"{Int64,Int64}}}, ::Array{Int64,1}; ntasks::Function, batch_size::Nothing) at ./asyncmap.jl:103
+ [6] #asyncmap#754 at ./asyncmap.jl:81 [inlined]
+ [7] pmap(::Function, ::WorkerPool, ::Array{Int64,1}; distributed::Bool, batch_size::Int64, on_error::Nothing, retry_delays::Array{Any,1}, retry_check::Nothing) at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.5/Distributed/src/pmap.jl:126
+ [8] pmap(::Function, ::WorkerPool, ::Array{Int64,1}) at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.5/Distributed/src/pmap.jl:101
+ [9] pmap(::Function, ::Array{Int64,1}; kwargs::Base.Iterators.Pairs{Union{},Union{},Tuple{},NamedTuple{(),Tuple{}}}) at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.5/Distributed/src/pmap.jl:156
+ [10] pmap at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.5/Distributed/src/pmap.jl:156 [inlined]
+ [11] test_reduce_numactive(::Parameters, ::Int64, ::Int64, ::Int64, ::Int64; num_mutations::Int64, csvfile::String) at /home/aw167054e/evotech/CGP.jl/src/evolve_reduce_nactive.jl:269
+ [12] top-level scope at /home/aw167054e/evotech/CGP.jl/data/5_15/run_reduce_nactive5_15D.jl:27   
+
+Bug apears to be for
+      From worker 21:   neutral evolution succeeded at step 13828 for goal: UInt32[0x000092e5, 0x000011a1]  

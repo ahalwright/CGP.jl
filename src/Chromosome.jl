@@ -348,7 +348,7 @@ end
 
 function num_mutate_locations( c::Chromosome, funcs::Vector{Func} )
   num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
-  interiors_inputs_list = [ c.interiors[i].inputs for i = 1:c.params.numinteriors ]
+  interiors_inputs_list = [ c.interiors[i].inputs for i = 1:length(c.params.numinteriors) ]
   outputs_input_list = [ c.outputs[i].input for i = 1:c.params.numoutputs ]
   #println("int_list: ", interiors_inputs_list, "   out_list: ",outputs_input_list)
   num_inputs_list = map(length, interiors_inputs_list)
@@ -623,7 +623,7 @@ end
 # Creates a Chromosome (circuit) from the concise format.
 # Example:  
 # julia>circuit((1,2,3), ((4,OR,1,2), (5,AND,2,3), (6,XOR,4,5)))
-#    creates a ciruit with 3 input nodes and 3 gate nodes and 1 implicit output node.
+#    creates a circuit with 3 input nodes and 3 gate nodes and 1 implicit output node.
 # gate nodes have 4 fields: 
 #    node_index:  should be the index of the node.  Not used in construcing the circuit, but checked for correctness
 #    node_function:  See Func.jl for options

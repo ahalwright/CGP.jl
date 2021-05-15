@@ -340,50 +340,7 @@ function mut_evolve_repeat(n_repeats::Int64, p::Parameters, goallist::GoalList, 
     return nothing
   end
 end
-#=
-function mut_evolve_increase_numints(n_repeats::Int64, p::Parameters, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer;
-      hamming_sel::Bool=true, use_robustness::Bool=false, num_mutations::Int64=1, print_improvements::Bool=false,
-      avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95, 
-      fit_limit::Float64=Float64(p.numoutputs) )
-  numinteriors_repeat = c.params.numinteriors
-  numlevelsback_repeat = c.params.numlevelsback
-  (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, goallist, funcs, max_steps, 
-      hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, print_improvements=print_improvements,
-      avgfitness=avgfitness, perm_heuristic=perm_heuristic, fault_tol=fault_tol, ftf_param=ftf_param,
-      fit_limit=fit_limit ) 
-  total_steps = 0
-  new_numints = c.params.numinteriors
-  new_levsback = c.params.numlevelsback
-  c = random_chromosome(p)
-  (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, goallist, funcs, max_steps, 
-      hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, print_improvements=print_improvements,
-      avgfitness=avgfitness, perm_heuristic=perm_heuristic, fault_tol=fault_tol, ftf_param=ftf_param,
-      fit_limit=fit_limit ) 
-  repeat = 0
-  while repeat < repeat_limit && step == max_steps
-    #println("starting repeat loop repeat: ",repeat)
-    total_steps += max_steps
-    numinteriors_repeat += 1
-    numlevelsback_repeat += 1
-    p_repeat = Parameters( numinputs=c.params.numinputs, numoutputs=c.params.numoutputs, numinteriors=numinteriors_repeat,
-        numlevelsback=numlevelsback_repeat )
-    println("repeating function mut_evolve with numints: ",numinteriors_repeat,"  and with levsback: ",numlevelsback_repeat)
-    c = random_chromosome( p_repeat, funcs )
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, goallist, funcs, max_steps, 
-        hamming_sel=hamming_sel, use_robustness=use_robustness, num_mutations=num_mutations, print_improvements=print_improvements,
-        avgfitness=avgfitness, perm_heuristic=perm_heuristic, fault_tol=fault_tol, ftf_param=ftf_param,
-        fit_limit=fit_limit ) 
-    new_numints = p_repeat.numinteriors
-    new_levsback = p_repeat.numlevelsback
-    repeat += 1
-  end
-  total_steps += step
-  if repeat == repeat_limit
-    error(" repeat reached repeat_limit in function mut_evolve_increase_numints()")
-  end
-  (c,total_steps,worse,same,better,output,matched_goals,matched_goals_list,new_numints,new_levsback)
-end
-=#
+
 # If mut_evolve() fails in max_steps iterations, increase the numinteriors and numlevelsback and try again.
 # Continue up to repeat_limit until it suceeds.
 function mut_evolve_increase_numints( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max_steps::Integer, n_repeats::Int64=10;
@@ -638,7 +595,7 @@ function circuit_evolve( c_src::Chromosome, c_dest::Chromosome, maxreps::Int64 )
     if outputs_src != output_values(c_new)
       step += 1
       #println("continue")
-      #continue  # continue with current ciruit c unchanged
+      #continue  # continue with current circuit c unchanged
     else
       println("c_new code:  ",circuit_code(c_new))
       println("c_dest_code: ",circuit_code(c_dest))
@@ -646,7 +603,7 @@ function circuit_evolve( c_src::Chromosome, c_dest::Chromosome, maxreps::Int64 )
       println("dist:     ",dist,"  new_dist: ",new_dist)
       if new_dist > dist
         step += 1
-        #continue  # continue with current ciruit c unchanged
+        #continue  # continue with current circuit c unchanged
       elseif new_dist == 0  # success
         println("circuit_evolve() found a path to c_dest!")
         return step
@@ -810,6 +767,7 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
   LinCirc = typeof(c) == LinCircuit ? :true : :false
   #funcs = LinCirc ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) 
   #println("LinCirc: ",LinCirc,"  Ones: ",Ones,"  CGP.Ones: ",CGP.Ones)
+  println("numgates: ",c.params.numinteriors)
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )

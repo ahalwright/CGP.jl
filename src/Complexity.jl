@@ -213,7 +213,7 @@ function explore_complexity( p::Parameters, goallist::GoalList, num_circuits::In
       insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
 end
   
-# This is the explore_complexity() function that runs one generation starting with ciruits in circuit_list.
+# This is the explore_complexity() function that runs one generation starting with circuits in circuit_list.
 # max_ev_steps  is the maximum number of steps in the evolution of a circuit to any of the goals in goalllist.
 # Returns a triple (circuits_list, goals_found, row_tuple) where:
 #   circuits_list is the list of evolved circuits that output one of the goals
@@ -482,7 +482,7 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
         found_c = deepcopy(c)
         num_gates = number_active_gates(found_c)
         p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
-        println("ciruit found for goal ",g," with num_gates = ",num_gates)
+        println("circuit found for goal ",g," with num_gates = ",num_gates)
       end
     end
   end
