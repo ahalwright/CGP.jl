@@ -1,0 +1,29 @@
+Extending explore_complexity to 5x1 circuits and goals.
+
+Problem 1:  transitioning from 4-input goals to 5-input goals.
+  Unfortunately, the output of 5-input circuits which never use input 5 must have every even-numbered bit 0,
+    so it is non-trivial to convert a 5-input goal into a 4-input goal or vice versa
+  This is done by functions decrease_goal_inputs() and increase_goal_inputs() in change_goal_inputs.jl.
+
+Problem 2:  the space of 5-input phenotypes is too large for the approach used for 4-input goals to work.
+  So we need to select desirable goals from a subset of phenotype space.
+  
+  Approach 1:  Select desirable goals from a Hamming subset of phnenotype space, i. e., where some bits of goals are 
+    constrained to be zero.  This naturally grades up from 4 inputs to 5 inputs.
+  Approach 2:  Use difficulty-of-evolution as a complexity filter.  Find a very complex goal as the ultiimate overall goal.
+    The select desirable goals in a neighborhoold of this ultimate goal.
+  For now, approach 1 seems better.
+
+  Approach for choosing 5-input Hamming subset goals:
+    1.  Choose a random 4-input goal and convert it to a 5-input goal by using increase_goal_inputs().
+    2.  Choose a random k-input goal (k = 1:8), convert it to a k+1 input goal using increase_goal_inputs(),
+        shift it to the left by 1 bit, and OR it with the goal from step 1.
+    This will produce goals from a 2^2^4*2^k space of phenotypes.  
+
+Problem 3:  How to choose desirable goals?
+
+  How many desirble goals to choose?  First try 600 to 1000.
+
+  Problem:  Funnel desirable goals into a specific region of phenotype space.  Keep the number of desirable goals
+    at any stage limited for efficiency reasons.  Try stages:  As desirable goals are found, add additional desirable 
+    goals near found goals.

@@ -1,0 +1,6 @@
+Revised test_reduce_numactive() in evolve_reduce_numactive.jl to report minimum as well as mean
+    because this is a better comparison to the computation of kolmogorov compexity in Complexity.jl.
+Also reduced the number of trials used in the computation of kolmogorov complexity to 1/4 of
+    the number or trials used to compute numactive (which now computes number of active gates).
+    Now starting with 3x1 circuits (giving 4x2 circuits), results seem to be much more equal 
+    between the two methods.

@@ -237,13 +237,16 @@ function test_reduce_numactive( p::Parameters, numpairs::Int64, numtrials::Int64
   df.numtrials = Int64[]
   df.maxsteps = Int64[]
   df.nactive0 = Float64[]
+  df.nactive1_min = Float64[]
   df.nactive1_mean = Float64[]
   df.nactive1_std = Float64[]
   if num_mutations >= 2
+    df.nactive2_min = Float64[]
     df.nactive2_mean = Float64[]
     df.nactive2_std = Float64[]
   end
   if num_mutations == 3
+    df.nactive3_min = Float64[]
     df.nactive3_mean = Float64[]
     df.nactive3_std = Float64[]
   end
@@ -260,15 +263,15 @@ function test_reduce_numactive( p::Parameters, numpairs::Int64, numtrials::Int64
     nactive0 = vcat( [ na[1] for na in nactive_lists]... ) 
     nactive1 = vcat( [ na[2] for na in nactive_lists]... )
     if num_mutations == 1
-      row_results = [mean(nactive0),mean(nactive1),std(nactive1)]
+      row_results = [mean(nactive0),minimum(nactive1),mean(nactive1),std(nactive1)]
     end
     if num_mutations >= 2
       nactive2 = vcat( [ na[3] for na in nactive_lists]... )
-      row_results = [mean(nactive0),mean(nactive1),std(nactive1),mean(nactive2),std(nactive2)]
+      row_results = [mean(nactive0),minimum(nactive2),mean(nactive1),std(nactive1),minimum(nactive2),mean(nactive2),std(nactive2)]
     end
     if num_mutations >= 3
       nactive3 = vcat( [ na[4] for na in nactive_lists]... )
-      row_results = [mean(nactive0),mean(nactive1),std(nactive1),mean(nactive2),std(nactive2),mean(nactive3),std(nactive3)]
+      row_results = [mean(nactive0),minimum(nactive2),mean(nactive1),std(nactive1),minimum(nactive2),mean(nactive2),std(nactive2),minimum(nactive3),mean(nactive3),std(nactive3)]
     end
     row = deepcopy(rowlist)
     println("length(row): ",length(row),"  length(row_results): ",length(row_results),"  size(df): ",size(df))
@@ -331,7 +334,7 @@ function compare_dataframe( folder_path::String, suffix::String )
   cdf = DataFrame()
   cdf.goal = kdf.goal
   cdf.kng = kdf.num_gates
-  cdf.rng = rdf.nactive1_mean
+  cdf.rng = rdf.nactive1_min
   cdf.k_minus_r_diff = cdf.kng .- cdf.rng
   csvfile = "$(data_prefix)$(folder_path)/compare_$(folder_path)_$(suffix).csv"
   lines = String[]
