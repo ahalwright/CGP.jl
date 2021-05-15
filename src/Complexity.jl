@@ -410,6 +410,7 @@ function run_kolmogorov_complexity( p::Parameters, gl::GoalList, max_goal_tries:
   df.avg_evolvability = Float64[]
   df.num_gates_exc = Int64[]
   result_list = pmap( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
+  #result_list = map( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
   for r in result_list
     push!(df, r )
   end
@@ -469,7 +470,14 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
           mut_evolve( c, [g], funcs, max_ev_steps, print_steps=false ) 
       if step < max_ev_steps
         outputs = output_values( c )
-        @assert outputs == g
+        if sort(outputs) != sort(g)
+          println("g: ",g,"  outputs: ",outputs)
+        end
+        try
+          @assert sort(outputs) == sort(g)
+          catch(e)
+          println("g: ",g,"  outputs: ",outputs)
+        end
         goal_found = true
         found_c = deepcopy(c)
         num_gates = number_active_gates(found_c)
@@ -494,7 +502,8 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
         mut_evolve( c, [g], funcs, max_ev_steps, print_steps=true ) 
     if step < max_ev_steps
       outputs = output_values( c )
-      @assert outputs == g
+      #println("outputs: ",outputs,"  goal: ",g)
+      @assert sort(outputs) == sort(g)
       if num_gates != number_active_gates(c)
         println("num_gates: ",num_gates,"  number_active_gates(c): ",number_active_gates(c))
         println("B  number gates not equal to number active gates for goal: ",g)

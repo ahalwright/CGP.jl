@@ -1,0 +1,13 @@
+Determine the effectiveness of test_reduce_numactive() versus run_kolmogorov_complexity() at 
+   reducing the number of active gates in a combined goal.
+test_reduce_numactive() (currently in test/test_evolve_function.jl but should be moved)
+  now records the combined goals in the result dataframe.  
+run_kolmogorov_complexity() in Complexity.jl uses a goal list.
+data/5_12/run_k_complexityB.jl  reads the dataframe output by run_reduce_nactive5_12B.jl
+  so that it runs with the same goal list and parameters.
+
+5/14:  Issue:  run_kolmogorov_complexity() uses the number of gates rather than the 
+  number_active().  For non-simple goals that depend on all inputs, if the number of gates
+  has been minimized, number_active() should be number of gates + numinputs since all input
+  gates will be active.  But for some goals where the output doesn't depend on all inputs,
+  this may not be true.

@@ -9,4 +9,6 @@ Objective:
     1 mutation per step.
 
 5/10:  function reduce_numactive() in src/evolve_function.jl and test/test_evolve_function.jl
-data in data/5_10/
+data in data/5_10/.  
+Results definitively show that doing more than 1 mutation when running reduce_numactive() 
+does not reduce number active any more than using just 1 mutation.

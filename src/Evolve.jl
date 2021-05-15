@@ -288,9 +288,9 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       println("mut_evolve finished at step limit ",max_steps," with fitness: ", c.fitness ) 
     end
   else
-    matched_g = map( x->x[1][1], matched_goals_list )
+    matched_g = map( x->[x[i][1] for i = 1:c.params.numoutputs], matched_goals_list )
     if print_steps
-      println("mut_evolve finished in ",step," steps for goal ",matched_g," with fitness: ", c.fitness )
+      println("mut_evolve finished in ",step," steps for goal ",matched_g[1]," with fitness: ", c.fitness )
     end
     #println("matched_goals: ",matched_goals,"  matched_goals_list: ",matched_goals_list)
   end

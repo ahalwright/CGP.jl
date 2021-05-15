@@ -1,0 +1,16 @@
+Working on increasing the number of goal inputs and increasing the number of goal inputs.
+Function to increase goal inputs and inverse function to decrease goal inputs. Test that inverse is correct.
+Function to combine the goals of a 2-output goal into a goal with one more input.
+
+See change_goal_inputs.jl
+
+Steps for symbiosis:
+1.  Independently evolve circuits to map to two goals with m and n outputs.
+    Initially, m = n = 1.
+2.  Create goals into a single m+n output goal,and evolve with some selection
+    to reduce the number of gates.
+3.  Combine the m+n outputs into a goal with a smaller number of outputs.
+4.  Transition circuit mapping to the m+n output goal to a circuit that might
+    be closer to a circuit that maps to the goal of step 3.  This is non-trivial.
+    
+Perhaps steps 3 and 4 are unnecessary.
