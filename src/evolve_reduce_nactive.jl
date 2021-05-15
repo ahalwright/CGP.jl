@@ -57,7 +57,7 @@ function evolve_reduce_numactive( c::Chromosome, maxsteps::Int64; num_mutations:
     if output_values(new_c) == goal && number_active_gates( new_c ) <= current_num_active
       c = new_c
       if number_active_gates( c ) < current_num_active
-        println("number active reduced from ",current_num_active," to ",number_active_gates( new_c )," on step ",i,".")
+        #println("number active reduced from ",current_num_active," to ",number_active_gates( new_c )," on step ",i,".")
         current_num_active = number_active_gates( c ) 
       end
     end
@@ -222,11 +222,12 @@ function mut_reduce_numactive( c::Chromosome, goallist::GoalList, funcs::Vector{
 end 
 
 # Evaluate the performance of function evolve_reduce_numactive() which is in evolve_funct.jl.
+# n_repeats is the maximum number of tries in mut_evolve_repeat()
 # For each pair of chromosomes
 #   Creates two chromosomes using parameter settings p.
 #   Combines them into one chromosome with one more input
 #   For each trial run evolve_reduce_numactive() and record average and minimum numactive.
-function test_reduce_numactive( p::Parameters, numpairs::Int64, numtrials::Int64, maxsteps::Int64; 
+function test_reduce_numactive( p::Parameters, numpairs::Int64, numtrials::Int64, n_repeats::Int64, maxsteps::Int64; 
       num_mutations::Int64=1, csvfile::String="" )
   df = DataFrame()
   df.combined_goal = Goal[]
@@ -250,14 +251,20 @@ function test_reduce_numactive( p::Parameters, numpairs::Int64, numtrials::Int64
     df.nactive3_mean = Float64[]
     df.nactive3_std = Float64[]
   end
+  funcs = default_funcs(p.numinputs)
   for npair = 1:numpairs
-    c1 = random_chromosome(p); print(output_values(c1),"  "); print_circuit(c1) 
-    c2 = random_chromosome(p); print(output_values(c2),"  "); print_circuit(c2) 
-    c = combine_circuits(c1,c2)
+    #c1 = random_chromosome(p); print(output_values(c1),"  "); print_circuit(c1) 
+    #c2 = random_chromosome(p); print(output_values(c2),"  "); print_circuit(c2) 
+    goal1 = randgoal(p)
+    c = random_chromosome(p)
+    (nc1,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_increase_numints(c, [goal1], funcs, maxsteps, n_repeats )
+    goal2 = randgoal(p)
+    (nc2,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve_increase_numints(c, [goal2], funcs, maxsteps, n_repeats )
+    c = combine_circuits(nc1,nc2)
     rowlist = [ output_values(c), p.numinputs, p.numinteriors, p.numlevelsback, numpairs, numtrials, maxsteps ]
-    #@assert [output_values(c1)[1],output_values(c1)[1]] == output_values(c)
+    #@assert [output_values(nc1)[1],output_values(nc1)[1]] == output_values(c)
     println("output_values(c): ",output_values(c))
-    println("goal: ",[output_values(c1)[1],output_values(c2)[1]])
+    println("goal: ",[output_values(nc1)[1],output_values(nc2)[1]])
     #nactive_lists = map(i->reduce_nactive_helper(c,maxsteps,num_mutations=num_mutations), collect(1:numtrials ) )
     nactive_lists = pmap(i->reduce_nactive_helper(c,maxsteps,num_mutations=num_mutations), collect(1:numtrials ) )
     nactive0 = vcat( [ na[1] for na in nactive_lists]... ) 
@@ -288,6 +295,7 @@ function test_reduce_numactive( p::Parameters, numpairs::Int64, numtrials::Int64
       println(f,"# numpairs: ", numpairs)
       println(f,"# numtrials: ", numtrials)
       println(f,"# maxsteps: ", maxsteps)
+      println(f,"# n_repeats: ", n_repeats)
       CSV.write( f, df, append=true, writeheader=true )
     end
   end
@@ -301,7 +309,7 @@ function reduce_nactive_helper( c::Chromosome, maxsteps::Int64; num_mutations::I
   goal = output_values( c )
   (ec,steps) = neutral_evolution( random_chromosome(c.params), goal, maxsteps )
   nactive0 = number_active_gates(ec)
-  println("nactive0: ",nactive0)
+  #println("nactive0: ",nactive0)
   nactive1 = Int64[]
   nc = deepcopy(c)
   (ec,cur_nactive) = evolve_reduce_numactive( nc, maxsteps, num_mutations=1 ) 
