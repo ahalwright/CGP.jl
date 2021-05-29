@@ -367,3 +367,74 @@ function compare_dataframe( folder_path::String, suffix::String )
   end
   cdf
 end
+
+# goal1 is the first uncombined goal
+# goal2 is the first uncombined goal
+# p is the parameters for these goals
+function compare_two_vs_one_output( p::Parameters, numtrials::Int64, maxsteps::Int64 )
+  @assert p.numoutputs == 1
+  goal1 = randgoal(p)
+  goal2 = randgoal(p)
+  pc = Parameters( p.numinputs+1, 1, 2*p.numinteriors, 2*p.numlevelsback )
+  pb = Parameters( p.numinputs, 2, 2*p.numinteriors, 2*p.numlevelsback )
+  println("pc: ",pc)
+  numbits = 2^p.numinputs
+  goal = [(deepcopy(goal1)[1] <<= numbits) | goal2[1]]
+  println("[goal]: ",[goal],"  [goal1,goal2]: ",[goal1[1],goal2[1]])
+  csteps_sum = 0
+  c_successes = 0
+  bsteps_sum = 0
+  b_successes = 0
+  for i = 1:numtrials
+    cr = random_chromosome(pc)
+    #println("[goal]: ",[goal])
+    (cnc,csteps) = neutral_evolution( cr, goal, maxsteps )
+    if csteps < maxsteps
+      csteps_sum += csteps
+      c_successes += 1
+    end
+    cb = random_chromosome(pb) 
+    #println("[goal1,goal2]: ",[goal1[1],goal2[1]])
+    (bnc,bsteps) = neutral_evolution( cb, [goal1[1],goal2[1]], maxsteps )
+    if bsteps < maxsteps
+      bsteps_sum += bsteps
+      b_successes += 1
+    end
+    #println("(csteps,bsteps): ",(csteps,bsteps))
+  end
+  println("csteps_avg: ",c_successes > 0 ? csteps_sum/c_successes : maxsteps )
+  println("bsteps_avg: ",b_successes > 0 ? bsteps_sum/b_successes : maxsteps )
+  (goal, numtrials, c_successes,c_successes > 0 ? csteps_sum/c_successes : maxsteps, b_successes, b_successes > 0 ? bsteps_sum/b_successes : maxsteps )
+end
+
+function run_compare_two_vs_one_output( p::Parameters, numruns::Int64, numtrials::Int64, maxsteps::Int64; csvfile::String="" )
+  df = DataFrame()
+  df.goal = Goal[]
+  df.numtrials = Int64[]
+  df.c_successes = Int64[]
+  df.c_avg = Float64[]
+  df.b_successes = Int64[]
+  df.b_avg = Float64[]
+  rows = pmap( x->compare_two_vs_one_output( p, numtrials, maxsteps ), collect(1:numruns) )
+  for r in rows
+    push!( df, r )
+  end
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      print_parameters(f,p,comment=true)
+      println(f,"# numruns: ",numruns)
+      println(f,"# numtrials: ",numtrials)
+      println(f,"# maxsteps: ",maxsteps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+
+  
+  

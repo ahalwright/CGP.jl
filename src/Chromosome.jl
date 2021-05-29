@@ -97,7 +97,8 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
   #println("mutate_chromosome! insert_gate_prob: ",insert_gate_prob)
   if rand() < insert_gate_prob && c.params.numinteriors < MyIntBits( MyInt )
     return(insert_gate!(c),false)
-  elseif rand() < delete_gate_prob && c.params.numinteriors > c.params.numinputs # don't do both insert and delete
+  elseif rand() < delete_gate_prob && c.params.numinteriors > c.params.numinputs 
+    # Don't reduce number of gates less than number of interiors
     return (delete_gate!(c),true)  # active set to true, but has no meaning here
   end
   num_mutate_locs = num_mutate_locations( c, funcs )
@@ -348,7 +349,7 @@ end
 
 function num_mutate_locations( c::Chromosome, funcs::Vector{Func} )
   num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
-  interiors_inputs_list = [ c.interiors[i].inputs for i = 1:length(c.params.numinteriors) ]
+  interiors_inputs_list = [ c.interiors[i].inputs for i = 1:c.params.numinteriors ]
   outputs_input_list = [ c.outputs[i].input for i = 1:c.params.numoutputs ]
   #println("int_list: ", interiors_inputs_list, "   out_list: ",outputs_input_list)
   num_inputs_list = map(length, interiors_inputs_list)
@@ -633,10 +634,8 @@ end
 function circuit( inputs::Tuple, gates::Tuple;
     levsback::Int64=length(inputs)+length(gates))
   numinputs = length(inputs)
-  println("gates: ",gates,"length(gates): ",length(gates))
   errors = false
   for i = 1:length(gates)
-    println("i: ",i," gates: ",gates)
     if gates[i][1] != i+numinputs
       println("index of gate ",i," not correct: it should be: ",i+numinputs)
       errors = true

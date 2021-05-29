@@ -6,6 +6,9 @@
 println("running test/test_Entropy.jl")
 @everywhere include("test/test_Entropy.jl")
 
+println("running test/test_Entropy.jl")
+@everywhere include("test/test_mutate.jl")
+
 println("running test/test_degen_complexity.jl")
 @everywhere include("test/test_degen_complexity.jl")
 

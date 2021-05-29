@@ -131,6 +131,16 @@ All diary topics:
 4_24: Debugged neutral_evolution() (problem: neutral evolution not consistent with mut_evolve()) in Evolve.jl. Fixed bug.
 4_25: Testing neutral_evolution() on lcircuits and chromosomes. 
 4_30: Results on even parity and shift extend.
+5_3:  Transition to 5x1 goals.  decrease/increase_goal_inputs() in change_goal_inputs.jl
+5_6:  Steps for symbiosis.  change_goal_inputs.jl 
+5_10: function reduce_numactive() in src/evolve_function.jl and test/test_evolve_function.jl
+5_12: effectiveness of test_reduce_numactive() versus run_kolmogorov_complexity() at
+   reducing the number of active gates in a combined goal.  REDO
+5_15: Revised test_reduce_numactive() in evolve_reduce_numactive.jl to report minimum as well as mean. REDO
+5_16: Ran compare_two_vs_one_output() in evolve_reduce_numactive.jl.  REDO
+5_18: 
+
+
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

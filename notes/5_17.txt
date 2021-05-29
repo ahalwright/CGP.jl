@@ -1,0 +1,13 @@
+Clearly run_geno_complexity() was not running right.  It seldom succeeded.
+
+Found that the version of mut_evolve() on pardosa which hadn't recently been updated was
+different than that on lycosa.  Did careful comparison testing, and discoverd a bug in
+number_mutations() in Chromosome.jl on lycosa.
+In Chromosome.jl, change:
+    interiors_inputs_list = [ c.interiors[i].inputs for i = 1:length(c.params.numinteriors) ] 
+    interiors_inputs_list = [ c.interiors[i].inputs for i = 1:c.params.numinteriors ]
+Now, both versions give the same results on simple examples.
+
+Thus, incomplete testing of mutate_chromosome!().
+
+All results since late March that use mutate_chromosome!() need to be redone.

@@ -8,6 +8,7 @@ Also reduced the number of trials used in the computation of kolmogorov complexi
 Modified test_reduce_numactive() in evolve_reduce_numactive.jl to choose random goals instead of random chromosomes.
 
 Rerun all runs in data/5_15
+Needs to be redone.
 
 Problem:  combine_circuits requires that the two to-be-combined circuits must have the same parameters.
 Thus, trying to use mut_evolve_increase_numints() is not valid.  So changed to mut_evolve_repeat().

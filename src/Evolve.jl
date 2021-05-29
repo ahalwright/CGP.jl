@@ -767,7 +767,7 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
   LinCirc = typeof(c) == LinCircuit ? :true : :false
   #funcs = LinCirc ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) 
   #println("LinCirc: ",LinCirc,"  Ones: ",Ones,"  CGP.Ones: ",CGP.Ones)
-  println("numgates: ",c.params.numinteriors)
+  #println("numgates: ",c.params.numinteriors)
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )

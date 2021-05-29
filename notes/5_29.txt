@@ -1,0 +1,8 @@
+Approximately 5/18:  Found bug in mut_evolve() or mutate_chromsome!().  
+Wrote test/test_mutate.jl in to test.  Works now.
+
+5_12:  Rerun with mutate_chromsome!() fixed on 5/29.
+See compare_reduce_numactive_k_complexity5_12B.xlsx  for summary of comparison
+k_complexity definitely better.  Data still in 5_12.
+5_15:  Rerun with mutate_chromsome!() fixed on 5/29.
+5_16:  Rerun with mutate_chromsome!() fixed on 5/29.

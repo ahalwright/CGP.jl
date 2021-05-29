@@ -1,0 +1,6 @@
+Ran compare_two_vs_one_output() in evolve_reduce_numactive.jl to see whether
+evolving to a two-output goal is better than evolving to a one output goal
+where the one output goal is the two output goals concatenated.
+The two-output goal is clearly faster/more successful.
+
+Needs to be redone.

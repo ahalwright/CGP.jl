@@ -30,8 +30,8 @@ using CSV
 using Statistics
 using Random
 #const MyInt = UInt8       # Type of bit string integers used in bit functions
-#const MyInt = UInt16     # Type of bit string integers used in bit functions
-const MyInt = UInt32     # Type of bit string integers used in bit functions
+const MyInt = UInt16     # Type of bit string integers used in bit functions
+#const MyInt = UInt32     # Type of bit string integers used in bit functions
 #const MyInt = UInt64     # Type of bit string integers used in bit functions
 #const MyInt = UInt128     # Type of bit string integers used in bit functions
 #const MyInt = BigInt      # Type of bit string integers used in bit functions
