@@ -36,7 +36,7 @@ const MyInt = UInt16     # Type of bit string integers used in bit functions
 #const MyInt = UInt128     # Type of bit string integers used in bit functions
 #const MyInt = BigInt      # Type of bit string integers used in bit functions
 const MyFunc = UInt128  # Type of concatenated output representation of functions
-const maxints_for_degen = 30
+const maxints_for_degen = 20
 include("aliases.jl")
 include("Contexts.jl")
 include("Parameters.jl")
@@ -58,13 +58,13 @@ include("Genotype_phenotype.jl")  # computations of evolvability and robustness 
 include("Propsel.jl")
 #include("Robust_evolve.jl")
 #include("Inf_alleles.jl")
-#include("Assignment.jl")
 include("Analyze.jl")
 include("RecordOutputs.jl")
 include("Evolvability.jl")
 #include("Build_chromosome.jl")
 #include("epistasis.jl")
 include("Complexity.jl")
+include("Degeneracy.jl")
 end
 using Main.CGP
 MyInt=Main.CGP.MyInt

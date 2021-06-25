@@ -176,6 +176,23 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
   end
 end
 
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Int64}, funcs::Vector{Func}; csvfile::String="" )
+  df = DataFrame()
+  df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  df.:igoals = [ @sprintf("%d",g) for g = 0:(2^2^p.numinputs-1) ]
+  #println("len goals: ",length(df.:goals))
+  sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
+  df[!,sym] = outputs_list
+  open( csvfile, "w" ) do f
+    hostname = chomp(open("/etc/hostname") do f read(f,String) end) 
+    println(f,"# date and time: ",Dates.now())
+    println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )     
+    print_parameters(f,p,comment=true)
+    println(f,"# funcs: ",funcs)
+    CSV.write( f, df, append=true, writeheader=true )
+  end
+end
+
 function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}; csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]

@@ -1,0 +1,3 @@
+6_5_21:  Tried to get run_env_evolution() in src/Env_evolution.jl to run, and gave up.
+
+Removed Env_evolution.jl and Assignment.jl from module CGP and move these to stash/

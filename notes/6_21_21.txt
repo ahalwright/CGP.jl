@@ -1,0 +1,24 @@
+Ideas on degeneracy.
+
+As shown in 6\_20\_21.txt, degeneracy and robustness increase with the number of gates.
+Better summarized these results in a spreadsheet in
+evotech/complexity/data/6\_21\_21/degeneracy\_by\_increasing\_gates.xlsx
+
+Hypothesis:  increased degeneracy increases "resiliancy".
+
+Hypothesis:  Start with a circuit that maps to a given phenotype.  Circuit failure
+is simulated by mutating the circuit.  Measure the number of evolutionary steps
+for the circuit to recover the phenotype.  Implementation questions:
+Run with a large step limit, or do multiple runs with smaller step limits.
+Note that if robustness is large, then many mutations won't change the phenotype.
+
+Hypothesis:  Start with a circuit that maps to a given phenotype.  Mutate the phenotype,
+and measure how long it takes for the circuit to evolve to the mutated phenotype.
+Note there is much evolutionary computation research on varying goals.  But for now, 
+look at straighforward techniques.  Again, there is the question of running with a
+large step limit, or doing multiple runs with a smaller step limit.
+
+The paper "Degeneracy: A design principle for achieving robustness and evolvability"
+by Whitacre, Bender, 2010 addresses many of these questions, and my document
+complexity/cce/'Degeneracy preliminary proposal 8\_21\_20.docx' gives my earlier thoughts
+(not much original in this document).

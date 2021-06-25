@@ -124,13 +124,13 @@ All diary topics:
       Discovered that all 3x1 goals are reachable using 6 gates and 1 register.
 3_31: Gecco reviews summmary
 4_3:  Listing some tasks for Gecco rewrite
-4_6:  Ran evolvability simulation with only NAND gate and 15 gates and 9 levelsback.k
+4_6:  Ran evolvability simulation with only NAND gate and 15 gates and 9 levelsback.
 4_8:  Doing a sampling evolvability vs robustness plot using only NAND gate.
 4_13: Checking computation of Tononi complexity
 4_18: Testing neutral_evolution() on lcircuits.  See 4_24.txt: results not valid.
 4_24: Debugged neutral_evolution() (problem: neutral evolution not consistent with mut_evolve()) in Evolve.jl. Fixed bug.
 4_25: Testing neutral_evolution() on lcircuits and chromosomes. 
-4_30: Results on even parity and shift extend.
+4_30: Summarized conclusions on my ability to evolve parity.
 5_3:  Transition to 5x1 goals.  decrease/increase_goal_inputs() in change_goal_inputs.jl
 5_6:  Steps for symbiosis.  change_goal_inputs.jl 
 5_10: function reduce_numactive() in src/evolve_function.jl and test/test_evolve_function.jl
@@ -138,8 +138,11 @@ All diary topics:
    reducing the number of active gates in a combined goal.  REDO
 5_15: Revised test_reduce_numactive() in evolve_reduce_numactive.jl to report minimum as well as mean. REDO
 5_16: Ran compare_two_vs_one_output() in evolve_reduce_numactive.jl.  REDO
-5_18: 
-
+5_17: Discoverd a bug in number_mutations() in Chromosome.jl on lycosa.
+5_29:  Found bug in mut_evolve() or mutate_chromsome!().  Fixed on 5/29/21.  test/test_mutate.jl.
+6_5:  Tried to get run_env_evolution() in src/Env_evolution.jl and gave up.  
+      Moved Env_evolution.jl and Assignment.jl to stash.
+6_14: Generated a single-curve "Goal frequencey vs. goal rank" plot for GECCO presentation.
 
 
 All plots:

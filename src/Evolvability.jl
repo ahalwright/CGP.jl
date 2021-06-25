@@ -647,7 +647,7 @@ end
 # Computes properties of these goals and chromosomes. 
 # Returns a dataframe with one row per goal.
 function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::Int64, p::Parameters,
-      max_steps::Int64, max_tries::Int64; csvfile = "" )
+      max_steps::Int64, max_tries::Int64, maxsteps_recover::Int64, maxtrials_recover::Int64, maxtries_recover::Int64; csvfile = "" )
   #p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=10, numlevelsback=numlevelsback ) # Establish scope for p
   geno_complexity_df = DataFrame() 
   geno_complexity_df.goal = Vector{MyInt}[]
@@ -667,8 +667,11 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   geno_complexity_df.unique_goals = GoalList[]
   geno_complexity_df.nactive = Float64[]
   geno_complexity_df.complexity = Float64[]
-  geno_complexity_df.complexQ95 = Float64[]
-  geno_complexity_df.complexQ99 = Float64[]
+  geno_complexity_df.degeneracy = Float64[]
+  geno_complexity_df.sumsteps = Float64[]
+  geno_complexity_df.sumtries = Float64[]
+  #geno_complexity_df.complexQ95 = Float64[]
+  #geno_complexity_df.complexQ99 = Float64[]
   #geno_complexity_df.epi2= Float64[]
   #geno_complexity_df.epi3= Float64[]
   #geno_complexity_df.epi4= Float64[]
@@ -689,8 +692,11 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   num_goals = 2^2^p.numinputs
   #println("sample size: ",sample_size,"  num_goals: ",num_goals)
   #println("list_goals: ",list_goals)
-  result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, max_tries ), list_goals)
-  #result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, max_tries ), list_goals)
+  result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, max_tries,
+      maxsteps_recover, maxtrials_recover, maxtries_recover), list_goals)
+  #result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, max_tries,
+  #    maxsteps_recover, maxtrials_recover, maxtries_recover), list_goals)
+  println("after pmap")
   for res in result
     push!(geno_complexity_df,res)
   end
@@ -699,6 +705,7 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   #geno_complexity_df.estimate = zeros(Float64,size(geno_complexity_df)[1] )
   j = 1
   for g in goallist
+    println("goal ",g)
     all_unique_goals = Goal[]
     prev_evo_count = 0
     #sum_estimate = 0.0
@@ -745,7 +752,8 @@ end
 # This can be run in parallel for one goal because each run is evolving maxreps circuits that compute goal.
 # all_unique_outputs is returned as one of the fields in the returned dataframe.
 # Then run_geno_complexity combines the all_unique_outputs from the parallell runs
-function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::Int64, max_tries::Int64 )
+function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::Int64, max_tries::Int64,
+      maxsteps_recover::Int64, maxtrials_recover::Int64, maxtries_recover::Int64 )
   #println("geno_complexity: goal: ",goal)
   if max_tries < maxreps
     error("max_tries should be greater than maxreps in geno_complexity.")
@@ -757,7 +765,10 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
   all_unique_outputs = Goal[]
   nactive_list = Int64[]
   complexity_list = Float64[]
-  frenken_mi_list = Float64[]
+  degeneracy_list = Float64[]
+  sumsteps_list = Int64[]
+  sumtries_list = Int64[]
+  #frenken_mi_list = Float64[]
   if p.numoutputs == 0
     epi2 = k_bit_epistasis(W,2,goal[1])
     epi3 = k_bit_epistasis(W,3,goal[1])
@@ -792,7 +803,11 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
     all_unique_outputs = unique(vcat(all_unique_outputs,evolvable_outputs))
     push!( nactive_list, number_active( c ))
     push!( complexity_list, complexity5( c ))
-    push!( frenken_mi_list, fmi_chrome( c ))
+    push!( degeneracy_list, degeneracy( c ))
+    (sumsteps,sumtries) = recover_phenotype( c, maxsteps_recover, maxtrials_recover, maxtries_recover )
+    push!( sumsteps_list, sumsteps )
+    push!( sumtries_list, sumtries )
+    #push!( frenken_mi_list, fmi_chrome( c ))
     sum_steps_per_iteration += steps
     sum_steps += sum_steps_per_iteration
     sum_steps_per_iteration = 0
@@ -822,8 +837,11 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       all_unique_outputs,
       sum( nactive_list )/maxreps,
       sum( complexity_list )/maxreps,
-      quantile(complexity_list,0.95),
-      quantile(complexity_list,0.99)
+      sum( degeneracy_list )/maxreps,
+      sum( sumsteps_list )/maxreps,
+      sum( sumtries_list )/maxreps,
+      #quantile(complexity_list,0.95),
+      #quantile(complexity_list,0.99),
       #p.numoutputs==0 ? epi2 : 0.0,
       #p.numoutputs==0 ? epi3 : 0.0,
       #p.numoutputs==0 ? epi4 : 0.0,
@@ -855,7 +873,8 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
       #epi_total,
       #sum(frenken_mi_list)/maxreps
       0.0,  # complexity
-      0.0,  # quatile(complexity_list,0.95)
+      0.0,  # degeneracy
+      #0.0,  # quantile(complexity_list,0.95)
       #0.0,
       #0.0,
       #0.0,

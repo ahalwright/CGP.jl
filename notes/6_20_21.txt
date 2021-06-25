@@ -1,0 +1,8 @@
+Repeating evolvability/complexity results of 2020/10/27 (2020/10_27) with computation of degeneracy.
+
+Data for B and C and D:
+B:  11 gates, 8 lb: mean(gcdfB.degeneracy) 2.5358770 mean(robustness): 0.3310393  195.3 seconds
+C:  16 gates, 8 lb: mean(gcdfC.degeneracy) 4.4608446 mean(robustness): 0.4030680  153.8 seconds
+D:  20 gates, 8 lb: mean(gcdfD.degeneracy) 6.097175  mean(robustness): 0.4390523  1480 seconds
+
+

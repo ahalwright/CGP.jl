@@ -1,6 +1,8 @@
 # Simple test of function run_mut_evolution()
 # include("../src/CGP.jl") # Assumes that CGP.jl is loaded
 # The following lines allow this file to included from CGP.jl, CGP.jl/test, or CGP.jl/src.
+#include("../src/Env_evolution.jl")
+#include("../src/Assignment.jl")
 cwd = pwd()
 date = "7_25"
 if cwd[end-5:end] == "CGP.jl"
