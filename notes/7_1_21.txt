@@ -1,0 +1,8 @@
+evo_dict.jl  computes an evolvability dictionary to keep track of those phenotypes that are discoverd through 
+evolvability.  Running run_evo_dict() now generates 2 csvfiles, one with the robustness and evolvability
+results, and another for the size of the intersection between the different evolvability lists for the 
+phenotypes in gl.
+
+More docuentation needs to be written.
+
+Results are in data/7_1_21.

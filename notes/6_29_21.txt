@@ -1,0 +1,51 @@
+Continuation of 6_25_21.txt
+
+cdf=read_dataframe("../data/6_25_21/geno_complexity6_25_21Icons.csv")
+select!(cdf,DataFrames.Not(:sumsteps))
+select!(cdf,DataFrames.Not(:sumtries))
+cntdf = read_dataframe("../data/6_25_21/count_outputs_3x1_hu_6_4H.csv")
+insertcols!(cdf,size(cdf)[2]+1,:ints6_4=>cntdf.ints6_4)
+write_dataframe_with_comments(cdf,"../data/6_25_21/geno_complexity6_25_21Icons.csv","../data/6_25_21/geno_complexity6_25_21Iccons.csv")
+cdf[cdf.robustness.==0.0,[:goal,:ints6_4,:ntries,:avg_steps,:log_avg_steps,:complexity,:degeneracy,:robustness,:evo_count,:nactive]]  
+10×10 DataFrame
+ Row │ goal            ints6_4  ntries   avg_steps      log_avg_steps  complexity  degeneracy  robustness  evo_count  nactive
+     │ String          Int64    Float64  Float64        Float64        Float64     Float64     Float64     Float64    Float64
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ UInt16[0x0049]       54     2.82  69157.1              4.68        2.75317     1.41199         0.0      40.78      9.0
+   2 │ UInt16[0x0061]       32     4.32      1.44868e5        4.95108     2.75899     1.41157         0.0      42.76      9.0
+   3 │ UInt16[0x0069]        0   500.0       0.0              0.0         0.0         0.0             0.0       0.0       0.0
+   4 │ UInt16[0x006d]       53     2.58  58152.3              4.63359     2.75201     1.41207         0.0      40.82      9.0
+   5 │ UInt16[0x0079]       17     4.2       1.38866e5        4.99268     2.75317     1.41199         0.0      42.78      9.0
+   6 │ UInt16[0x0086]       34     3.86      1.21873e5        4.93688     2.75666     1.41174         0.0      42.78      9.0
+   7 │ UInt16[0x0092]       50     2.54  50696.9              4.53205     2.75433     1.4119          0.0      40.52      9.0
+   8 │ UInt16[0x0096]        0   500.0       0.0              0.0         0.0         0.0             0.0       0.0       0.0
+   9 │ UInt16[0x009e]       18     3.9       1.3e5            4.99147     2.76539     1.41111         0.0      42.54      9.0
+  10 │ UInt16[0x00b6]       65     2.52  54011.6              4.57735     2.75259     1.41203         0.0      40.44      9.0
+
+# Comment:  Hypotheses:
+# Phenotypes 0x0069 and 0x0096 have no corresponding genotypes with 6 gates, 4 levelsback.
+# The remianing 8 phenotypes have Kolmogorov complexity 6 and are isolated.
+
+
+julia> p = Parameters(3,1,6,4)    
+julia> kolmogorov_complexity( p, UInt16[0x0049], 30, 100000)
+goal: UInt16[0x0049]
+circuit found for goal UInt16[0x0049] with num_gates = 6
+no goal found for goal UInt16[0x0049] for num_gates: 5
+(UInt16[0x0049], 6, 6, 2.752976645360826, 30, 0.0, 0.591025641025641, 0)
+
+julia> p = Parameters(3,1,6,4)julia> kolmogorov_complexity( p, UInt16[0x006d], 30, 100000)
+goal: UInt16[0x006d]
+circuit found for goal UInt16[0x006d] with num_gates = 6
+no goal found for goal UInt16[0x006d] for num_gates: 5
+(UInt16[0x006d], 6, 6, 2.7646095806222295, 30, 0.0, 0.5782051282051283, 0)
+
+
+
+julia> p = Parameters(3,1,7,4)
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 7, 4)
+julia> kolmogorov_complexity( p, UInt16[0x0069], 30, 100000)
+goal: UInt16[0x0069]   # this goal has K-complexity 7
+circuit found for goal UInt16[0x0069] with num_gates = 7
+no goal found for goal UInt16[0x0069] for num_gates: 6
+(UInt16[0x0069], 7, 7, 4.514221005751894, 30, 0.016393442622950827, 0.5256830601092898, 0) 

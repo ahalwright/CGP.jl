@@ -1,0 +1,79 @@
+Following from collaboration meeting with Ting Hu, Wolfgang, Cheyenne, me.
+
+Trying to verify/validate the Hu 2020 results on communities.  In particular,
+possibly the community involving nodes 180, 75, 165, 11, 244 (decimal).
+
+Chose to use 3x1 phenotypes with 6 gates and 4 levels back which is what seems
+closest to LinGP with 6 gates and additional register.
+
+Rerunning some of my core algorithms on evolution evolvability.
+
+consolidate_dataframe("../data/6_25_21/geno_complexity6_25_21I.csv", "../data/6_25_21/geno_complexity6_25_21Icons.csv")
+Best results are in data/6_25_21/geno_complexity6_25_21Icons.csv"
+
+Added columns igoals which is decimal version of goal column and column ints6_4
+hcdf = read_dataframe("../data/6_25_21/count_outputs_3x1_hu_6_4H.csv")
+insertcols!(cdf,2,:igoals=>hcdf.igoals)
+insertcols!(cdf,2,:ints6_4=>hcdf.ints6_4)
+
+Filtering by difficulty of evolution:
+julia> cdf[cdf.log_avg_steps.>=4.0,[:igoals,:ints6_4,:ntries,:avg_steps,:log_avg_steps,:complexity,:degeneracy,:robustness,:evo_count,:nactive]]
+33×10 DataFrame
+ Row │ igoals  ints6_4  ntries   avg_steps      log_avg_steps  complexity  degeneracy  robustness  evo_count  nactive
+     │ Int64   Int64    Float64  Float64        Float64        Float64     Float64     Float64     Float64    Float64
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │      9     2711     2.04  17036.8              4.09033     2.49716     1.10401  0.108654       107.84     8.6
+   2 │     22      274     2.1   19595.3              4.12038     2.66285     1.37704  0.00153846      92.82     9.0
+   3 │     24      400     3.0   92878.2              4.88755     2.61626     1.07955  0.0357692      101.4      9.0
+   4 │     36      293     3.8       1.34832e5        5.0007      2.68523     1.06109  0.0294231      100.7      9.0
+   5 │     45      232     2.08  23942.8              4.23412     2.85129     1.42761  0.05            56.24     9.0
+   6 │     57      263     2.02  24240.5              4.27566     2.82689     1.40854  0.0357692       70.5      9.0
+   7 │     66     1891     2.02  22622.9              4.23483     2.16082     1.07939  0.103269        78.38     8.54
+   8 │     73       54     2.82  69157.1              4.68        2.75317     1.41199  0.0             40.78     9.0
+   9 │     75      225     2.0   19528.3              4.17339     2.84713     1.42653  0.0492308       56.52     9.0
+  10 │     97       32     4.32      1.44868e5        4.95108     2.75899     1.41157  0.0             42.76     9.0
+  11 │     99      252     2.02  23194.1              4.26469     2.79239     1.39871  0.0330769       71.76     9.0
+  12 │    104      299     2.16  26507.3              4.25081     2.65758     1.37746  0.00134615      98.76     9.0
+  13 │    109       53     2.58  58152.3              4.63359     2.75201     1.41207  0.0             40.82     9.0
+  14 │    111     2829     2.0   15427.2              4.06563     2.59648     1.11551  0.100769       104.8      8.68
+  15 │    121       17     4.2       1.38866e5        4.99268     2.75317     1.41199  0.0             42.78     9.0
+  16 │    126     2909     2.06  22209.5              4.23146     2.02544     1.09684  0.101346       105.14     8.56
+  17 │    129     2844     2.02  24286.5              4.2643      2.17647     1.08916  0.0957692      105.5      8.62
+  18 │    134       34     3.86      1.21873e5        4.93688     2.75666     1.41174  0.0             42.78     9.0
+  19 │    144     2870     2.0   15025.7              4.04362     2.55832     1.12387  0.111346       100.94     8.6
+  20 │    146       50     2.54  50696.9              4.53205     2.75433     1.4119   0.0             40.52     9.0
+  21 │    151      247     2.12  18529.9              4.04597     2.68619     1.37899  0.00115385      94.86     9.0
+  22 │    156      260     2.08  29011.7              4.35039     2.81352     1.4054   0.0365385       70.94     9.0
+  23 │    158       18     3.9       1.3e5            4.99147     2.76539     1.41111  0.0             42.54     9.0
+  24 │    180      226     2.0   22148.7              4.24694     2.85233     1.42788  0.0503846       57.42     9.0
+  25 │    182       65     2.52  54011.6              4.57735     2.75259     1.41203  0.0             40.44     9.0
+  26 │    189     1824     2.0   19374.1              4.20891     2.08345     1.07437  0.109615        88.74     8.5
+  27 │    198      252     2.06  24723.6              4.28331     2.82977     1.41141  0.0388462       71.58     9.0
+  28 │    210      234     2.04  24633.2              4.24416     2.83985     1.42464  0.0492308       55.84     9.0
+  29 │    214      202     2.1   15978.8              4.04357     2.6453      1.36843  0.00346154      59.5      9.0
+  30 │    219      289     3.5       1.14524e5        4.90858     2.76954     1.051    0.0276923       91.36     9.0
+  31 │    231      388     2.84  83677.7              4.83857     2.67334     1.07533  0.0303846       96.06     9.0
+  32 │    233      262     2.14  20971.3              4.08488     2.67239     1.3733   0.00134615      99.16     9.0
+  33 │    246     2765     2.0   14906.8              4.03171     2.58035     1.11138  0.105962        96.36     8.63
+mean |    127.5  4.1E6     5.96   7926.0              2.92        2.20        1.30     0.25            73.97     7.9
+ 
+Note that redundancy is always low, complexity is high, degeneracy is high, and robustness is very low, often 0.
+Goals 180 and 75, while 165, 11, 244 are not.
+
+julia> describe(cdf[:,[:igoals,:ints6_4,:ntries,:avg_steps,:log_avg_steps,:complexity,:degeneracy,:robustness,:evo_count,:nactive]])
+10×7 DataFrame
+ Row │ variable       mean          min           median         max                nmissing  eltype
+     │ Symbol         Float64       Real          Float64        Real               Int64     DataType
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ igoals          127.5         0               127.5             255                 0  Int64
+   2 │ ints6_4           4.05649e6   0            100998.0       166560168                 0  Int64
+   3 │ ntries            5.95758     2.0               2.0             500.0               0  Float64
+   4 │ avg_steps      7925.96        0.0             973.14              1.44868e5         0  Float64
+   5 │ log_avg_steps     2.92246     0.0               2.89371           5.0007            0  Float64
+   6 │ complexity        2.20221     0.0               2.21937           2.88384           0  Float64
+   7 │ degeneracy        1.29829    -8.77076e-18       1.36821           1.73999           0  Float64
+   8 │ robustness        0.253566    0.0               0.225577          0.662885          0  Float64
+   9 │ evo_count        73.9673      0.0              73.58            112.52              0  Float64
+  10 │ nactive           7.89551     0.0               8.075             9.0               0  Float64
+
+Continued in 6_29_21.txt  

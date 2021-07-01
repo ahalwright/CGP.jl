@@ -51,6 +51,7 @@ function test_neutral_evolution( repetitions::Int64, numinputs::Int64, numinstru
   funcs = lin_funcs(numinputs)
   for ni in numinstructions_rng
     for nr in numregisters_rng
+      println("nr: ",nr)
       p = Parameters(numinputs,1,ni,nr)
       sum_steps = 0
       sum_fail = 0

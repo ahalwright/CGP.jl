@@ -64,7 +64,8 @@ function recover_phenotype( c::Chromosome, maxsteps::Int64, maxtrials::Int64, ma
   return (sumsteps,sumtries)
 end
 
-# Should be moved to fine Evolve.jl.
+#=
+# Moved to Evolve.jl.
 function lambda_evolution( c::Chromosome, g::Goal, maxsteps::Integer, mutrate::Float64 )
   p = c.params
   p.mutrate = mutrate
@@ -108,6 +109,7 @@ function lambda_evolution( c::Chromosome, g::Goal, maxsteps::Integer, mutrate::F
     return (c, step)
   end
 end        
+=#
 
 function compare_lambda_neutral( p::Parameters, g::Goal, trials::Int64, maxsteps::Int64, mutrate_range::CGP.FloatRange )
   @assert length(collect(mutrate_range)) == 3

@@ -636,8 +636,7 @@ function geno_robustness( goal::Goal, maxreps::Int64, p::Parameters, max_steps::
   end  
   ntries = i
   if nrepeats > 0
-    return ( goal, robust_sum/all_outputs_sum, g_evolvable_sum/all_outputs_sum, length(all_unique_outputs)/all_outputs_sum, 
-        p.numinteriors, ntries, nrepeats )
+
   else
     return ( goal, 0.0, 0.0, 0.0, p.numinteriors, ntries, nrepeats )
   end

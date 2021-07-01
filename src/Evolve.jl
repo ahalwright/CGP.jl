@@ -2,7 +2,7 @@ export components_matched, goals_matched_exact, goals_matched_hamming, next_chro
 export mut_reduce_numactive
 export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
 export evolve_function, mut_evolve_repeat, circuit_evolve, run_circuit_evolve
-export neutral_evolution, geno_circuits, geno_properties, geno_list_properties
+export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, lambda_evolution
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -773,9 +773,11 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
   current_distance = hamming_distance( ov, g, c.params.numinputs )
   while step < max_steps && ov != g
     step += 1
+    #println("A step: ",step," current_distance: ",current_distance)
     if typeof(c) == Chromosome
       (new_c,active) = mutate_chromosome!( deepcopy(c), funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
     elseif typeof(c) == LinCircuit
+      #println("c: ",c)
       new_c = mutate_circuit!( deepcopy(c), funcs )
     end
     new_ov = output_values( new_c )
@@ -788,7 +790,7 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
     if new_ov == ov 
       c = new_c
       if print_steps
-        println("step: ",step," is pheno neutral.")
+        println("step: ",step," is pheno neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance)
       end
     elseif new_distance == current_distance
       c = new_c
@@ -802,6 +804,7 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
       c = new_c
       ov = new_ov
       current_distance = new_distance
+      #println("B step: ",step," current_distance: ",current_distance)
     else
       if print_steps
         #print("worse step: ",step,"  new_output: ",new_ov,"  new circuit: ")
@@ -909,4 +912,49 @@ function geno_list_properties( gl::GoalList, p::Parameters, num_circuits::Intege
     end
   end
   df
+end
+
+# Does epochal evolution using a 1+lambda strategy where lambda is specified in c.params.
+function lambda_evolution( c::Chromosome, g::Goal, maxsteps::Integer, mutrate::Float64 )
+  p = c.params
+  p.mutrate = mutrate
+  funcs = default_funcs(p.numinputs)
+  poisson_lambda = p.mutrate*p.numinteriors
+  X = Poisson( poisson_lambda )
+  step = 0
+  ov = output_values( c)
+  current_distance = hamming_distance( ov, g, c.params.numinputs )
+  #print("ov: ",ov,"  cur_dist: ",current_distance,"  "); print_circuit(c)
+  while step < maxsteps && ov != g
+    chrome_list = Chromosome[]
+    dist_list = Float64[]
+    for i = 1:p.lambda
+      step += 1
+      num_mutations =  rand(X)
+      new_c = deepcopy(c) 
+      for m = 1:num_mutations
+        mutate_chromosome!( new_c, funcs )
+      end
+      new_ov = output_values( new_c)
+      new_dist = hamming_distance( new_ov, g, c.params.numinputs )
+      #print("new_ov: ",new_ov,"  new_dist: ",new_dist,"  "); print_circuit(new_c)
+      push!(chrome_list,new_c)
+      push!(dist_list,new_dist)
+    end  
+    (best_dist,ind) = findmin( dist_list )
+    if best_dist <= current_distance
+      c = chrome_list[ind]
+      ov = output_values( c )
+      current_distance = hamming_distance( ov, g, c.params.numinputs )
+      #print("ov: ",ov,"  cur_dist: ",current_distance,"  "); print_circuit(c)
+    end
+  end # while
+  if step == maxsteps
+    println("lambda evolution failed with ",step," steps for goal: ",g)
+    return (c, step)
+  else
+    println("lambda evolution succeeded at step ",step," for goal: ",g)
+    @assert output_values(c) == g
+    return (c, step)
+  end
 end

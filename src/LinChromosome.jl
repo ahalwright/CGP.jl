@@ -1,4 +1,5 @@
 # Linear GP circuit chromosome functions
+# When Parameters are used, numlevelsback specifies numregisters.
 # A circuit is a sequence of instructions on the register array R 
 #   which has length numregisters + numinputs
 # R is normally local to the function where is is used.
@@ -244,7 +245,8 @@ function mutate_circuit!( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, fu
 end
 
 function mutate_circuit!( circuit::LinCircuit, funcs::Vector{Func}; nodearity::Int64=2 )
-  LinCircuit( circuit.params, mutate_circuit!( circuit.circuit_vects, circuit.params, funcs ))
+  #LinCircuit( params, mutate_circuit!( circuit.circuit_vects, circuit.params, funcs ) )
+  LinCircuit( mutate_circuit!( circuit.circuit_vects, circuit.params, funcs ), circuit.params )
 end
 
 function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 ) 
