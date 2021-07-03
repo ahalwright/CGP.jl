@@ -1,0 +1,26 @@
+Found that counting unique circuits in evo_dict.jl wasn't working with my method of using an 
+immutable Chromosome as a hash key.  So I went to my already programmed circuit_int() function
+in the cartesian==true case, and this seems to work correctly.  The cartesian==false case
+does not work because mutata_all() is not definined in LinCircuit.jl, and
+it looks like the definition of circuit_int() in LinCircuit.jl overrides the definition in Chromosome.jl
+(so I turned off the export in LinCircuit.jl).
+
+Leslie Vaccilet
+
+GECCO paper:
+Session GP 2  Tuesday, July 13, 14:20-15:40, Room GP (Lille time)  6:20-7:40 MDT
+Evolvability and Complexity Properties of the Digital Circuit Genotype-Phenotype Map
+Alden Wright, Cheyenne Laue 14:40   6:40 MDT
+
+Papers to read:
+
+Jamie Caldwell , Joshua Knowles, Christoph Thies, Filip Kubacki, and Richard Watson (2021)
+Deep Optimisation: Multi-scale Evolution by Inducing and Searching in Deep Representations
+https://doi.org/10.1007/978-3-030-72699-7_32
+
+Jouffrey V, Leonard AS, Ahnert SE. 2021 
+Gene duplication and subsequent
+diversification strongly affect phenotypic
+evolvability and robustness. R. Soc. Open Sci. 8:
+201636.
+https://doi.org/10.1098/rsos.201636

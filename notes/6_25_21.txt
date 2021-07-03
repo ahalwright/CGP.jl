@@ -77,3 +77,6 @@ julia> describe(cdf[:,[:igoals,:ints6_4,:ntries,:avg_steps,:log_avg_steps,:compl
   10 │ nactive           7.89551     0.0               8.075             9.0               0  Float64
 
 Continued in 6_29_21.txt  
+Continued in 7_2_21.txt  
+7/2/21:  Added columns hgoal, dgoal, and kcomp to the data/6_25_21/geno_complexity6_25_21Iccons.csv dataframe
+and saved to the file data/6_25_21/geno_complexity7_2_12means.csv which is also linked to in 7_2_21.   

@@ -5,8 +5,11 @@
 # ncircuits is the number of circuits (chromosomes) per goal used to compute evolvability
 # ntries is the number of evolution attempts done in trying to evolve each chromosome
 # maxsteps is the maximum number of steps for each evolution
-# mutrate is the mutation rate if lambba_evolution is used.  
+# mutratu is the mutation rate if lambba_evolution is used.  
 # mutrate<=0 means use neutral_evolution
+# As of 7/3/21 does not work for cartesian==false because mutata_all() is not definined in LinCircuit.jl, and
+# it looks like the definition of circuit_int() in LinCircuit.jl overrides the definition in Chromosome.jl 
+#   (so I turned off the export in LinCircuit.jl).
 function run_evo_dict( p::Parameters, gl::GoalList, ncircuits::Int64, numtries::Int64, maxsteps::Int64, mutrate::Float64=0.0;
       cartesian::Bool=true, csvfile::String=""  )
   df = DataFrame()
@@ -24,16 +27,19 @@ function run_evo_dict( p::Parameters, gl::GoalList, ncircuits::Int64, numtries::
   df.tries = Int64[]
   df.totalsteps = Int64[]
   df.robust_sum = Int64[]  
+  df.count_circs = Int64[]
   df.evo_count = Int64[]
+  #println("size(df): ",size(df))
   results = pmap( g->evo_dict( p, g, ncircuits, numtries, maxsteps, mutrate, cartesian=cartesian ), gl )
   for res in results
     result_list = res[2:end]
     #println("result_list: ",result_list)
     param_list = [ res[1][1], p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, ncircuits, numtries, maxsteps, mutrate ]
-    #println("length(param_list): ",length(param_list))
-    #println("param_list: ",param_list)
-    df_list = vcat( result_list[1:(end-1)], length(result_list[end]))
+    df_list = vcat( result_list[1:(end-1)], length(result_list[end]))  # length(result_list[end]) is evo_count
     #println("df_list: ",df_list)
+    dfrow = vcat(param_list,df_list)
+    #println("length(dfrow): ",length(dfrow))
+    #println("dfrow: ",dfrow)
     push!(df,vcat(param_list,df_list))
   end 
   evdict = Dict{MyInt, Int64 }[]
@@ -91,6 +97,7 @@ function evo_dict( p::Parameters, g::Goal, ncircuits::Int64, numtries::Int64, ma
     cartesian::Bool=true )
   funcs = cartesian ? default_funcs(p.numinputs) : lin_funcs(p.numinputs)
   evdict = Dict{MyInt, Int64 }()
+  circdict = cartesian ? Dict{Int64,Int64}() : Dict{Vector{Int64},Int64}()
   robust_sum = 0
   total_steps = 0
   successes = 0
@@ -109,6 +116,11 @@ function evo_dict( p::Parameters, g::Goal, ncircuits::Int64, numtries::Int64, ma
     end
     total_steps += steps
     if steps < maxsteps
+      if haskey(circdict,circuit_int(new_c))
+        circdict[circuit_int(new_c)] += 1
+      else
+        circdict[circuit_int(new_c)] = 1
+      end
       successes += 1
       ov = output_values( new_c )   
       @assert g == ov
@@ -126,5 +138,6 @@ function evo_dict( p::Parameters, g::Goal, ncircuits::Int64, numtries::Int64, ma
       end
     end  # if
   end  # while
-  return [ g, successes, t, total_steps, robust_sum, evdict ]
+  count_circs = length(keys(circdict))
+  return [ g, successes, t, total_steps, robust_sum, count_circs, evdict ]
 end

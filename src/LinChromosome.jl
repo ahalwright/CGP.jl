@@ -19,6 +19,7 @@
 export LinCircuit, output_values
 export execute_lcircuit, numinstructions, vect_to_int, int_to_vect, rand_ivect, execute_random_circuit
 export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_all, print_circuit
+#export circuit_int
 OutputType = Int64
 
 #=
@@ -135,6 +136,10 @@ end
 function circuit_vect_to_circuit_int( cv::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
     nodearity::Int64=2 )
   map(x->vect_to_int(x, numregisters, numinputs, funcs, nodearity=nodearity ), cv )
+end
+
+function circuit_int( c::LinCircuit )
+  circuit_vect_to_circuit_int( c.circuit_vects, c.params.numinteriors, c.params.numinputs, lin_funcs(c.params.numinputs ) )
 end
   
 # Random instruction  

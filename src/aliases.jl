@@ -1,4 +1,4 @@
-export Population, Chromosome, Parameters, indiv_result_type, pop_result_type, elt_type
+export Population, Chromosome, imChromosome, Parameters, indiv_result_type, pop_result_type, elt_type
 
 using Distributions
 using DataFrames
