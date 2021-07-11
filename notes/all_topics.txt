@@ -143,6 +143,11 @@ All diary topics:
 6_5:  Tried to get run_env_evolution() in src/Env_evolution.jl and gave up.  
       Moved Env_evolution.jl and Assignment.jl to stash.
 6_14: Generated a single-curve "Goal frequencey vs. goal rank" plot for GECCO presentation.
+6_17: Redo explore complexity plots for presentation.
+6_20: Repeating evolvability/complexity results of 2020/10/27 (2020/10_27) with computation of degeneracy.
+6_21: Degeneracy increases with number of gates.  Hypothesis:  increased degeneracy increases resiliancy.
+6_25: Rerun core algorithms on evolution evolvability with 3x1 6 gates, 4 lb.
+6_29: Results with K-complexity 6 and 7.  8 phenotypes with K-complexity 6 and zero robustness.
 
 
 All plots:

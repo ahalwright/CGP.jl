@@ -65,6 +65,7 @@ include("Evolvability.jl")
 #include("epistasis.jl")
 include("Complexity.jl")
 include("Degeneracy.jl")
+include("Evo_dict.jl")
 end
 using Main.CGP
 MyInt=Main.CGP.MyInt

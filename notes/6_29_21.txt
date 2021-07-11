@@ -40,6 +40,11 @@ circuit found for goal UInt16[0x006d] with num_gates = 6
 no goal found for goal UInt16[0x006d] for num_gates: 5
 (UInt16[0x006d], 6, 6, 2.7646095806222295, 30, 0.0, 0.5782051282051283, 0)
 
+Continued in 
+7_1_21.txt
+7_2_21.txt
+7_5_21.txt
+
 
 
 julia> p = Parameters(3,1,7,4)

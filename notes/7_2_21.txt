@@ -5,7 +5,7 @@ Did a run with ncircuits = 50 "../data/7_1_21/run_evo_dictM.jl".
 Added columns hgoal, dgoal, and kcomp to the data/6_25_21/geno_complexity6_25_21Iccons.csv dataframe
 and saved to the file data/6_25_21/geno_complexity7_2_12means.csv which is also linked to in 7_2_21.
 
-cdf = read_dataframe("../data/7_2_21/geno_complexity7_2_12means.csv")
+cdf = read_dataframe("../data/7_2_21/geno_complexity7_2_21Jmeans.csv")
 257×18 DataFrame
 
 # The following shows the mean of quantities of interest for those phenotypes with K-complexity 6 or greater.
@@ -47,5 +47,5 @@ julia> cdf[(cdf.kcomp.>=6).|(cdf.goal.=="mean"),[:dgoal,:log_avg_steps,:robustne
   29 │   231        4.83857  0.0303846     96.06       2.67334  6.0          388
   30 │   233        4.08488  0.00134615    99.16       2.67239  6.0          262
   31 │     0        2.92246  0.253566      73.9673     2.20221  3.58594  4056490
-# These phenotyps consistently have very small robustness, larger than average
+# These phenotypes consistently have very small robustness, larger than average
 #  Tononi complexity, and very small redundancy.

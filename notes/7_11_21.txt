@@ -1,0 +1,14 @@
+Renamed src/evo_dict.jl to Evo_dict.jl, and added it to CGP.jl.
+
+Note that Evo_dict uses an evolutionary approximation of 
+evolvability.
+
+Added the computation of a matrix representation of phenotype network
+where nodes are phenotypes and edges are mutations that take a genotype
+of the source node to a genotype of the destination node.  Added 
+writing a hexadecimal and a decimal version of csvfiles representing
+these matrices as output csvfiles. 
+
+Data is in data/7_11_21.
+
+Will compute the entire phenotype network for 3x1 goals on surt2.

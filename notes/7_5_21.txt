@@ -1,0 +1,74 @@
+Running geno complexity simulations for 7 and 8 gates, 4 levelsback.
+include("../data/6_25_21/run_geno_complexityJ.jl")
+consolidate_dataframe("../data/6_25_21/geno_complexity6_25_21J.csv", "../data/6_25_21/geno_complexity6_25_21Jcons.csv")
+include("../data/6_25_21/run_3x1_countsJ.jl")
+
+Did a run to compute K-complexity of all 3x1 4 lb phenotypes in data/7_2_21/run_k_complexityC.jl on surt2
+(See notes/7_2_21.txt.)
+kcomps= read_dataframe("../data/7_2_21/k_complexity7_2_21C.csv") 
+kcomp=kcomps.num_gates 
+kcomp = map(x->Float64(x),kcomp)
+
+jdf = read_dataframe("../data/6_25_21/geno_complexity6_25_21Jcons.csv")  
+jhgoal = map(x->x[8:13],jdf.goal) 
+insertcols!(jdf,2,:hgoal=>jhgoal)
+#include("../data/6_25_21/run_3x1_countsJ.jl")
+dgoal = map(x->Int64(eval(Meta.parse(x))),jdf.hgoal) 
+insertcols!(jdf,3,:dgoal=>dgoal)
+insertcols!(jdf,size(jdf)[2]+1,:kcomp=>kcomp)
+jcountsdf=read_dataframe("../data/6_25_21/count_outputs_3x1_hu_7_4J.csv")
+insertcols!(jdf,size(jdf)[2]+1,:ints7_4=>jcountsdf.ints7_4)
+log_redundancy = map(log10, jdf.ints7_4 )
+insertcols!(jdf,size(jdf)[2]+1,:log_redundancy=>log_redundancy)
+jmeans = vcat(["mean","mean"],mean.(eachcol(jdf[:,3:end])))  # mean function doesn't work on strings
+jjmeans = [ typeof(jdf[1,i])==Int64 ? Int64(round(jmeans[i])) : jmeans[i] for i = 1:length(jmeans) ] # If jdf column is Int64, convert entry to Int64
+push!(jdf,jjmeans)
+write_dataframe_with_comments(jdf,"../data/6_25_21/geno_complexity6_25_21J.csv","../data/6_25_21/geno_complexity7_2_21Jmeans.csv")
+
+kdf = read_dataframe("../data/6_25_21/geno_complexity6_25_21Kcons.csv")  
+khgoal = map(x->x[8:13],kdf.goal) 
+insertcols!(kdf,2,:hgoal=>khgoal)
+#include("../data/6_25_21/run_3x1_countsK.jl")
+dgoal = map(x->Int64(eval(Meta.parse(x))),kdf.hgoal) 
+insertcols!(kdf,3,:dgoal=>dgoal)
+insertcols!(kdf,size(kdf)[2]+1,:kcomp=>kcomp)
+kcountsdf=read_dataframe("../data/6_25_21/count_outputs_3x1_hu_8_4K.csv")
+insertcols!(kdf,size(kdf)[2]+1,:ints8_4=>kcountsdf.ints8_4)
+log_redundancy = map(log10, kdf.ints8_4 )
+insertcols!(kdf,size(kdf)[2]+1,:log_redundancy=>log_redundancy)
+kmeans = vcat(["mean","mean"],mean.(eachcol(kdf[:,3:end])))  # mean function doesn't work on strings
+kkmeans = [ typeof(kdf[1,i])==Int64 ? Int64(round(kmeans[i])) : kmeans[i] for i = 1:length(kmeans) ] # If kdf column is Int64, convert entry to Int64
+push!(kdf,kkmeans)
+write_dataframe_with_comments(kdf,"../data/6_25_21/geno_complexity6_25_21K.csv","../data/6_25_21/geno_complexity7_2_21Kmeans.csv")
+
+function scatter3_1( numgates::Int64, var1::String, var2::String
+  if numgates == 6
+    df = idf
+  elseif numgates == 7
+    df = jdf
+  elseif numgates == 8
+    df = kdf
+  else
+    error("numgates must be 6, 7, or 8")
+  end
+  if var1 == "evo"
+    title1 = "Evolvability count"
+    ylabel = "evo_count"
+  else
+    error("\"evo\" is the legal first variable")
+  end
+  if var2 == "complex"
+    title1 = "complexity"
+    xlabel = "complexity"
+  elseif var2 == "robust"
+    title1 = "robustness""
+    xlabel = "robustness""
+  elseif var2 == "redund"
+    title1 = "log redundancy""
+    xlabel = "log redundancy""
+  else
+    error("\"complex\", \"robust\", \"redund\" are the legal second variables")
+  end
+  scatter( df[1:end-1,Symbol(var2)], df[1:end-1,Symbol(var1), title = vcat(title1," vs. ",title2), ylabel=ylabel, xlabel=xlabel, smooth=true, legend=:none )
+  spearman_cor(df[1:end-1,Symbol(var2)],df[1:end-1,Symbol(var1))
+end

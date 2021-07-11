@@ -1,0 +1,59 @@
+7/7/21:  Good ideas, but nothing has panned out.
+
+Complexity
+
+To a first approximation, the complexity of an entity is the diversity of its components.
+
+More precisely, an entity has multiple layers of organization, and the complexity of
+the entity is the sum of the complexities of these layers where the complexity of a layer
+is the diversity of the components of the layer.
+
+To investigate:  whether different ways of decomposing an entity give similar complexities.
+
+The complexity of a population of organisms is the diversity of the individuals of the
+population.
+
+Observation: the cultural diversity of humans has increased over human pre-history and history.
+This is especially true of science and scientists.  Science filters new contribuitions for 
+uniqueness (difference from previous contributions).  Thus, one can argue that overall human
+cultural complexity has been increasing and continues to increase.  Perhaps if there is a
+quantitative measer of this complexity, this increase has been exponential.
+
+
+Evolvability
+
+Consider a population of organisms (entities).  Assume that there is a probability distribution
+of possible mutations.  Each mutation may give a different phenotype.  The evolvability of a 
+organism is the expected diversity of phenotypes produced by mutations of the organism.  The evolvability
+of the population is the sum of the evolvabilities of the organisms of the population.
+
+This definition of organism evolvability is essentially the same as our earlier definition of
+genotype evolvability.  However, the previous definition of phenotype evolvability was relative
+to all genotype realizations of the phenotype.  Population evolvability depends on the genotype
+realizations of the phenotypes in the populations, and these phenotypes may differ over the organisms
+of the population.  One way of looking at it would be the potential of innovation, or the potential
+for response to a changed environment.
+
+Note that this evolvability is not a structural property of the G-P map  because it depends on 
+the population which is not determined by the G-P map.  But similar to structural properties of
+the G-P map, it does not depend on fitness or selection.
+
+Hypothesis
+
+Hypothesis:  A population of complex organisms will tend to be more evolvable and more complex.  
+
+First consider the case where the population is phenotypically identical.  Our GECCO results
+(generalized to organisms beyond circuits) show that complexity is positively related to evolvability
+which shows that complexity implies evolvability.
+
+If the population is not phenotypically identical, it seems plausible to assume that genotypes are
+genetically closely related, i. e., any genotype is reachable from any other genotype by a few
+mutations.  This assumption is more plausible if we are modeling something more specialized than
+the genomes of whole organisms.
+
+Our GECCO results show a positive correlation between the complexity of organisms and their evolution phenotype
+evolvability.  
+
+Experiment:  Start with a random phenotype, and do truly neutral evolution, either single individual or 
+population based.  Measure the progression of complexity over time.  If the starting phenotype is high 
+complexity (either Tononi or Kolmogorov), how long does this higher complexity persist?
