@@ -12,7 +12,7 @@ using Printf
 
 export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
 export run_geno_robustness, geno_robustness, evo_robust, random_neutral_walk, run_random_neutral_walk
-export run_geno_complexity, geno_complexity
+export run_geno_complexity, geno_complexity, pop_evolvability_robustness
 export parent_child_complexity, rand_norm, scatter_plot
 #=  Moved to aliases.jl so that this file can be included.
 mutable struct evo_result_type
@@ -923,31 +923,25 @@ end
 rand_norm( mean::Float64, std::Float64, nreps::Int64 ) = std.*randn(nreps).+mean
 rand_norm(nreps::Int64) = rand_norm( 3.12727, 1.164145, nreps )
 
-function test_evo()
-  g = [0x0332]
-  numinputs=4; numoutputs=1; numinteriors=9; numlevelsback=5;
-  setup_funcs(numinputs)
-  g =[0x03f3]
-  p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback )
-  max_steps = 200000
-  nchromes = 50
-  nrepeats = 3
-  evo_result = Main.CGP.evo_result
-  er = evo_result( g, nchromes, max_steps, p, nrepeats, 0, 0, 0 )
-  funcs=default_funcs(p.numinputs)
-  #evolvability( er, funcs )
-  #evolvability( er, funcs, intermediate_gens=[1,4,8] )
-  run_evolvability( 2, [g], funcs, er.nchromes, er.maxsteps, er.numinputs, er.numints, er.levelsback, er.nrepeats, intermediate_gens=[10,20,30,40,50] )
-  #run_evolvability( 20, [g], funcs, 5:5:20, er.maxsteps, er.numinputs, er.numints, er.levelsback, er.nrepeats, "test.csv" )
+# population is a vector of chromsomes
+# Returns the pair (evolvability,robustness)
+# The evolvability of the population is the length of the set of unique phenotypes in the union 
+#  of mutational neighborhoods of the genotypes of the population 
+#
+function pop_evolvability_robustness( population::Vector{Chromosome} )
+  p = population[1].params
+  funcs = default_funcs(p.numinputs)
+  robust_sum = 0.0
+  count_neighbors = 0
+  ph_set = Set(Vector{Vector{MyInt}}())
+  for ch in population
+    neighbors = mutate_all( ch, funcs, output_outputs=true )
+    count_neighbors += length(neighbors)
+    robustness = length(filter(x->x==output_values(ch),neighbors))/length(neighbors)
+    robust_sum += robustness
+    for neighbor in neighbors 
+      push!( ph_set, neighbor )
+    end
+  end
+  (length(ph_set)/count_neighbors,robust_sum/length(population))
 end
-
-function test_gen_evo()
-  df = read_dataframe("../data/consolidate/geno_pheno_raman_df_all_9_13.csv");
-  p = Parameters( numinputs=4, numinteriors=10, numlevelsback=5, numoutputs=1 ); maxsteps = 150000
-  sample_size = 100
-  nreps = 100
-  res = sample_g_pairs( df, 4, 10, :complex, p, maxsteps, 2 ) 
-  @time result = run_sample_g_pairs( df, nreps, sample_size, :complex, p, maxsteps )
-end
-
-

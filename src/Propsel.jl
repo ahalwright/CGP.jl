@@ -137,3 +137,27 @@ function propsel_alt( pop::Population, dfe::Function)
   new_pop
 end
 
+@doc """function propsel!(p::Population, fitness::Vector{Float64} )
+Conduct proportional selection in-place.
+"""
+function propsel!( pop::Vector{Chromosome}, fitness::Vector{Float64}; maxfit::Float64=0.0  )
+  if maxfit == 0.0
+    maxfit = maximum(fitness)
+    if maxfit == 0.0
+      # all elements have fitness zero
+      return
+    end
+  end
+  n = length(pop)
+  selected = zeros(Int64, n)
+  k = 0
+  while k < n
+    i = rand(1:n)
+    w = pop[i].fitness / maxfit
+    if rand() < w
+      selected[k + 1] = i
+      k += 1
+    end
+  end
+  pop[:] = [ pop[selected[i]] for i = 1:n ]
+end 

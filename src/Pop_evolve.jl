@@ -7,7 +7,7 @@ using HypothesisTests
 
 # Run both one population and numpops subpopulations to eithe return a dataframe or
 #   write the dataframe to csvfile if it is given as a keyword argument
-# mutrate is the probability that a chromosome (circuit) will be mutation in a generation
+# mutrate is the probability that a chromosome (circuit) will be mutated in a generation
 function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goallistlist::Vector{GoalList}, 
     ngens::Int64, numpops::Int64, mutrate::CGP.FloatRange=1.0;
     csvfile::String="", uniform_start::Bool=false, prdebug::Bool=false )
@@ -27,8 +27,8 @@ function run_both_pop_evolve( nreps::Int64, p::Parameters, popsize::Int64, goall
   df.fit_decreases = Int64[]
   
   mr_goallists_list = [ (mutr,gl) for mutr = mutrate for gl in goallistlist ]
-  df_list = pmap(mr_goallist_pair->run_both_one_goallist(nreps,p,popsize,ngens,numpops,mr_goallist_pair,uniform_start=uniform_start),mr_goallists_list)
-  #df_list = map(mr_goallist_pair->run_both_one_goallist(nreps,p,popsize,ngens,numpops,mr_goallist_pair,uniform_start=uniform_start),mr_goallists_list)
+  #df_list = pmap(mr_goallist_pair->run_both_one_goallist(nreps,p,popsize,ngens,numpops,mr_goallist_pair,uniform_start=uniform_start),mr_goallists_list)
+  df_list = map(mr_goallist_pair->run_both_one_goallist(nreps,p,popsize,ngens,numpops,mr_goallist_pair,uniform_start=uniform_start),mr_goallists_list)
   df = vcat( df_list... )
   
   #=

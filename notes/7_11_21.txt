@@ -11,4 +11,9 @@ these matrices as output csvfiles.
 
 Data is in data/7_11_21.
 
-Will compute the entire phenotype network for 3x1 goals on surt2.
+Versions of the matrix G-P phenotype map are in the files 
+data7_11_21/evo_dict7_11_21M_phmatrix_hex.csv (100 circuits)
+and evo_dict7_11_21M_phmatrix_hex.csv (600 circuits).
+These are computing by evolution rather than sampling, and
+are for the Cartesian representation rather than the LinearGP
+representation.
