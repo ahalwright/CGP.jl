@@ -14,7 +14,7 @@ function run_run_pop_evolvability( nreps::Int64, p::Parameters, popsize_rng::CGP
       push!(run_tuples, (popsize,ngens,mutrate))
     end
   end
-  results=pmap(x->run_pop_evolvability(nreps,p,x[1],gl,x[2],x[3]),run_tuples)
+  results=pmap(x->run_pop_evolvability(nreps,p,x[1],gl,x[2],x[3],use_pmap=false),run_tuples) 
   for res in results
     push!(sumdf,res)
   end
@@ -25,6 +25,7 @@ function run_run_pop_evolvability( nreps::Int64, p::Parameters, popsize_rng::CGP
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
       print_parameters(f,p,comment=true)
+      println(f,"# goallist: ",gl)
       println(f,"# nreps: ",nreps)
       CSV.write( f, sumdf, append=true, writeheader=true )
     end
@@ -32,8 +33,10 @@ function run_run_pop_evolvability( nreps::Int64, p::Parameters, popsize_rng::CGP
   sumdf
 end
       
+# Averages results over reps
+# use_pmap must be false when called by run_run_pop_evolvability
 function run_pop_evolvability( nreps::Int64, p::Parameters, popsize::Int64, gl::GoalList, ngens::Int64, mutrate::Float64=1.0;
-    csvfile::String="", prdebug::Bool=false )
+    csvfile::String="", use_pmap::Bool=false, prdebug::Bool=false, all_gens::Bool=false )
   println("mutrate: ",mutrate)
   avgdf = DataFrame()
   avgdf.gen = collect(1:ngens)
@@ -42,8 +45,11 @@ function run_pop_evolvability( nreps::Int64, p::Parameters, popsize::Int64, gl::
   avgdf.max_fitness = zeros(Float64,ngens)
   avgdf.evolvability = zeros(Float64,ngens)
   avgdf.robustness = zeros(Float64,ngens)
-  #dflist = pmap(x->pop_evolvability( p, popsize, gl, ngens, mutrate, prdebug=prdebug ), collect(1:nreps))
-  dflist = map(x->pop_evolvability( p, popsize, gl, ngens, mutrate, prdebug=prdebug ), collect(1:nreps))
+  if use_pmap
+    dflist = pmap(x->pop_evolvability( p, popsize, gl, ngens, mutrate, prdebug=prdebug ), collect(1:nreps))
+  else
+    dflist = map(x->pop_evolvability( p, popsize, gl, ngens, mutrate, prdebug=prdebug ), collect(1:nreps))
+  end
   for df in dflist
     # df = pop_evolvability( p, popsize, gl, ngens, mutrate, prdebug=prdebug )
     avgdf.max_fitness += df.max_fitness
@@ -53,7 +59,23 @@ function run_pop_evolvability( nreps::Int64, p::Parameters, popsize::Int64, gl::
   avgdf.max_fitness /= nreps
   avgdf.evolvability /= nreps
   avgdf.robustness /= nreps
-  avgdf[end,:]
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      print_parameters(f,p,comment=true)
+      println(f,"# goallist: ",gl)
+      println(f,"# nreps: ",nreps)
+      CSV.write( f, avgdf, append=true, writeheader=true )
+    end
+  end
+  if all_gens
+    avgdf
+  else
+    avgdf[end,:]
+  end
 end
 
 function pop_evolvability( p::Parameters, popsize::Int64, gl::GoalList, ngens::Int64, mutrate::Float64=1.0; 

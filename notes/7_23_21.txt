@@ -1,0 +1,17 @@
+Definition:  The evolvability of a population of genotypes is the number of unique
+phenotypes in the union of mutational neighborhoods of the genotypes of the population.
+
+Implemented function pop_evolvability_robustness() currently in Evolvability.jl
+which computes population evolvability and average robustness.
+
+Hypothesis:  Average population evolvability increases in a varying environment.
+
+Specific hypothesis:  Evolve a population to approximate equilibrium in a fixed environment, 
+i. e., with selection to a fixed phenotype.  Then introduce periodic mutations to the phenotype 
+and measure the average population evolvability.  The hypothesis is that average population 
+evolvability increases.
+
+Motivation:  Andreas Wagner has a new paper on adaptive evolvability (Wagner 2021).  
+To quote the abstract:  “Evolvability is the ability of organisms to produce phenotypic variation that is both heritable and adaptive. Some biological systems may be more evolvable than others, because this very property has been subject to natural selection. In other words, evolvability may itself be the subject of adaptive evolution. For brevity, I will refer to such evolvability as adaptive evolvability. The existence of adaptive evolvability has been subject to speculation for decades (Arber, 1993, 2005; Bedau & Packard, 2003). Unfortunately, to this day we have little pertinent experimental evidence (Payne & Wagner, 2019).”  [See the paper for his references.]  At this point, I am not going to relate to his methods.
+
+Wrote functions in Pop_evolvability.jl to start this test.  See notes/7_24_21.txt for more details.
