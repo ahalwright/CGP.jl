@@ -1,5 +1,5 @@
 function run_run_pop_evolvability( nreps::Int64, p::Parameters, popsize_rng::CGP.IntRange, gl::GoalList, ngens_popsize::Int64, mutrate_rng::CGP.FloatRange;
-    csvfile::String="", prdebug::Bool=false )
+    csvfile::String="" )
   sumdf = DataFrame()
   sumdf.gen = Int64[]
   sumdf.popsize = Int64[]
@@ -35,11 +35,12 @@ end
       
 # Averages results over reps
 # use_pmap must be false when called by run_run_pop_evolvability
+# If length(gl) == 0, generate goallist within each call to pop_evolvability
 function run_pop_evolvability( nreps::Int64, p::Parameters, popsize::Int64, gl::GoalList, ngens::Int64, 
-    start_phmut_gen::Int64, phmut_interval::Int64,  mutrate::Float64=1.0;
-    csvfile::String="", use_pmap::Bool=false, prdebug::Bool=false, all_gens::Bool=false )
-  @assert p.numoutputs == length(gl[1])
-  println("mutrate: ",mutrate)
+    start_phmut_gen::Int64, phmut_interval::Int64,  mutrate::Float64=1.0; numgoals::Int64=1,
+    csvfile::String="", use_pmap::Bool=false, all_gens::Bool=false )
+  #@assert p.numoutputs == length(gl[1])
+  println("mutrate: ",mutrate,"  gl: ",gl,"  length(gl): ",length(gl))
   avgdf = DataFrame()
   avgdf.gen = collect(1:ngens)
   avgdf.popsize = fill(popsize,ngens)
@@ -48,12 +49,11 @@ function run_pop_evolvability( nreps::Int64, p::Parameters, popsize::Int64, gl::
   avgdf.evolvability = zeros(Float64,ngens)
   avgdf.robustness = zeros(Float64,ngens)
   if use_pmap
-    dflist = pmap(x->pop_evolvability( p, popsize, gl, ngens, start_phmut_gen, phmut_interval, mutrate, prdebug=prdebug ), collect(1:nreps))
+    dflist = pmap(x->pop_evolvability( p, popsize, gl, ngens, start_phmut_gen, phmut_interval, mutrate,numgoals=numgoals), collect(1:nreps))
   else
-    dflist = map(x->pop_evolvability( p, popsize, gl, ngens, start_phmut_gen, phmut_interval, mutrate, prdebug=prdebug ), collect(1:nreps))
+    dflist = map(x->pop_evolvability( p, popsize, gl, ngens, start_phmut_gen, phmut_interval, mutrate,numgoals=numgoals), collect(1:nreps))
   end
   for df in dflist
-    # df = pop_evolvability( p, popsize, gl, ngens, mutrate, prdebug=prdebug )
     avgdf.max_fitness += df.max_fitness
     avgdf.evolvability += df.evolvability
     avgdf.robustness += df.robustness
@@ -80,10 +80,16 @@ function run_pop_evolvability( nreps::Int64, p::Parameters, popsize::Int64, gl::
   end
 end
 
+# If length(gl)==0, generate goallist within each call to pop_evolvability
 function pop_evolvability( p::Parameters, popsize::Int64, gl::GoalList, ngens::Int64, 
     start_phmut_gen::Int64, phmut_interval::Int64,  mutrate::Float64=1.0; 
-    csvfile::String="", prdebug::Bool=false )
-  glmut = deepcopy(gl)
+    csvfile::String="", numgoals::Int64=1 )
+  if length(gl) > 0
+    glmut = deepcopy(gl)
+  else
+    glmut = randgoallist( numgoals, p )
+  end
+  println("glmut: ",glmut)
   df = DataFrame()
   df.gen = Int64[]
   df.max_fitness = Float64[]
@@ -97,7 +103,6 @@ function pop_evolvability( p::Parameters, popsize::Int64, gl::GoalList, ngens::I
   for i in 1:popsize
     c = pop[i]
     c.fitness = fitness_funct( p, c, glmut )
-    prdebug ? print_circuit(c,include_fitness=true,include_robustness=true,include_pheno=true) : nothing
     fitness_vector[i] = pop[i].fitness 
     maxfit = fitness_vector[i] > maxfit ? fitness_vector[i] : maxfit
   end   
@@ -108,8 +113,8 @@ function pop_evolvability( p::Parameters, popsize::Int64, gl::GoalList, ngens::I
   push!( df.robustness, robustness )
   for gen = 2:ngens
     if gen >= start_phmut_gen && gen % phmut_interval == 0
-      println("phmut gen: ",gen)
       phmut!( glmut, p )
+      println("phmut gen: ",gen,"  glmut: ",glmut)
     end
     for i in 1:popsize
       c = pop[i]
@@ -129,17 +134,16 @@ function pop_evolvability( p::Parameters, popsize::Int64, gl::GoalList, ngens::I
     push!( df.evolvability, evolvability )
     push!( df.robustness, robustness )
   end
-  println("gl: ",gl,"  max_fit: ",maxfit)
+  println("glmut: ",glmut,"  max_fit: ",maxfit)
   df
 end
 
 function phmut!( glmut::GoalList, p::Parameters ) 
   gl_component = length(glmut) > 1 ? rand(1:length(glmut)) : 1
   goal_index = length(glmut[1]) > 1 ? rand(1:length(glmut[1])) : 1
-  #println("gl_component: ",gl_component,"  goal_index: ",goal_index)
   max_shift = 2^p.numinputs - 1
   shift = rand(0:max_shift)
-  #println("shift: ",shift)
+  println("gl_component: ",gl_component,"  goal_index: ",goal_index,"  shift: ",shift)
   mut_mask = MyInt(1) << shift
   #@printf("mut_mask: 0x%x\n",mut_mask)
   # A more elegant version of the next line is:  

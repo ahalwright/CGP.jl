@@ -1,3 +1,15 @@
 Testing the hypothesis that evolution under a varying environment increases evolvability.
 For a motivation, see notes/7_23_21.txt.
 Code:  src/Pop_evolvability.jl
+
+The purpose of the function run_run_pop_evolvability() is to explore settings of popsize,
+mutrate, and ngens for the population-based evolutionary algorithm.  The function allows 
+for different settings of popsize and mutrate via range parameters.  The parameter
+ngens_popsize is the product of ngens and popsize.  Instead of using ngens as a parameter,
+ngens is computed by the formula  ngens = Int(round(ngens_popsize/popsize))  which
+specifies a number of function evaluations for the run.
+ngens_popsize is the product of ngens and popsize.  Instead of using ngens as a parameter,
+ngens is computed by the formula  ngens = Int(round(ngens_popsize/popsize))  which
+specifies a number of function evaluations for the run.
+
+Results are in data/7_23_21/.
