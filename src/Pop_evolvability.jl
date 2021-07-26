@@ -1,4 +1,13 @@
-function run_run_pop_evolvability( nreps::Int64, p::Parameters, popsize_rng::CGP.IntRange, gl::GoalList, ngens_popsize::Int64, mutrate_rng::CGP.FloatRange;
+# Testing the hypothesis that evolution under a varying environment increases evolvability.
+
+# The purpose of the function run_run_pop_evolvability() is to explore settings of popsize,
+# mutrate, and ngens for the population-based evolutionary algorithm.  The function allows
+# for different settings of popsize and mutrate via range parameters.  The parameter
+# ngens_popsize is the product of ngens and popsize.  Instead of using ngens as a parameter,
+# ngens is computed by the formula  ngens = Int(round(ngens_popsize/popsize))  which
+# specifies a number of function evaluations for the run.
+function run_run_pop_evolvability( nreps::Int64, p::Parameters, popsize_rng::CGP.IntRange, gl::GoalList, ngens_popsize::Int64,
+      start_phmut_gen::Int64, phmut_interval::Int64, mutrate_rng::CGP.FloatRange;
     csvfile::String="" )
   sumdf = DataFrame()
   sumdf.gen = Int64[]
@@ -14,7 +23,7 @@ function run_run_pop_evolvability( nreps::Int64, p::Parameters, popsize_rng::CGP
       push!(run_tuples, (popsize,ngens,mutrate))
     end
   end
-  results=pmap(x->run_pop_evolvability(nreps,p,x[1],gl,x[2],x[3],use_pmap=false),run_tuples) 
+  results=pmap(x->run_pop_evolvability(nreps,p,x[1],gl,x[2],start_phmut_gen, phmut_interval,x[3],use_pmap=false),run_tuples) 
   for res in results
     push!(sumdf,res)
   end
@@ -27,6 +36,8 @@ function run_run_pop_evolvability( nreps::Int64, p::Parameters, popsize_rng::CGP
       print_parameters(f,p,comment=true)
       println(f,"# goallist: ",gl)
       println(f,"# nreps: ",nreps)
+      println(f,"# start_phmut_gen: ",start_phmut_gen)
+      println(f,"# phmut_interval: ",phmut_interval)
       CSV.write( f, sumdf, append=true, writeheader=true )
     end
   end
@@ -89,7 +100,7 @@ function pop_evolvability( p::Parameters, popsize::Int64, gl::GoalList, ngens::I
   else
     glmut = randgoallist( numgoals, p )
   end
-  println("glmut: ",glmut)
+  #println("glmut: ",glmut)
   df = DataFrame()
   df.gen = Int64[]
   df.max_fitness = Float64[]
@@ -134,7 +145,7 @@ function pop_evolvability( p::Parameters, popsize::Int64, gl::GoalList, ngens::I
     push!( df.evolvability, evolvability )
     push!( df.robustness, robustness )
   end
-  println("glmut: ",glmut,"  max_fit: ",maxfit)
+  println("glmut: ",glmut,"  mutrate: ",mutrate,"  max_fit: ",maxfit)
   df
 end
 

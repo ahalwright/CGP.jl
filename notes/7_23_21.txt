@@ -15,3 +15,5 @@ Motivation:  Andreas Wagner has a new paper on adaptive evolvability (Wagner 202
 To quote the abstract:  “Evolvability is the ability of organisms to produce phenotypic variation that is both heritable and adaptive. Some biological systems may be more evolvable than others, because this very property has been subject to natural selection. In other words, evolvability may itself be the subject of adaptive evolution. For brevity, I will refer to such evolvability as adaptive evolvability. The existence of adaptive evolvability has been subject to speculation for decades (Arber, 1993, 2005; Bedau & Packard, 2003). Unfortunately, to this day we have little pertinent experimental evidence (Payne & Wagner, 2019).”  [See the paper for his references.]  At this point, I am not going to relate to his methods.
 
 Wrote functions in Pop_evolvability.jl to start this test.  See notes/7_24_21.txt for more details.
+
+7/26/21:  7_23_21/run_pop_evolvabilityG.jl  fixes incompatabilities introduced after 7/23/21.
