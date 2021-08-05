@@ -17,3 +17,13 @@ To quote the abstract:  “Evolvability is the ability of organisms to produce p
 Wrote functions in Pop_evolvability.jl to start this test.  See notes/7_24_21.txt for more details.
 
 7/26/21:  7_23_21/run_pop_evolvabilityG.jl  fixes incompatabilities introduced after 7/23/21.
+
+Added later:  In addition to decreasing computational effort and making
+more modular code, van Belle and Ackley have shown that
+ADFs can increase the evolvability of populations of programs
+over time [11]. They investigated the role of ADFs in evolving
+programs with a time dependent fitness function and found that
+not only do populations recover more quickly from periodic
+changes in the fitness function, but the recovery rate increases
+in time as the solutions become more modular.
+From Walker & Miller Module reuse 2008.

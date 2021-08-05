@@ -148,6 +148,20 @@ All diary topics:
 6_21: Degeneracy increases with number of gates.  Hypothesis:  increased degeneracy increases resiliancy.
 6_25: Rerun core algorithms on evolution evolvability with 3x1 6 gates, 4 lb.
 6_29: Results with K-complexity 6 and 7.  8 phenotypes with K-complexity 6 and zero robustness.
+7_1:  Evolvability dictionary csv file output.
+7_5:  Runs for GECCO presentation.  Data in 6_25_21.  Function scatter3_1()
+7_6:  Hypothesis:  A population of complex organisms will tend to be more evolvable and more complex.
+      Hasn't panned out.
+7_11: Matrix representation of phenotype network computed by evolution Cartesian representation.
+7_13: All 6 instruction 2 register 3x1 LinGP phenotypes have corresponding genotypes
+      Over half of 4x1 8 gates 5 lb Cartesian genotypes do not have phenotypes with sample of 3*10^10
+7_14: Biological innovations never come about during biological great transitions (Shubin)
+7_23: Evolvability of a population.  Hypothesis:  Population evovability increases in a varying environment.
+      Reference to a paper with results on this approach.
+7_24: Hypothesis:  Population evovability increases in a varying environment. 
+7_25: Hypothesis:  Population evovability increases in a varying environment. 
+7_26: Hypothesis:  Population evovability increases in a varying environment. 
+
 
 
 All plots:

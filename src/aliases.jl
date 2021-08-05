@@ -232,3 +232,21 @@ mutable struct evo_pairs_type
   dest_g_count::Int64
   steps::Int64
 end
+
+abstract type CompositionalCircuit end
+mutable struct CompGate <: CompositionalCircuit
+  inputs::Vector{Int64}
+  func::Func
+  numoutputs::Int64
+end
+mutable struct CompCircuit <: CompositionalCircuit
+  inputs::Vector{Int64}
+  circuits::Vector{CompositionalCircuit}
+  numoutputs::Int64
+end
+mutable struct Need
+  goal::Goal
+  circuit_index::Int64   # If nonzero, the index of the element of all_circuits that meets the need
+  inputs::Vector{Int64}
+end          
+

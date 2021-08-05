@@ -1,4 +1,4 @@
-Writing up a report of Ting and Wolfgang.
+Writing up a report for Ting and Wolfgang.
 Did a run to compute K-complexity of all 3x1 4 lb phenotypes in data/7_2_21/run_k_complexityC.jl on surt2
 Did a run with ncircuits = 50 "../data/7_1_21/run_evo_dictM.jl".
 

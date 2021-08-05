@@ -2,3 +2,11 @@ Found that mutrate was set too large (at 0.1) to find medium frequency 3x1 goals
 Fixed function run_run_pop_evolvability() in Pop_evolvability.jl to be compatible with
    changes made to run_pop_evolvability() and pop_evolvability().  
 Test data:  data/7_23_21/run_pop_evolvabilityG.jl which is copied to 7_26_21 on lycosa and surt2
+
+
+Runs U and V are for 3x1 goal [0x0086] with 6 gates, 4 lb.  This is one of the zero robusntess
+goals for these settings.  Tested for popsizes 50, 150, 250.  No sign of any population size
+dependence.
+
+Conclusion:  This approach didn't work out and was abandoned.  See 7_23_21.txt for a
+somewhat similar result which did work out.

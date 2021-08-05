@@ -14,6 +14,9 @@
 #  3.  The index of the element of R which is the first operand of the logical operation
 #  4.  The index of the element of R which is the second operand of the logical operation
 # The functions vect_to_int() and int_to_vect() convert between these representations.
+# When parameters are used, numinputs and numoutputs have the same meaning for the cartesian and linear representatons.
+# numinteriors means numinstructions for the linear representation
+# numlevelsback means numregisters for the linear representation
 # See notes/3_24.txt for outline
 # See test/testLinCircuit.jl for tests.
 export LinCircuit, output_values
@@ -74,8 +77,9 @@ function execute_lcircuit( circuit_vects::Vector{Vector{MyInt}}, numregisters::I
   R = fill(MyInt(0), numregisters+numinputs )
   R[numregisters+1:end] = construct_context(numinputs)
   for lc in circuit_vects
-    #println("lc: ",lc,"  R: ",R)
+    println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
     R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]])
+    println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
   end
   R
 end
@@ -149,7 +153,7 @@ function rand_ivect( numregisters::Int64, numinputs::Int64, funcs::Vector{Func};
 end
 
 # Random instruction  
-# Assumes gates are arity 2
+# Assumes gates are arity 2 which means that instructions have 2 components
 function rand_ivect( p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 )
   MyInt[ rand(1:length(funcs)), rand(1:p.numlevelsback),  rand(1:(p.numlevelsback+p.numinputs)), 
     rand(1:(p.numlevelsback+p.numinputs)) ]
@@ -164,6 +168,8 @@ end
 
 # Random circuit as a list of instruction integers
 # Assumes gates are arity 2
+# p.numinteriors is equivalent to numinstructions
+# p.numlevelsback is equivalent to numregisters
 function rand_lcircuit( p::Parameters, funcs::Vector{Func}=lin_funcs(p.numinputs) )
   LinCircuit( [ rand_ivect( p.numlevelsback, p.numinputs, funcs ) for _ = 1:p.numinteriors], p )
 end
