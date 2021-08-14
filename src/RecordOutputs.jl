@@ -38,11 +38,11 @@ MyFunc = Main.CGP.MyFunc
 
 # Creates the array of output counts
 function create_count_outputs_list( numinputs::Integer, numoutputs::Integer )
-  return fill( convert(MyFunc,0), numoutputs*2^2^numinputs )
+  return fill( convert(Int64,0), numoutputs*2^2^numinputs )
 end
 
 # increments the array of output counts
-function increment_count_outputs_list( output::Goal, outputs_list::Vector{MyFunc}, numinputs::Int64 )
+function increment_count_outputs_list( output::Goal, outputs_list::Vector{Int64}, numinputs::Int64 )
   outputs_list[concatenate_outputs(output,numinputs)+1] += 1
 end
 
@@ -82,7 +82,8 @@ function concatenate_outputs( output::Goal, numinputs::Int64 )
 end
 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, funcs::Vector{Func}; use_lincircuit::Bool=:false )
+function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, funcs::Vector{Func}; 
+    use_lincircuit::Bool=:false, use_compcircuit::Bool=false )
   p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback ) 
   funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
   outlist = create_count_outputs_list( numinputs, numoutputs )
@@ -91,7 +92,11 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
     circuits_list = create_circuits_list( numinputs, numoutputs )  
   end
   for _ = 1:nreps
-    if use_lincircuit
+    if use_compcircuit
+      ccc = random_comp_circuit( numinputs, 1, numinteriors )
+      ctx = construct_context(numinputs)
+      output = [execute( ccc, ctx )]
+    elseif use_lincircuit
       c = rand_lcircuit( p.numinteriors, p.numlevelsback, p.numinputs, funcs )
       #output = execute_lcircuit( c, p.numlevelsback, p.numinputs, funcs )[1:numoutputs]
       output = execute_lcircuit( c, p, funcs )[1:numoutputs]
@@ -110,21 +115,26 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
 end
 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer; csvfile::String="", use_lincircuit::Bool=:false ) 
+function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, funcs::Vector{Func}=Func[]; 
+      csvfile::String="", use_lincircuit::Bool=:false, use_compcircuit::Bool=false ) 
   p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
-  funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
+  if length(funcs) == 0
+    funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
+  end
   print_parameters( p )
   println("nprocs: ",nprocs())
   #n_procs=nprocs()
   if nprocs() > 1
-    nreps_p = Int(round(nreps/(nprocs()-1)))
+    nreps_p = Int(round(nreps/(nprocs())))
   else
     nreps_p = nreps 
   end
   println("nreps_p: ",nreps_p)
   println("csvfile: ",csvfile) 
-  result =  pmap( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, funcs, use_lincircuit=use_lincircuit ), collect(1:nprocs()))
-  #result =  map( x->count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, funcs, use_lincircuit=use_lincircuit ), collect(1:nprocs()))
+  count_out_funct(x) = count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, funcs, 
+      use_lincircuit=use_lincircuit, use_compcircuit=use_compcircuit )
+  result =  pmap( x->count_out_funct(x), collect(1:nprocs()))
+  #result =  map( x->count_out_funct(x), collect(1:nprocs()))
   println("len(result): ",length(result))
   if use_lincircuit
     outlist = reduce(+,map(x->x[1],result))

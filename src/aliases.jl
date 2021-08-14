@@ -1,4 +1,5 @@
 export Population, Chromosome, imChromosome, Parameters, indiv_result_type, pop_result_type, elt_type
+export CompositionalCircuit, CompGate, CompCircuit, Need
 
 using Distributions
 using DataFrames
