@@ -1,0 +1,22 @@
+The following is now included in test/testChromosome.jl
+p = Parameters( 2, 1, 3, 3 )
+funcs = default_funcs(p.numinputs)
+ctx = construct_context(p.numinputs)
+cg1 = CompGate( [1,2], NAND, 1 )
+cg2 = CompGate( [2,3], XOR, 1 )
+cg3 = CompGate( [4,3], AND, 1 )
+cg4 = CompGate( [3,5], XOR, 1 )
+cg5 = CompGate( [5,2], OR, 1 )
+cg5 = CompGate( [5,4], XOR, 1 )
+cc1 = CompCircuit( [1,2], [cg1, cg2], 1 )
+cc2 = CompCircuit( [2,1], [cg1, cg2], 1 )
+cc3 = CompCircuit( [1,2], [cg1, cg3], 1 )
+ch3 = circuit((1,2), ((3,NOR,1,2), (4,NAND,2,3)))
+cc4 = CompCircuit( [1,2], [cg1, cg2, cg3], 1 )
+ch4 = circuit((1,2), ((3,NOR,1,2), (4,NAND,2,3), (5,AND,4,3)))
+cc5 = CompCircuit( [1,2], [cg1, cg2, cg4, cg3], 1 )
+ch5 = circuit((1,2), ((3,NOR,1,2), (4,NAND,2,3), (5,OR,3,1), (6,AND,4,3)))
+
+cc6 = CompCircuit( [1,2], [cc1], 1 )
+cc7 = CompCircuit( [1,2], [cg1, cg2, cc4, cg5], 1)
+

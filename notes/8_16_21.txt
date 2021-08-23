@@ -1,0 +1,14 @@
+Discovered that reordering the context did not change the outputs of execute_chromosome() and output_values().
+This is due to the caching that is built into evaluate_node().  When I comment out caching for both interior
+and input nodes, the results change with order.
+
+using Permutations
+p = Parameters(3,1,4,3)
+chi = random_chromosome(p,funcs) 
+perms = permutations(collect(1:p.numinputs)) 
+for p in perms
+  println("p: ",p); println(ctx[p],"  ",execute_chromosome(chi,ctx[p]))
+end 
+
+Since there is no caching for CompositionalCircuits, changing the inputs of a CompositionalCircuit
+does change the output.

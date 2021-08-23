@@ -1,0 +1,15 @@
+needs_list = [([0x000b],2),([0x000d],2),([0x0096],3),([0x0069],3)]
+(needs,ac)=comp_experiment( 3, 100, needs_list, 6 )
+julia> ac[6]
+CompCircuit([3, 1, 2], CompositionalCircuit[CompGate([1, 1], Func(Main.CGP.Nor, 2, "NOR"), 1), CompGate([1, 2], Func(xor, 2, "XOR"), 1), CompGate([4, 1], Func(|, 2, "OR"), 1), CompGate([2, 4], Func(Main.CGP.Nor, 2, "NOR"), 1), CompGate([5, 2], Func(|, 2, "OR"), 1), CompGate([3, 5], Func(xor, 2, "XOR"), 1)], 1)
+execute(ac[6],ctx)
+0x0096
+evaluate_circuit(ac[6],ctx)
+0x0096
+
+julia> ac[7]
+CompCircuit([1, 3, 2], CompositionalCircuit[CompGate([1, 1], Func(Main.CGP.Nand, 2, "NAND"), 1), CompGate([1, 2], Func(Main.CGP.Nand, 2, "NAND"), 1), CompGate([2, 2], Func(Main.CGP.Nor, 2, "NOR"), 1), CompGate([1, 1], Func(xor, 2, "XOR"), 1), CompGate([3, 1], Func(&, 2, "AND"), 1), CompCircuit([1, 6, 3], CompositionalCircuit[CompGate([1, 1], Func(Main.CGP.Nor, 2, "NOR"), 1), CompGate([1, 2], Func(xor, 2, "XOR"), 1),CompGate([4, 1], Func(|, 2, "OR"), 1), CompGate([2, 4], Func(Main.CGP.Nor, 2, "NOR"), 1), CompGate([5, 2], Func(|, 2, "OR"), 1), CompGate([3, 5], Func(xor, 2, "XOR"), 1)], 1)], 1)
+execute(ac[7],ctx)
+0x0069
+evaluate_circuit(ac[7],ctx)
+0x00cc

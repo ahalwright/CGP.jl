@@ -1,0 +1,23 @@
+Examples of traditional "linked lists" in Julia implemented using circular references.
+See https://docs.julialang.org/en/v1/manual/constructors/   especially incomplete constructors
+https://stackoverflow.com/questions/61154522/julia-self-referential-and-recursive-types 
+See  src/SR.jl, but the most important content is below.
+mutable struct SWR
+         ii::Int64
+         obj::SWR
+         SWR(i::Int64) = (x = new(); x.ii = i; x.obj = x)
+         SWR(i::Int64,j::SWR) =  fSWR( new(), i, j)
+end
+function fSWR( s::SWR, i::Int64, j::SWR )
+  s.ii = i
+  s.obj = j
+  return s
+end
+
+# Examples
+a = SWR(3)
+# SWR(3, SWR(#= circular reference @-1 =#))
+b = SWR(4,a)
+# SWR(4, SWR(3, SWR(#= circular reference @-1 =#)))
+c = SWR(5,b)
+#SWR(5, SWR(4, SWR(3, SWR(#= circular reference @-1 =#))))    

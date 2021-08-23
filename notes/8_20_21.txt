@@ -1,0 +1,34 @@
+# Some examples of Compositional circuits.  Replace by the examples in test/testComposition.jl
+include("CG.jl")
+cg1 = Cg( AND, [1,2], 1 );cg2 = Cg( OR, [2,1], 1 );
+cc1 = Cc( CC[cg1,cg2], [1,3], 1 )   # Works without cg.jl
+cc2 = Cc( [cc1,cg1], [1,3], 1 )   # Works without cg.jl  
+CC1 = CC( CC[cg1,cg2], [1,2,3] )
+# Cc(CC[Cg(Func(&, 2, "AND"), [1, 2], 1), Cg(Func(|, 2, "OR"), [2, 1], 1)], [1, 2, 3], 1)
+CC2 = CC( CC[CC1,cg2], [1,2,3] )
+# Cc(CC[Cc(CC[Cg(Func(&, 2, "AND"), [1, 2], 1), Cg(Func(|, 2, "OR"), [2, 1], 1)], [1, 2, 3], 1), Cg(Func(|, 2, "OR"), [2, 1], 1)], [1, 2, 3], 1)
+sprint_comp_circuit( CC1 )
+# "CC(CC[Cg(AND,[1,2]), Cg(OR,[2,1])], [1,2,3])"
+CC(CC[Cg(AND,[1,2]), Cg(OR,[2,1])], [1,2,3])
+# Cc(CC[Cg(Func(&, 2, "AND"), [1, 2], 1), Cg(Func(|, 2, "OR"), [2, 1], 1)], [1, 2, 3], 1)
+sprint_comp_circuit( CC2 )
+# "CC(CC[CC(CC[Cg(AND,[1,2]), Cg(OR,[2,1])], [1,2,3]), Cg(OR,[2,1])], [1,2,3])"
+CC(CC[CC(CC[Cg(AND,[1,2]), Cg(OR,[2,1])], [1,2,3]), Cg(OR,[2,1])], [1,2,3])
+# Cc(CC[Cc(CC[Cg(Func(&, 2, "AND"), [1, 2], 1), Cg(Func(|, 2, "OR"), [2, 1], 1)], [1, 2, 3], 1), Cg(Func(|, 2, "OR"), [2, 1], 1)], [1, 2, 3], 1)
+
+# cg.jl
+function CC( circuits::Vector{CC}, inputs::Vector{Int64}, numoutputs::Int64=1 )
+  Cc( circuits, inputs, numoutputs )
+end
+function Cg( func::Func, inputs::Vector{Int64} )
+  Cg( func, inputs, 1 )
+end  
+
+p = Parameters(2,1,3,3)
+rch = random_chromosome(p) 
+print_comp_circuit(stdout,rch)
+# CC( CC[ Cg(NAND,[2,2]), Cg(IN1,[2,2]), Cg(AND,[4,4])], [1,2])
+CC( CC[ Cg(NAND,[2,2]), Cg(IN1,[2,2]), Cg(AND,[4,4])], [1,2])
+# Cc(CC[Cg(Func(Main.CGP.Nand, 2, "NAND"), [2, 2], 1), Cg(Func(Main.CGP.In1, 2, "IN1"), [2, 2], 1), Cg(Func(&, 2, "AND"), [4, 4], 1)], [1, 2], 1)
+comp_circuit(rch)
+# Cc(CC[Cg(Func(Main.CGP.Nand, 2, "NAND"), [2, 2], 1), Cg(Func(Main.CGP.In2, 2, "IN1"), [2, 2], 1), Cg(Func(&, 2, "AND"), [4, 4], 1)], [1, 2], 1)

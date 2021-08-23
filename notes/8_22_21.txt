@@ -1,0 +1,13 @@
+Redefined CompositionalCircuit, CompCircut, CompGate as CC, Cc, Cg respectively and 
+moved these defintions to aliases.jl.  This meant that I had to replace all instances
+of CC, Cc, and Cg with CGP.CC, CGP.Cc, and CGP.Cg respectively in src/Composition.jl and
+in test/testComposition.jl.
+
+Wrote chromosome_to_circuit() and circuit_to_chromosome() in src/Composition.jl which
+enabled better tests of execute!() in test/testComposition.jl.  Discovered and fixed
+bugs in Composition.jl.  Finally, test/testComposition.jl successfully passes all tests.
+
+Wrote sprint_comp_circuit() in Compositional.jl which String prints a compositional circuit.
+
+Added a test of comp_experiment() in Composition.jl which uses Random.seed!(1).
+Executes a number of additional functions of Composition.jl.
