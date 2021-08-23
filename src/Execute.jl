@@ -23,33 +23,41 @@ function evaluate_node(c::Chromosome, node::InputNode, context::Vector)
     #println("eval input node: ",node)
     #print("context[node.index]:")
     #Printf.@printf("0x0%4x\n",context[node.index]) 
+    #=
     if node.active
       return node.cache
     end
     node.active = true
     node.cache = context[node.index]
+    =#
     return context[node.index]
 end
 
 function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
-    #println("en eval interior node: ",node)
+    println("en eval interior node: ",node,"  contxt: ",context)
     prev_cache = node.cache
     func = node.func
+    #=
     if node.active
       return node.cache
     end
+    =#
     args = map(node.inputs[1:func.arity]) do index
-        #println("position: ",index)
+        #println("index: ",index)
         evaluate_node(c, c[index], context)
     end
-    result = apply(func.func, args) 
-#    print("func: ",func,"  args: ",args,"  result: ")
-#    Printf.@printf("0x%2x\n",result)
+    #args = map(x->context[x],node.inputs)
+    println("args: ",args)
+    result = CGP.apply(func.func, args) 
+    print("func: ",func,"  args: ",args,"  result: ")
+    Printf.@printf("0x%2x\n",result)
+    #=
     if node.active 
       @assert result == node.cache 
     end
     node.active = true
     node.cache = result
+    =#
     return result
 end
 
@@ -70,9 +78,10 @@ function evaluate_node(c::Chromosome, node::OutputNode, context::Vector)
 end
 
 # Execute chromosme using context for the inputs and return outputs
-function execute_chromosome(c::Chromosome, context::Vector)
+function execute_chromosome(c::Chromosome, context::Vector; permute_context::Bool=false )
     #println("Executing chromosome")
     #print_chromosome(c)
+    println("context: ",context)
     return [evaluate_node(c, node, context) for node = c.outputs]
 end
 

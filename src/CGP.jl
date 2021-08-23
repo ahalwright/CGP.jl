@@ -16,7 +16,7 @@ using Printf
 using Dates
 using CSV
 using Statistics
-using Revise
+#using Revise
 using Random
 
 module CGP
@@ -66,6 +66,7 @@ include("Evolvability.jl")
 include("Complexity.jl")
 include("Degeneracy.jl")
 include("Evo_dict.jl")
+include("Composition.jl")
 end
 using Main.CGP
 MyInt=Main.CGP.MyInt

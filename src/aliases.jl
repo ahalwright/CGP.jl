@@ -1,5 +1,5 @@
 export Population, Chromosome, imChromosome, Parameters, indiv_result_type, pop_result_type, elt_type
-export CompositionalCircuit, CompGate, CompCircuit, Need
+export CompositionalCircuit, CompGate, CompCircuit, Need, CC, Cc, Cg, Need
 
 using Distributions
 using DataFrames
@@ -234,20 +234,30 @@ mutable struct evo_pairs_type
   steps::Int64
 end
 
-abstract type CompositionalCircuit end
-mutable struct CompGate <: CompositionalCircuit
+abstract type CC end
+mutable struct Cc <: CC
+  circuits::Vector{CC}
   inputs::Vector{Int64}
+  numoutputs::Int64
+  Cc( circuits::Vector{CC}, inputs::Vector{Int64}, numoutputs::Int64 ) = ( x=new(); x.inputs=inputs; x.numoutput=numoutputs; x.circuits=x )
+  Cc( cv::Vector{CC}, inputs::Vector{Int64}, numoutputs::Int64 ) = fCc( new(), cv, inputs, numoutputs )
+end
+
+function fCc( c::Cc, circuits::Vector{CC}, inputs::Vector{Int64}, numoutputs::Int64 )
+  c.circuits=circuits
+  c.inputs=inputs
+  c.numoutputs=numoutputs
+  return c
+end
+
+mutable struct Cg <: CC
   func::Func
-  numoutputs::Int64
-end
-mutable struct CompCircuit <: CompositionalCircuit
   inputs::Vector{Int64}
-  circuits::Vector{CompositionalCircuit}
   numoutputs::Int64
 end
+
 mutable struct Need
   goal::Goal
   circuit_index::Int64   # If nonzero, the index of the element of all_circuits that meets the need
   inputs::Vector{Int64}
-end          
-
+end
