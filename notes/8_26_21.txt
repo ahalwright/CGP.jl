@@ -1,0 +1,26 @@
+julia> numinputs = 2
+2
+julia> numcompositions=3
+3
+julia> needs_list = [([0x000a],2),([0x0003],2),([0x0008],2),([0x000e],2),([0x0006],2),([0x0009],2)]
+6-element Array{Tuple{Array{UInt16,1},Int64},1}:
+ ([0x000a], 2)
+ ([0x0003], 2)
+ ([0x0008], 2)
+ ([0x000e], 2)
+ ([0x0006], 2)
+ ([0x0009], 2)
+julia> numcircuits = 2
+2
+julia> comp_experiment( numinputs, numcompositions, needs_list, numcircuits ) 
+julia> needs
+Dict{Array{UInt16,1},Need} with 1 entry:
+  UInt16[0x000a] => Need(UInt16[0x000a], [1, 2], "IN1", 1.0)
+julia> ac
+Dict{String,CC} with 6 entries:
+  "AND"  => Cg(Func(&, 2, "AND"), [1, 2], 1, UInt16[0x0000], "AND")
+  "XOR"  => Cg(Func(xor, 2, "XOR"), [1, 2], 1, UInt16[0x0000], "XOR")
+  "IN1"  => Cg(Func(In2, 2, "IN1"), [1, 3], 1, UInt16[0x0000], "IN1")
+  "NOR"  => Cg(Func(Nor, 2, "NOR"), [1, 2], 1, UInt16[0x0000], "NOR")
+  "OR"   => Cg(Func(|, 2, "OR"), [1, 2], 1, UInt16[0x0000], "OR")
+  "NAND" => Cg(Func(Nand, 2, "NAND"), [1, 2], 1, UInt16[0x0000], "NAND")

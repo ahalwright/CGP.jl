@@ -85,7 +85,7 @@ All diary topics:
         With enough samples, the degree evolvability of most goals goes to the maximum possible.
 1_3:   Shows that log frequency DOES NOT scale with robustness as is the case when circuits are evolved.
 1_4:   Evolving increasing complexity.  Complexity.jl run_explore_complexity()
-1_8:   Redo plots for evolvability by sampling.
+1_8:   Redo plots for evolvability by sampling.  Outputs in data/1_3 with revisions in 9_3_21.
 1_13:  Reran simulations for finding components of neutral networks.  Previous runs were 12_1.
 1_15:  Number components vs complexity.  Maximum complexity does increase with k complexity,
         but hard to separate from uncertainties in measuring number of components.

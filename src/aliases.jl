@@ -233,7 +233,7 @@ mutable struct evo_pairs_type
   dest_g_count::Int64
   steps::Int64
 end
-
+#=
 abstract type CC end
 mutable struct Cc <: CC
   circuits::Vector{CC}
@@ -261,3 +261,41 @@ mutable struct Need
   circuit_index::Int64   # If nonzero, the index of the element of all_circuits that meets the need
   inputs::Vector{Int64}
 end
+=#
+abstract type CC end
+
+mutable struct Cc <: CC
+  circuits::Vector{CC}
+  inputs::Vector{Int64}
+  numoutputs::Int64
+  output::Goal    # cached output when applied to standard for length(inputs)
+  key::String     # dictionary key
+  cache_valid::Int64      # non-zero implies cache (which is output) is valid
+  Cc( circuits::Vector{CC}, inputs::Vector{Int64}, numoutputs::Int64, output::Goal, key::String, cache_valid::Int64 ) = ( x=new(); x.inputs=inputs; x.numoutputs=numoutputs; x.circuits=circuits; x.output=output; x.key=key; x.cache_valid=x.cache_valid )
+  Cc( cv::Vector{CC}, inputs::Vector{Int64}, numoutputs::Int64, output::Goal, key::String, cache_valid::Int64 ) = fCc( new(), cv, inputs, numoutputs, output::Goal, key::String, cache_valid::Int64 )
+end
+
+function fCc( c::Cc, circuits::Vector{CC}, inputs::Vector{Int64}, numoutputs::Int64, output::Goal, key::String, cache_valid::Int64 )
+  c.circuits=circuits
+  c.inputs=inputs
+  c.numoutputs=numoutputs
+  c.output = output  # use as a cache
+  c.key = key
+  c.cache_valid = cache_valid  
+  return c
+end
+
+mutable struct Cg <: CC
+  func::Func
+  inputs::Vector{Int64}
+  numoutputs::Int64
+  output::Goal
+  key::String
+end
+
+mutable struct Need
+  goal::Goal    # dictionary key
+  inputs::Vector{Int64}
+  circuit_key::String   # If not "", the key of the all_circuits dictionary that meets the need
+  best_fitness::Float64
+end       

@@ -1,0 +1,18 @@
+Thinking about enabling global caching.
+
+The list all_circuits in comp_experiment() should save pre-computed values using the standard context.
+In addition, all_circuits should be implemented as a dictionary, and saved to a file which can be
+loaded for each experiment.  Needs should also be saved as a dictionary with phenotype keys
+and references to all_circuits.
+
+Circuits should contain their key for lookup in all_circuits, and execute!() should compute
+the value of the circuit by using the cached value in all_circuits.
+
+Example for saving a dictionary using packages JLD and HDF5 (included with JLD).
+d = Dict(
+    ("a", "b") => [1, 2, 3],
+    ("c", "d") => [4, 5, 6],
+    ("e", "f") => [7, 8, 9]
+)
+save("data.jld", "data", d)
+load("data.jld")["data"]

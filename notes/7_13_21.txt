@@ -1,0 +1,60 @@
+ @time include("../data/7_13_21/run_explore_complexityB.jl")   # both on surt2 and lycosa
+
+Counting 3x1 LinCircuits
+cdf = read_dataframe("../data/7_13_21/outlist_circ_lists_reps1000000000.csv")  # 10^9
+findminall(cdf.ints6_2)
+(0, [98, 108, 149, 159, 183]) 
+cdf[cdf.ints6_2.<=0,:]
+5×3 DataFrame
+ Row │ goals   ints6_2  circuts_list
+     │ String  Int64    String
+─────┼───────────────────────────────────
+   1 │ 0x61          0  Array{Int64,1}[]
+   2 │ 0x6b          0  Array{Int64,1}[]
+   3 │ 0x94          0  Array{Int64,1}[]
+   4 │ 0x9e          0  Array{Int64,1}]
+   5 │ 0xb6          0  Array{Int64,1}[] 
+default_funcs(3)
+4-element Array{Func,1}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+ 
+
+#  10^11 LinCircuits  
+#  Conclusion:  all 6 instruction 2 register phenotypes have corresponding genotypes
+15005.9 seconds
+df = read_dataframe("../data/7_13_21/count_lincircuits7_13_21C.csv") 
+julia> log10(sum(df.ints6_2))
+11.016390416170797
+julia> findminall(df.ints6_2)
+(7, [135])
+julia> df[135,:]
+DataFrameRow
+ Row │ goals   ints6_2  circuts_list
+     │ String  Int64    String
+─────┼────────────────────────────────────────────────────
+ 135 │ 0x86          7  [[144, 73, 1, 32, 152, 151], [16…
+julia> df[df.ints6_2.<=15,:]
+7×3 DataFrame
+ Row │ goals   ints6_2  circuts_list
+     │ String  Int64    String
+─────┼────────────────────────────────────────────────────
+   1 │ 0x29         15  [[92, 59, 134, 126, 117, 5], [17…
+   2 │ 0x49          8  [[122, 97, 5, 91, 103, 101], [12…
+   3 │ 0x61          9  [[98, 107, 86, 101, 144, 1], [98…
+   4 │ 0x6d         14  [[172, 65, 139, 101, 83, 105], […
+   5 │ 0x86          7  [[144, 73, 1, 32, 152, 151], [16…
+   6 │ 0x94         10  [[88, 117, 30, 184, 4, 151], [13…
+   7 │ 0xd6         13  [[113, 4, 192, 55, 134, 105], [6…
+ 
+# Run with 8 gates 5 levelsback and 3*10^10 chromosomes (Cartesian)
+julia @time include("../data/7_13_21/run_count_chromosC.jl")
+runtime:  24 hours
+ol = ans;
+julia> findminall(ol)
+(0, [106, 110, 122, 135, 147, 151, 152, 159, 183, 279  …  65240, 65244, 65258, 65303, 65354, 65378, 65386, 65427, 65431, 65439]) 
+julia> length(findminall(ol)[2])
+36623
+Thus, over half of phenotypes do not correspond to circuits.

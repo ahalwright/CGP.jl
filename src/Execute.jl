@@ -34,7 +34,7 @@ function evaluate_node(c::Chromosome, node::InputNode, context::Vector)
 end
 
 function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
-    println("en eval interior node: ",node,"  contxt: ",context)
+    #println("en eval interior node: ",node,"  contxt: ",context)
     prev_cache = node.cache
     func = node.func
     #=
@@ -47,10 +47,10 @@ function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
         evaluate_node(c, c[index], context)
     end
     #args = map(x->context[x],node.inputs)
-    println("args: ",args)
+    #println("args: ",args)
     result = CGP.apply(func.func, args) 
-    print("func: ",func,"  args: ",args,"  result: ")
-    Printf.@printf("0x%2x\n",result)
+    #print("func: ",func,"  args: ",args,"  result: ")
+    #Printf.@printf("0x%2x\n",result)
     #=
     if node.active 
       @assert result == node.cache 
@@ -81,7 +81,7 @@ end
 function execute_chromosome(c::Chromosome, context::Vector; permute_context::Bool=false )
     #println("Executing chromosome")
     #print_chromosome(c)
-    println("context: ",context)
+    #println("context: ",context)
     return [evaluate_node(c, node, context) for node = c.outputs]
 end
 
@@ -135,7 +135,7 @@ function print_function_list( function_list::Vector{MyFunc} )
   for i = convert(MyFunc,1):length(function_list)
     if function_list[i] > 0
       # The correct way to print when MyInt=UInt16, but wont work when MyInt is something else
-      Printf.@printf("0x%04x  %d\n",i-1,function_list[i])  
+      #Printf.@printf("0x%04x  %d\n",i-1,function_list[i])  
     end
   end
 end
@@ -176,9 +176,11 @@ function print_count_function_hash( f::IOStream, counts::Dict{MyFunc,Int64} )
   len = length(counts_list)
   sum = 0
   for c in counts_list[1:len]
+    #=
     if len <= length_counts_list_max_for_printing
       Printf.@printf(f,"0x%04x   %d\n",c[1],c[2])
     end
+    =#
     sum += c[2]
   end
   println(f,"length counts list: ",len,"  sum: ",sum)

@@ -1,5 +1,8 @@
+# Used in GECCO paper
 using Statistics, Printf
 using DataFrames, CSV, Dates
+# This file does not include the "export" declarations needed to be included in CGP.jl.
+# Thus, it should be directly included.  Sample runs in ../data/9_3_21/.
 
 # Calculates robustness and evolvability for all phenotypes by sampling circuits as in Hu et al. (2020).
 # The node-adjacency matrix for the network of phenotypes is computed as goal_edge_matrix.
@@ -16,9 +19,9 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
     #goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
     dict_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, save_complex=save_complex ), 
         collect(1:nprocesses) )
-    println("length(dict_list): ",length(dict_list))
+    #println("length(dict_list): ",length(dict_list))
     #println("dict_list[1]: ",dict_list[1])
-    println("typeof(goal_pair_dict): ",typeof(goal_pair_dict))
+    #println("typeof(goal_pair_dict): ",typeof(goal_pair_dict))
     #for gp in dict_list
       goal_pair_dict = save_complex ? merge(addvalues,goal_pair_dict,dict_list...) : merge(+,goal_pair_dict,dict_list...)
       #goal_pair_dict = merge(+, goal_pair_dict, gp )
