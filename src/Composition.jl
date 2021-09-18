@@ -232,6 +232,27 @@ function add_need!( needs::Dict{Array{MyInt,1},Need}, all_circuits::Dict{String,
   end
 end        
 
+# Runs if function comp_experiment() is used to construct all_circuits
+# But does not really give the desired functionality.
+function random_comp_circuit( all_circuits::Dict{String,CC}, numinputs::Int64, ncircuits::Int64,
+    funcs::Vector{Func}=Func[] )
+  if length(funcs) == 0
+    funcs = default_funcs(numinputs)
+  end
+  new_circuits = CC[]
+  for i = 1:ncircuits
+    new_circ = deepcopy(all_circuits[rand(keys(all_circuits))])
+    len = length(new_circ.inputs)
+    #println("len: ",len,"  rc new_circ: ",new_circ)
+    for j = 1:len
+      new_circ.inputs[j] = rand(1:len+i-1)
+    end
+    push!(new_circuits,new_circ)
+  end
+  #println("rc new_circuits: ",new_circuits)
+  CC(new_circuits,RandomPermutation(numinputs).data,1)
+end
+
 # Random CompCircuit wiith only gates as subcircuits
 function random_gate_circuit( numinputs::Int64, ngates::Int64, funcs::Vector{Func}=Func[] )
   if length(funcs) == 0

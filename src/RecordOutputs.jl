@@ -33,28 +33,11 @@ using Dates
 using CSV
 export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list, read_counts_files
 export add_counts_to_dataframe, write_to_dataframe_file, circuit_complexities, run_circuit_complexities
+export create_lincircuits_list, create_chromosome_ints_list, increment_circuits_list!, increment_chrome_ints_list!
 
 MyFunc = Main.CGP.MyFunc
 
-# Creates the array of output counts
-function create_count_outputs_list( numinputs::Integer, numoutputs::Integer )
-  return fill( convert(Int64,0), numoutputs*2^2^numinputs )
-end
-
-# increments the array of output counts
-function increment_count_outputs_list( output::Goal, outputs_list::Vector{Int64}, numinputs::Int64 )
-  outputs_list[concatenate_outputs(output,numinputs)+1] += 1
-end
-
-# Creates an array of circuit lists
-# Each circuit list will save at most numcircuits circuits where circuits are lists of circuit ints
-function create_circuits_list( numinputs::Integer, numoutputs::Integer )
-   [ Vector{Int64}[] for _ = 1:numoutputs*2^2^numinputs ]
-end
-
 # increments the circuit_list corresponding to output if it contains less than numcircuits circuits
-#function increment_circuits_list!( circuits_list::Vector{Vector{Vector{Int64}}}, output::Goal, circ::Vector{Vector{MyInt}}, 
-#    numcircuits::Int64, numinputs::Int64, numregisters::Int64, funcs::Vector{Func} )
 function increment_circuits_list!( circuits_list::Vector{Vector{Vector{Int64}}}, output::Goal, circ::LinCircuit, 
     numcircuits::Int64, numinputs::Int64, numregisters::Int64, funcs::Vector{Func} )
   index = concatenate_outputs(output,numinputs)+1
@@ -66,8 +49,19 @@ function increment_circuits_list!( circuits_list::Vector{Vector{Vector{Int64}}},
   push!(circuits_list[index], c_ints )
 end
 
+# increments the chrome_ints_list corresponding to output if it contains less than numcircuits chromosome ints
+function increment_chrome_ints_list!( chrome_ints_list::Vector{Vector{Int128}}, output::Goal, ch::Chromosome, numcircuits::Int64,
+    p::Parameters, funcs::Vector{Func} )
+  index = concatenate_outputs(output,p.numinputs)+1
+  if length(chrome_ints_list[index]) >= numcircuits
+    return
+  end
+  ch_int = chromosome_to_int(ch)
+  push!(chrome_ints_list[index], ch_int )
+end
+
 # If numoutputs > 1, combines the outputs into a single unsigned integer of type MyFunc
-# If numoutputs == 1, extract the one compponent
+# If numoutputs == 1, extract the one component
 function concatenate_outputs( output::Goal, numinputs::Int64 )
   if length(output) == 1
     return MyFunc(output[1])
@@ -81,42 +75,46 @@ function concatenate_outputs( output::Goal, numinputs::Int64 )
   end
 end
 
+function count_outputs( nreps::Int64, p::Parameters, numcircuits::Int64=0; use_lincircuit::Bool=:false )
+  count_outputs( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, 
+    use_lincircuit=use_lincircuit )
+end
+
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, funcs::Vector{Func}; 
-    use_lincircuit::Bool=:false, use_compcircuit::Bool=false )
+function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, numcircuits::Int64=0;
+    use_lincircuit::Bool=:false )
   p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback ) 
   funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
-  outlist = create_count_outputs_list( numinputs, numoutputs )
-  ncircuits=1  # must have function scope, but only used when use_lincircuit==:true
+  outlist = fill( convert(Int64,0), numoutputs*2^2^numinputs )
   if use_lincircuit
-    circuits_list = create_circuits_list( numinputs, numoutputs )  
+    # Creates an array of lincircuit int lists
+    circuits_list = [ Vector{Int64}[] for _ = 1:numoutputs*2^2^numinputs ]
+  else      # Default case of chromosomes
+    chrome_ints_list = [ Int128[] for _ = 1:numoutputs*2^2^numinputs ]
   end
   for _ = 1:nreps
-    if use_compcircuit
-      ccc = random_comp_circuit( numinputs, 1, numinteriors )
-      ctx = construct_context(numinputs)
-      output = [execute( ccc, ctx )]
-    elseif use_lincircuit
+    if use_lincircuit
       c = rand_lcircuit( p.numinteriors, p.numlevelsback, p.numinputs, funcs )
-      #output = execute_lcircuit( c, p.numlevelsback, p.numinputs, funcs )[1:numoutputs]
       output = execute_lcircuit( c, p, funcs )[1:numoutputs]
-      increment_circuits_list!( circuits_list, output, c, numinteriors, numinputs, numlevelsback, funcs ) # numlevelsback is numregisters
+      increment_circuits_list!( circuits_list, output, c, numcircuits, numinputs, numlevelsback, funcs ) # numlevelsback is numregisters
     else
       c = random_chromosome( p, funcs )
       output = output_values( c )
+      increment_chrome_ints_list!( chrome_ints_list, output, c, numcircuits, p, funcs ) 
     end
-    increment_count_outputs_list( output, outlist, numinputs )
+    # increment_count_outputs_list( output, outlist, numinputs )  # Replaced by the next line for efficiency
+    outlist[concatenate_outputs(output,numinputs)+1] += 1
   end
   if use_lincircuit
     (outlist,circuits_list)
   else
-    outlist
+    (outlist,chrome_ints_list)
   end
 end
 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
 function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, funcs::Vector{Func}=Func[]; 
-      csvfile::String="", use_lincircuit::Bool=:false, use_compcircuit::Bool=false ) 
+      csvfile::String="", use_lincircuit::Bool=:false ) 
   p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
   if length(funcs) == 0
     funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
@@ -132,7 +130,7 @@ function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::I
   println("nreps_p: ",nreps_p)
   println("csvfile: ",csvfile) 
   count_out_funct(x) = count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, funcs, 
-      use_lincircuit=use_lincircuit, use_compcircuit=use_compcircuit )
+      use_lincircuit=use_lincircuit )
   result =  pmap( x->count_out_funct(x), collect(1:nprocs()))
   #result =  map( x->count_out_funct(x), collect(1:nprocs()))
   println("len(result): ",length(result))

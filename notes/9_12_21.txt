@@ -1,0 +1,28 @@
+Added update to notes/9_9_21.txt that shows positive relationship between evolution evolvability and adaptive evolvability.
+
+Wrote functions enumerate_circuits, chromosome_int, gate_int in Chromosome.jl
+enumerate_circuts generates all circuts for a given parameters p and funcs ignoring the level_back parameters.
+Note that enumerate_circuits generates the same number circuits count_circuits() if levelsback is maximum in Chromosome.jl
+chromosome_int generates a unique integer for a chromosome and funcs (default for funcs is default_funcs(p.numinputs).
+
+Verified correctness of chromosome_int() by the following:
+ 
+p = Parameters(4,1,4,3)
+funcs
+# 2-element Array{Func,1}:
+# Func(|, 2, "OR")
+# Func(Main.CGP.Nor, 2, "NOR")
+@time cl=enumerate_circuits(p,funcs);
+#  37.087692 seconds (139.00 M allocations: 8.885 GiB, 62.18% gc time)
+length(cl)
+#  11289600
+
+@time cil = map(ch->chromosome_int(ch,funcs),cl);
+#  899.338502 seconds (8.57 G allocations: 1015.597 GiB, 48.28% gc time)
+
+(length(cil),length(unique(cil)))
+# (11289600, 11289600)
+
+p = Parameters(4,1,4,7)
+count_circuits(p,nfuncs=2)
+#  11289600

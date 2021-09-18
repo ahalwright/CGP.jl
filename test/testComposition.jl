@@ -2,6 +2,7 @@ using Test
 using Main.CGP
 @assert MyInt == UInt16   # Must be set to MyInt16 in CGP.jl
 
+# Does not test comp_experiment(), rand_comp_circuit(), rand_gate_circuit()
 @testset "compositional" begin  # @testset makes random_chromosome(p) always return same chromosome
 
 p = Parameters( 2, 1, 3, 3 )

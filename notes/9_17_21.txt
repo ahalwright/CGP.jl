@@ -1,0 +1,26 @@
+Conciousness based on article by Anil Seth in New Scientist. Print issue Sept. 4, 2021
+
+https://www.newscientist.com/article/mg25133501-500-the-hard-problem-of-consciousness-is-already-beginning-to-dissolve/#ixzz76jZeHD00
+
+Quote: 
+
+Let’s focus on content and self. My strategy for explaining these properties of consciousness is based on an increasingly popular theory in cognitive neuroscience called predictive processing.
+
+The bedrock idea is simple. Imagine that you are your brain, locked inside the bony vault of the skull, trying to figure out what’s out there in the world – a world that, from the perspective of the brain, also includes the body. All you have to go on are noisy and ambiguous sensory signals, which are only indirectly related to what’s out there, and which certainly don’t come with labels attached (“I’m from a cup of coffee! I’m from a tree!”). Perception, in this view, has to be a process of inference – of neurally implemented probabilistic guesswork. When I see a red coffee cup on the table in front of me, this is because “red coffee cup” is the brain’s best guess of the hidden, and ultimately unknowable, causes of the corresponding sensory signals. When I experience the glow of a sunset, or the sharp taste of an adventurous cheese, that too is a perceptual best guess.
+
+How are these perceptual best guesses arrived at? According to predictive processing, the brain is constantly calibrating its perceptual predictions using data from the senses. The predictive processing theory has it that perception involves two counterflowing streams of signals. There is an “inside-out” stream, cascading downwards through the brain’s perceptual hierarchies, that conveys predictions about the causes of sensory inputs. Then there are “outside-in” prediction errors – the sensory signals – which report the differences between what the brain expects and what it gets. By continually updating its predictions to minimise sensory prediction errors, the brain will settle and resettle on an evolving best guess of its sensory causes, and this is what we consciously perceive.
+
+Perception, in this view, isn’t a passive registration of an external reality. It is an active construction, a kind of “controlled hallucination”, in which the brain’s best guesses are tied to the world – and the body – through a continuous process of prediction error minimisation.
+
+Predictive processing isn’t a theory of consciousness, in the sense that solving Chalmers’s hard problem would require (see “Theories of consciousness”). Instead, at least at first, it is best thought of as a theory for consciousness science, in the real problem sense. It provides a method for building explanatory bridges between neural mechanisms and aspects of what conscious experiences are like, from the perspective of the person experiencing them.
+
+End quote
+
+My idea on evolution:  The conscious animal builds a perceptual model of reality based on whether it increases 
+reproduction of the animal.  Does the model predict what will happen next in a way that enhances survival and
+reproduction.  For a social animal (like humans), much of this prediction will be of the behavior of other humans.
+But also prediction of the behavior of predators and prey.
+
+Evolutionary intelligence.
+
+Consciousness is about the integration of perception via various senses.

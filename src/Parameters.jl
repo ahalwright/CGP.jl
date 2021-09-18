@@ -11,7 +11,7 @@ mutable struct Parameters
     numoutputs::Integer
     nodearity::Integer
 
-    numinteriors::Integer   # Number of gates
+    numinteriors::Integer   # Number of gates. For LinCircuits, number of instructions
     numlevelsback::Integer  # For LinCircuits, number of registers
 end
 

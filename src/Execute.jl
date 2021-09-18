@@ -42,6 +42,7 @@ function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
       return node.cache
     end
     =#
+    #println("node.inputs: ",node.inputs)
     args = map(node.inputs[1:func.arity]) do index
         #println("index: ",index)
         evaluate_node(c, c[index], context)
@@ -64,7 +65,7 @@ end
 # Evaluate an interior node in isolation using context as the input
 # context should be the context for numinputs.
 function eval_interior( node::InteriorNode, context::Vector )
-    #println("ei eval interior node: ",node)
+    println("ei eval interior node: ",node)
     func = node.func
     args = [context[i] for i = 1:func.arity]
     #println("args: ",args)
@@ -73,8 +74,10 @@ end
 
 function evaluate_node(c::Chromosome, node::OutputNode, context::Vector)
     index = node.input
-    #println("eval output node: ",node,"  index: ",index)
-    return evaluate_node(c, c[index], context)
+    result = evaluate_node(c, c[index], context)
+    #println("eval output node: ",node,"  index: ",index,"  result: ",result)
+    # result = evaluate_node(c, c[index], context)
+    return result
 end
 
 # Execute chromosme using context for the inputs and return outputs

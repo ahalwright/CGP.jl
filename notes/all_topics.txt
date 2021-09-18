@@ -103,7 +103,7 @@ All diary topics:
 2_2:   Redo circuit density plot as described in 12_18.txt.
 2_4:   Check that every phenotype is mapped to by a genotype for 8 gates, 5 lb.  2 methods.
 2_9:   Summarize and create test functions for random walk functions.
-2_10:  Ideas on evolvability.
+2_10:  Ideas on evolvability.  The hypothesis that all phenotypes have near maximum evolvability.
 2_11:  Complexity versus evolvability in a mutational neighborhood.  Code:  mutational_evolvability.jl
 2_13:  Complexity and robustness versus evolvability in a mutational neighborhood.  Code:  mutational_evolvability.jl
 2_15_21:  Redoing NN plots

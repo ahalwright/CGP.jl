@@ -1,0 +1,30 @@
+Adding an evolution evolvability column to the adaptive evolvabiility dataframe of 9/9/21.
+
+The run_geno_complexity?.jl files were copied from 11_18, and had to be modified as follows:
+(as in the files in 6_25_21).
+
+maxsteps_recover = 0
+maxtrials_recover = 0
+maxtries_recover = 0
+gcdf = run_geno_complexity(goallist,maxreps,iter_maxreps,p,max_steps,max_tries,
+    maxsteps_recover, maxtrials_recover, maxtries_recover, csvfile=csvfile )
+
+Run for all 3x1 goals on surt2.  Takes a very long time to finish the goals [0x0069] and [0x0096].
+
+# on surt2
+@time include("../data/9_10_21/run_geno_complexityB.jl")    # 7098.288697 seconds 24 processes
+consolidate_dataframe("../data/9_10_21/geno_complexity9_10_21B.csv","../data/9_10_21/geno_complexity9_10_21Bcons.csv",consolidate=true)
+
+Windows
+edf = read_dataframe("../../complexity/data/9_10_21/geno_complexity9_10_21Bcons.csv")
+edf.avg_num_successes = adf.avg_num_successes
+edf.deg_evolvability=adf.deg_evolvability
+scatter(edf.log_avg_steps,[edf.deg_evolvability edf.evo_count])
+scatter!(xlabel="log steps",ylabel="evolvability",title="degree and evolution evolvability vs log steps")
+cd("../../complexity/data/9_10_21")
+savefig("deg_evolution_evolvability_vs_log_steps3x1_7_4.png")
+
+scatter(edf.avg_num_successes,[edf.deg_evolvability,edf.evo_count],label=["deg evolvability" "evo evolvability"])
+scatter!(xlabel="num successes",ylabel="evolvability",title="degree and evolution evolvability vs number successes")
+savefig("deg_evolution_evolvability_vs_log_steps3x1_7_4.png")
+

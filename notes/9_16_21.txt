@@ -1,0 +1,74 @@
+
+Adapting PhenotypeNetwork.jl to LinCircuits
+
+Remember that p.numinteriors is numinstructions
+Remember that p.numlevelsback is numregisters
+p = Parameters(3,1,4,1)
+funcs = lin_funcs(p.numinputs)
+#  4-element Array{Func,1}:
+#   Func(&, 2, "AND")
+#   Func(|, 2, "OR")
+#   Func(Main.CGP.Nand, 2, "NAND")
+#   Func(Main.CGP.Nor, 2, "NOR") 
+lc = rand_lcircuit( p.numinteriors, p.numlevelsback, p.numinputs, funcs ) 
+#   LinCircuit(Array{UInt16,1}[[0x0004, 0x0001, 0x0003, 0x0002], [0x0004, 0x0001, 0x0003, 0x0002], [0x0001, 0x0001, 0x0004, 0x0002], [0x0001, 0x0001, 0x0004, 0x0002]], Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 1)) 
+lci = circuit_vect_to_circuit_ints( lc.circuit_vects, p.numlevelsback, p.numinputs, funcs )
+#  Int64[ 57, 57, 13, 13 ]
+execute_lcircuit( lc.circuit_vects, p.numlevelsback, p.numinputs, funcs )
+#  UInt16[  0x00a0, 0x00f0, 0x00cc, 0x00aa ]    # Output value should be 0x00a0
+output_values( lc, funcs )[1]
+#  0x00a0
+mutate_circuit!( deepcopy( lc.circuit_vects ), p.numlevelsback, p.numinputs, funcs )  
+#   4-element Array{Array{UInt16,1},1}:
+#    [0x0004, 0x0001, 0x0003, 0x0002]
+#    [0x0002, 0x0001, 0x0003, 0x0002]
+#    [0x0001, 0x0001, 0x0004, 0x0002]
+#    [0x0001, 0x0001, 0x0004, 0x0002]
+mlc = mutate_circuit_all( lc.circuit_vects, p.numlevelsback, p.numinputs, funcs )
+#   36-element Array{Array{Array{UInt16,1},1},1}:
+#   [[0x0001, 0x0001, 0x0003, 0x0002], [0x0004, 0x0001, 0x0003, 0x0002], [0x0001, 0x0001, 0x0004, 0x0002], [0x0001, 0x0001, 0x0004, 0x0002]] ...
+map(x->circuit_vect_to_circuit_ints( x, p.numlevelsback, p.numinputs, funcs ), mlc )
+#   36-element Array{Array{Int64,1},1}:
+#   [9, 57, 13, 13] ...
+   
+9_17_21:
+p = Parameters(3,1,4,2)
+#  Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 2)
+funcs = lin_funcs(p.numinputs)
+#  4-element Array{Func,1}:
+#   Func(&, 2, "AND")
+#   Func(|, 2, "OR")
+#   Func(Main.CGP.Nand, 2, "NAND")
+#   Func(Main.CGP.Nor, 2, "NOR")
+lc = rand_lcircuit( p.numinteriors, p.numlevelsback, p.numinputs, funcs )
+#  LinCircuit(Array{UInt16,1}[[0x0001, 0x0002, 0x0003, 0x0001], [0x0004, 0x0001, 0x0004, 0x0004], [0x0004, 0x0001, 0x0004, 0x0005], [0x0004, 0x0002, 0x0003, 0x0001]], Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 2))
+output_values( lc )  #  0x0011
+mutate_circuit!(deepcopy(lc), funcs )
+#  LinCircuit(Array{UInt16,1}[[0x0001, 0x0002, 0x0003, 0x0001], [0x0004, 0x0001, 0x0004, 0x0004], [0x0004, 0x0001, 0x0004, 0x0005], [0x0004, 0x0002, 0x0003, 0x0002]], Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 2))
+mutate_circuit_all( lc )
+#  48-element Array{Array{Array{UInt16,1},1},1}:
+#   [[0x0002, 0x0002, 0x0003, 0x0001], [0x0004, 0x0001, 0x0004, 0x0004], [0x0004, 0x0001, 0x0004, 0x0005], [0x0004, 0x0002, 0x0003, 0x0001]] 
+ci = circuit_vect_to_circuit_ints( lc )
+#  [35, 168, 169, 185]
+cv = circuit_ints_to_circuit_vect( ci, p, funcs )
+#  4-element Array{Array{UInt16,1},1}:
+#   [0x0001, 0x0002, 0x0003, 0x0001]
+#   [0x0004, 0x0001, 0x0004, 0x0004]
+#   [0x0004, 0x0001, 0x0004, 0x0005]
+#   [0x0004, 0x0002, 0x0003, 0x0001u] 
+iv=vect_to_int( MyInt[5,2,5, 5], 2,3,funcs );
+# multiplier: 1  result: 4
+# multiplier: 4  result: 17
+# multiplier: 2  result: 38
+# multiplier: 5  result: 194
+int_to_vect( iv, 2, 3, funcs )
+# i: 4  multiplier: 5  inst_int: 38  result[i]: 5
+# i: 3  multiplier: 5  inst_int: 7  result[i]: 4
+# i: 2  multiplier: 2  inst_int: 3  result[i]: 2
+# i: 1  multiplier: 4  inst_int: 0  result[i]: 4
+# 4-element Array{UInt16,1}:
+#  0x0004
+#  0x0002
+#  0x0004
+#  0x0005
+# 

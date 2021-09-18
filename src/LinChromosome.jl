@@ -21,7 +21,8 @@
 # See test/testLinCircuit.jl for tests.
 export LinCircuit, output_values
 export execute_lcircuit, numinstructions, vect_to_int, int_to_vect, rand_ivect, execute_random_circuit
-export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_all, print_circuit
+export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, print_circuit
+export circuit_vect_to_circuit_ints, circuit_ints_to_int, int_to_circuit_int
 #export circuit_int
 OutputType = Int64
 
@@ -34,15 +35,12 @@ mutable struct LinCircuit
 end
 =#
 
-function output_values( c::LinCircuit )
-  funcs = lin_funcs( c.params.numinputs )
+function output_values( c::LinCircuit, funcs::Vector{Func}=Func[] )
+  if length(funcs) == 0
+    funcs = lin_funcs( c.params.numinputs )
+  end
   #println("funcs: ",funcs)
-  R = execute_lcircuit( c.circuit_vects, c.params.numlevelsback, c.params.numinputs, funcs, nodearity=c.params.nodearity )
-  R[1:c.params.numoutputs]
-end  
-
-function output_values( c::LinCircuit, funcs::Vector{Func} )
-  R = execute_lcircuit( c.circuit_vects, c.params.numlevelsback, c.params.numinputs, funcs, nodearity=c.params.nodearity )
+  R = execute_lcircuit( c.circuit_vects, funcs, nodearity=c.params.nodearity )
   R[1:c.params.numoutputs]
 end  
 
@@ -60,8 +58,8 @@ function execute_lcircuit( circuit_ints::Vector{OutputType}, numregisters::Int64
   execute_lcircuit( lcv, numregisters, numinputs, funcs )
 end
 
-#function execute_lcircuit( circuit_vects::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func} )
-function execute_lcircuit( circuit::LinCircuit, p::Parameters, funcs::Vector{Func} )
+function execute_lcircuit( circuit::LinCircuit, funcs::Vector{Func} )
+  p = circuit.params
   R = fill(MyInt(0), p.numlevelsback + p.numinputs )
   R[(p.numlevelsback+1):end] = construct_context(p.numinputs)
   for lc in circuit.circuit_vects
@@ -98,17 +96,16 @@ end
 function vect_to_int( inst_vect::Vector{MyInt}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )
   result = OutputType(inst_vect[1]-1)
   multiplier = 1
-  #println("multiplier: ",multiplier,"  result: ",result)
-  multiplier = numregisters
+  println("multiplier: ",multiplier,"  result: ",result)
+  multiplier = length(funcs)
   result *= multiplier
   result += inst_vect[2]-1
-  #println("multiplier: ",multiplier,"  result: ",result)
-  #multiplier = numregisters
-  multiplier = numregisters+numinputs
+  println("multiplier: ",multiplier,"  result: ",result)
+  multiplier = numregisters
   for j = 1:nodearity
     result *= multiplier
     result += inst_vect[2+j]-1
-    #println("multiplier: ",multiplier,"  result: ",result)
+    println("multiplier: ",multiplier,"  result: ",result)
     multiplier = numregisters+numinputs
   end
   result
@@ -120,31 +117,79 @@ function int_to_vect( inst_int::OutputType, numregisters::Int64, numinputs::Int6
   i = 2 + nodearity
   for j = 1:nodearity
     multiplier = numregisters+numinputs
-    result[i] = inst_int % multiplier+1
+    result[i] = inst_int % multiplier + 1
     inst_int = div(inst_int,multiplier)
-    #println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
+    println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
     i -= 1
   end
   multiplier = numregisters
-  result[i] = inst_int % multiplier+1
+  result[i] = inst_int % multiplier + 1
   inst_int = div(inst_int,multiplier)
-  #println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
+  println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
   i -= 1
   multiplier = length(funcs)
-  result[i] = inst_int % multiplier+1
+  result[i] = inst_int % multiplier + 1
   inst_int = div(inst_int,multiplier)
-  #println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
+  println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
   result
 end 
 
-function circuit_vect_to_circuit_int( cv::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
+function circuit_vect_to_circuit_ints( cv::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
     nodearity::Int64=2 )
   map(x->vect_to_int(x, numregisters, numinputs, funcs, nodearity=nodearity ), cv )
 end
 
-function circuit_int( c::LinCircuit )
-  circuit_vect_to_circuit_int( c.circuit_vects, c.params.numinteriors, c.params.numinputs, lin_funcs(c.params.numinputs ) )
+function circuit_vect_to_circuit_ints( circuit::LinCircuit, funcs::Vector{Func}=Func[]; 
+    nodearity::Int64=2 )
+  if length(funcs) == 0
+    funcs = lin_funcs( circuit.params.numinputs )
+  end
+  circuit_vect_to_circuit_ints( circuit.circuit_vects, circuit.params.numlevelsback, circuit.params.numinputs, funcs )
 end
+
+function circuit_ints_to_circuit_vect( c_ints::Vector{Int64}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func};
+    nodearity::Int64=2 )
+  map(x->int_to_vect(x, numregisters, numinputs, funcs, nodearity=nodearity ), c_ints )
+end
+
+function circuit_ints_to_circuit_vect( c_ints::Vector{Int64}, p::Parameters, funcs::Vector{Func}=Func[];
+    nodearity::Int64=2 )
+  if length(funcs) == 0
+    funcs = lin_funcs( p.numinputs )
+  end
+  circuit_ints_to_circuit_vect( c_ints, p.numlevelsback, p.numinputs, funcs )
+end
+
+function circuit_ints( c::LinCircuit )
+  if length(funcs) == 0
+    funcs = lin_funcs( c.params.numinputs )
+  end
+  circuit_vect_to_circuit_ints( c.circuit_vects, c.params.numinteriors, c.params.numinputs, lin_funcs(c.params.numinputs ) )
+end
+
+function circuit_ints_to_int( c_ints::Vector{Int64}, p::Parameters, funcs::Vector{Func} )
+  numregisters = p.numlevelsback
+  multiplier = numregisters*(numregisters+p.numinputs)^p.nodearity
+  println("multiplier: ",multiplier)
+  result = Int128(c_ints[1])
+  for i = 2:(2+p.nodearity) 
+    result += c_ints[i]*multiplier + result
+  end
+  result
+end
+
+function int_to_circuit_ints( c_int::Int128, p::Parameters, funcs::Vector{Func} ) 
+  #multipliers = vcat( [1, numregisters], [numregisters+p.numinputs for _=1:p.nodearity ] )
+  multiplier = numregisters*(numregisters+p.numinputs)^p.nodearity
+  println("multiplier: ",multiplier)
+  result = zeros(Int64, 2+p.nodearity )
+  for i = (2+p.nodearity):-1:1
+    result[i] = c_int % multiplier
+    c_int = div( c_int, multiplier )
+  end
+  result
+end
+    
   
 # Random instruction  
 # Assumes gates are arity 2
@@ -276,6 +321,13 @@ end
 
 function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 ) 
   mutate_circuit_all( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
+end
+
+function mutate_circuit_all( circuit::LinCircuit, funcs::Vector{Func}=Func[]; nodearity::Int64=2 ) 
+  if length(funcs) == 0
+    funcs = lin_funcs( circuit.params.numinputs )
+  end
+  mutate_circuit_all( circuit.circuit_vects, circuit.params, funcs )
 end
 
 function print_circuit( f::IO, circuit::LinCircuit, funcs::Vector{Func} )

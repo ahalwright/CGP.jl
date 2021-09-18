@@ -1,0 +1,4 @@
+Carrying out the procedure to compare Wagner phenotype "sampling" evolvability with a defintion of 
+adaptive evolvability. 
+
+I forgot that Hu (2020) gives two definitions of evolvabiltiy, 

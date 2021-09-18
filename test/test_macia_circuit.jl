@@ -53,7 +53,7 @@ function test_macia_circuit()
   XX = nv[2]   # 5 gates, while Macia uses only the first 3 gates for X
   X = XX[1:3]  # 3 gates, what Macia calls X
   O = nv[3]
-  @test nv == (IN,XX,O)
+  @test nv == (IN,XX,O)  # Failed on 8/15/21 because node caching in evaluate_node() is commented out
   println("Verifying the results in comparison to Tables 3 and 4 of Macia and Sole")
   gbX = get_bits( X, p0.numinputs )
   gbO = get_bits( O, p0.numinputs )

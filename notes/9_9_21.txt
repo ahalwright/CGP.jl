@@ -1,0 +1,38 @@
+Testing the hypothesis that a definition of adaptive evolvability is compatible with
+the Wagner 2008 definition of phenotype evolvability as described in
+complexity/cce/"Adaptive evolvability9_8_21.docx".
+
+New code is in AdaptEvo.jl.  Data is in 9_7_21 and 9_8_21/ including on surt2.
+
+Windows:
+adf = read_dataframe("../../complexity/data/9_8_21/adapt_evo9_8_21C.csv")
+scatter(adf.avg_num_successes,adf.evolvability,title="degree evolvability vs. number successes all 3-input goals",xlabel="number successes",ylabel="degree evolvability",labels="")
+savefig("../../complexity/data/9_8_21/num_successes_vs_degree_evolvability.png")
+rdf = read_dataframe("../../complexity/data/9_8_21/robust_evo_by_walks9_8_21A.csv")
+adf.s_evolvability = rdf.s_evolvability    # s_evolvability is a "strength evolvability" based on Hu
+scatter(adf.avg_num_successes,map(log10,adf.s_evolvability))
+
+edf = read_dataframe("../../complexity/data/9_10_21/geno_complexity9_10_21Bcons.csv")
+edf.deg_evolvability=adf.deg_evolvability
+edf.avg_num_successes = adf.avg_num_successes
+
+# Updating 9/12/21
+scatter(edf.avg_num_successes, edf.evo_count, smooth=true )
+scatter!(xlabel="number successes",ylabel="evolvability count",title="evolution evolvability vs adaptive evolvability")
+scatter!(legend=:none)
+pwd() # "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\9_10_21"
+savefig("evolution_evolvability_vs_adaptive_evolvability3x1_7_4.png")
+spearman_cor(edf, :avg_num_successes, :evo_count )
+# (0.5516811595439044, 4.325595610907773e-22)  
+
+Conclusions:  
+degree_evolvability (Wagner sampling evolvability) does not show any relationship to adaptive evolvability.
+evolution evolvability does show a weak opositive relationship to adaptive evolvability (number successes)
+
+# Number epochal evolution steps vs sampling and evolution evolvability
+scatter(edf.log_avg_steps,[edf.deg_evolvability,edf.evo_count],label=["sampling evolvability" "evolution evolvability"],smooth=true)
+savefig("sampling evolution evolvability vs log steps3x1 7 4.png")
+spearman_cor(edf,:log_avg_steps,:deg_evolvability) 
+#  (-0.9368653077329656, 3.325244441653628e-118)
+spearman_cor(edf,:log_avg_steps,:evo_count)  
+#  (0.5516811595439044, 4.325595610907773e-22)
