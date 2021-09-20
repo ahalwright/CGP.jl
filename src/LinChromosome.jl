@@ -94,19 +94,18 @@ end
 
 # Converts an instruction specified by a vector to the instruction specified by an integer.
 function vect_to_int( inst_vect::Vector{MyInt}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )
-  result = OutputType(inst_vect[1]-1)
+  result = Int64(inst_vect[1]-1)  # Function code
   multiplier = 1
-  println("multiplier: ",multiplier,"  result: ",result)
-  multiplier = length(funcs)
+  #println("multiplier: ",multiplier,"  result: ",result)
+  multiplier = numregisters
   result *= multiplier
   result += inst_vect[2]-1
-  println("multiplier: ",multiplier,"  result: ",result)
-  multiplier = numregisters
+  #println("multiplier: ",multiplier,"  result: ",result)
+  multiplier = numregisters+numinputs
   for j = 1:nodearity
     result *= multiplier
     result += inst_vect[2+j]-1
-    println("multiplier: ",multiplier,"  result: ",result)
-    multiplier = numregisters+numinputs
+    #println("multiplier: ",multiplier,"  result: ",result)
   end
   result
 end
@@ -114,23 +113,20 @@ end
 # Converts an instruction specified by an integer to the instruction specified by a vector.
 function int_to_vect( inst_int::OutputType, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )  
   result = fill(MyInt(0),2+nodearity)
-  i = 2 + nodearity
-  for j = 1:nodearity
-    multiplier = numregisters+numinputs
-    result[i] = inst_int % multiplier + 1
+  multiplier = numregisters+numinputs
+  for j = nodearity:-1:1
+    result[j+2] = inst_int % multiplier + 1
     inst_int = div(inst_int,multiplier)
-    println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
-    i -= 1
+    #println("j+2: ",j+2,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[j+2]: ",result[j+2])
   end
   multiplier = numregisters
-  result[i] = inst_int % multiplier + 1
+  result[2] = inst_int % multiplier + 1
   inst_int = div(inst_int,multiplier)
-  println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
-  i -= 1
+  #println("i: ",2,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[2]: ",result[2])
   multiplier = length(funcs)
-  result[i] = inst_int % multiplier + 1
+  result[1] = inst_int % multiplier + 1
   inst_int = div(inst_int,multiplier)
-  println("i: ",i,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[i]: ",result[i])
+  #println("i: ",1,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[1]: ",result[1])
   result
 end 
 
@@ -181,7 +177,7 @@ end
 function int_to_circuit_ints( c_int::Int128, p::Parameters, funcs::Vector{Func} ) 
   #multipliers = vcat( [1, numregisters], [numregisters+p.numinputs for _=1:p.nodearity ] )
   multiplier = numregisters*(numregisters+p.numinputs)^p.nodearity
-  println("multiplier: ",multiplier)
+  #println("multiplier: ",multiplier)
   result = zeros(Int64, 2+p.nodearity )
   for i = (2+p.nodearity):-1:1
     result[i] = c_int % multiplier
