@@ -1,0 +1,28 @@
+Got construct_pheno_net() of PhenotypeNetwork.jl to work----see below.
+The hard part was getting count_outputs() of RecordOutputs.jl to work
+for both Chromosomes and LinCircuits.
+
+Also, renamed vect_to_int and int_to_vect functions to have more descriptive names
+in LinCircuit.jl, and fixed a lot of bugs.
+
+include("../test/testLinChromosome.jl")
+# Test Summary:                                                                                  | Pass  Total
+# Testing functions of LinChromosome.jl in the 3-input 1-output 2-registers 6-instructions case. |  221    221
+# Test.DefaultTestSet("Testing functions of LinChromosome.jl in the 3-input 1-output 2-registers 6-instructions case.", Any[], 221, false)
+
+p = Parameters(2,1,4,2)
+numcircuits=3
+count_outputs( 3, p, numcircuits, use_lincircuit=false )
+#  ([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], Array{Int128,1}[[], [], [], [], [27574300], [], [], [], [], [], [], [], [], [], [1258331], [20842475]])
+
+count_outputs( 3, p, numcircuits, use_lincircuit=true )
+#  ([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0], Array{Int128,1}[[10592482], [], [], [], [], [], [], [], [], [], [], [], [23957025], [], [897325], []])
+
+include("PhenotypeNetwork.jl")
+nreps = 100
+construct_pheno_net( p, nreps, numcircuits, use_lincircuit=false )
+#  16×16 Array{Int64,2}:
+construct_pheno_net( p, nreps, numcircuits, use_lincircuit=true)
+# problems with the definition of mutate_all()
+
+

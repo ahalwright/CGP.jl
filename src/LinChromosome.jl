@@ -20,9 +20,12 @@
 # See notes/3_24.txt for outline
 # See test/testLinCircuit.jl for tests.
 export LinCircuit, output_values
-export execute_lcircuit, numinstructions, vect_to_int, int_to_vect, rand_ivect, execute_random_circuit
-export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, print_circuit
-export circuit_vect_to_circuit_ints, circuit_ints_to_int, int_to_circuit_int
+export execute_lcircuit, instruction_vect_to_instruction_int, instruction_int_to_instruction_vect 
+export vect_to_int, int_to_vect, rand_ivect, execute_random_circuit
+export num_instructions # This is the total number of possible instructions for a parameter setting
+export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, mutate_all, print_circuit
+export instruction_vects_to_instruction_ints, instruction_ints_to_instruction_vects
+export instruction_ints_to_circuit_int, circuit_int_to_instruction_ints
 #export circuit_int
 OutputType = Int64
 
@@ -40,12 +43,11 @@ function output_values( c::LinCircuit, funcs::Vector{Func}=Func[] )
     funcs = lin_funcs( c.params.numinputs )
   end
   #println("funcs: ",funcs)
-  R = execute_lcircuit( c.circuit_vects, funcs, nodearity=c.params.nodearity )
+  R = execute_lcircuit( c, funcs )
   R[1:c.params.numoutputs]
 end  
 
 # Not used.  Assumes that R and funcs are in the execution environment
-#function vect_to_funct( lc::Vector{MyInt}, funcs::Vector{Func} )
 function vect_to_funct( lc::Vector{MyInt} )
   (lc)->R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]]) 
 end
@@ -54,7 +56,7 @@ end
 # numregisters is the number of calculation registers, not the total number of registers
 # The outputs are  R[1:numoutputs]
 function execute_lcircuit( circuit_ints::Vector{OutputType}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )
-  lcv = map( ci->int_to_vect( ci, numregisters, numinputs, funcs ), circuit_ints )
+  lcv = map( ci->instruction_int_to_instruction_vect( ci, numregisters, numinputs, funcs ), circuit_ints )
   execute_lcircuit( lcv, numregisters, numinputs, funcs )
 end
 
@@ -75,25 +77,59 @@ function execute_lcircuit( circuit_vects::Vector{Vector{MyInt}}, numregisters::I
   R = fill(MyInt(0), numregisters+numinputs )
   R[numregisters+1:end] = construct_context(numinputs)
   for lc in circuit_vects
-    println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
+    #println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
     R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]])
-    println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
+    #println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
   end
   R
 end
 
 # The number of possible instructions with these settings.
-function numinstructions( numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
+# This is distinct from numinstructions which is the number of instructions in a circuit.
+function num_instructions( numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
      nodearity::Int64=2 )
   length(funcs)*numregisters*(numinputs+numregisters)^nodearity
 end
 
-function numinstructions( p::Parameters, funcs::Vector{Func} )
-  numinstructions( p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
+function num_instructions( p::Parameters, funcs::Vector{Func} )
+  num_instructions( p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
+# Convert a vectors of integers to a unique integer.
+# The components of the vector are 1-based rather than 0-based.
+# Example 1:  
+# julia> vect_to_int( [3,4,5,6],[10,10,10,10])
+#  2345
+# Example 2:
+# julia> vect_to_int([3,2,1,4],[7,2,5,8])
+#  203
+function vect_to_int( ints::Vector{Int64}, max::Vector{Int64} )
+  result = Int128(ints[1])-1
+  for i = 2:length(ints)
+    result *= max[i]
+    result += ints[i]-1
+  end
+  result
+end
+
+# julia> int_to_vect( 2345, [10,10,10,10])
+# 4-element Array{Int64,1}:
+#  Int64[ 3, 4, 5, 6 ]
+# julia> int_to_vect(203,[7,2,5,8])
+# 4-element Array{Int64,1}:
+#  Int64[ 3, 2, 1, 4] 
+function int_to_vect( int::Integer, max::Vector{Int64} )
+  ints = zeros(Int64,length(max))
+  for i = length(max):-1:1
+    ints[i] = int % max[i] + 1
+    int = div(int,max[i])
+  end
+  ints
+end
+    
 # Converts an instruction specified by a vector to the instruction specified by an integer.
-function vect_to_int( inst_vect::Vector{MyInt}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )
+function instruction_vect_to_instruction_int( inst_vect::Vector{MyInt}, numregisters::Int64, numinputs::Int64, 
+    funcs::Vector{Func}; nodearity::Int64=2 )
   result = Int64(inst_vect[1]-1)  # Function code
   multiplier = 1
   #println("multiplier: ",multiplier,"  result: ",result)
@@ -111,7 +147,8 @@ function vect_to_int( inst_vect::Vector{MyInt}, numregisters::Int64, numinputs::
 end
 
 # Converts an instruction specified by an integer to the instruction specified by a vector.
-function int_to_vect( inst_int::OutputType, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )  
+function instruction_int_to_instruction_vect( inst_int::OutputType, numregisters::Int64, numinputs::Int64, 
+    funcs::Vector{Func}; nodearity::Int64=2 )  
   result = fill(MyInt(0),2+nodearity)
   multiplier = numregisters+numinputs
   for j = nodearity:-1:1
@@ -130,30 +167,29 @@ function int_to_vect( inst_int::OutputType, numregisters::Int64, numinputs::Int6
   result
 end 
 
-function circuit_vect_to_circuit_ints( cv::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
+function instruction_vects_to_instruction_ints( cv::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
     nodearity::Int64=2 )
-  map(x->vect_to_int(x, numregisters, numinputs, funcs, nodearity=nodearity ), cv )
+  map(x->instruction_vect_to_instruction_int(x, numregisters, numinputs, funcs, nodearity=nodearity ), cv )
 end
 
-function circuit_vect_to_circuit_ints( circuit::LinCircuit, funcs::Vector{Func}=Func[]; 
-    nodearity::Int64=2 )
+function instruction_vects_to_instruction_ints( circ::LinCircuit, funcs::Vector{Func}=Func[] )
   if length(funcs) == 0
-    funcs = lin_funcs( circuit.params.numinputs )
+    funcs = lin_funcs( circ.params.numinputs )
   end
-  circuit_vect_to_circuit_ints( circuit.circuit_vects, circuit.params.numlevelsback, circuit.params.numinputs, funcs )
+  instruction_vects_to_instruction_ints( circ.circuit_vects, circ.params.numlevelsback, circ.params.numinputs, funcs )
 end
 
-function circuit_ints_to_circuit_vect( c_ints::Vector{Int64}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func};
+function instruction_ints_to_instruction_vects( c_ints::Vector{Int64}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func};
     nodearity::Int64=2 )
-  map(x->int_to_vect(x, numregisters, numinputs, funcs, nodearity=nodearity ), c_ints )
+  map(x->instruction_int_to_instruction_vect(x, numregisters, numinputs, funcs, nodearity=nodearity ), c_ints )
 end
 
-function circuit_ints_to_circuit_vect( c_ints::Vector{Int64}, p::Parameters, funcs::Vector{Func}=Func[];
+function instruction_ints_to_instruction_vects( c_ints::Vector{Int64}, p::Parameters, funcs::Vector{Func}=Func[];
     nodearity::Int64=2 )
   if length(funcs) == 0
     funcs = lin_funcs( p.numinputs )
   end
-  circuit_ints_to_circuit_vect( c_ints, p.numlevelsback, p.numinputs, funcs )
+  instruction_ints_to_instruction_vects( c_ints, p.numlevelsback, p.numinputs, funcs )
 end
 
 function circuit_ints( c::LinCircuit )
@@ -163,29 +199,19 @@ function circuit_ints( c::LinCircuit )
   circuit_vect_to_circuit_ints( c.circuit_vects, c.params.numinteriors, c.params.numinputs, lin_funcs(c.params.numinputs ) )
 end
 
-function circuit_ints_to_int( c_ints::Vector{Int64}, p::Parameters, funcs::Vector{Func} )
+function instruction_ints_to_circuit_int( c_ints::Vector{Int64}, p::Parameters, funcs::Vector{Func} )
   numregisters = p.numlevelsback
-  multiplier = numregisters*(numregisters+p.numinputs)^p.nodearity
-  println("multiplier: ",multiplier)
-  result = Int128(c_ints[1])
-  for i = 2:(2+p.nodearity) 
-    result += c_ints[i]*multiplier + result
-  end
-  result
+  multiplier = num_instructions( p, funcs )
+  #println("multiplier: ",multiplier)
+  vect_to_int( c_ints, fill(multiplier,length(c_ints)))
 end
 
-function int_to_circuit_ints( c_int::Int128, p::Parameters, funcs::Vector{Func} ) 
-  #multipliers = vcat( [1, numregisters], [numregisters+p.numinputs for _=1:p.nodearity ] )
-  multiplier = numregisters*(numregisters+p.numinputs)^p.nodearity
+function circuit_int_to_instruction_ints( c_int::Int128, p::Parameters, funcs::Vector{Func} ) 
+  numinstructions = p.numinteriors
+  multiplier = num_instructions( p, funcs )
   #println("multiplier: ",multiplier)
-  result = zeros(Int64, 2+p.nodearity )
-  for i = (2+p.nodearity):-1:1
-    result[i] = c_int % multiplier
-    c_int = div( c_int, multiplier )
-  end
-  result
+  int_to_vect( c_int, fill( multiplier, numinstructions ))
 end
-    
   
 # Random instruction  
 # Assumes gates are arity 2
@@ -216,7 +242,7 @@ function rand_lcircuit( p::Parameters, funcs::Vector{Func}=lin_funcs(p.numinputs
 end
 
 function execute_random_circuits( ncircuits::Int64, prog_length::Int64, numregisters::Int64, numinputs::Int64, funcs::Vector{Func} )
-  n_instructions = numinstructions( numregisters, numinputs, funcs ) 
+  n_instructions = num_instructions( numregisters, numinputs, funcs ) 
   for i = 1:ncircuits
     circuit_ints = rand(0:(n_instructions-1),prog_length)
     execute_lcircuit( circuit_ints, numregisters, numinputs, funcs )  
@@ -317,6 +343,10 @@ end
 
 function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 ) 
   mutate_circuit_all( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
+end
+
+function mutate_all( circuit::LinCircuit, funcs::Vector{Func}=Func[]; nodearity::Int64=2 ) 
+  mutate_circuit_all( circuit, funcs, nodearity=nodearity ) 
 end
 
 function mutate_circuit_all( circuit::LinCircuit, funcs::Vector{Func}=Func[]; nodearity::Int64=2 ) 

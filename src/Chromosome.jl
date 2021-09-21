@@ -846,7 +846,7 @@ function enumerate_circuits( p::Parameters, numints::Int64, funcs::Vector{Func};
   result
 end
 
-function int_to_chromosome( ch_int::Integer, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
+function int_to_chromosome( ch_int::Int128, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
   inputs = [ InputNode(i) for i = 1:p.numinputs ]
   g_ints = gate_int_list( ch_int, p, maxarity, funcs )
   interiors = InteriorNode[]

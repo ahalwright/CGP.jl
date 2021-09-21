@@ -33,20 +33,21 @@ using Dates
 using CSV
 export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list, read_counts_files
 export add_counts_to_dataframe, write_to_dataframe_file, circuit_complexities, run_circuit_complexities
-export create_lincircuits_list, create_chromosome_ints_list, increment_circuits_list!, increment_chrome_ints_list!
+export create_lincircuits_list, create_chromosome_ints_list, increment_circuit_ints_list! 
 
 MyFunc = Main.CGP.MyFunc
 
+#    increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
 # increments the circuit_list corresponding to output if it contains less than numcircuits circuits
-function increment_circuits_list!( circuits_list::Vector{Vector{Vector{Int64}}}, output::Goal, circ::LinCircuit, 
-    numcircuits::Int64, numinputs::Int64, numregisters::Int64, funcs::Vector{Func} )
-  index = concatenate_outputs(output,numinputs)+1
-  if length(circuits_list[index]) >= numcircuits
+function increment_circuit_ints_list!( circuit_ints_list::Vector{Vector{Int128}}, output::Goal, c_int::Int128, 
+      numcircuits::Int64, p::Parameters, funcs::Vector{Func} )
+  index = concatenate_outputs(output,p.numinputs)+1
+  if length(circuit_ints_list[index]) >= numcircuits
     return
   end
-  c_ints = map(lc->vect_to_int(lc,numregisters,numinputs,funcs), circ.circuit_vects)
+  # c_ints = map(lc->instruction_vect_to_instruction_int(lc,numregisters,numinputs,funcs), circ.circuit_vects)
   #println("index: ",index,"  output: ",output,"  execute: ", execute_lcircuit( c_ints, numregisters, numinputs, funcs ))
-  push!(circuits_list[index], c_ints )
+  push!(circuit_ints_list[index], c_int )
 end
 
 # increments the chrome_ints_list corresponding to output if it contains less than numcircuits chromosome ints
@@ -75,6 +76,7 @@ function concatenate_outputs( output::Goal, numinputs::Int64 )
   end
 end
 
+# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
 function count_outputs( nreps::Int64, p::Parameters, numcircuits::Int64=0; use_lincircuit::Bool=:false )
   count_outputs( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, 
     use_lincircuit=use_lincircuit )
@@ -86,30 +88,28 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
   p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback ) 
   funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
   outlist = fill( convert(Int64,0), numoutputs*2^2^numinputs )
-  if use_lincircuit
+  #if use_lincircuit
     # Creates an array of lincircuit int lists
-    circuits_list = [ Vector{Int64}[] for _ = 1:numoutputs*2^2^numinputs ]
-  else      # Default case of chromosomes
-    chrome_ints_list = [ Int128[] for _ = 1:numoutputs*2^2^numinputs ]
-  end
+    #circuits_list = [ Vector{Int64}[] for _ = 1:numoutputs*2^2^numinputs ]
+  #else      # Default case of chromosomes
+    circuit_ints_list = [ Int128[] for _ = 1:p.numoutputs*2^2^p.numinputs ]
+  #end
   for _ = 1:nreps
+    #c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )  
     if use_lincircuit
-      c = rand_lcircuit( p.numinteriors, p.numlevelsback, p.numinputs, funcs )
-      output = execute_lcircuit( c, p, funcs )[1:numoutputs]
-      increment_circuits_list!( circuits_list, output, c, numcircuits, numinputs, numlevelsback, funcs ) # numlevelsback is numregisters
+      c = rand_lcircuit( p, funcs )
+      c_int = instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( c, funcs ), p, funcs )
     else
       c = random_chromosome( p, funcs )
-      output = output_values( c )
-      increment_chrome_ints_list!( chrome_ints_list, output, c, numcircuits, p, funcs ) 
+      c_int = chromosome_to_int( c, funcs)
     end
+    output = output_values( c )
+    #increment_circuits_list!( circuit_ints_list, output, c, numcircuits, p.numinputs, p.numlevelsback, funcs ) 
+    increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
     # increment_count_outputs_list( output, outlist, numinputs )  # Replaced by the next line for efficiency
     outlist[concatenate_outputs(output,numinputs)+1] += 1
   end
-  if use_lincircuit
-    (outlist,circuits_list)
-  else
-    (outlist,chrome_ints_list)
-  end
+  (outlist,circuit_ints_list)
 end
 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
