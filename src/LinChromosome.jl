@@ -8,7 +8,7 @@
 #   initialized with the components of the current context.
 # Even though there is a nodearity keyword value, this file assumes nodearity==2
 # An instruction is specified either by a 4-tuple of MyInts or by an integer of OutputType.
-# The elements of the 4-tuple are:
+# The elements of the (2+nodearity)-tuple are (assuming nodearity==2):
 #  1.  The index of the logical operation (such as AND, OR) in the funcs array.
 #  2.  The index of the element of R where the output is stored
 #  3.  The index of the element of R which is the first operand of the logical operation
@@ -17,6 +17,10 @@
 # When parameters are used, numinputs and numoutputs have the same meaning for the cartesian and linear representatons.
 # numinteriors means numinstructions for the linear representation
 # numlevelsback means numregisters for the linear representation
+# There are 3 alternative representations for the circuit_vects component of a  LinCicuit.
+#   1.  A list of numinstructions vectors where each vector is  (2+nodearity)-tuple described above.
+#   2.  A list of numinstructions Int64s where each of these is a 1-based encoding of the vectors
+#   3.  A Int128 integer which is an encoding of the integers of step 3.
 # See notes/3_24.txt for outline
 # See test/testLinCircuit.jl for tests.
 export LinCircuit, output_values
@@ -26,6 +30,7 @@ export num_instructions # This is the total number of possible instructions for 
 export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, mutate_all, print_circuit
 export instruction_vects_to_instruction_ints, instruction_ints_to_instruction_vects
 export instruction_ints_to_circuit_int, circuit_int_to_instruction_ints
+export circuit_int_to_circuit, circuit_to_circuit_int
 #export circuit_int
 OutputType = Int64
 
@@ -143,16 +148,23 @@ function instruction_vect_to_instruction_int( inst_vect::Vector{MyInt}, numregis
     result += inst_vect[2+j]-1
     #println("multiplier: ",multiplier,"  result: ",result)
   end
-  result
+  result + 1    # Convert 1-based from 0-based
 end
 
 # Converts an instruction specified by an integer to the instruction specified by a vector.
 function instruction_int_to_instruction_vect( inst_int::OutputType, numregisters::Int64, numinputs::Int64, 
     funcs::Vector{Func}; nodearity::Int64=2 )  
+  #println("ii_to_iv inst_int: ",inst_int)
   result = fill(MyInt(0),2+nodearity)
   multiplier = numregisters+numinputs
+  inst_int -= 1   # Convert from 1-based to 0-based so that mod and div work
   for j = nodearity:-1:1
-    result[j+2] = inst_int % multiplier + 1
+    try
+      result[j+2] = inst_int % multiplier + 1
+    catch
+      println("catch inst_int: ",inst_int,"  multiplier: ",multiplier)
+      error(" error ")
+    end
     inst_int = div(inst_int,multiplier)
     #println("j+2: ",j+2,"  multiplier: ", multiplier,"  inst_int: ",inst_int,"  result[j+2]: ",result[j+2])
   end
@@ -192,12 +204,14 @@ function instruction_ints_to_instruction_vects( c_ints::Vector{Int64}, p::Parame
   instruction_ints_to_instruction_vects( c_ints, p.numlevelsback, p.numinputs, funcs )
 end
 
-function circuit_ints( c::LinCircuit )
+#=
+function circuit_vect_to_circuit_ints( c::LinCircuit, funcs::Vector{Func}=Func[] )
   if length(funcs) == 0
     funcs = lin_funcs( c.params.numinputs )
   end
-  circuit_vect_to_circuit_ints( c.circuit_vects, c.params.numinteriors, c.params.numinputs, lin_funcs(c.params.numinputs ) )
+  circuit_vect_to_circuit_ints( c.circuit_vects, c.params.numinteriors, c.params.numinputs, funcs )
 end
+=#
 
 function instruction_ints_to_circuit_int( c_ints::Vector{Int64}, p::Parameters, funcs::Vector{Func} )
   numregisters = p.numlevelsback
@@ -212,7 +226,16 @@ function circuit_int_to_instruction_ints( c_int::Int128, p::Parameters, funcs::V
   #println("multiplier: ",multiplier)
   int_to_vect( c_int, fill( multiplier, numinstructions ))
 end
-  
+
+function circuit_to_circuit_int( circ::LinCircuit, funcs::Vector{Func} )
+  instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( circ, funcs ), circ.params, funcs )
+end
+
+function circuit_int_to_circuit( c_int::Int128, p::Parameters, funcs::Vector{Func} )
+  i_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( c_int, p, funcs), p, funcs )
+  LinCircuit( i_vects, p )
+end
+
 # Random instruction  
 # Assumes gates are arity 2
 function rand_ivect( numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )
@@ -345,8 +368,9 @@ function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, p::Parameters,
   mutate_circuit_all( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
-function mutate_all( circuit::LinCircuit, funcs::Vector{Func}=Func[]; nodearity::Int64=2 ) 
-  mutate_circuit_all( circuit, funcs, nodearity=nodearity ) 
+function mutate_all( circuit::LinCircuit, lfuncs::Vector{Func}=Func[]; nodearity::Int64=2 ) 
+  mca = mutate_circuit_all( circuit, lfuncs, nodearity=nodearity ) 
+  map( x->output_values(LinCircuit(x,circuit.params)), mca )
 end
 
 function mutate_circuit_all( circuit::LinCircuit, funcs::Vector{Func}=Func[]; nodearity::Int64=2 ) 

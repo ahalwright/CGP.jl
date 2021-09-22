@@ -22,21 +22,20 @@ function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64; p
   println("length(outlist): ",length(outlist))
   println("length(ch_ints_list): ",length(ch_ints_list))
   for ch_ints in ch_ints_list
-    println("ch_ints_list: ",ch_ints_list)
     for ch_int in ch_ints
-      println("ch_int: ",ch_int)
+      #println("ch_int: ",ch_int)
       if use_lincircuit
-        ch_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( ch_int, p, funcs ), p, funcs )  
-        ch = LinCircuit( ch_vects, p ) 
+        #ch_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( ch_int, p, funcs ), p, funcs )  
+        #ch = LinCircuit( ch_vects, p ) 
+        ch = circuit_int_to_circuit( ch_int, p, funcs )
       else
-        #ch = ch_int.circuit_vects
         ch = int_to_chromosome( ch_int, p, funcs )
         #print_circuit(ch)
       end
       src = output_values(ch)[1]   # assumes 1 output    
-      println("ch_int: ",ch_int,"  src: ",src)
+      #println("ch_int: ",ch_int,"  src: ",src)
       dests = map(x->x[1], mutate_all( ch, funcs ))
-      println("dests: ",dests)
+      #println("dests: ",dests)
       for dest in dests
         ph_net[src+1,dest+1] += 1
         #println("dest: ",dest,"  ph_net[src+1,dest+1]: ",ph_net[src+1,dest+1])

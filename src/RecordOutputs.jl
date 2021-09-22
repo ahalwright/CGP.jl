@@ -99,6 +99,9 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
     if use_lincircuit
       c = rand_lcircuit( p, funcs )
       c_int = instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( c, funcs ), p, funcs )
+      if c_int < 0 
+        println(" c_int: ",c_int,"  c: ",c)
+      end
     else
       c = random_chromosome( p, funcs )
       c_int = chromosome_to_int( c, funcs)

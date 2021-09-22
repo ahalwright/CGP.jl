@@ -38,7 +38,7 @@ lc = [
   MyInt[4, 1, 4, 2]
 ]
 i_ints=map( x->instruction_vect_to_instruction_int( x, numregisters,numinputs,lfuncs), lc ) 
-@test i_ints == [59, 6, 81, 109]
+@test i_ints == [60, 7, 82, 110]
 @test MyInt[ 0x4, 0x3, 0xc, 0xa ] == execute_lcircuit( i_ints, numregisters,numinputs,lfuncs)
 cint = instruction_ints_to_circuit_int( i_ints, p, lfuncs )
 @test i_ints == circuit_int_to_instruction_ints( instruction_ints_to_circuit_int( i_ints, p, lfuncs), p, lfuncs )
@@ -66,12 +66,15 @@ lcv = [
   MyInt[4, 1, 3, 3],
   MyInt[1, 1, 5, 1]
 ]
+lc = LinCircuit( lcv, p )
 i_ints=map( x->instruction_vect_to_instruction_int( x, numregisters,numinputs,lfuncs), lcv ) 
-@test i_ints == [44, 61, 130, 48, 162, 20]
+@test i_ints == [45, 62, 131, 49, 163, 21]
 @test MyInt[ 0x000a, 0x0088, 0x00f0, 0x00cc, 0x00aa ] == execute_lcircuit( i_ints, numregisters,numinputs,lfuncs)
-c_int = Int128(13857033912219)
+c_int = Int128(14178641952420)
 @test c_int == instruction_ints_to_circuit_int( i_ints, p, lfuncs )
 @test i_ints == circuit_int_to_instruction_ints( instruction_ints_to_circuit_int( i_ints, p, lfuncs), p, lfuncs )
+@test circuit_int_to_circuit( circuit_to_circuit_int( lc, lfuncs ), p, lfuncs ).circuit_vects == lcv
+@test circuit_to_circuit_int( circuit_int_to_circuit( c_int, p, lfuncs ), lfuncs ) == c_int
 
 ctx = construct_context(3)
 # Execute circuit one step at a time as specified in the Hu (2020) paper
