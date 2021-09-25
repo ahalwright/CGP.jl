@@ -1,0 +1,83 @@
+construct_pheno_net() from PhenotypeNetwork.jl computes the adjacency matrix of the weighted 
+adjacency matrix of the  phenotype network for both chromosomes (Cartesian representation) and 
+lin circuits (Linear representation).
+
+The methodology is to use count_outputs_parallel() to generate random circuits and their outputs.  
+There is a parameter numcircuits, and if more than numcircuits genotypes have been generated that
+map to a phenotype, the phenotype is counted in outlist[] but not mutated.  Otherwise, mutate_all() 
+is used to generate all mutations of the circuits and each mutation is counted in the phenotype matrix.
+Thus, the idea is that the number of mutations generated for each genotype is limited, the weights
+can be normalized by multiplying by the the number of mutations that would have been generated without
+the numcircuits limitation divided by the maximum number are generated with the numcircuits limitation.
+
+The efficiency of generating the phenotype network is much better for linear circuits than for 
+chromosomes.  It looks like this is because of a deepcopy() done for generating each mutation.
+There is the possibility of just copying the node of the chromosome that is being modified by the
+mutate operation, and then restoring it after the mutation.
+
+I have not parallelized this code.  Perhaps one can pmap() parallelize over ch_ints_list
+which is the output of count_outputs_parallel, and each process compute its own version of
+the phenotype network matrix, and then add these versions together.  Note that the numcircuits
+limit is done in count_outputs_parallel(), so every circuit produced by count_outputs_parallel()
+can be processed.  The alternative would be to use multi-threading parallelism with synchronization 
+to control access to the phenotype network matrix.
+
+An important part of is is that each run saves the outlist and the phenotype matrix in a JLD file.
+If a JLD file exists, then the saved outlist and phenotype matrix are initialized from this file.
+
+Results are in data/9_24_21/.  LinCircuit results are in pheno_net_lincirc_9_24_21_C_phnet.csv
+and pheno_net_lincirc_9_24_21_C_rowcol.csv.  Results for 3x1 LinCircuits with 6 instructions
+(p.numinteriors) and 2 calculation registers (p.numlevelsback) DO NOT agree with the results
+of the Hu 2020 paper.  Figure 6a of The paper claims that phenotypes 11 (0x0b), 75, 165, 244
+are connected to the rest of the network primarily through phenotype 180 (0xb4), and Figure6b
+makes a similar claim for phenotypes 75 and 165.  This is not substantiated by my results.
+Note that phenotype 180 (0xb4) is the complement of phenotype 75 (0x4b), and the following dataframe
+shows the phenotypes tha have an edge weight of greater than or equal to 9 from phenotype 75.
+
+9/24/21:
+fa=findall(x->x>=9,phnetC[collect(1:256),77])   # Note that column index 77 corresponds to phenotype 75.
+df = phnetC[fa,[1,77]] 
+dgoal = [ Int64(Meta.parse(df.goal[i])) for i = 1:length(fa) ]
+insertcols!(df,2,:dgoal=>dgoal)
+#  10×3 DataFrame
+#   Row │ goal    dgoal  0x004b
+#       │ String  Int64  Int64
+#  ─────┼───────────────────────
+#     1 │ 0x000b     11      11
+#     2 │ 0x001e     30      19
+#     3 │ 0x002d     45       9
+#     4 │ 0x004a     74       9
+#     5 │ 0x004b     75     146
+#     6 │ 0x005a     90      23
+#     7 │ 0x005b     91      14
+#     8 │ 0x0087    135      13
+#     9 │ 0x00b4    180      20
+#    10 │ 0x00c3    195      26
+Only phenotype 11 shows up in the close goals.
+
+9/25/21 redo with D file 
+phrcD = read_dataframe("../data/9_24_21/pheno_net_lincirc_9_24_21_D_rowcol.csv") 
+phnetD = read_dataframe("../data/9_24_21/pheno_net_lincirc_9_24_21_D_phnet.csv") 
+fa=findall(x->x>=50,phnetD[collect(1:256),182])   # Note that column index 182 corresponds to phenotype 180  # 14-element Array{Int64,1}
+#  [46  53  61  76  121  165  166  177  181  182  189  211  226  245]
+df = phnetD[fa,[1,182]]
+dgoal = [ Int64(Meta.parse(df.goal[i])) for i = 1:length(fa) ] 
+insertcols!(df,2,:dgoal=>dgoal)
+#  14×3 DataFrame
+#   Row │ goal    dgoal  0x00b4
+#       │ String  Int64  Int64
+#  ─────┼───────────────────────
+#     1 │ 0x002d     45      50
+#     2 │ 0x0034     52      54
+#     3 │ 0x003c     60     256
+#     4 │ 0x004b     75     180
+#     5 │ 0x0078    120      94
+#     6 │ 0x00a4    164     116
+#     7 │ 0x00a5    165     186
+#     8 │ 0x00b0    176      66
+#     9 │ 0x00b4    180     826
+#    10 │ 0x00b5    181      56
+#    11 │ 0x00bc    188      91
+#    12 │ 0x00d2    210      76
+#    13 │ 0x00e1    225      93
+#    14 │ 0x00f4    244      74

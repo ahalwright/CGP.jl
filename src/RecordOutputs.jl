@@ -83,7 +83,7 @@ function count_outputs( nreps::Int64, p::Parameters, numcircuits::Int64=0; use_l
 end
 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, numcircuits::Int64=0;
+function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64=0;
     use_lincircuit::Bool=:false )
   p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback ) 
   funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
@@ -116,8 +116,15 @@ function count_outputs( nreps::Int64, numinputs::Integer, numoutputs::Integer, n
 end
 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::Integer, numinteriors::Int64, numlevelsback::Integer, funcs::Vector{Func}=Func[]; 
-      csvfile::String="", use_lincircuit::Bool=:false ) 
+function count_outputs_parallel( nreps::Int64, p::Parameters, numcircuits::Int64=0, funcs::Vector{Func}=Func[]; 
+    csvfile::String="", use_lincircuit::Bool=:false )
+  count_outputs_parallel( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, funcs,
+    csvfile=csvfile, use_lincircuit=use_lincircuit )
+end
+
+# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
+function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64, 
+    funcs::Vector{Func}=Func[]; csvfile::String="", use_lincircuit::Bool=:false ) 
   p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
   if length(funcs) == 0
     funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
@@ -126,41 +133,34 @@ function count_outputs_parallel( nreps::Int64, numinputs::Integer, numoutputs::I
   println("nprocs: ",nprocs())
   #n_procs=nprocs()
   if nprocs() > 1
-    nreps_p = Int(round(nreps/(nprocs())))
+    nreps_p = Int(round(nreps/(nprocs()-1)))
   else
     nreps_p = nreps 
   end
   println("nreps_p: ",nreps_p)
   println("csvfile: ",csvfile) 
-  count_out_funct(x) = count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, funcs, 
+  count_out_funct(x) = count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, numcircuits, 
       use_lincircuit=use_lincircuit )
   result =  pmap( x->count_out_funct(x), collect(1:nprocs()))
   #result =  map( x->count_out_funct(x), collect(1:nprocs()))
   println("len(result): ",length(result))
-  if use_lincircuit
-    outlist = reduce(+,map(x->x[1],result))
-    #println("outlist: ",outlist)
-    ccl = map(x->x[2],result)
-    circ_list_lists = [ [ccl[i][j] for i = 1:nprocs()] for j = 1:2^2^numinputs ]
-    #println("circ_list_lists: ",length(circ_list_lists))
-    circ_list = Vector{Vector{Int64}}[]
-    for i = 1:length(circ_list_lists)
-      #println("i: ",i,"  ",length(circ_list_lists[i])>0 ? [circ_list_lists[i][j] for j = 1:length(circ_list_lists[i])] : Vector{Int64}[])
-      push!(circ_list, mycat(length(circ_list_lists[i])>0 ? [circ_list_lists[i][j] for j = 1:length(circ_list_lists[i])] : Vector{Int64}[])) 
-    end
-    if length(csvfile) > 0
-      write_to_dataframe_file( p, outlist, circ_list, funcs, csvfile=csvfile )
-    end
-    (outlist,circ_list)
-  else
-    outlist = reduce(+,result)
-    if length(csvfile) > 0
-      write_to_dataframe_file( p, outlist, funcs, csvfile=csvfile )
-    end
-    outlist
+  #println("result[1][1]: ",result[1][1])
+  #println("result[1][2]: ",result[1][2])
+  outlist = reduce(+,map(x->x[1],result))
+  circ_ints_list = result[1][2]
+  for i = 2:length(result)
+    vcat_arrays!(circ_ints_list,result[i][2])
   end
+  if length(csvfile) > 0
+    write_to_dataframe_file( p, outlist, funcs, csvfile=csvfile )
+  end
+  #println("outlist: ",outlist)
+  #println("circ_ints_list: ",circ_ints_list)
+  (outlist,circ_ints_list)
 end
 
+# Example:  mycat([[[3,2],[5,9]],[[8,4],[6,7]]])
+#    [[3,2],[5,9],[8,4],[6,7]]
 function mycat( lsts::Vector{Vector{Vector{Int64}}} ) 
   result = Vector{Int64}[]
   for lst in lsts
@@ -169,6 +169,27 @@ function mycat( lsts::Vector{Vector{Vector{Int64}}} )
     end
   end
   result
+end
+function mycat( lsts::Vector{Vector{Int128}} ) 
+  result = Vector{Int64}[]
+  for lst in lsts
+    if length(lst) > 0
+      result = vcat(result,lst)
+    end
+  end
+  result
+end
+
+# Concatenates (using vcat()) the components of lst1 and lst2 with the result replacing lst1
+# Example:  
+#  vcat_arrays!([Int128[5,9,4],Int128[3,1,7]],[Int128[8,6],Int128[2]]) 
+#    [Int128[5,9,4,8,6],Int128[3,1,7,2]]
+function vcat_arrays!( lst1::Vector{Vector{Int128}}, lst2::Vector{Vector{Int128}} )
+  @assert length(lst1) == length(lst2)
+  for i = 1:length(lst1)
+    lst1[i] = vcat(lst1[i],lst2[i])
+  end
+  lst1
 end
 
 function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, funcs::Vector{Func}; csvfile::String="" )

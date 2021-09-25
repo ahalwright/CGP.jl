@@ -209,7 +209,7 @@ end
 function mutate_all( c::Chromosome, funcs::Vector{Func}; 
       robustness_only::Bool=false, output_outputs::Bool=true, output_chromosomes::Bool=false )
   #println("mutate_all: numlevelsback: ", c.params.numlevelsback )
-  sav_c = deepcopy(c)
+  #sav_c = deepcopy(c)
   if robustness_only
     output_outputs = output_chromosomes = false
     robustness_sum = 0.0; robustness_count = 0
@@ -228,7 +228,7 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
   num_inputs_list = map(length, interiors_inputs_list)
   num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
   for mutate_location = 1:num_mutate_locs
-    new_c = deepcopy(c)
+    new_c = output_chromosomes ? deepcopy(c) : c
     if mutate_location <= num_funcs_to_mutate   # mutate a func
       #println("mutate a func ml:",mutate_location,"  node: ",c.interiors[mutate_location])
       active = c[mutate_location].active
@@ -257,7 +257,8 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
             new_inputs[i] = rand(minindex:maxindex)
           end
         end 
-        new_c = deepcopy(c)
+        new_c = deepcopy(c)  # This is necessary:  test done on 9/24/21
+        #new_c = output_chromosomes ? deepcopy(c) : c
         new_c.interiors[mutate_location] = InteriorNode(new_func,new_inputs)
         deactivate_chromosome!(new_c)
         new_output = execute_chromosome(new_c,context)
@@ -297,7 +298,7 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
           #println("continue")
           continue
         end
-        new_c = deepcopy(c)
+        new_c = deepcopy(c)   # Is this necessary???  Maybe only when the chromosome is returned
         new_c.interiors[i].inputs[j] = intindex
         #println("intindex: ",intindex,"  (i,j): ",(i,j),"  new_c.interiors[i].inputs: ",new_c.interiors[i].inputs)
         deactivate_chromosome!(new_c)
