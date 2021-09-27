@@ -138,7 +138,7 @@ function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int
     nreps_p = nreps 
   end
   println("nreps_p: ",nreps_p)
-  println("csvfile: ",csvfile) 
+  #println("csvfile: ",csvfile) 
   count_out_funct(x) = count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, numcircuits, 
       use_lincircuit=use_lincircuit )
   result =  pmap( x->count_out_funct(x), collect(1:nprocs()))

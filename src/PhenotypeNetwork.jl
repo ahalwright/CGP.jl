@@ -9,6 +9,8 @@ function create_empty_pheno_net( p::Parameters; pheno_file::String="" )
   pheno_net
 end
 
+# Constructs the phenotype network matrix and outlist which is the counts
+#   of genotypes that map to the corresponding phenotype before mutation
 function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64; 
     use_lincircuit::Bool=false, csvfile::String="", pheno_file::String="") 
   funcs = default_funcs(p.numinputs)
@@ -31,26 +33,9 @@ function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64;
   println("length(outlist): ",length(outlist))
   println("length(ch_ints_list): ",length(ch_ints_list))
   #println("ch_ints_list: ",ch_ints_list)
-  for ch_ints in ch_ints_list
-    for ch_int in ch_ints
-      #println("ch_int: ",ch_int)
-      if use_lincircuit
-        #ch_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( ch_int, p, funcs ), p, funcs )  
-        #ch = LinCircuit( ch_vects, p ) 
-        ch = circuit_int_to_circuit( ch_int, p, funcs )
-      else
-        ch = int_to_chromosome( ch_int, p, funcs )
-        #print_circuit(ch)
-      end
-      src = output_values(ch)[1]   # assumes 1 output    
-      #println("ch_int: ",ch_int,"  src: ",src)
-      dests = map(x->x[1], mutate_all( ch, funcs ))
-      #println("dests: ",dests)
-      for dest in dests
-        ph_net[src+1,dest+1] += 1
-        #println("dest: ",dest,"  ph_net[src+1,dest+1]: ",ph_net[src+1,dest+1])
-      end
-    end
+  new_ph_net_list = pmap(ch_ints->process_ch_ints( ch_ints, p, funcs, use_lincircuit=use_lincircuit ), ch_ints_list )
+  for new_ph_net in new_ph_net_list
+    ph_net .+= new_ph_net
   end
   if pheno_file != ""
     save( pheno_file, "outlist", outlist, "ph_net", ph_net )
@@ -66,6 +51,33 @@ function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64;
   end
   (ph_net, outlist)
 end
+
+# Helper function for construct_pheno_net()
+function process_ch_ints( ch_ints_list::Vector{Int128} , p::Parameters, funcs::Vector{Func}; 
+      use_lincircuit::Bool=false )
+  println("process_ch_ints: ",process_ch_ints)
+  ph_net = create_empty_pheno_net( p )
+  for ch_int in ch_ints_list
+    #println("ch_int: ",ch_int)
+    if use_lincircuit
+      #ch_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( ch_int, p, funcs ), p, funcs )  
+      #ch = LinCircuit( ch_vects, p ) 
+      ch = circuit_int_to_circuit( ch_int, p, funcs )
+    else
+      ch = int_to_chromosome( ch_int, p, funcs )
+      #print_circuit(ch)
+    end
+    src = output_values(ch)[1]   # assumes 1 output    
+    #println("ch_int: ",ch_int,"  src: ",src)
+    dests = map(x->x[1], mutate_all( ch, funcs ))
+    #println("dests: ",dests)
+    for dest in dests
+      ph_net[src+1,dest+1] += 1
+      #println("dest: ",dest,"  ph_net[src+1,dest+1]: ",ph_net[src+1,dest+1])
+    end
+  end
+  ph_net
+end  
 
 function write_csv_file( csvfile::String, df::DataFrame, funcs::Vector{Func} )
   open( csvfile, "w" ) do f
@@ -91,6 +103,8 @@ function marginals_dataframe( ph_net::Array{Int64,2}, outlist::Vector{Int64}, p:
   mdf
 end
 
+# Converts the ph_net matrix to a dataframe.  
+# The first column is the goals
 function pheno_net_df( ph_net::Array{Int64,2}, p::Parameters ) 
   phdf = DataFrame()
   goals = [ @sprintf("0x%04x",i) for i = 0:2^2^p.numinputs-1 ]
@@ -102,8 +116,36 @@ function pheno_net_df( ph_net::Array{Int64,2}, p::Parameters )
   phdf
 end
 
+# returns the tuple (ph_net,outlist)
 function read_jld_file( jld_file::String )
-  (outlist,ph_net)=jldopen(pheno_file,"r") do file
+  (outlist,ph_net)=jldopen(jld_file,"r") do file
     (read( file, "ph_net" ), read( file, "outlist" )) 
   end
 end  
+
+# Approximates the Markov chain stationary distribution by post-multiplying init_distribution by the
+#   transition matrix niters times.
+# The Markov Chain transition matrix is computed by normalizing each row of the phenotype net matrix to sum to 1.
+function markov_chain_stationary( niters::Int64, ph_net::Array{Int64,2}, init_distribution::AbstractArray )
+  dim = size(ph_net)[1]
+  @assert dim == size(ph_net)[2]
+  if size(init_distribution)[1] == dim
+    init_distribution = transpose(init_distribution)
+  end
+  @assert size(init_distribution)[1] == 1
+  @assert size(init_distribution)[2] == dim
+  if sum(init_distribution) != 1.0
+    init_distribution = init_distribution/sum(init_distribution)
+  end
+  T = zeros(Float64, dim, dim)  # Transition matrix
+  for i = 1:dim
+    T[i,:] = ph_net[i,:]/sum(ph_net[i,:])
+  end
+  #println("T: ",T)
+  for t = 1:niters
+    init_distribution = init_distribution*T
+    #println("init: ",init_distribution)
+  end
+  init_distribution
+end
+
