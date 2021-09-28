@@ -20,7 +20,7 @@ which is the output of count_outputs_parallel, and each process compute its own 
 the phenotype network matrix, and then add these versions together.  Note that the numcircuits
 limit is done in count_outputs_parallel(), so every circuit produced by count_outputs_parallel()
 can be processed.  The alternative would be to use multi-threading parallelism with synchronization 
-to control access to the phenotype network matrix.
+to control access to the phenotype network matrix.  Added:  9/27/21:  Parallelized over ch_ints_list.
 
 An important part of is is that each run saves the outlist and the phenotype matrix in a JLD file.
 If a JLD file exists, then the saved outlist and phenotype matrix are initialized from this file.

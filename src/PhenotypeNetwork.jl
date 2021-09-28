@@ -128,20 +128,24 @@ end
 # The Markov Chain transition matrix is computed by normalizing each row of the phenotype net matrix to sum to 1.
 function markov_chain_stationary( niters::Int64, ph_net::Array{Int64,2}, init_distribution::AbstractArray )
   dim = size(ph_net)[1]
+  println("dim: ",dim)
   @assert dim == size(ph_net)[2]
   if size(init_distribution)[1] == dim
     init_distribution = transpose(init_distribution)
   end
   @assert size(init_distribution)[1] == 1
   @assert size(init_distribution)[2] == dim
+  nonzero_rows = transpose([ (sum(ph_net[i,:]) != 0 ? 1 : 0) for i = 1:dim ])
+  init_distribution .*= nonzero_rows   # zero elements of init_distribution that correspond to zero rows of ph_net
   if sum(init_distribution) != 1.0
     init_distribution = init_distribution/sum(init_distribution)
   end
+  println("init: ",init_distribution)
   T = zeros(Float64, dim, dim)  # Transition matrix
   for i = 1:dim
-    T[i,:] = ph_net[i,:]/sum(ph_net[i,:])
+    T[i,:] =  sum(ph_net[i,:])>0 ? ph_net[i,:]/sum(ph_net[i,:]) : zeros(Float64,len)
   end
-  #println("T: ",T)
+  #println("T: ",T[1:20,1:20])
   for t = 1:niters
     init_distribution = init_distribution*T
     #println("init: ",init_distribution)

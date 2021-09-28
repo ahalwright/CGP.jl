@@ -1,2 +1,2 @@
-Revised the Arthur/Polak 2006 paper on the Evolution of Technology using circuit symbiosis.
+Revisited the Arthur/Polak 2006 paper on the Evolution of Technology using circuit symbiosis.
 

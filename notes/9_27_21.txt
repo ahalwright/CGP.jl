@@ -1,3 +1,5 @@
+Parallelized construct_pheno_net() in PhenotypeNetwork.jl.
+
 Wrote markov_chain_stationary() in PhenotypeNetwork.jl which approximates the Markov chain stationary 
 distribution by post-multiplying init_distribution by the transition matrix niters times.
 The Markov Chain transition matrix is computed by normalizing each row of the phenotype net matrix to sum to 1.

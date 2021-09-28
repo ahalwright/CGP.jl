@@ -1,3 +1,4 @@
+# comp_experiment() is in Composition.jl
 needs_list = [([0x000b],2),([0x000d],2),([0x0096],3),([0x0069],3)]
 (needs,ac)=comp_experiment( 3, 100, needs_list, 6 )
 julia> ac[6]
