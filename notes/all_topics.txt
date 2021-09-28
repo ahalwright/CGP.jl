@@ -161,6 +161,29 @@ All diary topics:
 7_24: Hypothesis:  Population evovability increases in a varying environment. 
 7_25: Hypothesis:  Population evovability increases in a varying environment. 
 7_26: Hypothesis:  Population evovability increases in a varying environment. 
+8_2:  Revisited the Arthur/Polak 2006 paper on the Evolution of Technology using circuit symbiosis.
+8_11: comp_experiment() results from Composition.jl
+8_14: Revised test/testChromosome.jl
+8_16: Discovered that due to caching reordering the context did not change the outputs of execute_chromosome() and output_values().
+8_19: Examples of traditional "linked lists" in Julia implemented using circular references.
+8_20: Some examples of Compositional circuits.  Replace by the examples in test/testComposition.jl
+8_22: Further refinement and testing of compositional circuits.  See test/testComposition.jl.
+8_23: global caching in comp_experiment().  JLD example.
+8_26: comp_experiment() using given needs_list.
+9_8:  compare Wagner phenotype "sampling" evolvability with a defintion of adaptive evolvability.  
+9_9:  hypothesis that adaptive evolvability is compatible with the Wagner 2008 definition of phenotype evolvability. 
+      Reference to complexity/cce/"Adaptive evolvability9_8_21.docx".
+9_10: Runs testing hypothesis of 9_9.  
+9_12: Added update to notes/9_9_21.txt that shows positive relationship between evolution evolvability and adaptive evolvability.
+      Wrote functions enumerate_circuits, chromosome_int, gate_int in Chromosome.jl
+9_16: Adapting PhenotypeNetwork.jl to LinCircuits
+      Testing mutate_circuit_all(), circuit_vect_to_circuit_ints(), vect_to_int() in LinCircuit.jl
+9_17: Thoughts about consciousness based on Anil Seth's article
+9_20: Got construct_pheno_net() of PhenotypeNetwork.jl to work for both Chromosomes and LinCircuits
+9_24: Description of the algorithm of construct_pheno_net() from PhenotypeNetwork.jl.  Example results.
+9_27: Parallelized construct_pheno_net() in PhenotypeNetwork.jl.  
+      Wrote markov_chain_stationary() in PhenotypeNetwork.
+
 
 
 

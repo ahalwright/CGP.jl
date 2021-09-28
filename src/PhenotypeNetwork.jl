@@ -55,7 +55,7 @@ end
 # Helper function for construct_pheno_net()
 function process_ch_ints( ch_ints_list::Vector{Int128} , p::Parameters, funcs::Vector{Func}; 
       use_lincircuit::Bool=false )
-  println("process_ch_ints: ",process_ch_ints)
+  println("process_ch_ints: ")
   ph_net = create_empty_pheno_net( p )
   for ch_int in ch_ints_list
     #println("ch_int: ",ch_int)
