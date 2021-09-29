@@ -1,0 +1,13 @@
+Outline for a paper
+1.  Finding complex solutions is important for all forms of evolution
+2.  Complexity is hard to find as supported by our simulation and Hu 2020 results.
+    a.  "This indicates that genotypically underrepresented targets are difficult to 
+      find partially because they render the guidance of the fitness gradient less 
+      effective. That is, reaching fitter phenotypes at a current step does not 
+      necessarily lead to better paths for finding the target." Hu2020 p389, Fig. 8.
+3.  Alternative definitions of evolvability and their strengths and weaknesses.
+    a.  Wagner 2008 (degree evolvability):  Examples show natural approximations
+        do not actually approximate the definition.
+    b.  Degree evolvability versus 
+3.  Evolvability ought to be measure of the ability to start at a phenotype and
+    discover complexity.

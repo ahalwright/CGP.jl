@@ -11,6 +11,7 @@ end
 
 # Constructs the phenotype network matrix and outlist which is the counts
 #   of genotypes that map to the corresponding phenotype before mutation
+# Note:  pmap paralleism failed badly on 9/28/21
 function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64; 
     use_lincircuit::Bool=false, csvfile::String="", pheno_file::String="") 
   funcs = default_funcs(p.numinputs)
@@ -53,6 +54,7 @@ function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64;
 end
 
 # Helper function for construct_pheno_net()
+# Note:  pmap paralleism failed badly on 9/28/21
 function process_ch_ints( ch_ints_list::Vector{Int128} , p::Parameters, funcs::Vector{Func}; 
       use_lincircuit::Bool=false )
   println("process_ch_ints: ")
@@ -143,7 +145,7 @@ function markov_chain_stationary( niters::Int64, ph_net::Array{Int64,2}, init_di
   println("init: ",init_distribution)
   T = zeros(Float64, dim, dim)  # Transition matrix
   for i = 1:dim
-    T[i,:] =  sum(ph_net[i,:])>0 ? ph_net[i,:]/sum(ph_net[i,:]) : zeros(Float64,len)
+    T[i,:] =  sum(ph_net[i,:])>0 ? ph_net[i,:]/sum(ph_net[i,:]) : zeros(Float64,dim)
   end
   #println("T: ",T[1:20,1:20])
   for t = 1:niters

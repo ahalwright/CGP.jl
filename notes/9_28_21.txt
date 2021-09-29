@@ -1,0 +1,45 @@
+construct_pheno_net() seemed to be working for chromosomes, but then I tried it on 4x1 goals, and it used up all
+memory on surt2.  Clearly, my pmap parallelization is not working.
+
+Results in data/9_27_21:
+# 3x1 6 gates 4 levelsback, 10000 numcircuits
+@time include("../data/9_27_21/run_pheno_netF.jl")
+  # @time include("../data/9_27_21/run_pheno_netG.jl")  # 4807 seconds
+# Below results are from F, not G
+(ph_net,outlist) = ans;
+(ph_net,outlist) = read_jld_file("../data/9_27_21/surt2/pheno_mat_chromcirc_9_27_21_F.jld")   # on lycosa after file transfer
+initd = fill(1.0,size(ph_net)[1])
+mdist = markov_chain_stationary( 50, ph_net, initd )
+findall(x->x==0.0,mcdist)
+#  2-element Array{CartesianIndex{2},1}:
+#   CartesianIndex(1, 106)
+#   CartesianIndex(1, 151)
+(MyInt(105),MyInt(150))  # (0x0069, 0x0096)
+
+cdf = read_dataframe("../data/6_25_21/geno_complexity7_2_21Imeans.csv")
+mcdist = vcat(transpose(mdist),[mean(mdist)])
+insertcols!(cdf,:mcdist=>mcdist)
+write_dataframe_with_comments(cdf,"../data/6_25_21/geno_complexity7_2_21Imeans.csv","../data/9_27_21/geno_complexity7_2_21Imeans.csv")
+
+Windows:
+cdf = read_dataframe("../../complexity\\data/9_27_21\\geno_complexity7_2_21Imeans.csv")
+mdf = deepcopy(cdf);
+delete!(mdf,257)  # Delete the "means" row
+delete!(mdf,[106,151])  # Delete the 0x0069 and 0x0096 rows since they are all zeros
+scatter(map(clog,mdf.mcdist),mdf.complexity,ylabel="Complexity",xlabel="log stationary distribution",title="Markov chain stationary dist vs complexity",smooth=true,legend=:none)
+cd("../../complexity\\data/9_27_21\\")
+
+scatter(map(clog,mdf.mcdist),mdf.complexity,ylabel="Complexity",xlabel="log stationary distribution",title="Markov chain stationary dist vs complexity",smooth=true,legend=:none)
+savefig("mcdist_vs_complexity_6gts_4lb.png")
+
+scatter(map(clog,mdf.mcdist),mdf.evo_count,ylabel="Evolution evolvability",xlabel="log stationary distribution",title="Markov chain stationary dist vs evolvability",smooth=true,legend=:none)
+savefig("mcdist_vs_evolvabilit_6gts_4lb.png")
+
+scatter(map(clog,mdf.mcdist),mdf.log_avg_steps,ylabel="log difficulty",xlabel="log stationary distribution",title="Markov chain dist vs log average steps",smooth=true,legend=:none)
+# Linear relationship
+savefig("log_avg_steps_vs_evolvability_6gts_4lb.png")
+
+julia> scatter(map(clog,mdf.mcdist),map(x->clog(x),mdf.ints6_4),ylabel="log redundancy",xlabel="log stationary distribution",title="Markov chain dist vs redundancy",smooth=true,legend=:none)^C
+julia> savefig("log_redundancy_vs_evolvability_6gts_4lb.png")
+Trying 4x1 goals
+julia -p 24 -L CGP.jl -L PhenotypeNetwork.jl  # First attempt failed due to a system error after the count_outputs phase failed.
