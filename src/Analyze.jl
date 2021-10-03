@@ -44,7 +44,7 @@ function spearman_cor( df::DataFrame, name1::Symbol, name2::Symbol )
   (r, p_value)
 end
 
-function spearman_cor( v1::Vector{Float64}, v2::Vector{Float64} )
+function spearman_cor( v1::AbstractVector, v2::AbstractVector )
   r = StatsBase.corspearman( v1, v2 )
   t_value = r*sqrt((length(v1)-2)/(1-r^2))
   # p_value is always positive

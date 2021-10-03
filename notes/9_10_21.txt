@@ -19,8 +19,8 @@ Windows
 edf = read_dataframe("../../complexity/data/9_10_21/geno_complexity9_10_21Bcons.csv")
 edf.avg_num_successes = adf.avg_num_successes
 edf.deg_evolvability=adf.deg_evolvability
-scatter(edf.log_avg_steps,[edf.deg_evolvability edf.evo_count])
-scatter!(xlabel="log steps",ylabel="evolvability",title="degree and evolution evolvability vs log steps")
+scatter(edf.log_avg_steps,[edf.deg_evolvability edf.evo_count],smooth=true)
+scatter!(xlabel="log steps",ylabel="evolvability",title="sampling and evolution evolvability vs log steps")
 cd("../../complexity/data/9_10_21")
 savefig("deg_evolution_evolvability_vs_log_steps3x1_7_4.png")
 
@@ -28,3 +28,4 @@ scatter(edf.avg_num_successes,[edf.deg_evolvability,edf.evo_count],label=["deg e
 scatter!(xlabel="num successes",ylabel="evolvability",title="degree and evolution evolvability vs number successes")
 savefig("deg_evolution_evolvability_vs_log_steps3x1_7_4.png")
 
+Continued in notes/9_30_21.txt

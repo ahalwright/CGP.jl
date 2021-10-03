@@ -1,0 +1,48 @@
+# Continuing 9_10_21.txt
+# Plots in data/9_10_21/
+# Note that deg_evolvability in dataframe edf is sampling evolvability
+
+using Plots
+edf = read_dataframe("../../complexity/data/9_10_21/geno_complexity9_10_21Bcons.csv")
+# 256×17 DataFrame.
+adf = read_dataframe("../../complexity/data/9_8_21/adapt_evo9_8_21C.csv")
+# 256×8 DataFrame
+edf.avg_num_successes = adf.avg_num_successes
+edf.deg_evolvability=adf.evolvability
+
+pwd()
+#  "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+cd("../../complexity\\data/9_10_21\\")
+
+scatter(edf.avg_num_successes,[edf.deg_evolvability,edf.evo_count],label=["sampling evolvability" "evolution evolvability"],smooth=true)
+scatter!(xlabel="adaptive evolvability",ylabel="evolvability count",title="sampling evolution evolvability vs adaptive evo 3x1 7_4")
+spearman_cor(edf.avg_num_successes,edf.deg_evolvability)
+savefig("sampling_evol_evolvability_vs_adatpive_evolability_3x1_7_4.png")
+#  (-0.011770655707470839, 0.4256675023991039)
+
+# ave_num_successes in adaptive evolvability
+scatter(edf.avg_num_successes,edf.deg_evolvability,label="sampling evolvability",smooth=true)
+scatter!(xlabel="adaptive evolvability",ylabel="evolvability count",title="sampling evolvability vs adaptive evolvability 3x1 7_4")
+savefig("sampling_evolvability_vs_adaptive_evolvability_3x1_7_4.png")
+spearman_cor(edf.deg_evolvability,edf.avg_num_successes)
+(-0.011770655707470839, 0.4256675023991039)
+
+scatter(edf.avg_num_successes,edf.evo_count,label="evolution evolvability",smooth=true,c="red")
+scatter!(xlabel="adaptive evolvability",ylabel="evolvability count",title="evolution evolvability vs adaptive evolvability 3x1 7_4")
+savefig("evolution_evolvability_vs_adaptive_evolvability_3x1_7_4.png")
+spearman_cor(edf.evo_count,edf.avg_num_successes)    
+(0.14237250673722507, 0.011350458355846969)
+
+scatter(edf.log_avg_steps,[edf.deg_evolvability edf.evo_count],smooth=true,label=["sampling evolvability" "evolution evolvability"])
+scatter!(xlabel="log steps",ylabel="evolvability",title="sampling and evolution evolvability vs log steps")
+savefig("sampling_evol_evolvability_vs_log_steps_3x1_7_4.png")
+julia> spearman_cor(edf.evo_count,edf.log_avg_steps)
+(0.5516811595439044, 4.325595610907773e-22)
+julia> spearman_cor(edf.deg_evolvability,edf.log_avg_steps)
+(-0.9368653077329656, 3.325244441653628e-118)
+
+mdf = read_dataframe("../..\\data/9_27_21\\geno_complexity7_2_21Imeans.csv")
+edf.complexity=mdf.complexity[1:end-1]
+scatter(edf.evo_count, edf.complexity,smooth=true,ylabel="complexity",xlabel="evolution_evolvability")
+scatter!(title="complexity vs evolution evolvability 3x1 7gts4lb",legend=none)
+savefig("complexity_vs_evolution_evolvability_3x1_7gts4lb.png")

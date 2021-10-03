@@ -5,6 +5,7 @@ complexity/cce/"Adaptive evolvability9_8_21.docx".
 New code is in AdaptEvo.jl.  Data is in 9_7_21 and 9_8_21/ including on surt2.
 
 Windows:
+# adf includes the results of compare_evolvabilities() of AdaptEvo.jl
 adf = read_dataframe("../../complexity/data/9_8_21/adapt_evo9_8_21C.csv")
 scatter(adf.avg_num_successes,adf.evolvability,title="degree evolvability vs. number successes all 3-input goals",xlabel="number successes",ylabel="degree evolvability",labels="")
 savefig("../../complexity/data/9_8_21/num_successes_vs_degree_evolvability.png")

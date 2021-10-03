@@ -1,6 +1,6 @@
 More plots for evolvability by sampling variable relationships:
 Variables:  robustness, evolvabity, frequency, complexity
-Note:  Some plots generated on 1/8/2020.  Plots went into GECCO paper.
+Note:  Some plots generated on 1/8/2021.  Plots went into GECCO paper.
 
 adf = read_dataframe("1_3/robust_evo_by_walks1_3A.csv")
 julia> scatter( adf.d_evolvability,adf.robustness,title="robustness vs. sampling evolvability 3x1 7gts 5lb",xlabel="samplng evolvability",ylabel="robustness",legend=:none)
