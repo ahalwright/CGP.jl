@@ -1,0 +1,44 @@
+Sorting out the different methods of computing evolvability and complexity for 3x1 phenotypes
+with the gate set AND, OR, NAND, NOR (but not XOR).
+
+random_walk.jl
+Went back to data/1_3 for earlier runs.  Copied data/1_3/run_random_walksB.jl to data/10_3_21 and changed settings.
+data/1_2/run_random_walksM.jl ran giving robust_evo_by_walks1_2M.csv with 5000 walks, 5000 steps, 400 processes.
+But on 10_3_21, run_random_walksG.jl crashed with stack overflow errors when run in julia 1.6.3 and jula 1.5.3,
+but succeded using julia 1.4.2 (with some difficulties):  data/10_3_21/run_random_walksG.jl and robust_evo_by_walks10_3_21G.csv
+This was for 7 gates, 4 levsback.  Circuits discovered for all phenotypes including 0x69 and 0x96.
+Results include s_evolvability and d_evolvability.  d_evolvability and s_evolvability increase with the number of walks and steps.
+
+PhenotypeNetwork.jl
+Calculates the phenotype network by running count_outputs_parallel() and then doing mutate_all for up to numcircuits of
+the discovered genotypes.  Does run using LinCircuits.
+pmap parallelized on about 9/24/21, but completely failed and used up all memory on surt2.  On 10/4, commened out pmap().
+Results in data/9_24_21 for both chromosomes and LinCircuits.  Chromosome results being redone on 10_4.
+Lincircuit runs for 10^9 genotypes do not find quite a number of phenotypes.
+Also does Markov chain stationary states which is eigenvector centrality of Hu ???.
+
+Parallelized:  construct_pheno_net_parallel() in PhenotypeNetwork.jl.
+
+AdaptEvo.jl
+Computes adaptive evolvability and does some comparison to evolvabilities.
+
+Other dates of interest from all_topics.txt:
+3_29: Do circuit sampling for 3x1 circuits using linear GP representation.
+      Discovered that all 3x1 goals are reachable using 6 gates and 1 register.  
+6_25_21:  evolution evolvability runs for 3x1 6 gates 4 lb.
+7_11: Matrix representation of phenotype network computed by evolution Cartesian representation. 3x1 7_4 4gates, small sample.
+7_13_21: All 6 instruction 2 register 3x1 LinGP phenotypes have corresponding genotypes
+      Over half of 4x1 8 gates 5 lb Cartesian genotypes do not have phenotypes with sample of 3*10^10  
+
+
+Specific run of data/10_4_21/run_pheno_netA.jl" on lycosa p=4:
+3x1 7_4
+nreps = 100000 = 10^5
+numcircuits = 1000
+time:  552 seconds.
+
+5 specific runs of data/10_4_21/run_pheno_netX.jl" for X = B,C,D,E,F on lycosa (B) and surt2 (C,D,E,F).
+3x1 7_4
+nreps = 100000 = 10^6
+numcircuits = 10000
+Generating jld files so results can be combined.

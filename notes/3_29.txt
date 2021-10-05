@@ -1,5 +1,5 @@
 # Do circuit sampling for 3x1 circuits using linear GP representation.
-# Discovered that all 3x1 goals are reachable using 6 gates and 1 register.
+# Discovered that all 3x1 goals are reachable using 6 gates and 2 registers.
 nreps=10^10
 julia> (outlist,cll)=count_outputs_parallel( nreps, numinputs, numoutputs, n_instructions, numregisters, use_lincircuit=true, csvfile="../data/3_28/outlist_circ_lists_reps1e10.csv" )
 MyInt: UInt16

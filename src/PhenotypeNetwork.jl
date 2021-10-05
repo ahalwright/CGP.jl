@@ -1,42 +1,31 @@
 # Construct the phenotype network for a given parameter setting.
 using HDF5, JLD
-
-function create_empty_pheno_net( p::Parameters; pheno_file::String="" )
-  pheno_net = zeros( Int64, p.numoutputs*2^2^p.numinputs, p.numoutputs*2^2^p.numinputs )
-  if pheno_file != ""
-    save( pheno_file, "pheno_net", pheno_net )
-  end
-  pheno_net
-end
-
 # Constructs the phenotype network matrix and outlist which is the counts
 #   of genotypes that map to the corresponding phenotype before mutation
-# Note:  pmap paralleism failed badly on 9/28/21
-function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64; 
+function construct_pheno_net_parallel( p::Parameters, nreps::Int64, numcircuits::Int64; 
     use_lincircuit::Bool=false, csvfile::String="", pheno_file::String="") 
+  num_processes_per_processor = 4
+  println("nreps: ",nreps,"  numcircuits: ",numcircuits)
   funcs = default_funcs(p.numinputs)
   if pheno_file == "" || !isfile(pheno_file)
     ph_net = create_empty_pheno_net( p )
     outlist = zeros(Int64,2^2^p.numinputs)
   elseif isfile(pheno_file)
-    #=
-    ph_net = jldopen(pheno_file,"r") do file
-      read( file, "pheno_net" )
-    end 
-    =#
     (outlist,ph_net)=jldopen(pheno_file,"r") do file
       (read( file, "outlist" ), read( file, "ph_net" ))
      end
   end
-  #(outlist, ch_ints_list) = count_outputs( nreps, p, numcircuits, use_lincircuit=use_lincircuit )
-  (new_outlist, ch_ints_list) = count_outputs_parallel( nreps, p, numcircuits, use_lincircuit=use_lincircuit )
-  outlist .+= new_outlist
-  println("length(outlist): ",length(outlist))
-  println("length(ch_ints_list): ",length(ch_ints_list))
-  #println("ch_ints_list: ",ch_ints_list)
-  new_ph_net_list = pmap(ch_ints->process_ch_ints( ch_ints, p, funcs, use_lincircuit=use_lincircuit ), ch_ints_list )
-  for new_ph_net in new_ph_net_list
-    ph_net .+= new_ph_net
+  #result_list = Tuple{Matrix{Int64},Vector{Int64}}[]
+  pmap_list = nprocs() <= 1 ? [1] : collect(1:(num_processes_per_processor*(nprocs()-1)))
+  denom = length(pmap_list)
+  println("denom: ",denom,"  pmap_list: ",pmap_list)
+  result_list = pmap(x->construct_pheno_net( p, div(nreps,denom), div(numcircuits,denom), use_lincircuit=use_lincircuit ), pmap_list )
+  #println("result_list: ",result_list)
+  ph_net = create_empty_pheno_net( p )
+  outlist = zeros(Int64,2^2^p.numinputs)
+  for (phn, outlst) in result_list
+    ph_net .+= phn
+    outlist .+= outlst
   end
   if pheno_file != ""
     save( pheno_file, "outlist", outlist, "ph_net", ph_net )
@@ -46,9 +35,31 @@ function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64;
     mdf = marginals_dataframe( ph_net, outlist, p )
     pn_df = pheno_net_df( ph_net, p )
     ph_file = csvfile[1:end-4] * "_phnet" * ".csv"
-    write_csv_file( ph_file, pn_df, funcs )
+    write_csv_file( ph_file, pn_df, funcs, num_processes_per_processor )
     rc_file = csvfile[1:end-4] * "_rowcol" * ".csv"
-    write_csv_file( rc_file, mdf, funcs )
+    write_csv_file( rc_file, mdf, funcs, num_processes_per_processor )
+  end
+  (ph_net, outlist)
+end
+
+# Constructs the phenotype network matrix and outlist which is the counts
+#   of genotypes that map to the corresponding phenotype before mutation
+# Note:  pmap paralleism failed badly on 9/28/21
+function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64; 
+    use_lincircuit::Bool=false) 
+  println("nreps: ",nreps,"  numcircuits: ",numcircuits)
+  funcs = default_funcs(p.numinputs)
+  ph_net = create_empty_pheno_net( p )
+  (outlist, ch_ints_list) = count_outputs( nreps, p, numcircuits, use_lincircuit=use_lincircuit )
+  #(new_outlist, ch_ints_list) = count_outputs_parallel( nreps, p, numcircuits, use_lincircuit=use_lincircuit )
+  #outlist .+= new_outlist
+  #println("length(outlist): ",length(outlist))
+  println("length(ch_ints_list): ",length(ch_ints_list))
+  #println("ch_ints_list: ",ch_ints_list)
+  #new_ph_net_list = pmap(ch_ints->process_ch_ints( ch_ints, p, funcs, use_lincircuit=use_lincircuit ), ch_ints_list ) # pmap commented out 10/4/21
+  new_ph_net_list = map(ch_ints->process_ch_ints( ch_ints, p, funcs, use_lincircuit=use_lincircuit ), ch_ints_list )
+  for new_ph_net in new_ph_net_list
+    ph_net .+= new_ph_net
   end
   (ph_net, outlist)
 end
@@ -57,7 +68,7 @@ end
 # Note:  pmap paralleism failed badly on 9/28/21
 function process_ch_ints( ch_ints_list::Vector{Int128} , p::Parameters, funcs::Vector{Func}; 
       use_lincircuit::Bool=false )
-  println("process_ch_ints: ")
+  #println("process_ch_ints: ")
   ph_net = create_empty_pheno_net( p )
   for ch_int in ch_ints_list
     #println("ch_int: ",ch_int)
@@ -81,7 +92,15 @@ function process_ch_ints( ch_ints_list::Vector{Int128} , p::Parameters, funcs::V
   ph_net
 end  
 
-function write_csv_file( csvfile::String, df::DataFrame, funcs::Vector{Func} )
+function create_empty_pheno_net( p::Parameters; pheno_file::String="" )
+  pheno_net = zeros( Int64, p.numoutputs*2^2^p.numinputs, p.numoutputs*2^2^p.numinputs )
+  if pheno_file != ""
+    save( pheno_file, "pheno_net", pheno_net )
+  end
+  pheno_net
+end
+
+function write_csv_file( csvfile::String, df::DataFrame, funcs::Vector{Func}, num_processes_per_processor::Int64 )
   open( csvfile, "w" ) do f
     hostname = chomp(open("/etc/hostname") do f read(f,String) end)
     println(f,"# date and time: ",Dates.now())
@@ -90,6 +109,7 @@ function write_csv_file( csvfile::String, df::DataFrame, funcs::Vector{Func} )
     println(f,"# funcs: ",funcs)
     println(f,"# nreps: ",nreps)
     println(f,"# numcircuits: ",numcircuits)
+    println(f,"# num_processes_per_processor: ",num_processes_per_processor)
     CSV.write( f, df, append=true, writeheader=true )
   end
 end
