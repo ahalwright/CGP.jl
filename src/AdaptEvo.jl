@@ -9,7 +9,7 @@
 function compare_evolvabilities( p::Parameters, source_list::GoalList, number_targets::Int64, 
     distance_limit::Float64, step_limit::Int64, number_runs::Int64;
     csvfile::String="", evo_df_file::String="", evo_df_column::Symbol=:d_evolvability, 
-    iteration_limit::Int64=200, max_steps::Int64=200000 )
+    iteration_limit::Int64=200, max_steps::Int64=200000, distance_function::Function=hamming_distance )
   evo_df = DataFrame()
   if length(evo_df_file) > 0
     try
@@ -37,7 +37,7 @@ function compare_evolvabilities( p::Parameters, source_list::GoalList, number_ta
   #println("df_params_list: ",df_params_list)
   #for src in source_list
   df_rows = pmap( src->run_compare_evolvabilities( p, src, number_targets, distance_limit, step_limit, number_runs,
-        iteration_limit=iteration_limit, max_steps=max_steps), source_list )
+        iteration_limit=iteration_limit, max_steps=max_steps, distance_function=distance_function ), source_list )
   for df_row in df_rows
     push!(df,df_row)
   end
@@ -58,7 +58,7 @@ end
 # Helper function for the above function for a single src goal.
 function run_compare_evolvabilities( p::Parameters, src::Goal, number_targets::Int64, 
   distance_limit::Float64, step_limit::Int64, number_runs::Int64;
-  iteration_limit::Int64=200, max_steps::Int64=200000 )
+  iteration_limit::Int64=200, max_steps::Int64=200000, distance_function::Function=hamming_distance )
   println("src: ",src)
   df_params_list = 
     Any[
@@ -75,7 +75,8 @@ function run_compare_evolvabilities( p::Parameters, src::Goal, number_targets::I
   target_list = Goal[]
   while iteration < iteration_limit && length(target_list) < number_targets
     target = randgoal( p.numinputs, p.numoutputs )
-    hd = hamming_distance( src, target, p.numinputs ) 
+    #hd = hamming_distance( src, target, p.numinputs ) 
+    hd = distance_function( src, target, p.numinputs ) 
     #println("target: ",target,"  hd: ",hd)
     if hd <= distance_limit && target != src
       push!(target_list,target)

@@ -1,0 +1,118 @@
+Need to set more specific goals that lead to significant results
+1.  Evolvability of some form helps in discovering complex phenotypes.
+    a.  Perhaps "from scratch", although maybe not
+    b.  Perhaps from nearby already discovered complex phenotypes.
+2.  Relationship of complexity to evolvability
+    a.  Sampling vs. evolvability computation of complexity.
+    b.  Redo adaptive evolvability results using ihamming (inverted Hamming distance).
+    c.  Hypothesis supported below that there are more mutations from rare goals than to them
+        for both lincircuits and chromosomes.  
+3.  Deficiencies of Wagner's definition of evolvability (degree evolvability)
+    a.  Evolution evolvability results for very large number of samples.
+    b.  Computing degree evolvability using count_outputs() for increasing numbers of samples
+    c.  Strength evolvability (s_evolvability) as a substitute.
+4.  Comparison of chromosome and lincircuit results.
+    a.  count_outputs() code much faster for lincircuits.
+5.  Failure of adaptive evolvability is due to a mismatch between Hamming distance and mutational
+    neighborhoods.  (See 1b above.)
+
+# runs of construct_pheno_net() done on 10/5/21.
+# runs of construct_pheno_net_parallel() for both LinCircuits and Chromosomes
+# Data: data/10_4_21/
+
+# Q and R are lincircuit runs with nreps=10^10, numcircuits=2^13, 3 inputs, 1 output
+# Q is lincircuit run with 6 instructions, 2 registers
+# R is lincircuit run with 7 instructions, 2 registers
+rdf = read_dataframe("../data/10_4_21/pheno_par_lincirc_10_4_21_R_rowcol.csv")
+qdf = read_dataframe("../data/10_4_21/pheno_par_lincirc_10_4_21_Q_rowcol.csv") 
+clist = [(rdf.outlist[i],qdf.outlist[i]) for i = 1:256]
+clist[findall(x->x[1]<=40,clist)]
+df = DataFrame(:goal=>rdf.goal[findall(x->x[1]<=40,clist)],:clist=>clist[findall(x->x[1]<=40,clist)])
+18×2 DataFrame
+ Row │ goal    clist
+     │ String  Tuple…
+─────┼─────────────────
+   1 │ 0x0016  (14, 9)
+   2 │ 0x0029  (3, 1)
+   3 │ 0x0049  (5, 0)
+   4 │ 0x0061  (3, 0)
+   5 │ 0x0068  (22, 4)
+   6 │ 0x0069  (16, 5)
+   7 │ 0x006b  (4, 2)
+   8 │ 0x006d  (3, 2)
+   9 │ 0x0079  (4, 2)
+  10 │ 0x0086  (9, 2)
+  11 │ 0x0092  (6, 1)
+  12 │ 0x0094  (7, 0)
+  13 │ 0x0096  (19, 2)
+  14 │ 0x0097  (14, 8)
+  15 │ 0x009e  (3, 0)
+  16 │ 0x00b6  (5, 1)
+  17 │ 0x00d6  (1, 0)
+  18 │ 0x00e9  (12, 3)
+# Conclusion:  Adding another instruction increases frequency of rare goals.
+cdf = rdf[findall(x->x<=40,rdf.outlist),:]
+18×5 DataFrame
+ Row │ indices  goal    outlist  row_sums  col_sums
+     │ Int64    String  Int64    Int64     Int64
+─────┼──────────────────────────────────────────────
+   1 │      22  0x0016       14      1176       367
+   2 │      41  0x0029        3       252       126
+   3 │      73  0x0049        5       420       123
+   4 │      97  0x0061        3       252       153
+   5 │     104  0x0068       22      1848       419
+   6 │     105  0x0069       16      1344       591
+   7 │     107  0x006b        4       336       131
+   8 │     109  0x006d        3       252        95
+   9 │     121  0x0079        4       336       123
+  10 │     134  0x0086        9       756       176
+  11 │     146  0x0092        6       504       140
+  12 │     148  0x0094        7       588       158
+  13 │     150  0x0096       19      1596       667
+  14 │     151  0x0097       14      1176       342
+  15 │     158  0x009e        3       252       118
+  16 │     182  0x00b6        5       420       145
+  17 │     214  0x00d6        1        84       114
+  18 │     233  0x00e9       12      1008       348
+# Conclusion:  In all but one case, row sums are greater than column sums.
+# I. e., there are more mutations from rare goals than to them.
+# Rare goals are hard to find.
+
+# G is chromosome run with nreps=10^9, numcircuits=2^13, 3 inputs, 1 output
+# 28266 seconds with 22 processes
+gdf = read_dataframe("../data/10_4_21/pheno_par_chromcirc_10_4_21_G_rowcol.csv")
+cdf = gdf[findall(x->x<=300,gdf.outlist),:]
+4×5 DataFrame
+ Row │ indices  goal    outlist  row_sums  col_sums
+     │ Int64    String  Int64    Int64     Int64
+─────┼──────────────────────────────────────────────
+   1 │     105  0x0069       20      1220       642
+   2 │     121  0x0079      279     17019      4127
+   3 │     150  0x0096       32      1952       574
+   4 │     158  0x009e      298     18178      4353
+
+cdf = gdf[findall(x->x<=1200,gdf.outlist),:]
+14×5 DataFrame
+ Row │ indices  goal    outlist  row_sums  col_sums
+     │ Int64    String  Int64    Int64     Int64
+─────┼──────────────────────────────────────────────
+   1 │      41  0x0029     1051     64111     15789
+   2 │      73  0x0049      341     20801      5684
+   3 │      97  0x0061      307     18727      4378
+   4 │     105  0x0069       20      1220       642
+   5 │     107  0x006b     1072     65392     16182
+   6 │     109  0x006d      398     24278      6214
+   7 │     121  0x0079      279     17019      4127
+   8 │     134  0x0086      305     18605      4313
+   9 │     146  0x0092      378     23058      6077
+  10 │     148  0x0094     1000     61000     15878
+  11 │     150  0x0096       32      1952       574
+  12 │     158  0x009e      298     18178      4353
+  13 │     182  0x00b6      371     22631      5720
+  14 │     214  0x00d6     1034     63074     16038
+# Conclusion:  In all cases, row sums are greater than column sums.
+# I. e., there are more mutations from rare goals than to them.
+# Rare goals are hard to find.
+# There are three categories of goals, very rare (0x69, 0x96),
+#  rare (those with outlist values between 279 and 398), and
+#  somewhat rare (those with outlist values greater than 1000).

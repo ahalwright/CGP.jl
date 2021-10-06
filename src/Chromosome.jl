@@ -3,8 +3,8 @@ using CSV
 import Base.getindex
 export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all, PredType
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
-export output_values, number_active, number_active_gates, hamming_distance, hamming, deactivate_chromosome!, number_active_old
-export copy_chromosome!, mutational_robustness, fault_tolerance_fitness
+export output_values, number_active, number_active_gates, hamming_distance, ihamming_distance, hamming, deactivate_chromosome!
+export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code, circuit_int
 export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits
@@ -547,6 +547,21 @@ end
 function hamming_distance( x::Vector{MyInt}, y::Vector{MyInt}, numinputs::Int64 )
   @assert length( x ) == length( y )
   sum( hamming_distance( x[i], y[i], numinputs ) for i = 1:length(x))/length(x)
+end
+
+# the minimum of the hamming distance and 1+hamming_distance( x, bitwise_complement(y))
+function ihamming_distance( x::MyInt, y::MyInt, numinputs::Int64 )
+  Ones = Main.CGP.construct_ones(numinputs)[numinputs]
+  complement_y = xor(y,Ones)
+  #@printf("0x0%0x\n",complement_y)
+  #println("hd:  ",hamming_distance(x,y,numinputs))
+  #println("chd: ",hamming_distance(x,complement_y,numinputs))
+  #println("xhd: ",1.0/numinputs+hamming_distance(x,complement_y,numinputs))
+  return min(hamming_distance(x,y,numinputs),1.0/2^numinputs+hamming_distance(x,complement_y,numinputs))
+end
+
+function ihamming_distance( x::Vector{MyInt}, y::Vector{MyInt}, numinputs::Int64 ) 
+  sum( ihamming_distance( x[i], y[i], numinputs ) for i = 1:length(x))/length(x) 
 end
 
 # Change the fields of chromosome c to be the fields of chromosom c_to_copy

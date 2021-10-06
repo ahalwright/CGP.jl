@@ -114,7 +114,7 @@ function write_csv_file( csvfile::String, df::DataFrame, funcs::Vector{Func}, nu
   end
 end
 
-function marginals_dataframe( ph_net::Array{Int64,2}, outlist::Vector{Int64}, p::Parameters )
+:unction marginals_dataframe( ph_net::Array{Int64,2}, outlist::Vector{Int64}, p::Parameters )
   @assert p.numoutputs == 1
   mdf = DataFrame()
   mdf.indices = [ i for i = 0:2^2^p.numinputs-1 ]  # Decimal indices

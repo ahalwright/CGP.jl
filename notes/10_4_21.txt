@@ -8,6 +8,28 @@ But on 10_3_21, run_random_walksG.jl crashed with stack overflow errors when run
 but succeded using julia 1.4.2 (with some difficulties):  data/10_3_21/run_random_walksG.jl and robust_evo_by_walks10_3_21G.csv
 This was for 7 gates, 4 levsback.  Circuits discovered for all phenotypes including 0x69 and 0x96.
 Results include s_evolvability and d_evolvability.  d_evolvability and s_evolvability increase with the number of walks and steps.
+Added 10/6/21:  Run with julia-1.4.2 3x1 7_4 nwalks=steps=5000 nprocesses=400: data in data/10_3_21.  
+If nwalks=10000, stack overflow.  If nprocesses=1000, stack overflow.
+rrw_df[findall(x->x<=100,rrw_df.d_evolvability),:]
+14×5 DataFrame
+│ Row │ goal   │ frequency │ robustness │ s_evolvability │ d_evolvability │
+│     │ UInt16 │ Int64     │ Float64    │ Int64          │ Int64          │
+├─────┼────────┼───────────┼────────────┼────────────────┼────────────────┤
+│ 1   │ 0x0029 │ 5173      │ 0.110188   │ 4603           │ 84             │
+│ 2   │ 0x0049 │ 1741      │ 0.100517   │ 1566           │ 74             │
+│ 3   │ 0x0061 │ 1513      │ 0.106411   │ 1352           │ 74             │
+│ 4   │ 0x0069 │ 142       │ 0.0        │ 142            │ 62             │
+│ 5   │ 0x006b │ 5184      │ 0.104938   │ 4640           │ 76             │
+│ 6   │ 0x006d │ 1709      │ 0.0918666  │ 1552           │ 69             │
+│ 7   │ 0x0079 │ 1427      │ 0.0960056  │ 1290           │ 76             │
+│ 8   │ 0x0086 │ 1473      │ 0.106585   │ 1316           │ 79             │
+│ 9   │ 0x0092 │ 1749      │ 0.0994854  │ 1575           │ 65             │
+│ 10  │ 0x0094 │ 5221      │ 0.107834   │ 4658           │ 84             │
+│ 11  │ 0x0096 │ 151       │ 0.013245   │ 149            │ 56             │
+│ 12  │ 0x009e │ 1438      │ 0.0959666  │ 1300           │ 85             │
+│ 13  │ 0x00b6 │ 1771      │ 0.105025   │ 1585           │ 67             │
+│ 14  │ 0x00d6 │ 5343      │ 0.107992   │ 4766           │ 79             │
+Could re-run outputing phenotype-matrix.
 
 PhenotypeNetwork.jl
 Calculates the phenotype network by running count_outputs_parallel() and then doing mutate_all for up to numcircuits of
