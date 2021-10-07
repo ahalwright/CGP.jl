@@ -36,6 +36,121 @@ export add_counts_to_dataframe, write_to_dataframe_file, circuit_complexities, r
 export create_lincircuits_list, create_chromosome_ints_list, increment_circuit_ints_list! 
 
 MyFunc = Main.CGP.MyFunc
+# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
+#  This list is indexed over phenotypes.
+# If output_complex==true the returned outlist is a list of pairs, where the first element of the pair is the number of times the
+#   output is produced, and the second is the average of the Tononi complexities of the genotypes that produce that output.
+#   As of 10/7/21, Tononi complexity is not computed for LinCircuits, so the option has no effect in this case.
+function count_outputs_parallel( nreps::Int64, p::Parameters, numcircuits::Int64=0, funcs::Vector{Func}=Func[]; 
+    csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false )
+  count_outputs_parallel( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, funcs,
+    csvfile=csvfile, use_lincircuit=use_lincircuit, output_complex=output_complex )
+end
+
+function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64, 
+    funcs::Vector{Func}=Func[]; csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false ) 
+  if use_lincircuit && output_complex
+    println("Warning: output_complex reset to false when use_lincircuit==true")
+    output_complex=false
+  end
+  p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
+  if length(funcs) == 0
+    funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
+  end
+  print_parameters( p )
+  println("nprocs: ",nprocs())
+  #n_procs=nprocs()
+  if nprocs() > 1
+    nreps_p = Int(round(nreps/(nprocs()-1)))
+  else
+    nreps_p = nreps 
+  end
+  println("nreps_p: ",nreps_p)
+  println("numcircuits: ",numcircuits)
+  #println("csvfile: ",csvfile) 
+  count_out_funct(x) = count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, numcircuits, 
+      use_lincircuit=use_lincircuit, output_complex=output_complex )
+  result =  pmap( x->count_out_funct(x), collect(1:nprocs()))
+  #result =  map( x->count_out_funct(x), collect(1:nprocs()))
+  println("len(result): ",length(result))
+  #println("result[1][1]: ",result[1][1])
+  #println("result[1][2]: ",result[1][2])
+  outlist = reduce(+,map(x->x[1],result))   # Works for output_complex and !output_complex
+  if output_complex   # Average complexities
+    for i in 1:length(outlist)
+      pair = outlist[i]
+      new_pair = (pair[1], pair[2]/pair[1] )
+      outlist[i] = new_pair
+    end
+  end
+  circ_ints_list = result[1][2]
+  for i = 2:length(result)
+    vcat_arrays!(circ_ints_list,result[i][2])
+  end
+  if length(csvfile) > 0
+    write_to_dataframe_file( p, outlist, funcs, csvfile=csvfile )
+  end
+  #println("outlist: ",outlist)
+  #println("circ_ints_list: ",circ_ints_list)
+  (outlist,circ_ints_list)
+end
+
+# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
+#  This list is indexed over phenotypes.
+# If output_complex==true the returned outlist is a list of pairs, where the first element of the pair is the number of times the
+#   output is produced, and the second is the sum of the Tononi complexities of the genotypes that produce that output.
+#   As of 10/7/21, Tononi complexity is not computed for LinCircuits, so the option has no effect in this case.
+function count_outputs( nreps::Int64, p::Parameters, numcircuits::Int64=0; use_lincircuit::Bool=:false, output_complex::Bool=false )
+  count_outputs( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, 
+    use_lincircuit=use_lincircuit, output_complex=output_complex )
+end
+
+# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
+function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64=0;
+    use_lincircuit::Bool=:false, output_complex::Bool=false )
+  p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback ) 
+  funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
+  if output_complex
+    outlist = fill( (0,0.0), numoutputs*2^2^numinputs )
+  else
+    outlist = fill( Int64(0), numoutputs*2^2^numinputs )
+  end
+   circuit_ints_list = [ Int128[] for _ = 1:p.numoutputs*2^2^p.numinputs ]
+  for _ = 1:nreps
+    #c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )  
+    if use_lincircuit
+      c = rand_lcircuit( p, funcs )
+      c_int = instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( c, funcs ), p, funcs )
+      if c_int < 0 
+        println(" c_int: ",c_int,"  c: ",c)
+      end
+    else
+      c = random_chromosome( p, funcs )
+      c_int = chromosome_to_int( c, funcs)
+    end
+    output = output_values( c )
+    #increment_circuits_list!( circuit_ints_list, output, c, numcircuits, p.numinputs, p.numlevelsback, funcs ) 
+    increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
+    # increment_count_outputs_list( output, outlist, numinputs )  # Replaced by the next line for efficiency
+    if output_complex
+      #println("outlist: ",outlist)
+      complexity = complexity5(c)
+      #println("outlist[concatenate_outputs(output,numinputs)+1][1]: ",outlist[concatenate_outputs(output,numinputs)+1][1])
+      pair = outlist[concatenate_outputs(output,numinputs)+1]
+      new_pair = (pair[1]+1,pair[2]+complexity)
+      outlist[concatenate_outputs(output,numinputs)+1] = new_pair
+    else
+      outlist[concatenate_outputs(output,numinputs)+1] += 1
+    end
+  end
+  (outlist,circuit_ints_list)
+end
+
+import Base.:+
+# Define + on outlist tuples
+function +(t1::Tuple{Int64,Float64},t2::Tuple{Int64,Float64})
+  (t1[1]+t2[1],t1[2]+t2[2])
+end 
 
 #    increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
 # increments the circuit_list corresponding to output if it contains less than numcircuits circuits
@@ -74,90 +189,6 @@ function concatenate_outputs( output::Goal, numinputs::Int64 )
     end
     result
   end
-end
-
-# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs( nreps::Int64, p::Parameters, numcircuits::Int64=0; use_lincircuit::Bool=:false )
-  count_outputs( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, 
-    use_lincircuit=use_lincircuit )
-end
-
-# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64=0;
-    use_lincircuit::Bool=:false )
-  p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback ) 
-  funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
-  outlist = fill( convert(Int64,0), numoutputs*2^2^numinputs )
-  #if use_lincircuit
-    # Creates an array of lincircuit int lists
-    #circuits_list = [ Vector{Int64}[] for _ = 1:numoutputs*2^2^numinputs ]
-  #else      # Default case of chromosomes
-    circuit_ints_list = [ Int128[] for _ = 1:p.numoutputs*2^2^p.numinputs ]
-  #end
-  for _ = 1:nreps
-    #c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )  
-    if use_lincircuit
-      c = rand_lcircuit( p, funcs )
-      c_int = instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( c, funcs ), p, funcs )
-      if c_int < 0 
-        println(" c_int: ",c_int,"  c: ",c)
-      end
-    else
-      c = random_chromosome( p, funcs )
-      c_int = chromosome_to_int( c, funcs)
-    end
-    output = output_values( c )
-    #increment_circuits_list!( circuit_ints_list, output, c, numcircuits, p.numinputs, p.numlevelsback, funcs ) 
-    increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
-    # increment_count_outputs_list( output, outlist, numinputs )  # Replaced by the next line for efficiency
-    outlist[concatenate_outputs(output,numinputs)+1] += 1
-  end
-  (outlist,circuit_ints_list)
-end
-
-# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs_parallel( nreps::Int64, p::Parameters, numcircuits::Int64=0, funcs::Vector{Func}=Func[]; 
-    csvfile::String="", use_lincircuit::Bool=:false )
-  count_outputs_parallel( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, funcs,
-    csvfile=csvfile, use_lincircuit=use_lincircuit )
-end
-
-# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
-function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64, 
-    funcs::Vector{Func}=Func[]; csvfile::String="", use_lincircuit::Bool=:false ) 
-  p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
-  if length(funcs) == 0
-    funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
-  end
-  print_parameters( p )
-  println("nprocs: ",nprocs())
-  #n_procs=nprocs()
-  if nprocs() > 1
-    nreps_p = Int(round(nreps/(nprocs()-1)))
-  else
-    nreps_p = nreps 
-  end
-  println("nreps_p: ",nreps_p)
-  println("numcircuits: ",numcircuits)
-  #println("csvfile: ",csvfile) 
-  count_out_funct(x) = count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, numcircuits, 
-      use_lincircuit=use_lincircuit )
-  result =  pmap( x->count_out_funct(x), collect(1:nprocs()))
-  #result =  map( x->count_out_funct(x), collect(1:nprocs()))
-  println("len(result): ",length(result))
-  #println("result[1][1]: ",result[1][1])
-  #println("result[1][2]: ",result[1][2])
-  outlist = reduce(+,map(x->x[1],result))
-  circ_ints_list = result[1][2]
-  for i = 2:length(result)
-    vcat_arrays!(circ_ints_list,result[i][2])
-  end
-  if length(csvfile) > 0
-    write_to_dataframe_file( p, outlist, funcs, csvfile=csvfile )
-  end
-  #println("outlist: ",outlist)
-  #println("circ_ints_list: ",circ_ints_list)
-  (outlist,circ_ints_list)
 end
 
 # Example:  mycat([[[3,2],[5,9]],[[8,4],[6,7]]])
@@ -226,6 +257,7 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Int64}, fu
   end
 end
 
+# Not called.
 function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}; csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
@@ -233,6 +265,26 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
   df[!,sym] = outputs_list
   df.:circuts_list = circuits_list
+  if length(csvfile) > 0
+    write_df_to_csv( df, p, funcs, csvfile )
+  end
+  df 
+end
+
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Tuple{Int64,Float64}}, funcs::Vector{Func}; csvfile::String="" )
+  df = DataFrame()
+  df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
+  df[!,sym] = map(x->x[1],outputs_list)
+  df.:complexity = map( x->x[2], outputs_list )
+  #df.:circuts_list = circuits_list
+  if length(csvfile) > 0
+    write_df_to_csv( df, p, funcs, csvfile )
+  end
+  df
+end
+
+function write_df_to_csv( df::DataFrame, p::Parameters, funcs::Vector{Func}, csvfile::String )
   open( csvfile, "w" ) do f
     hostname = chomp(open("/etc/hostname") do f read(f,String) end) 
     println(f,"# date and time: ",Dates.now())

@@ -14,3 +14,6 @@ Longer-term idea:
 10_7_21:
 Modified evaluate_node() for InteriorNode to restore the use of caching so that complexity, 
     degeneracy, etc. are computed.
+
+Modified count_outputs_parallel() in RecordOutputs to add a keyword output_complex so that 
+   outlist is a list of pairs (count,complexity).
