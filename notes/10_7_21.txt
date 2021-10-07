@@ -1,0 +1,16 @@
+Tasks for today:
+1.  Get run_geno_complexity() to compute complexity.  See data/notes 9_10_21, 9_30_21
+    fgrep -R -i geno_complexity */*.jl
+2.  See if count_outputs() can compute complexity.
+3.  Revise writeup on adaptive evolvability.
+4.  Organize results on evolvability approximation.
+
+
+Longer-term idea:
+  Change a phenotype from a bit string to a real-valued vector over bits.
+  Add a "weight" to genotypes so that when genotype is executed, result is a weighted phenotype
+      which can be combined/averaged with an existing phenotype during evolution.
+
+10_7_21:
+Modified evaluate_node() for InteriorNode to restore the use of caching so that complexity, 
+    degeneracy, etc. are computed.

@@ -33,15 +33,14 @@ function evaluate_node(c::Chromosome, node::InputNode, context::Vector)
     return context[node.index]
 end
 
+# Restored caching on 10/7/21
 function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
     #println("en eval interior node: ",node,"  contxt: ",context)
     prev_cache = node.cache
     func = node.func
-    #=
     if node.active
       return node.cache
     end
-    =#
     #println("node.inputs: ",node.inputs)
     args = map(node.inputs[1:func.arity]) do index
         #println("index: ",index)
@@ -52,13 +51,11 @@ function evaluate_node(c::Chromosome, node::InteriorNode, context::Vector)
     result = CGP.apply(func.func, args) 
     #print("func: ",func,"  args: ",args,"  result: ")
     #Printf.@printf("0x%2x\n",result)
-    #=
     if node.active 
       @assert result == node.cache 
     end
     node.active = true
     node.cache = result
-    =#
     return result
 end
 

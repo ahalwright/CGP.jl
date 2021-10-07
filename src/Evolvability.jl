@@ -793,7 +793,7 @@ function geno_complexity( goal::Goal, maxreps::Int64, p::Parameters,  maxsteps::
     c_output = output_values(c)
     #println("goal: ",goal,"  i: ",i,"  nrepeats: ",nrepeats,"  c_output: ",c_output)
     @assert sort(c_output) == sort(goal)
-    #println("output values: ",c_output)
+    #println("output values: ",c_output,"  complexity5(c): ",complexity5(c))
     outputs = mutate_all( c, funcs, output_outputs=true )
     all_outputs_sum += length(outputs)
     robust_outputs = filter( x->x==c_output, outputs )

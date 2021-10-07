@@ -29,3 +29,4 @@ scatter!(xlabel="num successes",ylabel="evolvability",title="degree and evolutio
 savefig("deg_evolution_evolvability_vs_log_steps3x1_7_4.png")
 
 Continued in notes/9_30_21.txt
+Redo run_geno_complexity() with node caching on in 10_7_21

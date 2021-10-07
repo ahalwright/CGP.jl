@@ -1,12 +1,18 @@
 Need to set more specific goals that lead to significant results
-1.  Evolvability of some form helps in discovering complex phenotypes.
-    a.  Perhaps "from scratch", although maybe not
-    b.  Perhaps from nearby already discovered complex phenotypes.
-2.  Relationship of complexity to evolvability
-    a.  Sampling vs. evolvability computation of complexity.
-    b.  Redo adaptive evolvability results using ihamming (inverted Hamming distance).
-    c.  Hypothesis supported below that there are more mutations from rare goals than to them
-        for both lincircuits and chromosomes.  
+A.  Relationship of complexity to evolvability
+    1.  Complexity is hard to find:  
+        a.  Complex phenotypes are rare in genotype space.  GECCO paper Figure ??
+        b.  There are more mutations from rare goals than to them for both lincircuits and chromosomes.  
+            notes/10_5_21.txt
+        c.  Same result for complex phenotypes.  Not directly confirmed yet.
+
+        a.  Sampling vs. evolvability computation of complexity.
+    2.  Define adpative phenotype evolvability as the ability to find nearby phenotypes starting
+        from the given phenotype
+        a.  Weak positive relationships between adaptive and evolution evolvability using 
+            Hamming distance to define "nearby".   notes/10_6_21.txt
+        a.  Weak positive relationships between adaptive and sampling evolvability using 
+            inverted Hamming distance to define "nearby".  notes/10_6_21.txt
 3.  Deficiencies of Wagner's definition of evolvability (degree evolvability)
     a.  Evolution evolvability results for very large number of samples.
     b.  Computing degree evolvability using count_outputs() for increasing numbers of samples
