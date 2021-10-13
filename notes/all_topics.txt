@@ -121,7 +121,7 @@ All diary topics:
 3_24: Overview of Linear GP representation of circuits.
 3_28: Programmed LinChrommosome.jl to implement the linear GP representation of circuits.
 3_29: Do circuit sampling for 3x1 circuits using linear GP representation.
-      Discovered that all 3x1 goals are reachable using 6 gates and 1 register.
+      Discovered that all 3x1 goals are reachable using 6 gates and 2 register.
 3_31: Gecco reviews summmary
 4_3:  Listing some tasks for Gecco rewrite
 4_6:  Ran evolvability simulation with only NAND gate and 15 gates and 9 levelsback.

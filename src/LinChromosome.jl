@@ -24,7 +24,7 @@
 # See notes/3_24.txt for outline
 # See test/testLinCircuit.jl for tests.
 export LinCircuit, output_values
-export execute_lcircuit, instruction_vect_to_instruction_int, instruction_int_to_instruction_vect 
+export execute_lcircuit, instruction_vect_to_instruction_int, instruction_int_to_instruction_vect, lincomplexity
 export vect_to_int, int_to_vect, rand_ivect, execute_random_circuit
 export num_instructions # This is the total number of possible instructions for a parameter setting
 export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, mutate_all, print_circuit
@@ -67,8 +67,8 @@ end
 
 function execute_lcircuit( circuit::LinCircuit, funcs::Vector{Func} )
   p = circuit.params
-  R = fill(MyInt(0), p.numlevelsback + p.numinputs )
-  R[(p.numlevelsback+1):end] = construct_context(p.numinputs)
+  R = fill(MyInt(0), p.numlevelsback + p.numinputs ) # numlevelsback is the number of computational registers
+  R[(p.numlevelsback+1):end] = construct_context(p.numinputs)  
   for lc in circuit.circuit_vects
     #println("lc: ",lc,"  R: ",R)
     R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]])
@@ -87,6 +87,28 @@ function execute_lcircuit( circuit_vects::Vector{Vector{MyInt}}, numregisters::I
     #println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
   end
   R
+end
+
+function lincomplexity( circuit_vects::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )
+  p = Parameters( numinputs, 1, length(circuit_vects), numregisters )
+  lincomplexity( LinCircuit(circuit_vects,p), funcs, nodearity=nodearity )
+end
+
+# Executes the circuit, returns the array X of instruction outputs
+# The outputs are  R[1:numoutputs]
+function lincomplexity( circuit::LinCircuit, funcs::Vector{Func}; nodearity::Int64=2 )
+  p = circuit.params
+  R = fill(MyInt(0), p.numlevelsback+p.numinputs )
+  X = fill(MyInt(0), length(circuit.circuit_vects) )  
+  R[p.numlevelsback+1:end] = construct_context(p.numinputs)
+  i = 1
+  for lc in circuit.circuit_vects
+    #println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
+    R[lc[2]] = X[i] = funcs[lc[1]].func(R[lc[3]],R[lc[4]])
+    #println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
+    i += 1
+  end
+  complexity5( X, p.numinputs )
 end
 
 # The number of possible instructions with these settings.

@@ -49,10 +49,12 @@ end
 
 function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64, 
     funcs::Vector{Func}=Func[]; csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false ) 
+  #=
   if use_lincircuit && output_complex
     println("Warning: output_complex reset to false when use_lincircuit==true")
     output_complex=false
   end
+  =#
   p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
   if length(funcs) == 0
     funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
@@ -134,7 +136,7 @@ function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numin
     # increment_count_outputs_list( output, outlist, numinputs )  # Replaced by the next line for efficiency
     if output_complex
       #println("outlist: ",outlist)
-      complexity = complexity5(c)
+      complexity = use_lincircuit ? lincomplexity(c,funcs) : complexity5(c)
       #println("outlist[concatenate_outputs(output,numinputs)+1][1]: ",outlist[concatenate_outputs(output,numinputs)+1][1])
       pair = outlist[concatenate_outputs(output,numinputs)+1]
       new_pair = (pair[1]+1,pair[2]+complexity)

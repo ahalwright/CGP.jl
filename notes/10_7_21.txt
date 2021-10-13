@@ -1,7 +1,7 @@
 Tasks for today:
 1.  Get run_geno_complexity() to compute complexity.  See data/notes 9_10_21, 9_30_21
     fgrep -R -i geno_complexity */*.jl
-2.  See if count_outputs() can compute complexity.
+2.  See if count_outputs() can compute complexity.  See below for results.
 3.  Revise writeup on adaptive evolvability.
 4.  Organize results on evolvability approximation.
 
@@ -11,9 +11,33 @@ Longer-term idea:
   Add a "weight" to genotypes so that when genotype is executed, result is a weighted phenotype
       which can be combined/averaged with an existing phenotype during evolution.
 
+Today's results
 10_7_21:
 Modified evaluate_node() for InteriorNode to restore the use of caching so that complexity, 
     degeneracy, etc. are computed.
 
 Modified count_outputs_parallel() in RecordOutputs to add a keyword output_complex so that 
    outlist is a list of pairs (count,complexity).
+
+Running these on surt2
+@time include("../data/10_7_21/run_3x1_countsB.jl")   # 26846 seconds
+include("../data/10_7_21/run_geno_complexityB.jl")    # 7_4 time not recorded but slow due to many 0x69 and 0x96 failures
+include("../data/10_7_21/run_geno_complexityC.jl")    # 8_5 time not recorded
+include("../data/10_7_21/run_geno_complexityD.jl")    # 9_5 1070 seconds  26 cores
+consolidate_dataframe("../data/10_7_21/geno_complexity10_7_21B.csv", "../data/10_7_21/geno_complexity10_7_21Bcons.csv") 
+consolidate_dataframe("../data/10_7_21/geno_complexity10_7_21C.csv", "../data/10_7_21/geno_complexity10_7_21Ccons.csv") 
+consolidate_dataframe("../data/10_7_21/geno_complexity10_7_21D.csv", "../data/10_7_21/geno_complexity10_7_21Dcons.csv") 
+
+Windows:
+cd("../../complexity/data/10_7_21")
+gdf = read_dataframe("geno_complexity10_7_21Bcons.csv")
+cdf = read_dataframe("count_outputs_3x1_7_4B.csv")
+scatter(gdf.complexity,cdf.complexity,smooth=true,xlabel="evolution complexity",ylabel="sampling complexity",legend=:none)
+scatter!(title="Sampling complexity vs evolution complexity 3x1 7_4")
+savefig("sampling_vs_evolution_complexity_3x1_7gts4lb.png")
+spearman_cor(gdf.complexity,cdf.complexity) #  (0.9871373552076259, 1.457238101895609e-204)
+# Conclusion:  Sampling computation of complexity is highly congruent to evolution computation of complexity.
+
+# Redoing some of the 10/6/21 results to include complexity
+pwd() #  "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+edf = read_dataframe("../../complexity/data/10_7_21/geno_complexity10_7_21Bcons.csv")

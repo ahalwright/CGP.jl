@@ -1,0 +1,1 @@
+Compute complexity for LinCircuits in lincomplexity() in LinCircuit.jl

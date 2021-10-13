@@ -27,13 +27,15 @@ edf = read_dataframe("../../complexity/data/9_10_21/geno_complexity9_10_21Bcons.
 edf.deg_evolvability=ahdf.evolvability
 edf.hamming_avg_num_successes = ahdf.avg_num_successes
 edf.ihamming_avg_num_successes = aidf.avg_num_successes
-scatter(edf.evo_count,[edf.hamming_avg_num_successes,edf.ihamming_avg_num_successes],labels=["hamming adaptive evo" "ihamming adptive evo"])
-scatter!(xlabel="evolution evolvability",ylabel="adaptive evolvability",title="Evolution evolvability vs. adaptive evolvability_3x1_7gts4lb")
-savefig("../../complexity/data/10_6_21/adaptive_vs_evolution_evolvability_3x1_7gts4lb.png")
-spearman_cor(edf.evo_count,edf.hamming_avg_num_successes)
-#  (0.2223898175062943, 0.00016800271117415653)
-spearman_cor(edf.evo_count,edf.ihamming_avg_num_successes)
-#  (0.1730153189600703, 0.0027544819224719435)
-# Plot inverted hamming adaptive evolvability
+# Done on 10/9/21
+# Plot inverted hamming adaptive evolvability vs. evolution evolvability
 scatter(edf.evo_count,edf.ihamming_avg_num_successes,labels="ihamming adptive evo",smooth=true)
 scatter!(xlabel="evolution evolvability",ylabel="adaptive evolvability",title="Evolution evolvability vs inverted adaptive evolvability_3x1_7gts4lb")
+savefig("../../complexity\\data/10_6_21/adaptive_evolvability_vs_evolution_evolvability_3x1_7_4.png")
+spearman_cor(edf.evo_count,edf.ihamming_avg_num_successes) #  (0.19256215034536853, 0.0009842872915126696)
+
+# Plot inverted hamming adaptive evolvability vs. evolution evolvability
+scatter(edf.deg_evolvability,edf.ihamming_avg_num_successes,labels="ihamming adptive evo",smooth=true)
+scatter!(xlabel="sampling evolvability",ylabel="adaptive evolvability",title="Sampling vs inverted adaptive evolvability_3x1_6instr2reg")
+savefig("../../complexity\\data/10_6_21/adaptive_evolvability_vs_sampling_evolvability_6instr2reg.png")
+spearman_cor(edf.deg_evolvability,edf.ihamming_avg_num_successes)  # (0.25534531746998035, 1.7804077802018803e-5)

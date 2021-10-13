@@ -1,0 +1,6 @@
+Sight in rifle
+Shovel gravel
+
+Plot adaptive evolvability vs complexity and other evolvabilities
+Color code scatter plot points
+Tononi complexity for LinCircuits

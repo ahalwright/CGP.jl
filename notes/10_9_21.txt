@@ -1,0 +1,39 @@
+# Done on 10/9/21
+pwd() # "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\10_7_21"
+e7df = read_dataframe("geno_complexity10_7_21Bcons.csv")
+ahdf = read_dataframe("../10_6_21/adapt_evo10_6_21C.csv")
+aidf = read_dataframe("../10_6_21/adapt_evo10_6_21D.csv")
+e7df = read_dataframe("geno_complexity10_7_21Bcons.csv")
+scatter(e7df.complexity,e7df.evo_count,smooth=true,ylabel="evol evolvability",xlabel="complexity")
+
+scatter(e7df.complexity,e7df.evo_count,smooth=true,ylabel="evol evolvability",xlabel="complexity")
+scatter!(title="evolution evolvability vs complexity 7gts4lb",legend=:none)
+savefig("evol evolvability vs complexity 7gts4lb.png")
+
+e9df = read_dataframe("geno_complexity10_7_21Dcons.csv")
+scatter(e9df.complexity,e9df.evo_count,smooth=true,ylabel="evol evolvability",xlabel="complexity")
+scatter!(title="evolution evolvability vs complexity 9gts5lb",legend=:none)
+savefig("evol evolvability vs complexity 9gts5lb.png")
+
+
+10/10/21:
+@time include("../data/10_6_21/run_adapt_evolveE.jl")  # Hamming  9_5
+ah9df = read_dataframe("../10_6_21/adapt_evo10_6_21E.csv")
+@time include("../data/10_6_21/run_adapt_evolveF.jl")  # ihamming 9_5
+ai9df = read_dataframe("../10_6_21/adapt_evo10_6_21F.csv")
+scatter(ah9df.avg_num_successes,e9df.evo_count,smooth=true,legend=:none)
+scatter!(xlabel="adaptive evolvability",ylabel="evolution evolvability",title="evol evolvability vs hamming adaptive evolvability9gts5lb")
+savefig("evol evolvability vs hamming adaptive evolvability9gts5lb.png")
+spearman_cor(ah9df.avg_num_successes,e9df.evo_count)  # (0.2513134010601761, 2.3832020036781175e-5)
+scatter(ai9df.avg_num_successes,e9df.evo_count,smooth=true,legend=:none)
+scatter!(xlabel="adaptive evolvability",ylabel="evolution evolvability",title="evol evolvability vs hamming adaptive evolvability9gts5lb")
+savefig("evol evolvability vs ihamming adaptive evolvability9gts5lb.png")
+spearman_cor(ai9df.avg_num_successes,e9df.evo_count) # (-0.02792364714861368, 0.3282760073716935)
+#Conclusion:  for Hamming, relationship got stronger, for ihamming, negative relationship
+
+# try coloring by complexity
+cmin=findmin(e9df.complexity)[1]
+cmax=findmax(e9df.complexity)[1]
+cmplx = map(x->(1.0/(cxmax-cxmin))*(e9df.complexity[x]-cxmin),collect(1:256))
+scatter(ah9df.avg_num_successes,e9df.evo_count,smooth=true,legend=:none,c=map(x->RGB(x,0.0,1.0-x),cmplx))
+# Works, but not so obvious which points are most complex
