@@ -55,9 +55,31 @@ end
 # Consolidates a dataframe with the columns specified below by averaging columns with the same parameter values
 # Revised 10/27/20
 # Similar to R aggregate function.
-function consolidate_dataframe( in_filename::String, out_filename::String; consolidate::Bool=true )
-  new_df = DataFrame()
+function consolidate_dataframe( in_filename::String, out_filename::String )
   df = read_dataframe( in_filename )
+  cdf = consolidate_dataframe( df )
+  open( out_filename, "w" ) do outfile
+    open( in_filename, "r" ) do infile
+      line = readline(infile)
+      while line[1] == '#'
+        #println("line: ",line)
+        #if line[1:6] != "# cor("
+          write(outfile,string(line,"\n"))
+        #end
+        line = readline(infile)
+      end
+    end
+   #write(outfile,"# consolidate increement: $increment \n")
+   CSV.write( outfile, cdf, append=true, writeheader=true )
+  end
+end
+
+# Consolidates a dataframe with the columns specified below by averaging rows with the same parameter values over all columns except goals
+# Assumes that the first column is the "goal" column which may either be Vectors of MyInts or strings.
+# Revised 10/27/20
+# Similar to R aggregate function.
+function consolidate_dataframe( df::DataFrame )
+  new_df = DataFrame()
   #df.n_combined = map(Float64,df.n_combined)  # Only for neutral walk files, remove otherwise
   for n in names(df)
     if n!= "ntries" && n != "evo_count" 
@@ -66,31 +88,12 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
       new_df[!,n] = Float64[]
     end
   end
-  println("typeof(new_df.evo_count): ",typeof(new_df.evo_count))
   #println("size(new_df): ",size(new_df))
   #println("names(new_df): ",names(new_df))
-  #=
-  first_pos = findfirst( "0x", df.goallist[1] )[1]
-  last_pos = findnext( "]]", df.goallist[1], first_pos )[1]-1
-  goals = [parse(UInt16,df.goallist[i][first_pos:last_pos]) for i = 1:length(df.goallist) ]
-  df.goal = goals
-  =#
   new_names = vcat(["goal"],names(df)[2:end])
-  
-  println("new_names: ",new_names)
-  #=
-  for i = 1:size(new_df)[2]
-    print(typeof(new_df[1,i])," ")
-  end
-  println()
-  =#
-  
+  #println("new_names: ",new_names)
   select!(df,new_names)
   df = sort(df,[:goal])
-  if !consolidate
-    write_dataframe_with_comments( df, in_filename, out_filename )
-    return df
-  end
   increment = findfirst(x->x!=df.goal[1],df.goal) - 1
   #println("increment: ",increment)
   if Int(floor(size(df)[1]/increment)) != Int(ceil(size(df)[1]/increment))
@@ -126,20 +129,6 @@ function consolidate_dataframe( in_filename::String, out_filename::String; conso
     #println("length(ndf_row): ",length(ndf_row))
     #println("r:",r," ",ndf_row)
     push!(new_df,ndf_row)
-  end
-  open( out_filename, "w" ) do outfile
-    open( in_filename, "r" ) do infile
-      line = readline(infile)
-      while line[1] == '#'
-        #println("line: ",line)
-        #if line[1:6] != "# cor("
-          write(outfile,string(line,"\n"))
-        #end
-        line = readline(infile)
-      end
-    end
-   write(outfile,"# increement: $increment \n")
-   CSV.write( outfile, new_df, append=true, writeheader=true )
   end
   new_df
 end

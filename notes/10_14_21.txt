@@ -1,0 +1,35 @@
+Properties of complexity:
+
+Idea:  complexity for digital circuits is analagous to genome length in Avida and perhaps biology.
+It is a measure of the amount of information that can be stored in the genome.  This corresponds
+Adami's definition of complexity.
+
+Reference:  cce/Papers on complexity3_3_20.docx
+
+Reference:  Adami 2002 "What is complexity?"
+
+Reference:  Adami et al. 2000 "Evolution of biological complexity"
+
+Reference:  Yeager 2011 "Passive and driven trends in the evolution of complexity"
+  An explanation of Tononi complexity.  Comments on Adami complexity
+
+Results:
+
+Phenotype complexity measured by sampling and by evolution is equivalent for chromosomes.
+  data/10_7_21/sampling_vs_evolution_complexity_3x1_7gts4lb.png
+
+Somewhat weak relationship between evoution evolvability and complexity:
+  data/10_7_21/'evol evolvability vs complexity 7gts4lb.png'
+
+Stronger relationship between evolution evolvability and complexity:
+  data/10_7_21/'evol evolvability vs complexity 9gts5lb.png'
+
+Chromosome Complexity is consistently greater and linear as the number of gates increases.
+  data/10_7_21/'complexity 8 gates vs 7 gates 3x1 8_5 7_4.png'
+
+Positive relationship between chromosome and lincircuit complexity 3x1 lc6_2 ch7_4
+  data/10_13_21/chr_cmplx_vs_lin_cmplx_3x1_lc6_2_ch7_4.png
+
+Positive relationship between chromosome and lincircuit complexity 3x1 lc8_2 ch8_5
+  data/10_13_21/chr_cmplx_vs_lin_cmplx_3x1_lc8_2_ch8_5.png  # A few outliers because of low frequency in lc df
+

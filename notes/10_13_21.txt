@@ -1,1 +1,26 @@
 Compute complexity for LinCircuits in lincomplexity() in LinCircuit.jl
+
+pwd()  #"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+ldf = read_dataframe("../../complexity/data/10_13_21/count_outputs_3x1_6_2B.csv")
+l6df = read_dataframe("../../complexity/data/10_13_21/count_outputs_3x1_6_2C.csv")
+cdf = read_dataframe("../../complexity/data/10_7_21/count_outputs_3x1_7_4B.csv")
+#scatter(ldf.complexity,cdf.complexity,smooth=true,xlabel="lincircuit_complexity",ylabel="chromosome_complexity")
+scatter(l6df.complexity,cdf.complexity,smooth=true,xlabel="lincircuit_complexity",ylabel="chromosome_complexity",ylims=(1.4,3.8),legend=:none)
+scatter!(title="chromosome vs lincurcuit complexity 3x1 lc6_2 ch7_4")
+savefig("../../complexity/data/10_13_21/chr_cmplx_vs_lin_cmplx_3x1_lc6_2_ch7_4.png")
+spearman_cor(l6df.complexity,cdf.complexity) # (0.9126936428340519, 5.238345512220855e-101)
+findall(x->x==0,l6df.ints6_2)  # 15-element Array{Int64,1}:  # so many points not shown
+l6df[findall(x->x==0,l6df.ints6_2),:]
+# smooth=true doesn't work because of NaN elements
+
+# Scatter plot of lin vs chrome complexity for 8 gates and 8 registers
+l8df = read_dataframe("../../complexity\\data/10_13_21\\count_outputs_3x1_8_2D.csv")
+c8df = read_dataframe("../../complexity\\data/10_7_21/count_outputs_3x1_8_5C.csv")
+scatter(l8df.complexity,c8df.complexity,smooth=true,xlabel="lincircuit_complexity",ylabel="chromosome_complexity")
+scatter!(title="chromosome vs lincurcuit complexity 3x1 lc8_2 ch8_5")
+savefig("../../complexity/data/10_13_21/chr_cmplx_vs_lin_cmplx_3x1_lc8_2_ch8_5.png")
+spearman_cor(l8df.complexity,c8df.complexity) # (0.9060039482719158, 3.992169104056236e-97)
+findall(x->x==0,l8df.ints8_2)
+2-element Array{Int64,1}: [108 135]
+# smooth=true doesn't work because of NaN elements
+# Could run 2*10^9 reps

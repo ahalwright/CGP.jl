@@ -41,3 +41,11 @@ spearman_cor(gdf.complexity,cdf.complexity) #  (0.9871373552076259, 1.4572381018
 # Redoing some of the 10/6/21 results to include complexity
 pwd() #  "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
 edf = read_dataframe("../../complexity/data/10_7_21/geno_complexity10_7_21Bcons.csv")
+
+# Plotting results for chromosome complexity varying number of gates
+df7 = read_dataframe("../../complexity/data/10_7_21/count_outputs_3x1_7_4B.csv")
+df8 = read_dataframe("../../complexity/data/10_7_21/count_outputs_3x1_8_5C.csv")
+scatter(df7.complexity,df8.complexity,smooth=true,xlabel="complexity 7gts 4lb",ylabel="complexity 8gts 5lb",legend=:none)
+scatter!(title="complexity 8 gates vs 7 gates 3x1 8_5 7_4")
+savefig("../../complexity/data/10_7_21/complexity 8 gates vs 7 gates 3x1 8_5 7_4.png")
+# Conclusion:  increasing number of gates increases chromosomal complexity.

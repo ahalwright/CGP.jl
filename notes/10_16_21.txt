@@ -1,0 +1,9 @@
+Adapting geno_complexity() in Evolvability.jl for LinCircuits so that I can compute
+evolution evolvability for LinCircuits.
+Revised consolidate_dataframe() in Analyze.jl to separate the consolidation of the 
+   dataframe from the file I/O.  There are now separate functions for this purposes.
+Revised run_geno_complexity() in Evolvability.jl to add a "consolidate" keyword argument.
+   When consolidate==true, consolidate_dataframe() is called.
+Documented the parameters of run_geno_comolexity() which are very hard to undersand
+
+Runs are in data/10_16_21/.

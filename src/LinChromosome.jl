@@ -25,7 +25,7 @@
 # See test/testLinCircuit.jl for tests.
 export LinCircuit, output_values
 export execute_lcircuit, instruction_vect_to_instruction_int, instruction_int_to_instruction_vect, lincomplexity
-export vect_to_int, int_to_vect, rand_ivect, execute_random_circuit
+export vect_to_int, int_to_vect, rand_ivect, execute_random_circuit, number_active, degeneracy, recover_phenotype
 export num_instructions # This is the total number of possible instructions for a parameter setting
 export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, mutate_all, print_circuit
 export instruction_vects_to_instruction_ints, instruction_ints_to_instruction_vects
@@ -121,6 +121,19 @@ end
 function num_instructions( p::Parameters, funcs::Vector{Func} )
   num_instructions( p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
+
+function number_active( circuit::LinCircuit )  # Dummy function for now 10/16/21
+  return 0
+end
+
+function degeneracy( circuit::LinCircuit )  # Dummy function for now 10/16/21
+  return 0
+end
+
+function recover_phenotype( circuit::LinCircuit, max_steps_recover, maxtrials_recover, maxtries_recover )  # Dummy function for now 10/16/21
+  return (0,0)
+end
+
 
 # Convert a vectors of integers to a unique integer.
 # The components of the vector are 1-based rather than 0-based.
@@ -390,7 +403,7 @@ function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, p::Parameters,
   mutate_circuit_all( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
-function mutate_all( circuit::LinCircuit, lfuncs::Vector{Func}=Func[]; nodearity::Int64=2 ) 
+function mutate_all( circuit::LinCircuit, lfuncs::Vector{Func}=Func[]; output_outputs::Bool=true, nodearity::Int64=2 ) 
   mca = mutate_circuit_all( circuit, lfuncs, nodearity=nodearity ) 
   map( x->output_values(LinCircuit(x,circuit.params)), mca )
 end

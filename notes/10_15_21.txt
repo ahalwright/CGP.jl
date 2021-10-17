@@ -1,0 +1,22 @@
+From 10_7_21.txt
+
+Longer-term idea:
+  Change a phenotype from a bit string to a real-valued vector over bits.
+  Add a "weight" to genotypes so that when genotype is executed, result is a weighted phenotype
+      which can be combined/averaged with an existing phenotype during evolution.
+
+Alternative:  Phenotypes are vectors over [0,1] or are vectors over [-1,1]?
+
+In a chromosome, each gate (interior node) has an activation level.  As the chromosome is
+executed, these activations are combined to produce the real-valued phenotype vector.
+
+Question:  Is there a difference between a 0 or a 1 output of a gate?
+Alternative 1:  Gate activation is between 0 and 1, phenotype representation is between
+  -1 and 1.  The output of the gate is multiplied by the gate activation.
+  So activation moves result away from -1 or 1 towards 0.  Thus, there is a symmetry between 0 and 1.
+Alternative 2:  Both gate activation and phenotype representation is between 0 and 1, and 0
+  in a phenotype means that there is no activation of that phenotype position, which 1
+  means that this bit position is fully activated.
+
+I think a prefer alternative 1, but will keep alternaive 2 in mind.
+
