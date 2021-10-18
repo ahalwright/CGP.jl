@@ -671,7 +671,7 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   end
   geno_complexity_df.maxsteps = Int64[]
   geno_complexity_df.ntries = Int64[]
-  geno_complexity_df.nrepeats = Int64[]
+  geno_complexity_df.nsuccesses = Float64[]
   geno_complexity_df.avg_steps = Float64[]
   geno_complexity_df.log_avg_steps = Float64[]
   geno_complexity_df.robustness = Float64[]
@@ -693,7 +693,7 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   #geno_complexity_df.f_mutrobust= Float64[]
   list_goals = Goal[]
   num_iterations = Int(ceil(maxreps/iter_maxreps))  # The number of iterations for each goal
-  iter_max_tries = Int(ceil(max_tries/num_iterations))
+  iter_maxtries = Int(ceil(max_tries/num_iterations))
   for g in goallist
     for i = 1:num_iterations
       #println("i: ",i,"  goal: ",g)
@@ -706,12 +706,13 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   num_goals = 2^2^p.numinputs
   #println("sample size: ",sample_size,"  num_goals: ",num_goals)
   #println("list_goals: ",list_goals)
-  result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, max_tries,
-      maxsteps_recover, maxtrials_recover, maxtries_recover, use_lincircuit=use_lincircuit ), list_goals)
-  #result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, max_tries,
+  result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
+      maxsteps_recover, maxtrials_recover, iter_maxtries, use_lincircuit=use_lincircuit ), list_goals)
+  #result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
   #    maxsteps_recover, maxtrials_recover, maxtries_recover, use_lincircuit=use_lincircuit ), list_goals)
-  println("after pmap")
+  println("after pmap:  size(geno_complexity_df): ",size(geno_complexity_df))
   for res in result
+    #println("length(res): ",length(res))
     push!(geno_complexity_df,res)
   end
   geno_complexity_df.evo_count = zeros(Int64,size(geno_complexity_df)[1] )
@@ -779,6 +780,7 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
       maxsteps_recover::Int64, maxtrials_recover::Int64, maxtries_recover::Int64; use_lincircuit::Bool=false )
   #println("geno_complexity: goal: ",goal)
   if max_tries < iter_maxreps
+    println("max_tries: ",max_tries,"  iter_maxreps: ",iter_maxreps)
     error("max_tries should be greater than iter_maxreps in geno_complexity.")
   end
   funcs = default_funcs(p.numinputs)
@@ -841,6 +843,7 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
   end  
   ntries = i
   #println("ntries: ",ntries,"  numsuccesses: ",numsuccesses,"  all_outputs_sum: ",all_outputs_sum,"  len all_unique_outputs: ",length(all_unique_outputs))
+  println("num_successes: ",numsuccesses)
   # Return evolvability count for testing  10/13
   #length(all_unique_outputs)
   # Temporarily comment out for testing evolvability  10/13
@@ -886,26 +889,22 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
       0,   # numsuccesses
       0,   # sum_steps
       0,   # log_sum_steps
+      0.0, # robust sum
       0,   # evo_count
       #0.0, # ratio
       #0.0, # estimate
-      0.0, # nactive
       Goal[],
-      #sum( nactive_list )/iter_maxreps,
-      #sum( complexity_list )/iter_maxreps,
-      #epi2,
-      #epi3,
-      #epi4,
-      #epi_total,
-      #sum(frenken_mi_list)/iter_maxreps
-      0.0,  # complexity
+      sum( nactive_list )/iter_maxreps,
+      sum( complexity_list )/iter_maxreps,
       0.0,  # degeneracy
+      0.0,  #sumsteps_list
+      0.0,  #sumtries_list
       #0.0,  # quantile(complexity_list,0.95)
       #0.0,
       #0.0,
       #0.0,
       #0.0,
-      0.0
+      #0.0
     )
   end
 end
