@@ -12,6 +12,7 @@ ndf = consolidate_dataframe("../data/10_27/geno_complexity10_27F.csv","../data/1
 Result:  data/10_27/geno_complexity10_27Econs.csv.
 ndf = consolidate_dataframe("../data/10_27/geno_complexity10_27G.csv","../data/10_27/geno_complexity10_27Gcons.csv")
 Result:  data/10_27/geno_complexity10_27Gcons.csv.
+Comment 10/18/21:  Error discovered in the consolidate computation of the :evo_count column.  See notes/10_18_21.txt.
 
 Wrote a new function add_counts_to_dataframe() in RecordOutputs.jl to add ints11_8 counts for the goals in this file .
 pdf = add_counts_to_dataframe( ndf, "../data/counts/count_out_4x1_all_ints_10_10.csv",:ints11_8 )

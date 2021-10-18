@@ -655,7 +655,7 @@ end
 # The max_tries parameter determines how many attempts are made to evolve difficult goals.
 # Returns a dataframe with num_iterations=Int(ceil(maxreps/iter_maxreps)) rows per goal.
 function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::Int64, p::Parameters,
-      max_steps::Int64, max_tries::Int64, maxsteps_recover::Int64, maxtrials_recover::Int64, maxtries_recover::Int64; 
+      max_steps::Int64, max_tries::Int64, maxsteps_recover::Int64=0, maxtrials_recover::Int64=0, maxtries_recover::Int64=0; 
       use_lincircuit::Bool=false, consolidate::Bool=true, csvfile::String = "" )
   #p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=10, numlevelsback=numlevelsback ) # Establish scope for p
   geno_complexity_df = DataFrame() 
@@ -676,8 +676,6 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   geno_complexity_df.log_avg_steps = Float64[]
   geno_complexity_df.robustness = Float64[]
   geno_complexity_df.evo_count = Int64[]
-  #geno_complexity_df.ratio = Float64[]
-  #geno_complexity_df.estimate = Float64[]
   geno_complexity_df.unique_goals = GoalList[]
   geno_complexity_df.nactive = Float64[]
   geno_complexity_df.complexity = Float64[]
@@ -710,7 +708,7 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
       maxsteps_recover, maxtrials_recover, iter_maxtries, use_lincircuit=use_lincircuit ), list_goals)
   #result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
   #    maxsteps_recover, maxtrials_recover, maxtries_recover, use_lincircuit=use_lincircuit ), list_goals)
-  println("after pmap:  size(geno_complexity_df): ",size(geno_complexity_df))
+  #println("after pmap:  size(geno_complexity_df): ",size(geno_complexity_df))
   for res in result
     #println("length(res): ",length(res))
     push!(geno_complexity_df,res)
@@ -723,23 +721,15 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
     println("goal ",g)
     all_unique_goals = Goal[]
     prev_evo_count = 0
-    #sum_estimate = 0.0
     for i = 1:num_iterations
       all_unique_goals = unique( vcat( all_unique_goals, geno_complexity_df[j,:unique_goals] ))
-      #println("j: ",j,"  i: ",i,"  length(all_unique_goals): ",length(all_unique_goals))
       evo_count = length(all_unique_goals)
+      #println("goal: ",geno_complexity_df[j,:goal],"  j: ",j,"  i: ",i,"  length(all_unique_goals): ",length(all_unique_goals))
       new_count = evo_count - prev_evo_count
       geno_complexity_df[j,:evo_count] = evo_count
       prev_evo_count = evo_count
-      #ratio = new_count/sample_size
-      #geno_complexity_df[j,:ratio] = ratio
-      #estimate = evo_count + ratio*num_goals   # 10/20/20: estimates always increase over multiple runs and are too low at first
-      #geno_complexity_df[j,:estimate] = estimate
-      #println("i: ",i,"  evo_count: ",evo_count,"  new_count: ",new_count,"  ratio: ",ratio,"  estimate: ",estimate)
-      #sum_estimate += estimate
       j += 1
     end
-    #println("estimate_avg for goal : ",g,": ",sum_estimate/num_iterations)
   end
   select!(geno_complexity_df,DataFrames.Not(:unique_goals))    # Remove :unique_goals from gcdf
   if consolidate   # Consolidate multiple rows with the same goal.  See Analyze.jl for code.
@@ -857,7 +847,7 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
       maxsteps,
       ntries,
       numsuccesses,
-      sum_steps/numsuccesses,
+      sum_steps/numsuccesses,   # Note:  Only counts steps for successful runs.
       sum_steps != 0.0 ? log10(sum_steps/numsuccesses) : 0.0,
       robust_sum/all_outputs_sum, 
       0,   # evo_count, value filled in later

@@ -76,7 +76,9 @@ end
 
 # Consolidates a dataframe with the columns specified below by averaging rows with the same parameter values over all columns except goals
 # Assumes that the first column is the "goal" column which may either be Vectors of MyInts or strings.
-# Revised 10/27/20
+# The :evo_count column is not averaged since these are cummulative over the rows corresponding to a goal.
+# Thus, for the :evo_count column, the last row corresponding to the goal is the consolidated value.
+# Revised 10/18/21   Previous values for evo_count were not correct
 # Similar to R aggregate function.
 function consolidate_dataframe( df::DataFrame )
   new_df = DataFrame()
@@ -94,7 +96,8 @@ function consolidate_dataframe( df::DataFrame )
   #println("new_names: ",new_names)
   select!(df,new_names)
   df = sort(df,[:goal])
-  increment = findfirst(x->x!=df.goal[1],df.goal) - 1
+  ff = findfirst(x->x!=df.goal[1],df.goal) 
+  increment = ff != nothing ? ff - 1 : size(df)[1]
   #println("increment: ",increment)
   if Int(floor(size(df)[1]/increment)) != Int(ceil(size(df)[1]/increment))
     error("The number of rows in the dataframe must be a multiple of increment")
@@ -106,7 +109,10 @@ function consolidate_dataframe( df::DataFrame )
     for row = r:(r+increment-1)
       #println("r: ",r,"  row: ",row)
       for i = 2:size(df)[2]
-        if typeof(df[row,i]) <: Int64
+        if names(df)[i] == "evo_count"
+          #println("evo_count skip value: ",df[row,:evo_count])
+          continue
+        elseif typeof(df[row,i]) <: Int64
           isum[i] += df[row,i]
         elseif typeof(df[row,i]) <: Float64 
           fsum[i] += df[row,i]
@@ -116,7 +122,10 @@ function consolidate_dataframe( df::DataFrame )
       end
     end
     for i = 2:size(df)[2]
-      if typeof(df[r,i]) <: Int64
+      if names(df)[i] == "evo_count"
+        #println("evo_count push value: ",df[r+increment-1,:evo_count])
+        push!(ndf_row,df[r+increment-1,:evo_count])  # last row for goal has correct evo_count
+      elseif typeof(df[r,i]) <: Int64
         #print(" ",names(df)[i]," ",isum[i])
         push!(ndf_row,isum[i]/increment)
       elseif typeof(df[r,i]) <: Float64 

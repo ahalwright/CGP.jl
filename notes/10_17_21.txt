@@ -1,0 +1,21 @@
+
+Windows  evolvabe lincircuit complexity.:
+pwd() "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+el6df = read_dataframe("../../complexity/data/10_16_21\\geno_complexity10_16_21C.csv")
+el7df = read_dataframe("../../complexity/data/10_16_21\\geno_complexity10_16_21D.csv")
+scatter(el6df.complexity,el7df.complexity,smooth=true,legend=:none)  # Strong linear, 7 registers is higher
+el8df = read_dataframe("../../complexity/data/10_16_21\\geno_complexity10_16_21E.csv")
+# The next result is very surprising.
+c8df = read_dataframe("../../complexity\\data/10_7_21/count_outputs_3x1_8_5C.csv")
+scatter(c8df.complexity,el8df.evo_count,smooth=true,legend=:none)
+l8df = read_dataframe("../../complexity\\data/10_13_21\\count_outputs_3x1_8_2D.csv");
+# next: sampling and evolution complexity are positively related
+scatter(l8df.complexity,el8df.complexity,smooth=true,legend=:none,ylabel="sampling lin complexity",xlabel="evo lin complexity")
+
+
+@time include("../data/10_16_21/run_geno_complexityN.jl")
+1465 seconds
+(0.3, 77)
+@time include("../data/10_16_21/run_geno_complexityN.jl")
+2163 seconds
+findmin(gcdf.nsuccesses) (0.2, 77)
