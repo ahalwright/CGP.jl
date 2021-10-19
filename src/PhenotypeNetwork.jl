@@ -33,6 +33,7 @@ function construct_pheno_net_parallel( p::Parameters, nreps::Int64, numcircuits:
   if csvfile != ""
     @assert csvfile[end-3:end] == ".csv"
     mdf = marginals_dataframe( ph_net, outlist, p )
+    #println("mdf: ",mdf)
     pn_df = pheno_net_df( ph_net, p )
     ph_file = csvfile[1:end-4] * "_phnet" * ".csv"
     write_csv_file( ph_file, pn_df, funcs, num_processes_per_processor )
@@ -122,6 +123,10 @@ function marginals_dataframe( ph_net::Array{Int64,2}, outlist::Vector{Int64}, p:
   mdf.outlist = outlist
   mdf.row_sums = [ sum( ph_net[i,:] ) for i = 1:2^2^p.numinputs ]
   mdf.col_sums = [ sum( ph_net[:,i] ) for i = 1:2^2^p.numinputs ] 
+  result = evolvability_from_ph_net(ph_net,p)
+  mdf.s_evolvability = result[1]
+  mdf.d_evolvability = result[2]
+  mdf.robustness = result[3]
   mdf
 end
 
@@ -136,6 +141,23 @@ function pheno_net_df( ph_net::Array{Int64,2}, p::Parameters )
     DataFrames.insertcols!(phdf, i+1, colname=>ph_net[:,i] )
   end
   phdf
+end
+
+function evolvability_from_ph_net( ph_net::Array{Int64,2}, p::Parameters )
+  sigma( k::Int64 ) = ( k == 0 ? 0 : 1 )
+  s_evolvability = [ sum( ph_net[i,:] ) - ph_net[i,i]  for i = 1:p.numoutputs*2^2^p.numinputs ]
+  d_evolvability = [ sum( map(x->sigma(x), ph_net[i,:])) - sigma(ph_net[i,i])  for i = 1:p.numoutputs*2^2^p.numinputs ]
+  robustness = [ ph_net[i,i]/sum( ph_net[i,:] )  for i = 1:p.numoutputs*2^2^p.numinputs ]
+  (s_evolvability,d_evolvability,robustness)
+end
+
+function read_ph_net_from_csv( csvfile::String, p::Parameters )
+  df = read_dataframe( csvfile )
+  pheno_net = zeros( Int64, p.numoutputs*2^2^p.numinputs, p.numoutputs*2^2^p.numinputs )
+  for i = 1:p.numoutputs*2^2^p.numinputs
+    pheno_net[:,i] = df[:,i+1]
+  end
+  pheno_net
 end
 
 # returns the tuple (ph_net,outlist)

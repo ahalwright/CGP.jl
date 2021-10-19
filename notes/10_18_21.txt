@@ -5,19 +5,21 @@ These values are cummulative, so the last pmap iteration has the correct value, 
 
 Making sense of evolution evolvability for LinCircuits.
 
-Variables:
-Evolution evolvability for LC   10_16_21/geno_complexity10_16_21E.csv
-Evolution evolvability for CR   10_7_21/geno_complexity10_7_21Ccons.csv  # incorrect
-Sampling evolvability for LC    Needs to be computed
-Sampling evolvability for CR    Needs to be computed
-Evolution complexity for LC     10_16_21/geno_complexity10_16_21E.csv  
-Evolution complexity for CR     10_7_21/geno_complexity10_7_21Ccons.csv
-Sampling complexity for LC      10_13_21/count_outputs_3x1_8_2D.csv 
-Sampling complexity for CR      10_7_21/count_outputs_3x1_8_5C.csv
-Evolution log avg steps for LC  10_16_21/geno_complexity10_16_21E.csv 
-Evolution log avg steps for CR  10_7_21/geno_complexity10_7_21Ccons.csv
-Sampling frequency for LC       10_13_21/count_outputs_3x1_8_2D.csv
-Sampling frequency for CR       10_7_21/count_outputs_3x1_8_5C.csv
+Do 3 inputs, 8 LC instructions, 8 CR gates, 2 LC registers, 5 CR levsback
+
+Name,                            Dataframe,   CSV
+"Evolution evolvability for LC",   LCG,         10_16_21/geno_complexity10_16_21E.csv
+"Evolution evolvability for CR",   CRG,         10_7_21/geno_complexity10_7_21Ccons.csv
+"Sampling evolvability for LC",    LCE,         ""
+"Sampling evolvability for CR",    CRE,         ""
+"Evolution complexity for LC",     LCG,         10_16_21/geno_complexity10_16_21E.csv  
+"Evolution complexity for CR",     CRG,         10_7_21/geno_complexity10_7_21Ccons.csv
+"Sampling complexity for LC",      LCS,         10_13_21/count_outputs_3x1_8_2D.csv 
+"Sampling complexity for CR",      CRS,         10_7_21/count_outputs_3x1_8_5C.csv
+"Evolution log avg steps for LC",  LCG,         10_16_21/geno_complexity10_16_21E.csv 
+"Evolution log avg steps for CR",  CRG,         10_7_21/geno_complexity10_7_21Ccons.csv
+"Sampling frequency for LC",       LCS,         10_13_21/count_outputs_3x1_8_2D.csv
+"Sampling frequency for CR",       CRS,         10_7_21/count_outputs_3x1_8_5C.csv
 
 Additional parameters
 numinputs
@@ -26,7 +28,12 @@ LC registers
 CH gates
 CH levelsback
 
-Do 3 inputs, 8 LC instructions, 8 CR gates, 2 LC registers, 5 CR levsback
+df = DataFrame()
+df.name = String[]
+df.df = String[]
+df.csv = String[]
+df.col = Symbol[]
+
 
 Find (or compute) a dataframe for each of the above 12 alternatives
 
