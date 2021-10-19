@@ -108,6 +108,7 @@ function write_csv_file( csvfile::String, df::DataFrame, funcs::Vector{Func}, nu
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
     print_parameters(f,p,comment=true)
     println(f,"# funcs: ",funcs)
+    println(f,"# use_lincircuit: ",use_lincircuit)
     println(f,"# nreps: ",nreps)
     println(f,"# numcircuits: ",numcircuits)
     println(f,"# num_processes_per_processor: ",num_processes_per_processor)
