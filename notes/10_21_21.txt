@@ -1,0 +1,1 @@
+Fixed bugs in run_random_walks() in random_walk.jl.  All tests in test/test_random_walk.jl run apparently correctly.

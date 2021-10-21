@@ -1,4 +1,5 @@
 # Tests the functions in random_walk.jl
+# All tests run on 10/21/21
 # These functions implement two alternate techniques for computing robustness and degree evolvability.
 # The default is to store results in a goal_pair_dict
 # The alternative is to store results in a goal_edge_matrix
@@ -8,20 +9,23 @@
 # Assuming that this has been done:
 include("../src/random_walk.jl")
 using Random
-p = Parameters(3,1,7,4)
+pc = Parameters(2,1,5,3)  # Chromosome parameters
+pl = Parameters(2,1,5,2)  # LinCircuit Parameters
 ngoals = 1
-g = randgoal( p.numinputs, p.numoutputs )
-Random.seed!(1); 
-ddf=run_random_walks_parallel(4,100,g,p,1000,output_dict=true) 
-Random.seed!(1); 
-mdf=run_random_walks_parallel(4,100,g,p,1000,output_dict=false) 
-#@assert ddf==mdf
+#gl = randgoal( p.numinputs, p.numoutputs )
+gl = [ MyInt(i) for i = 0:2^2^p.numinputs-1 ]   # all 2-input goals
+dddf=run_random_walks_parallel(4,100,gl,pc,1000,output_dict=true,save_complex=false,use_lincircuit=false)
+dcdf=run_random_walks_parallel(4,100,gl,pc,1000,output_dict=true,save_complex=true,use_lincircuit=false)
+mdf=run_random_walks_parallel(4,100,gl,pc,1000,output_dict=false,save_complex=false,use_lincircuit=false)
+dddf=run_random_walks_parallel(4,100,gl,pl,1000,output_dict=true,save_complex=false,use_lincircuit=true)
+dcdf=run_random_walks_parallel(4,100,gl,pl,1000,output_dict=true,save_complex=true,use_lincircuit=true)
+mdf=run_random_walks_parallel(4,100,gl,pl,1000,output_dict=false,save_complex=false,use_lincircuit=true)
 
 # Additional tests
 nwalks = 10
 steps = 1000
-dd = run_random_walks( nwalks, p, steps; output_dict=true )
-M = run_random_walks( nwalks, p, steps; output_dict=false )
+dd = run_random_walks( nwalks, pc, steps; output_dict=true )
+M = run_random_walks( nwalks, pc, steps; output_dict=false )
 ssize = 2^(2^p.numinputs)
 @assert matrix_to_dict(dict_to_matrix(dd,p)) == dd
 @assert dict_to_matrix(matrix_to_dict(M),p) == M

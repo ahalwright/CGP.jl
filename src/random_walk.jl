@@ -9,15 +9,20 @@ using DataFrames, CSV, Dates
 # Diagonal entries are the number of self edges which is the robustness count.
 # goal_edge_matrix[g,h] is the number of mutations discovered from goal g to goal h.
 # The methodology is to do nprocesses*nwalks random walks each of length steps, and record all of the transitions made.
+# gl is a list of MyInts (for single-output goals) that robust_evolvability() uses to create the output dataframe which 
+#   includes robustness, d_evolvability, and s_evolvability.
 # If csvfile is specified, writes the dataframe to this file.
 function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector{MyInt}, p::Parameters, steps::Int64; 
-      csvfile::String="", output_dict::Bool=true, save_complex::Bool=false)
+      csvfile::String="", output_dict::Bool=true, save_complex::Bool=false, use_lincircuit::Bool=false )
+  if save_complex && !output_dict
+    error("The save_complex=true and output_dict=false options are not compatible in run_random_walks_parallel().")
+  end
   ngoals = 2^(2^p.numinputs)
   addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
   if output_dict
     goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
     #goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-    dict_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, save_complex=save_complex ), 
+    dict_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, save_complex=save_complex, use_lincircuit=use_lincircuit ), 
         collect(1:nprocesses) )
     #println("length(dict_list): ",length(dict_list))
     #println("dict_list[1]: ",dict_list[1])
@@ -25,16 +30,18 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
     #for gp in dict_list
       goal_pair_dict = save_complex ? merge(addvalues,goal_pair_dict,dict_list...) : merge(+,goal_pair_dict,dict_list...)
       #goal_pair_dict = merge(+, goal_pair_dict, gp )
-   # end
+    # end
     #return goal_pair_dict
-    df = robust_evolvability( goal_pair_dict, gl, p )
+    df = robust_evolvability( goal_pair_dict, gl, p, save_complex )  # The version of robust_evolvability() called depends on the type of goal_pair_dict
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
-    goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict ), collect(1:nprocesses) )
+    goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ), 
+        collect(1:nprocesses) )
     println("len: ",length(goal_edge_matrix_list),"  size: ",size(goal_edge_matrix_list[1]),"  type: ",typeof(goal_edge_matrix_list[1]))
     for gem in goal_edge_matrix_list
       goal_edge_matrix .+= gem
     end
+    #println(goal_edge_matrix)
     df = robust_evolvability( goal_edge_matrix, gl )
   end
   if length(csvfile) > 0
@@ -48,57 +55,83 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
       println(f,"# nwalks: ",nwalks)
       println(f,"# steps: ",steps)
       println(f,"# nprocesses: ",nprocesses)
+      println(f,"# output_dict: ",output_dict)
+      println(f,"# use_lincircuit: ",use_lincircuit)
+      println(f,"# save_complex: ",save_complex)
       CSV.write( f, df, append=true, writeheader=true )
       println("csvfile written")
     end
   end
   df
+  #goal_edge_matrix
 end
 
-function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; output_dict::Bool=true, save_complex::Bool=false )
+function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_lincircuit::Bool=false, output_dict::Bool=false, save_complex::Bool=false )
   @assert p.numoutputs == 1
   funcs = default_funcs(p.numinputs)
   addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
   ngoals = 2^(2^p.numinputs)
-  c_list = [ random_chromosome(p,funcs) for _ = 1:nwalks ]
+  if use_lincircuit
+    c_list = [ rand_lcircuit(p,funcs) for _ = 1:nwalks ]
+  else
+    c_list = [ random_chromosome(p,funcs) for _ = 1:nwalks ]
+  end
   if output_dict
     goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
-    rw_list = [random_walk( c_list[i], steps, output_dict=output_dict, save_complex=save_complex ) for i = 1:nwalks ]
-    goal_pair_dict = save_complex ? merge(addvalues,goal_pair_dict,rw_list...) :  merge(+,goal_pair_dict,rw_list...)
+    for i = 1:nwalks
+      random_walk!( goal_pair_dict, c_list[i], steps )
+    end
     return goal_pair_dict
   else
     goal_edge_matrix = zeros(Int64,ngoals,ngoals)
     for i = 1:nwalks
-      goal_edge_matrix .+= random_walk( c_list[i], steps, output_dict=output_dict )
+      random_walk!( goal_edge_matrix, c_list[i], steps )
+      #println(sum(goal_edge_matrix))
     end
     return goal_edge_matrix 
   end
 end
 
+# Does one random walk starting at c
 # Outputs a node-edge adjacency matrix unless output_dict==true, 
 #      in which case a dictionary indexed on goal pairs whose values the the count of the goal pair
-function random_walk( c::Chromosome, steps::Int64; output_dict::Bool=true, save_complex::Bool=false  )
+function random_walk!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, Dict{Tuple{MyInt,MyInt},Int64},Matrix{Int64}},
+    c::Union{Chromosome,LinCircuit}, steps::Int64 )
   funcs = default_funcs(c.params.numinputs)
   ngoals = 2^(2^c.params.numinputs)
   #addvalues(x,y) = (x[1]+y[1],(x[2]+y[2])/2.0)
   addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
-  if output_dict && !save_complex
-    goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-  elseif output_dict && save_complex
-    goal_pair_dict = Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}()
-  else
-    goal_edge_matrix = zeros(Int64,ngoals,ngoals)
+  output_dict = false  # establish scope
+  save_complex = false  # establish scope
+  if typeof(dict_mat) == Matrix{Int64}
+    goal_edge_matrix = dict_mat
+    output_dict = false
+  elseif typeof(dict_mat) == Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}
+    goal_pair_dict = dict_mat
+    output_dict = true
+    save_complex = true
+  elseif typeof(dict_mat) == Dict{Tuple{MyInt,MyInt},Int64}
+    goal_pair_dict = dict_mat
+    output_dict = true
+    save_complex = false
   end
+  #println("output_dict: ",output_dict,"  save_complex: ",save_complex)
   cmplx = 0.0
   goal = output_values(c)[1]
   #println("start goal: ",goal)
   for i = 1:steps 
-    cmplx = save_complex ? complexity5(c) : 0  # complexity of circuit mapping to prev_goal
     prev_goal = goal
-    mutate_chromosome!( c, funcs )
-    #print_circuit(c)
-    goal = output_values(c)[1]
     #println("i: ",i,"  prev_goal: ",prev_goal,"  goal: ",goal)
+    if typeof(c) == Chromosome
+      cmplx = save_complex ? complexity5(c) : 0.0 
+      mutate_chromosome!( c, funcs )
+      #print_circuit(c)
+    elseif typeof(c) == LinCircuit
+      cmplx = save_complex ? lincomplexity( c, funcs )  : 0
+      mutate_circuit!( c, funcs )
+      #print_circuit(c, funcs )
+    end
+    goal = output_values(c)[1]
     if output_dict 
       value = save_complex ? (1,cmplx) : 1
       if haskey(goal_pair_dict,(prev_goal,goal))
@@ -125,24 +158,26 @@ end
 
 # 
 # Note that gl is a list of MyInts, not a list of goals 
-function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, gl::Vector{MyInt}, p::Parameters )
+function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, gl::Vector{MyInt}, p::Parameters, save_complex::Bool )
   ngoals = 2^(2^p.numinputs)
   allgoals = MyInt(0):MyInt(ngoals-1)
   println("allgoals: ",allgoals,"  ngoals: ",ngoals)
-  re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
-  #re_list = map( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
+  #re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
+  re_list = map( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
   df = DataFrame()
   df.goal = gl
   df.frequency= [ re[1] for re in re_list ]
   df.robustness = [ re[2] for re in re_list ]
   df.s_evolvability = [ re[3] for re in re_list ]  
   df.d_evolvability = [ re[4] for re in re_list ]  
-  df.complexity= [ re[5] for re in re_list ]  
+  if save_complex
+    df.complexity= [ re[5] for re in re_list ]  
+  end
   df
 end
 
-# Helper function used in pmap() in robust_evolvability()
-# Corrected 1/2/21 and 1/3/21
+# Helper function used in robust_evolvability()
+# Compute output dataframe
 function robust_evo( g::MyInt, goal_pair_dict::Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, ngoals::Int64 )
   allgoals = MyInt(0):MyInt(ngoals-1)
   dget(x) = get(goal_pair_dict,x,(0,0.0))
@@ -160,14 +195,14 @@ function robust_evo( g::MyInt, goal_pair_dict::Dict{Tuple{MyInt,MyInt},Tuple{Int
   complexity = sum_gh_c/frequency
   (frequency,robustness,s_evolvability,d_evolvability,complexity)
 end
-# 
+
 # Note that gl is a list of MyInts, not a list of goals 
-function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl::Vector{MyInt}, p::Parameters )
+function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl::Vector{MyInt}, p::Parameters, save_complex::Bool=false )
   ngoals = 2^(2^p.numinputs)
   allgoals = MyInt(0):MyInt(ngoals-1)
   println("allgoals: ",allgoals)
-  re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
-  #re_list = map( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
+  #re_list = pmap( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
+  re_list = map( g->robust_evo(g, goal_pair_dict, ngoals ), gl )
   df = DataFrame()
   df.goal = gl
   df.frequency= [ re[1] for re in re_list ]
@@ -177,7 +212,7 @@ function robust_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, gl
   df
 end
 
-# Helper function used in pmap() in robust_evolvability()
+# Helper function for robust_evolvability()
 # Corrected 1/2/21 and 1/3/21
 function robust_evo( g::MyInt, goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, ngoals::Int64 )
   allgoals = MyInt(0):MyInt(ngoals-1)
