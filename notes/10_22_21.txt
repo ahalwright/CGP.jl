@@ -1,0 +1,12 @@
+Computed d_evolvability, s_evolvability, robustness and complexity using random walks technique of Hu2020
+for both Chromosomes and LinCircuits.
+
+Previous results 
+
+LinCircuit results do not agree with previous sampling evolvability results.
+sc(LCsevolv,LCdevolv) = -0.553
+Chromosome results not agree with previous sampling evolvability results and GECCO paper.
+sc(CRsevolv,CRdevolv) = 0.978
+
+Both LinCircuit and Chromosome evolution evolvability are strongly negatively related to robustness (as expected)
+
