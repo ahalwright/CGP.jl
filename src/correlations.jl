@@ -29,6 +29,7 @@ function correlations( csvfile::String, row_list::Vector{Int64}=Int64[] )
     push!(value_vects,col)
   end
   delete_inds = setdiff( collect(1:size(df)[1]), row_list )
+  println("delete_inds: ",delete_inds)
   delete!(df,delete_inds)
   println("df.short_name: ",df.short_name)
   if Sys.islinux()
@@ -64,3 +65,34 @@ function matrix_to_dataframe( matrix::Matrix{Float64},df::DataFrame)
   mdf
 end
  
+# cshort_name is the variable that determimes marker color and size
+function scatter_plot( adf::DataFrame, xshort_name::String, yshort_name::String; cshort_name::String="" )
+  if !(xshort_name in adf.short_name)
+    error("xshort_name ",xshort_name," is not in the dataframe in scatter_plot()")
+  end
+  if !(yshort_name in adf.short_name)
+    error("yshort_name ",yshort_name," is not in the dataframe in scatter_plot()")
+  end
+  if length(cshort_name)>0 &&!yshort_name in adf.short_name
+    error("cshort_name ",cshort_name," is not in the dataframe in scatter_plot()")
+  end
+  if length(cshort_name)>0 
+    cvalues = adf[adf.short_name.==cshort_name,:values]
+    cmin=findmin(cvalues)
+    cmin=findmax(cvalues)
+    # Normalized values
+    nvalues = map(x->(1.0/(cmax-cmin))*(x-cmin),cvalues)
+    color_values = map(x->RGB(x,0.0,1.0-x),nvalues)
+    size_values = 5 .+ (10 .* nvalues)
+    scatter( adf[ adf.short_name.==xshort_name,:values], adf[ adf.short_name.==yshort_name,:values], smooth=true, c=color_values, markersize=size_values )
+  else
+    scatter( adf[ adf.short_name.==xshort_name,:values], adf[ adf.short_name.==yshort_name,:values], smooth=true )
+  end
+  scatter!( xlabel=xshort_name, ylabel=yshort_name )
+  xparams = xshort_name[1:2] == "CR" ? "8_5" : "8_2"
+  yparams = yshort_name[1:2] == "CR" ? "8_5" : "8_2"
+  params = xparams==yparams ? xparams : yparams * xparams
+  scatter!( title="$yshort_name vs $xshort_name 3x1 $params", legend=:none )
+  # pwd() must the the data subdirectory
+  savefig("10_26_21/$yshort_name vs $xshort_name 3x1 $(params).png")
+end

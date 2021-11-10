@@ -183,6 +183,7 @@ All diary topics:
 9_24: Description of the algorithm of construct_pheno_net() from PhenotypeNetwork.jl.  Example results.
 9_27: Parallelized construct_pheno_net() in PhenotypeNetwork.jl.  
       Wrote markov_chain_stationary() in PhenotypeNetwork.
+10_12: Color and size by complexity
 
 
 

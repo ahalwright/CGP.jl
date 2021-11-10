@@ -1,0 +1,21 @@
+Comparing LinearGP and CartesianGP results.
+
+Run csvs in lruns10_30_21.csv and in cruns11_7_21.csv in data/correlation_csvs/
+Some change in labeling CC --> CR in 
+
+LinearGP plots in data/10_29_21.
+CartesianGP plots in data/11_7_21.
+
+Note that some errors with CRecmplx markers and fatal errors with CRscmplx markers.
+
+phnet (pevolv) comparisons
+LC:  'LCeevolv vs LCpevolv2 markers LCecmplx 3x1 8_2.png'
+Linear positive relationship with some outliers above line and more extreme outliers with large eevolve and samll pevolv
+CR:  'CReevolv2 vs CRpevolv1 markers CRecmplx 3x1 8_5.png'  5 errors
+Linear positive relationship with some outliers above line and two extreme outliers (0x0069 and 0x0096)
+    with somewhat large eevolve and samll pevolv and highest complexity
+LC:  'LCeevolv vs LCpevolv2 markers LClsteps 3x1 8_2.png'
+CR:  'CReevolv2 vs CRpevolv1 markers CRlsteps 3x1 8_5.png'  same 5 errors
+LC:  '10_7_21/LCpevolv1 vs LCpevolv2 markers LClsteps 3x1 8_2.png
+CR:  '11_7_21/CReevolv2 vs CRpevolv2 markers CRlsteps 3x1 8_5.png'
+Both show a positive relationship with outliers of high number of steps above and to the left of the trend.

@@ -1,0 +1,5 @@
+Generated many plots in data/10_28_21 data/10_29_21 data/10_31_21 based on lruns* in data/correlation_csvs/
+Code is in src/correlations.jl
+
+p2df = read_dataframe("10_19_21/pheno_net_lincirc_10_19_21_I_rowcol.csv")
+scatter(p2df.s_evolvability,p2df.d_evolvability,xlabel="s_evolvability",ylabel="d_evolvability",smooth=true,legend=:none,title="phnet 2 evolvability")

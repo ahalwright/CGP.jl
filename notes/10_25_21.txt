@@ -1,0 +1,45 @@
+Plotting revised evovability values from data/correlation_csvs/evolvable10_24_21.csv
+Moved folder correlation_csvs from notes to data.  (correlation_csvs was previously in data/10_18_21/)
+
+Note:  Rows 1 to 4 are Chromosome, rows 5 to 8 are LinCircuit
+Rows 1 & 5 are evolution evolvability
+Rows 2 & 6 are phnet evolvability (using PhenotypeNetwork.jl)
+Rows 3 & 7 are random walk evolvability (using random_walk.jl)
+Rows 4 & 8 are random walk evolvability (using random_walk.jl)
+
+(vdf, vcdf, vpdf) = analyze("correlation_csvs/evolvable10_24_21.csv")
+scatter(vdf[2,:values],vdf[6,:values],smooth=true,xlabel="Chrom phnet evolvability",ylabel="LinCirc phnet evolvability")
+scatter!(title="LinCircuit vs Chrom phnet_evolvability by walks 8_5 vs 8_2",legend=:none)
+savefig("10_25_21/LinCircuit vs Chrom phnet evolvability by walks 8_5 vs 8_2.png")
+
+scatter(vdf[1,:values],vdf[5,:values],smooth=true,xlabel="Chrom evo evolvability",ylabel="LinCirc evo evolvability")
+scatter!(title="LinCircuit vs Chrom evolution evolvability 8_5 vs 8_2",legend=:none)
+savefig("10_25_21/LinCircuit vs Chrom phnet evolvability by walks 8_5 vs 8_2.png")
+
+scatter(vdf[3,:values],vdf[7,:values],smooth=true,xlabel="Chrom rwalk evolvability",ylabel="LinCirc rwalk evolvability")
+scatter!(title="LinCircuit vs Chrom randwalk evolvability 8_5vs8_2",legend=:none)
+savefig("10_25_21/LinCircuit vs Chrom randwalk evolvability by walks 8_5vs8_2.png")
+
+scatter(vdf[2,:values],vdf[3,:values],smooth=true,xlabel="Chrom phnet evolvability",ylabel="Chrom rwalk evolvability")
+scatter!(title="Chrom phnet vs randwalk evolvability 8_5vs8_2",legend=:none)
+savefig("10_25_21/Chrom randwalk vs phnet evolvability by walks 8_5.png")
+
+scatter(vdf[6,:values],vdf[7,:values],smooth=true,xlabel="LinCircuit phnet evolvability",ylabel="LinCircuit rwalk evolvability")
+scatter!(title="LinCircuit rwalk vs phnet evolvability 8_5vs8_2",legend=:none)
+savefig("10_25_21/LinCircuit rwalk vs phnet evolvability 8_2.png")
+
+Updated rdataframes.csv to alldataframes10_25_25.csv
+include("../../CGP.jl/src/correlations.jl")
+(ydf,ycdf,ypdf) = correlations("correlation_csvs/alldataframes10_25_25.csv")
+
+scatter(ydf[4,:values],ydf[5,:values],smooth=true,xlabel="Chrom evolution complexity",ylabel="Chrom sampling complexity")
+scatter!(title="Chrom sampling vs evolution complexity 8_5",legend=:none)
+savefig("10_25_21/Chrom sampling vs evolution complexity 8_5.png")
+
+scatter(ydf[11,:values],ydf[12,:values],smooth=true,xlabel="LinCircuit evolution complexity",ylabel="LinCircuit sampling complexity")
+scatter!(title="LinCircuit sampling vs evolution complexity 8_2",legend=:none)
+savefig("10_25_21/LinCircuit sampling vs evolution complexity 8_2.png")
+
+scatter(ydf[12,:values],ydf[5,:values],smooth=true,xlabel="LinCircuit sampling complexity",ylabel="Chrom sampling complexity")
+scatter!(title="LinCircuit vs Chrom sampling complexity 8_2_8_5",legend=:none)
+savefig("10_25_21/LinCircuit vs Chrom sampling complexity 8_2_8_5.png")

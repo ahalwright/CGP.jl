@@ -40,13 +40,14 @@ MyFunc = Main.CGP.MyFunc
 #  This list is indexed over phenotypes.
 # If output_complex==true the returned outlist is a list of pairs, where the first element of the pair is the number of times the
 #   output is produced, and the second is the average of the Tononi complexities of the genotypes that produce that output.
-#   As of 10/7/21, Tononi complexity is not computed for LinCircuits, so the option has no effect in this case.
+# Not used by construct_pheno_net() in PhenotypeNetwork.jl since nesting calls to pmap() doesn't work (stack overflow error)
 function count_outputs_parallel( nreps::Int64, p::Parameters, numcircuits::Int64=0, funcs::Vector{Func}=Func[]; 
     csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false )
   count_outputs_parallel( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, funcs,
     csvfile=csvfile, use_lincircuit=use_lincircuit, output_complex=output_complex )
 end
 
+# Not used by construct_pheno_net() in PhenotypeNetwork.jl since nesting calls to pmap() doesn't work (stack overflow error)
 function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64, 
     funcs::Vector{Func}=Func[]; csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false ) 
   #=
@@ -97,17 +98,16 @@ function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int
   (outlist,circ_ints_list)
 end
 
-# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
+# Return an output list of the number of times that an output (phenotype)  was produced by randomly generating genotypes with these parameters
 #  This list is indexed over phenotypes.
 # If output_complex==true the returned outlist is a list of pairs, where the first element of the pair is the number of times the
 #   output is produced, and the second is the sum of the Tononi complexities of the genotypes that produce that output.
-#   As of 10/7/21, Tononi complexity is not computed for LinCircuits, so the option has no effect in this case.
 function count_outputs( nreps::Int64, p::Parameters, numcircuits::Int64=0; use_lincircuit::Bool=:false, output_complex::Bool=false )
   count_outputs( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, 
     use_lincircuit=use_lincircuit, output_complex=output_complex )
 end
 
-# Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
+# Return an output list of the number of times that an output (phenotype) was produced by randomly generating genotypes with these parameters
 function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64=0;
     use_lincircuit::Bool=:false, output_complex::Bool=false )
   p = Parameters( numinputs=numinputs, numoutputs=numoutputs, numinteriors=numinteriors, numlevelsback=numlevelsback ) 
@@ -119,21 +119,21 @@ function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numin
   end
    circuit_ints_list = [ Int128[] for _ = 1:p.numoutputs*2^2^p.numinputs ]
   for _ = 1:nreps
-    #c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )  
     if use_lincircuit
       c = rand_lcircuit( p, funcs )
       c_int = instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( c, funcs ), p, funcs )
+      @assert c_int >= 0
+      #=
       if c_int < 0 
         println(" c_int: ",c_int,"  c: ",c)
       end
+      =#
     else
       c = random_chromosome( p, funcs )
       c_int = chromosome_to_int( c, funcs)
     end
     output = output_values( c )
-    #increment_circuits_list!( circuit_ints_list, output, c, numcircuits, p.numinputs, p.numlevelsback, funcs ) 
     increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
-    # increment_count_outputs_list( output, outlist, numinputs )  # Replaced by the next line for efficiency
     if output_complex
       #println("outlist: ",outlist)
       complexity = use_lincircuit ? lincomplexity(c,funcs) : complexity5(c)
@@ -154,7 +154,6 @@ function +(t1::Tuple{Int64,Float64},t2::Tuple{Int64,Float64})
   (t1[1]+t2[1],t1[2]+t2[2])
 end 
 
-#    increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
 # increments the circuit_list corresponding to output if it contains less than numcircuits circuits
 function increment_circuit_ints_list!( circuit_ints_list::Vector{Vector{Int128}}, output::Goal, c_int::Int128, 
       numcircuits::Int64, p::Parameters, funcs::Vector{Func} )
@@ -168,6 +167,7 @@ function increment_circuit_ints_list!( circuit_ints_list::Vector{Vector{Int128}}
 end
 
 # increments the chrome_ints_list corresponding to output if it contains less than numcircuits chromosome ints
+# Not used by function count_outputs()
 function increment_chrome_ints_list!( chrome_ints_list::Vector{Vector{Int128}}, output::Goal, ch::Chromosome, numcircuits::Int64,
     p::Parameters, funcs::Vector{Func} )
   index = concatenate_outputs(output,p.numinputs)+1

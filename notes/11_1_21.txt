@@ -1,0 +1,24 @@
+Summary file 'cce/Comparison of 3 methods of computing evolvability10_31_21.docx'
+
+Setting up run files to redo current results for Chromosomes.  Using the same data folders as for LinCircuits, namely:
+10_13_21:  count_outputs
+10_16_21:  geno_complexity, evolution evolvability
+10_19_21:  pheno_net
+10_21_21:  robust_evo_by_walks, random-walk sampline
+Check data/correlation_csvs/lruns10_30_21.csv
+
+include("../data/10_13_21/run_3x1_counts_chr8_5K.jl")  with time 5489 seconds
+
+Attempted to run data/10_16_21/run_geno_complexityU.jl
+Goes into what appears to be an infinite loop of failed neutral evolutions on goal 0x0001.
+Need to read the code carefully.
+include("../data/10_16_21/run_geno_complexityU.jl")    # ran successfully on lyocsa in a moderate amount of time
+findmax(gcdf.evo_count) # (231.0, 152)  
+#  maxreps = 1000
+#  Should run again with larger maxreps
+include("../data/10_16_21/run_geno_complexityV.jl")    # ran 19244. seconds on lyocsa
+
+
+@time include("../data/10_19_21/run_pheno_netM.jl")
+nreps: 5000000000  numcircuits: 10000   Crashed surt2 on 11/2
+Rerunning starting on 11/2.

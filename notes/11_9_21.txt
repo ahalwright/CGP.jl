@@ -1,0 +1,9 @@
+Modified Evolvability.jl geno_complexity() and run_geno_complexity()
+Got rid of epistasis and Frenken MI.
+Removed call to recover_phenotype() and got rid of all recover references except for some default 0
+    arguments to run_geno_complexity() for backwards compatibility.
+Still should return NaN when nsuccesses==0.
+
+Added a field fract_successes to the output dataframe which is the fraction of runs that are successful.
+  
+Wrote test/test_run_geno_complexity.jl

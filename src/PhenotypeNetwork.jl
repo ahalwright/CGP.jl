@@ -15,7 +15,6 @@ function construct_pheno_net_parallel( p::Parameters, nreps::Int64, numcircuits:
       (read( file, "outlist" ), read( file, "ph_net" ))
      end
   end
-  #result_list = Tuple{Matrix{Int64},Vector{Int64}}[]
   pmap_list = nprocs() <= 1 ? [1] : collect(1:(num_processes_per_processor*(nprocs()-1)))
   denom = length(pmap_list)
   println("denom: ",denom,"  pmap_list: ",pmap_list)
@@ -45,19 +44,17 @@ end
 
 # Constructs the phenotype network matrix and outlist which is the counts
 #   of genotypes that map to the corresponding phenotype before mutation
-# Note:  pmap paralleism failed badly on 9/28/21
-function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64; 
-    use_lincircuit::Bool=false) 
+# The map() in this function should not be changed to pmap()
+function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64; use_lincircuit::Bool=false) 
   println("nreps: ",nreps,"  numcircuits: ",numcircuits)
   funcs = default_funcs(p.numinputs)
   ph_net = create_empty_pheno_net( p )
+  # The count_outputs() function is in RecordOutputs.jl
   (outlist, ch_ints_list) = count_outputs( nreps, p, numcircuits, use_lincircuit=use_lincircuit )
-  #(new_outlist, ch_ints_list) = count_outputs_parallel( nreps, p, numcircuits, use_lincircuit=use_lincircuit )
   #outlist .+= new_outlist
   #println("length(outlist): ",length(outlist))
   println("length(ch_ints_list): ",length(ch_ints_list))
   #println("ch_ints_list: ",ch_ints_list)
-  #new_ph_net_list = pmap(ch_ints->process_ch_ints( ch_ints, p, funcs, use_lincircuit=use_lincircuit ), ch_ints_list ) # pmap commented out 10/4/21
   new_ph_net_list = map(ch_ints->process_ch_ints( ch_ints, p, funcs, use_lincircuit=use_lincircuit ), ch_ints_list )
   for new_ph_net in new_ph_net_list
     ph_net .+= new_ph_net
@@ -66,7 +63,6 @@ function construct_pheno_net( p::Parameters, nreps::Int64, numcircuits::Int64;
 end
 
 # Helper function for construct_pheno_net()
-# Note:  pmap paralleism failed badly on 9/28/21
 function process_ch_ints( ch_ints_list::Vector{Int128} , p::Parameters, funcs::Vector{Func}; 
       use_lincircuit::Bool=false )
   #println("process_ch_ints: ")

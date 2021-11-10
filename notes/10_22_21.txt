@@ -10,3 +10,5 @@ sc(CRsevolv,CRdevolv) = 0.978
 
 Both LinCircuit and Chromosome evolution evolvability are strongly negatively related to robustness (as expected)
 
+Ran data/10_19_21/run_pheno_netE.jl on surt2 so that sampling evolvability would be computed in the same way
+for chromecircuts and lincircuits using correlations() in correlations.jl.
