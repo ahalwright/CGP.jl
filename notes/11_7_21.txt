@@ -8,6 +8,33 @@ CartesianGP plots in data/11_7_21.
 
 Note that some errors with CRecmplx markers and fatal errors with CRscmplx markers.
 
+Versions of eevolv:   plots 11_7_21:  
+CReevolv2 vs CReevolv0:  weak positive relationship
+CReevolv2 vs CReevolv1:  strong positive relationship 'CReevolv2 vs CReevolv1 markers CRlsteps 3x1 8_5.png'
+LCeevolv1 vs LCeevolv0:  very strong positive, 3 clusters by steps 'LCeevolv1 vs LCeevolv0 markers LClsteps 3x1 8_2.png'
+
+Versions of pevolve  CR plots 11_7_21:  LC plots 10_29_21
+10/19/21:  
+Problem: We are comparing versions M, N and P which differ both in numcircuits and in nreps.
+    seconds   nreps   numcircuits
+E:  ????       10^9    10000
+M:  61578    5*10^9    10000
+N:  79617    5*10^9   500000
+P:            10^10   100000  not run
+CRpevolv2 vs CRepvolv0:  strong positive relationship with high steps outliers below   'CRpevolv2 vs CRpevolv0 markers CRlsteps 3x1 8_5.png'
+      pevolve increases substantially as nreps increases (TODO:  show 2 scatters on the same plot)
+CRpevolv2 vs CRpevolv1  strong positive relationship with high steps outliers below  'CRpevolv2 vs CRpevolv1 markers CRlsteps 3x1 8_5.png'
+    seconds   nreps   numcircuits
+F:  ???     10^10    10000
+H:  3480    10^10   100000
+I:  23466   10^11   500000
+LCpevolv2 vs LCpevolv0: strong positive outliers below, increases as numcircuits increases  'LCpevolv2 vs LCpevolv0 markers LClsteps 3x1 8_2.png'
+LCpevolv2 vs LCpevolv1:  strong linear positive relationship, high lsteps with both low 1 and 2 'LCpevolv2 vs LCpevolv1 markers LClsteps 3x1 8_2.png'
+
+Versions of revolv  plots 11_7_21:
+CRrevolv2 vs CRrevolv1:  very strongly positive, concave up.  'CRrevolv2 vs CRrevolv1 markers CRlsteps 3x1 8_5.png'
+LCrevolv2 vs LCrevolv0:  'LCrevolv2 vs LCrevolv0 markers LClsteps 3x1 8_2.png'
+
 phnet (pevolv) comparisons
 LC:  'LCeevolv vs LCpevolv2 markers LCecmplx 3x1 8_2.png'
 Linear positive relationship with some outliers above line and more extreme outliers with large eevolve and samll pevolv

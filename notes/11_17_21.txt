@@ -1,0 +1,23 @@
+Adami (2002) defines "physical complexity of a sequence as the amount of information that
+is coded in the genomes of an adapting population, about the environment to which it is adapting."
+
+More precisely, he defines "the unconditional entropy of a population of sequences (that is, the entropy in 
+the absence of selection) is just equal to the sequence length: $H_{max} = L$.
+This result is intuitively simple: the amount of information that can potentially be stored in a sequence of 
+length $L$ is just equal to the sequence length.
+
+In the presence of selection, the probabilities of finding particular genotypes $i$ in the population are highly 
+non-uniform: most sequences do not appear (because either they simply never occur, or because their fitness 
+in the particular environment vanishes), while a few sequences are over-represented. As described above, the 
+amount of information that a population $X$ stores about the environment $E$ in which it evolves is then given by 
+the difference:
+$$ I(X : E) = H_{max} - H(X|E) = L - \sum_{i=1} p_i \log p_i $$
+
+This is essentially the reduction in entropy from a random sequence to the entropy of the sequence (or sequences)
+under selection.  If there is a single goal, a population consisting only of copies of the goal will have zero
+entropy.  
+
+My idea is to take the population $X$ to be the collection of phenotypes produced by applying mutate_all the current
+genotype under epochal evolution.  So as evolution proceeds. $X$ will contain more copies of the goal and the 
+complexity will increase.  Not very profound except that it restates what we expect to happen in terms of physical
+complexity.  And it can be extended to a distribution over goals and to population-based evolution.

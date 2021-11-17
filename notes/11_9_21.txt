@@ -7,3 +7,38 @@ Still should return NaN when nsuccesses==0.
 Added a field fract_successes to the output dataframe which is the fraction of runs that are successful.
   
 Wrote test/test_run_geno_complexity.jl
+
+Results from 11/10 on fract_successes:
+
+geno_complexity11_10_21CRV.csv:  Chromosomes, 3x1 8_5:  
+    findmin(gcdf.fract_successes)
+      (0.9847354347297624, 151) 
+    findall(x->x<1.0,gcdf.fract_successes)
+      2-element Array{Int64,1}:
+      [106, 151]
+geno_complexity11_10_21CRV.csv:  LinCircuits, 3x1 8_2:  min fract successes:  (0.9847354347297624, 151) 
+findmin(gcdf.fract_successes)
+    (0.650579627389926, 37)  
+println(findall(x->x<1.0,gcdf.fract_successes)')
+    78-element Array{Int64,1}:
+    [23 25 26 31 37 38 42 46 55 58 62 63 67 68 71 74 75 76 87 90 92 95 98 100 101 102 104 105 106 107 108 109 110 111 119 121 122 123 125 127 130 
+    132 134 135 136138 146 147 148 149 151 152 153 155 157 159 162 165 167 170 181 183 189 190 194 195 199 202 211 212 215 218 219 220 226 231 232 234]
+
+Results from 11_13_21 on fract_successes with 4x1 11_8:  (data in data/11_10_21)
+gcdf = read_dataframe("geno_complexity11_10_21CRC.csv")    # 2000 random 4x1 goals
+julia> gcdf[findmin(gcdf.nsuccesses)[2],[:goal,:nsuccesses,:avgsteps_succ,:fract_successes]]
+DataFrameRow
+  Row │ goal            nsuccesses  avgsteps_succ  fract_successes
+      │ String          Float64     Float64        Float64
+──────┼────────────────────────────────────────────────────────────
+ 1839 │ UInt16[0xe759]         0.0            0.0              0.0
+julia> findall(x->x==0,gcdf.nsuccesses)
+1-element Array{Int64,1}:
+ 1839
+Conclusion:  in the Cartesian 4x1 11_8 case, failure to evolve a goal is very rare.
+
+Approximately replicated these runs for LinCircuits with 100 goals instead of 2000.
+10 instructions 2 registers works better than 8 instructions and 3 registers.
+run_geno_complexity_LCC.jl and  run_geno_complexity_LCD.jl.
+C:  7 instances of nsuccesses==0
+D: 25 instances of nsuccesses==0

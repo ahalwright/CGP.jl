@@ -37,6 +37,7 @@ end
 # Assumes that both populations are indexed over the same set.
 # Thus, both population must be the same length
 # There is one entry in the table for each pair (P1[i],P2[i]).
+# This means that the populations are ordered.
 function pops_to_dist( P1::Population, P2::Population )
   len1 = length(P1)
   len2 = length(P2)
@@ -45,31 +46,6 @@ function pops_to_dist( P1::Population, P2::Population )
   for i = 1:len1
     entry = (convert(elt_type,P1[i]),convert(elt_type,P2[i]))
     result[entry] = get(result,entry,0.0) + 1.0/len1
-  end
-  result
-end 
-
-# There is one column per "allele" of the combined population
-# An "allele" is value of an element of the population.
-# The sum of the entries in the result is 1.0.
-# The sum of the entries in row i is length(P[i])/(sum(length(p) for p in P)
-# Note that mutual_information(pops_to_tbl([P1,P2)) does not give the same result
-# as mutual_informaiton(P1,P2) which is computed using pops_to_dist(P1,P2).
-# The latter result should be the correct result.
-function pops_to_tbl( P::PopVect )
-  #P = map(x->convert(Vector{Any},x),P)
-  m = length(P)   # the number of rows in result
-  combined_pop = reduce(vcat, P[i] for i = 1:m )
-  N = length(combined_pop)
-  allele_list = unique(combined_pop)
-  n = length(allele_list)   # The number columns in result
-  result = zeros(Float64,m,n)
-  for i = 1:length(P)
-    dist = Dict( allele_list .=> zeros(Float64,n))
-    for p in P[i]
-      dist[p] += 1.0/N
-    end
-    result[i,:] = [ dist[a] for a in allele_list ]
   end
   result
 end 

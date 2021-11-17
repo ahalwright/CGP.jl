@@ -672,7 +672,7 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   geno_complexity_df.maxsteps = Int64[]
   geno_complexity_df.ntries = Int64[]
   geno_complexity_df.nsuccesses = Float64[]
-  geno_complexity_df.avgsteps_succ = Float64[]   # Average of steps on successful runs
+  geno_complexity_df.avgsteps = Float64[]   # Average of steps on successful runs
   geno_complexity_df.log_avgsteps = Float64[]
   geno_complexity_df.fract_successes = Float64[]   # Average of steps on all runs
   geno_complexity_df.robustness = Float64[]
@@ -781,15 +781,6 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
   degeneracy_list = Float64[]
   sumsteps_list = Int64[]
   sumtries_list = Int64[]
-  #frenken_mi_list = Float64[]
-  #=
-  if p.numoutputs == 0
-    epi2 = k_bit_epistasis(W,2,goal[1])
-    epi3 = k_bit_epistasis(W,3,goal[1])
-    epi4 = k_bit_epistasis(W,4,goal[1])
-    epi_total = total_epistasis(W,goal[1])
-  end
-  =#
   sumsteps_successful = 0.0
   sumsteps_all = 0  # for one iteration of the while loop including unsuccessful tries
   numsuccesses = 0  # The number of successful evolutions
@@ -813,6 +804,7 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
     @assert sort(c_output) == sort(goal)
     #println("output values: ",c_output,"  complexity5(c): ",complexity5(c))
     outputs = mutate_all( c, funcs, output_outputs=true )
+    mutinf = mutual_information( outputs, [goal] )
     all_outputs_sum += length(outputs)
     robust_outputs = filter( x->x==c_output, outputs )
     robust_sum += length(robust_outputs)
@@ -822,12 +814,6 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
     complexity = use_lincircuit ? lincomplexity( c, funcs ) : complexity5(c)
     push!( complexity_list, complexity )
     push!( degeneracy_list, degeneracy( c ))
-    #=
-    (sumsteps,sumtries) = recover_phenotype( c, maxsteps_recover, maxtrials_recover, maxtries_recover )
-    push!( sumsteps_list, sumsteps )
-    push!( sumtries_list, sumtries )
-    =#
-    #push!( frenken_mi_list, fmi_chrome( c ))
   end  
   ntries = i
   #println("ntries: ",ntries,"  numsuccesses: ",numsuccesses,"  all_outputs_sum: ",all_outputs_sum,"  len all_unique_outputs: ",length(all_unique_outputs))

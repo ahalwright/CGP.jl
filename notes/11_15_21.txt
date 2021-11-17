@@ -1,0 +1,12 @@
+When run with 4 input phenotypes, PhenotypeNetwork.jl was quickly running out of memory on surt2.
+Debugged this, and the reason is that create_empty_pheno_net() is called 2^2^numinputs times,
+and each time it generates a 2^2^numinputs by 2^2^numinputs matrix.
+So it is not going to work on 4x1 goals, but it should be correct for 3x1 goals.
+
+Solutions:  
+1.  Use threading and shared memory so that there is only one phenotype matrix.
+2.  Store the non-zero entries of the matrix in a dictionary, and combine dictionaries.
+The former method seems more efficient.
+
+The version of PhenotypeNetwork.jl on surt2 uses 32 bit integers for the matrix instead of 64 bit integers.
+But this isn't going to help so I won't propagate this version---I will stash it on surt2.
