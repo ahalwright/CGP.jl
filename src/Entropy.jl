@@ -4,7 +4,7 @@
 using DataFrames
 export dist_check, pop_to_dist, pops_to_dist, pops_to_tbl, pop_counts_to_tbl, table_row_to_dist
 export entropy, relative_entropy, conditional_entropy, joint_entropy, mutual_information
-export sherwin_mutual_information, row_marginal, column_marginal
+export sherwin_mutual_information, row_marginal, column_marginal, adami_complexity
 #include("../../information_theory/src/aliases.jl")
 
 
@@ -214,6 +214,7 @@ end
 
 # Mutual information by the defintion   I(P1;P2) = H(P1) + H(P2) - H(P1,P2) (eq. 2.45 of Cover)
 # Uses the pops_to_dist() method in joint_entropy()
+# Read the comments on the pops_to_dist() function:  Populations are ordered and must be the same size.
 # This is the "standard" (non-Sherwin) definition of mutual information
 function mutual_information( P1::Population, P2::Population; base::Float64=2.0 )
   @assert length(P1) == length(P2)
@@ -270,3 +271,10 @@ function mutual_information( P::PopVect; base::Float64=2.0 )
   #println("MI pops_to_tbl")
   sherwin_mutual_information( pops_to_tbl( P ), base=base )
 end 
+
+# The Adami (physical) complexity of a population of phenotypes relative to maximum complexity
+function adami_complexity( pop::Vector{MyInt}, p::Parameters )
+  Hmax = p.numoutputs*2^p.numinputs  # Entropy of a population of all possbile phenotype strings
+  Hmax - entropy( pop )   # Equation (5) of Adami (2002) "What is Complexity"
+end
+  

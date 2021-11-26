@@ -755,21 +755,29 @@ function findminrand( A::AbstractVector )
     return (val,ind)
   end
 end
-# Evolves a LinCirucit that maps to g starting with chromosome c.
+
+# Evolves a LinCircuit that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
 # insert_gate_prob is the probability of inserting a gate on a mutation of a chromosome.
 # delete_gate_prob is similar for deleting a gate.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
 function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps::Bool=false,
-      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0,
+      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
+      save_acomplexities::Bool=false, # Save acomplexity, evolvability, robustness of phenos produced by mutate_all on every step
       funcs::Vector{Func}=typeof(c) == LinCircuit ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) )
+  p = c.params
   LinCirc = typeof(c) == LinCircuit ? :true : :false
-  #funcs = LinCirc ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) 
+  step_list = Int64[] # Only used if save_acomplexities==true
+  status_list = String[]  # Only used if save_acomplexities==true
+  acomplexity_list = Float64[]  # Only used if save_acomplexities==true
+  evolvability_list = Int64[]  # Only used if save_acomplexities==true
+  robust_list = Float64[]   # Only used if save_acomplexities==true
+  intersect_list = Int64[]  # Only used if save_acomplexities==true 
   #println("LinCirc: ",LinCirc,"  Ones: ",Ones,"  CGP.Ones: ",CGP.Ones)
   #println("numgates: ",c.params.numinteriors)
   step = 0
-  ov = output_values( c) 
+  ov = output_values( c )
   current_distance = hamming_distance( ov, g, c.params.numinputs )
   while step < max_steps && ov != g
     step += 1
@@ -789,17 +797,26 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
     #print_circuit(c)
     if new_ov == ov 
       c = new_c
+      if save_acomplexities
+        save_acomplexity( new_c, c, new_ov[1], g, step, "neutral", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
+      end
       if print_steps
         println("step: ",step," is pheno neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance)
       end
     elseif new_distance == current_distance
       c = new_c
+      if save_acomplexities
+        save_acomplexity( new_c, c, new_ov[1], g, step, "neutral", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
+      end
       if print_steps
         println("step: ",step," is fitness neutral.")
       end
     elseif new_distance < current_distance   # improvement
       if print_steps
         println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
+      end
+      if save_acomplexities
+        save_acomplexity( new_c, c, new_ov[1], g, step, "improve", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
       end
       c = new_c
       ov = new_ov
@@ -809,16 +826,13 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
       if print_steps
         #print("worse step: ",step,"  new_output: ",new_ov,"  new circuit: ")
         println("step: ",step,"  new_output: ",new_ov," current distance: ",current_distance," new: ",new_distance)
-        #=
-        if LinCirc
-          print_circuit( new_c, funcs )
-        else
-          print_circuit( new_c )
-        end
-        =#
       end 
     end
-    #println("end while ",rand(1:100))
+  end
+  if save_acomplexities
+    df = DataFrame( :step=>step_list, :status=>status_list, :acomplexity=>acomplexity_list, :evolvability=>evolvability_list, :robustness=>robust_list,
+        :count_goals=>intersect_list )
+    return df
   end
   if step == max_steps
     println("neutral evolution failed with ",step," steps for goal: ",g)
@@ -829,6 +843,48 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
     return (c, step)
   end
 end
+
+function save_acomplexity( new_c::Circuit, prev_c::Circuit, ov::MyInt, g::Goal, step::Int64, status::String, step_list::Vector{Int64}, 
+      status_list::Vector{String}, acomplexity_list::Vector{Float64}, evolvability_list::Vector{Int64}, robust_list::Vector{Float64}, intersect_list::Vector{Int64} )
+  p = new_c.params
+  funcs = default_funcs(p.numinputs)
+  push!( step_list, step )
+  push!( status_list, status )
+  phenos = map( x->x[1], mutate_all( new_c, funcs, output_outputs=true ) )
+  #println("phenos: ",phenos)
+  #println("ph int g: ",length(findall( x->x==g[1], phenos )))
+  push!( acomplexity_list, adami_complexity( phenos, p ) )
+  #push!( acomplexity_list, mutual_information( phenos, fill( g[1], length(phenos ) ) ) ) 
+  push!( evolvability_list, length(unique(phenos) ) )
+  push!( robust_list, length( findall( x->x==ov, phenos ) )/length(phenos) )
+  push!( intersect_list, length(findall( x->x==g[1], phenos )) )
+end
+
+# Computes phenotype evolvability, genotype evolvability, robustness, complexity, steps
+# num_circuits is the number of circuits used to compute properties.
+function geno_circuits( g::Goal, p::Parameters, num_circuits::Integer, max_steps::Integer, max_attempts::Integer )
+  funcs = default_funcs( p.numinputs )
+  c = random_chromosome( p, funcs )
+  sum_steps = 0
+  circuit_list = Chromosome[]
+  n_circuits = 0
+  attempt = 0
+  nc = nothing
+  while attempt < max_attempts && n_circuits < num_circuits
+    attempt += 1
+    (nc,steps) = neutral_evolution( c, g, max_steps )
+    sum_steps += steps
+    if nc != nothing
+      n_circuits += 1
+      push!( circuit_list, nc )
+    end
+  end
+  if n_circuits < num_circuits
+    println("geno_properties failed to find num_circuits circuits mapping to goal: ",g," in ", attempt," attempts.")
+    return (nothing, sum_steps)
+  end
+  return (circuit_list, sum_steps)
+end 
 
 # Computes phenotype evolvability, genotype evolvability, robustness, complexity, steps
 # num_circuits is the number of circuits used to compute properties.

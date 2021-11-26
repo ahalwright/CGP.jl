@@ -1,0 +1,5 @@
+src/Evolvability.jl was not working, partly due to a call to mutual_information().
+I copied Evolvability.jl to stash/Evolvability11_25_21.jl and copied src/stash/Evolvability10_18_21.jl
+to src/Evolvability.jl.                
+
+Now should replicate the results in data/11_10_21/

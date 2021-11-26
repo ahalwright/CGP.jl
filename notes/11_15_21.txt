@@ -10,3 +10,5 @@ The former method seems more efficient.
 
 The version of PhenotypeNetwork.jl on surt2 uses 32 bit integers for the matrix instead of 64 bit integers.
 But this isn't going to help so I won't propagate this version---I will stash it on surt2.
+
+11/25/21:  Have debugged this problem.  Due to the creation of a Phenotype matrix for every phenotype.

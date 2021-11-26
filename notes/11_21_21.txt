@@ -1,0 +1,25 @@
+Finished doing all 3 pairs of scatter plots for eevolv, pevolv, and revolv for both CR and LC.
+CR plots are in data/11_15_21/ and LC plots are in data/11_21_21/.
+LC plots are based on correlation_csvs/lruns10_30_21.csv.
+CR plots are based on correlation_csvs/cruns11_7_21.csv.
+
+Example for CR:  
+scatter_plot(cdf, "CRpevolv2", "CRrevolv2", "CRlsteps", data_subdir = "11_15_21")
+fname: 11_15_21/CRrevolv2 vs CRpevolv2 markers CRlsteps 3x1 8_5.png
+
+Example for LC:  
+scatter_plot(bdf, "LCrevolv2", "LCeevolv1", "LClsteps", data_subdir = "11_21_21")
+fname: 11_21_21/LCeevolv1 vs LCrevolv2 markers LClsteps 3x1 8_2.png
+
+Comparing versions with different parameters for eevolv, pevolv, revolv.
+Data in data/11_7_21/
+'CReevolv2 vs CReevolv0 markers CRlsteps 3x1 8_5.png'  # Lumpy linear distribution
+'CReevolv2 vs CReevolv1 markers CRlsteps 3x1 8_5.png'  # good positive linear distribution
+'CRpevolv2 vs CRpevolv0 markers CRlsteps 3x1 8_5.png'  # positive linear relationship with high-steps outliers below regr line
+'CRpevolv2 vs CRpevolv1 markers CRlsteps 3x1 8_5.png'  # positive linear relationship with high-steps outliers below regr line
+'CRrevolv2 vs CRrevolv1 markers CRlsteps 3x1 8_5.png'  # strong almost positive almost linear relationship
+data in data/10_29_21 (and 10_31_21):
+'LCeevolv1 vs LCeevolv0 markers LClsteps 3x1 8_2.png'  # strong linear relationship with 2 groups of high-steps phenotypes
+'LCpevolv2 vs LCpevolv0 markers LClsteps 3x1 8_2.png'  # strong linear relationship but with high-steps outliers below regr line
+'LCpevolv2 vs LCpevolv1 markers LCeevolv 3x1 8_2.png'  # strong linear relationship without outliers, but high-steps phenos lower right
+'LCrevolv2 vs LCrevolv0 markers LClsteps 3x1 8_2.png'  # strong almost positive almost linear relationship 
