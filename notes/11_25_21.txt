@@ -3,3 +3,5 @@ I copied Evolvability.jl to stash/Evolvability11_25_21.jl and copied src/stash/E
 to src/Evolvability.jl.                
 
 Now should replicate the results in data/11_10_21/
+
+A complete failure means a failure of 64 runs for run_geno_complexity_CRC.jl and run_geno_complexity_CRD.jl

@@ -135,6 +135,12 @@ function entropy( tbl::Array{Float64,2}, row_index::Int64; base::Float64=2.0 )
   entropy( table_row_to_dist( tbl, row_index ), base = base )
 end
 
+function entropy( x::MyInt, numinputs::Int64; base::Float64=2.0 )
+  len = 2^numinputs
+  cnt_ones = count_ones(x)
+  entropy( [cnt_ones/len, (len-cnt_ones)/len ], base=base )
+end
+
 # relative_entropy()
 # Also Kullback Leibler divergence D( q || p )
 # Note that if there are any keys x of p such that q[x] == 0, the result will be NaN

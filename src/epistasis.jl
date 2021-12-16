@@ -5,6 +5,7 @@ export Walsh, k_bit_epistasis, total_epistasis
 # See the functions k_bit_epistasis and total_epistasis for Walsh transform computation 
 
 # count_ones(x) is a built-in Julia function with the same purpose
+#=
 function count1bits( x::MyInt, numinputs::Int64 )
   shift = (2^numinputs-1)
   mask = MyInt(1) << shift
@@ -17,6 +18,7 @@ function count1bits( x::MyInt, numinputs::Int64 )
   end
   ssum
 end
+=#
 
 function my_ones( output::MyInt, numinputs::Int64 )
   mask = One()

@@ -1,4 +1,5 @@
 using DataFrames, CSV, StatsBase
+export correlations, scatter_plot
 # read a csv which includes vectors of interest, and compute all cross correlations
 function correlations( csvfile::String, row_list::Vector{Int64}=Int64[] )
   #df = CSV.read("../notes/correlation_csvs/corr.csv",DataFrame,comment="#")
@@ -41,6 +42,7 @@ function correlations( csvfile::String, row_list::Vector{Int64}=Int64[] )
   #df
   cor_matrix = fill(0.0,sz,sz)
   pval_matrix = fill(0.0,sz,sz)
+  #=
   for i = 1:sz-1
     for j = i+1:sz
       sc = spearman_cor( df[i,:values], df[j,:values] )
@@ -49,9 +51,11 @@ function correlations( csvfile::String, row_list::Vector{Int64}=Int64[] )
       pval_matrix[i,j] = sc[2]
     end
   end
+  =#
   cor_df = matrix_to_dataframe( cor_matrix, df )
   pval_df = matrix_to_dataframe( pval_matrix, df )
-  (df,cor_df,pval_df)
+  #(df,cor_df,pval_df)
+  df
 end
 
 function matrix_to_dataframe( matrix::Matrix{Float64},df::DataFrame)
@@ -66,23 +70,23 @@ function matrix_to_dataframe( matrix::Matrix{Float64},df::DataFrame)
 end
  
 # cshort_name is the variable that determimes marker color and size
-function scatter_plot( adf::DataFrame, xshort_name::String, yshort_name::String; cshort_name::String="" )
+function scatter_plot( adf::DataFrame, xshort_name::String, yshort_name::String, cshort_name::String=""; data_subdir::String="10_29_21" )
   if !(xshort_name in adf.short_name)
     error("xshort_name ",xshort_name," is not in the dataframe in scatter_plot()")
   end
   if !(yshort_name in adf.short_name)
     error("yshort_name ",yshort_name," is not in the dataframe in scatter_plot()")
   end
-  if length(cshort_name)>0 &&!yshort_name in adf.short_name
+  if length(cshort_name)>0 && !(cshort_name in adf.short_name)
     error("cshort_name ",cshort_name," is not in the dataframe in scatter_plot()")
   end
   if length(cshort_name)>0 
-    cvalues = adf[adf.short_name.==cshort_name,:values]
-    cmin=findmin(cvalues)
-    cmin=findmax(cvalues)
+    cvalues = adf[adf.short_name.==cshort_name,:values][1]
+    cmin=findmin(cvalues)[1]
+    cmax=findmax(cvalues)[1]
     # Normalized values
     nvalues = map(x->(1.0/(cmax-cmin))*(x-cmin),cvalues)
-    color_values = map(x->RGB(x,0.0,1.0-x),nvalues)
+    color_values = map(x->RGB(x,0.0,1.0-x),nvalues)  # Large red shows high values, small blue shows low values
     size_values = 5 .+ (10 .* nvalues)
     scatter( adf[ adf.short_name.==xshort_name,:values], adf[ adf.short_name.==yshort_name,:values], smooth=true, c=color_values, markersize=size_values )
   else
@@ -92,7 +96,15 @@ function scatter_plot( adf::DataFrame, xshort_name::String, yshort_name::String;
   xparams = xshort_name[1:2] == "CR" ? "8_5" : "8_2"
   yparams = yshort_name[1:2] == "CR" ? "8_5" : "8_2"
   params = xparams==yparams ? xparams : yparams * xparams
-  scatter!( title="$yshort_name vs $xshort_name 3x1 $params", legend=:none )
-  # pwd() must the the data subdirectory
-  savefig("10_26_21/$yshort_name vs $xshort_name 3x1 $(params).png")
+  if length(cshort_name) == 0
+    title="$yshort_name vs $xshort_name 3x1 $params"
+  else
+    title="$yshort_name vs $xshort_name markers $cshort_name 3x1 $params"
+  end
+  scatter!( title=title, legend=:none )
+  #readline()
+  # current working directory (pwd()) must be the data subdirectory
+  fname = data_subdir * "/" * title * ".png"
+  println("fname: ",fname)
+  savefig( fname )
 end

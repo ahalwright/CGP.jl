@@ -35,7 +35,14 @@ DataFrameRow
 julia> findall(x->x==0,gcdf.nsuccesses)
 1-element Array{Int64,1}:
  1839
+gcdf = read_dataframe("geno_complexity11_10_21CRD.csv")    # 2000 random 4x1 goals
+findmin(gcdf.nsuccesses) (0.375, 453)
 Conclusion:  in the Cartesian 4x1 11_8 case, failure to evolve a goal is very rare.
+5x1 case
+gcdf = read_dataframe("geno_complexity11_10_21CRE.csv")    # 100 random 5x1 goals maxsteps=450000
+findall(x->x==0,gcdf.nsuccesses) # 45-element Array{Int64,1}:
+gcdf = read_dataframe("geno_complexity11_10_21CRF.csv")    # 100 random 5x1 goals maxsteps=1000000
+findall(x->x==0,gcdf.nsuccesses) # 32-element Array{Int64,1}:
 
 Approximately replicated these runs for LinCircuits with 100 goals instead of 2000.
 10 instructions 2 registers works better than 8 instructions and 3 registers.
