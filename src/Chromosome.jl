@@ -795,7 +795,8 @@ end
 function chromosome_to_int( ch::Chromosome, funcs::Vector{Func}=default_funcs(ch.params.numinputs); maxarity::Int64=2 )
   result = Int128(0)
   for i = 1:length(ch.interiors)
-    result += gate_int( i, ch, maxarity, funcs ) 
+    #println("i: ",i)
+    result += gate_int( i, ch, maxarity, funcs )
     multiplier = i < length(ch.interiors) ? length(funcs)*(ch.params.numinputs+i+1)^maxarity : 1
     result *= multiplier
     #result = i < length(ch.interiors) ? result*length(funcs)*(ch.params.numinputs+i+1)^maxarity : result
@@ -804,21 +805,23 @@ function chromosome_to_int( ch::Chromosome, funcs::Vector{Func}=default_funcs(ch
   end
   #println("result: ",result)
   result
-end
+end        
 
 function gate_int( i::Int64, ch::Chromosome, maxarity::Int64, funcs::Vector{Func} )
+  #println("i: ",i)
+  #println("ch.interiors[i].func: ",ch.interiors[i].func)
+  func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
   numinputs = ch.params.numinputs
-  funcs_int = findfirst(x->x==ch.interiors[i].func,funcs)[1]-1
+  funcs_int = findfirst(x->x==ch.interiors[i].func.func,func_list)[1]-1
   gate_inputs = ch.interiors[i].inputs
   il = inputsList( maxarity, numinputs+i )
   ni = length(il)   # multiplier which should be (numinputs+i)^maxarity
-  #println("ni: ",ni,"  maxarity: ",maxarity,"  numinputs+i: ",numinputs+i)
+ #println("ni: ",ni,"  maxarity: ",maxarity,"  numinputs+i: ",numinputs+i)
   @assert ni == (numinputs+i)^maxarity
   inputs_int = findfirst(x->x==gate_inputs,il)
   funcs_int*ni + inputs_int
 end
 
-# Generates a list of all Int64 vectors of length numinputs and values from 1:maxval
 function inputsList( numinputs::Int64, maxval::Int64 )
   if numinputs == 1
     return [ [i] for i = 1:maxval ]
@@ -830,12 +833,12 @@ function inputsList( numinputs::Int64, maxval::Int64 )
       dcr = deepcopy(r)
       push!(dcr,i)
       push!(new_result,dcr)
-      #println("i: ",i,"  dcr: ",dcr) 
+      #println("i: ",i,"  dcr: ",dcr)
     end
   end
   #println("numimnputs: ",numinputs,"  new_result: ",new_result)
   new_result
-end
+end      
 
 # Produces a list of all circuits corresponding the paramters p --- except that it ignores the levelsback parameter
 function enumerate_circuits( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
@@ -1052,9 +1055,9 @@ function count_circuits( p::Parameters; nfuncs::Int64=0 )
     #print("i: ",i,"  mf: ",mf,"  mij: ",mij,"  log multiplier: ",log10(multiplier))
     exp = trunc(log10(multiplier))
     fract = 10^(log10(multiplier)-exp)
-    #println("  exp: ",exp,"  fract: ",fract)
-    #@printf("  multiplier: %4.2f",fract)
-    #@printf("e+%2i\n",exp)
+    println("  exp: ",exp,"  fract: ",fract)
+    @printf("  multiplier: %4.2f",fract)
+    @printf("e+%2i\n",exp)
     #=
     try
       @printf("  multiplier:  %8.2e\n",multiplier)

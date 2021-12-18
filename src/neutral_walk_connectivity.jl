@@ -447,68 +447,27 @@ function circuit_distance_to_list( c_code::Vector{Int64}, c_code_list::Vector{Ve
   distance/length(c_code)
 end
 
-#=    
-function neutral_walk_connectivity( c1::Chromosome, c2::Chromosome, max_steps::Int64 )
-  @assert c1.params == c2.params
-  funcs = default_funcs( c1.params.numinputs )
-  out1 = output_values(c1)
-  out2 = output_values(c2)
-  @assert out1==out2
-  code1 = circuit_code(c1)
-  code2 = circuit_code(c2)
-  c_dist = circuit_distance( c1, c2 )
-  println("original c_dist: ",c_dist)
-  if c_dist == 0
-    return 0
+#=  temporarily in file fnc.jl
+# Added started in 12/17/21.  See notes/12_17_21.txt
+# Use enumerate_circuits() in Chromosome.jl to get the list of Chromosomes (circuits)
+function find_neutral_components( ch_list::Vector{Chromosome} )
+  p = ch_list[1].params
+  funcs = default_funcs(p.numinputs)
+  S = Dict{Int128,Set{Int128}}()
+  for g in ch_list
+    S[chromosome_to_int(g)] = Set([chromosome_to_int(g)])
   end
-  new_c1 = mutate_chromosome!( deepcopy(c1), funcs )[1]
-  new_c2 = mutate_chromosome!( deepcopy(c2), funcs )[1]
-  dist1 = circuit_distance( new_c1, c2 )
-  dist2 = circuit_distance( new_c2, c1 )
-  println("orig dist1: ",dist1,"  orig dist2: ",dist2)
-  step = 1
-  while step < max_steps && c1 != c2
-    while step < max_steps && dist1 > c_dist && dist2 > c_dist
-      new_c1 = mutate_chromosome!( c1, funcs )[1]
-      new_c2 = mutate_chromosome!( c2, funcs )[1]
-      dist1 = circuit_distance( new_c1, c2 )
-      dist2 = circuit_distance( new_c2, c1 )
-      step += 1
-    end  
-    println("after inner while loop.  step: ",step)
-    if dist1 < c_dist
-      c1 = new_c1
-      c_dist = circuit_distance( c1, c2 )
-      println("c1 = new_c1  c_dist: ",c_dist)
-    elseif dist2 < c_dist 
-      c2 = new_c2
-      c_dist = circuit_distance( c1, c2 )
-      println("c2 = new_c2  c_dist: ",c_dist)
+  for g in ch_list
+    ig = chromosome_to_int(g)
+    ihlist = map(h->chromosome_to_int(h),mutate_all( g, funcs ) )
+    for ih in ihlist
+      if ih != ig
+        S[ig] = union(S[ig],S[ih])
+        s[ih] = S[ig]
+      end
     end
-    if c_dist == 0
-      println("found path from c1 to c2 in ",step," steps")
-      return step
-    end
-    if dist1 == c_dist
-      c1 = new_c1
-      println("c1 = new_c1")
-    elseif dist2 == c_dist && circuit_distance( new_c2, c1 ) <= c_dist
-      c2 = new_c2
-      println("c2 = new_c2")
-    end
-    new_c1 = mutate_chromosome!( c1, funcs )[1]
-    new_c2 = mutate_chromosome!( c2, funcs )[1]
-    dist1 = circuit_distance( new_c1, c2 )
-    dist2 = circuit_distance( new_c2, c1 )
-    println("new dist1: ",dist1,"  new dist2: ",dist2)
-    step += 1
   end
-  if c1 == c2
-    println("found path from c1 to c2 in ",step," steps")
-  else
-    println("failed to find path from c1 to c2 in ",step," steps")
-  end
-  return step
+  S
 end
-
 =#
+
