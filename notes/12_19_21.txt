@@ -1,0 +1,9 @@
+Using test_threading.jl to compare multi threads, multi processes, and single threads/processes.
+
+On lycosa using jula 1.6.3.
+
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 4
+nprocs: 1
+thread_nreps: 250000
+105.886138 seconds (2.30 G allocations: 260.794 GiB, 46.02% gc time, 0.02% compilation time)

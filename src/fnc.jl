@@ -1,6 +1,5 @@
 # p = Parameters(3,1,4,5)  # Example
-#  funcs = default_funcs(p.numinputs)
-#  ec2 = enumerate_circuits( p, funcs); length(ec2) 
+#  funcs = default_funcs(p.numinputs) #  ec2 = enumerate_circuits( p, funcs); length(ec2) 
 #  @time S=find_neutral_components(ec2,0x005a); print_lengths(S)
 function find_neutral_components( ch_list::Vector{Chromosome}, phenotype::MyInt )
   p = ch_list[1].params
@@ -80,14 +79,15 @@ function gate_int( i::Int64, ch::Chromosome, maxarity::Int64, funcs::Vector{Func
   funcs_int*ni + inputs_int
 end
 
-function inputsList( numinputs::Int64, maxval::Int64 )
+function inputsList( numinputs::Int64, minval::Int64, maxval::Int64 )
+  #println("inputsList numimnputs: ",numinputs,"  minval: ",minval,"  maxval: ",maxval )
   if numinputs == 1
-    return [ [i] for i = 1:maxval ]
+    return [ [i] for i = minval:maxval ]
   end
-  result = inputsList( numinputs-1, maxval )
+  result = inputsList( numinputs-1, minval, maxval )
   new_result = Vector{Int64}[]
   for r in result
-    for i = 1:maxval
+    for i = minval:maxval
       dcr = deepcopy(r)
       push!(dcr,i)
       push!(new_result,dcr)

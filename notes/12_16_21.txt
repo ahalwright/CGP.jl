@@ -1,0 +1,10 @@
+Have looked into Julia multi-threading and came up with a race example and 
+a method to do synchronization in ~/julia/threading/race_example.jl.
+Creating a GitHub repository ?? for this example.
+
+Rewrote PhenotypeNetwork.jl to PhenoNet.jl using this technique.
+Specific timing example:
+Copied data/10_19_21/run_pheno_netH.jl to data/12_16_21/run_pheno_netH.jl changing only the date 
+    and a comment.  Ran the 12/16 version with src/PhenoNet.jl loaded and 26 threads.  
+    Time for 12_16_21 run:  32190 seconds.
+    Time for 10_19_21 run:   3840 seconds.

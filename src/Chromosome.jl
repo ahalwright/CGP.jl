@@ -787,49 +787,53 @@ function print_build_chromosome( c::Chromosome )
   print_build_chromosome( Base.stdout, c)
 end          
 
-
 # Generates a Int128 integer corresponding to chromosome ch.  The integer is unique for parameters p.  
-# Does not take into account the levelsback parameter
 # Assumes that outputs come from the last numoutputs interior nodes and thus don't affect the number of chromosomes.
 # See test/testChromosome.jl for a test----but only where all gates have arity max_arity.
 function chromosome_to_int( ch::Chromosome, funcs::Vector{Func}=default_funcs(ch.params.numinputs); maxarity::Int64=2 )
+  p = ch.params
+  func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
+  funcs_int = findfirst(x->x==ch.interiors[1].func.func,func_list)[1]-1 
+  #println("funcs_int: ",funcs_int)
+  multiplier = 1
   result = Int128(0)
   for i = 1:length(ch.interiors)
-    #println("i: ",i)
-    result += gate_int( i, ch, maxarity, funcs )
-    multiplier = i < length(ch.interiors) ? length(funcs)*(ch.params.numinputs+i+1)^maxarity : 1
-    result *= multiplier
-    #result = i < length(ch.interiors) ? result*length(funcs)*(ch.params.numinputs+i+1)^maxarity : result
-    #println("i: ",i,"  gate_int: ",gate_int( i, ch, maxarity, funcs ),"  multiplier: ",multiplier, "  result: ",result)
-    #println("ci i: ",i,"  gate_int: ",gate_int( i, ch, maxarity, funcs ),"  result: ",result)
+    (gint,multiplier) = gate_int( i, ch, funcs )
+    result = result*multiplier+gint
+    #println("i: ",i,"  gate_int: ",gate_int( i, ch, funcs ),"  multiplier: ",multiplier, "  result: ",result)
   end
   #println("result: ",result)
   result
-end        
-
-function gate_int( i::Int64, ch::Chromosome, maxarity::Int64, funcs::Vector{Func} )
-  #println("i: ",i)
-  #println("ch.interiors[i].func: ",ch.interiors[i].func)
-  func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
-  numinputs = ch.params.numinputs
-  funcs_int = findfirst(x->x==ch.interiors[i].func.func,func_list)[1]-1
-  gate_inputs = ch.interiors[i].inputs
-  il = inputsList( maxarity, numinputs+i )
-  ni = length(il)   # multiplier which should be (numinputs+i)^maxarity
- #println("ni: ",ni,"  maxarity: ",maxarity,"  numinputs+i: ",numinputs+i)
-  @assert ni == (numinputs+i)^maxarity
-  inputs_int = findfirst(x->x==gate_inputs,il)
-  funcs_int*ni + inputs_int
 end
 
-function inputsList( numinputs::Int64, maxval::Int64 )
+function gate_int( i::Int64, ch::Chromosome, funcs::Vector{Func} )
+  #println("i: ",i)
+  #println("ch.interiors[i].func: ",ch.interiors[i].func)
+  p = ch.params
+  maxarity = p.nodearity
+  func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
+  funcs_int = findfirst(x->x==ch.interiors[i].func.func,func_list)[1]-1
+  numinputs = ch.params.numinputs
+  #println("funcs_int: ",funcs_int)
+  gate_inputs = ch.interiors[i].inputs
+  il = inputsList( maxarity, max(1,numinputs+i-p.numlevelsback), i+numinputs-1 )
+  #println("i: ",i,"  gate_inputs: ",gate_inputs,"  il: ",il)
+  inputs_int = findfirst(x->x==gate_inputs,il)-1
+  multiplier = length(il)*length(func_list) 
+  #funcs_int*ni + inputs_int
+  (inputs_int*length(func_list)+funcs_int, multiplier)
+end
+
+# In all non-recursive calls to this function, numinputs is maxarity
+function inputsList( numinputs::Int64, minval::Int64, maxval::Int64 )
+  #println("inputsList numimnputs: ",numinputs,"  minval: ",minval,"  maxval: ",maxval )
   if numinputs == 1
-    return [ [i] for i = 1:maxval ]
+    return [ [i] for i = minval:maxval ]
   end
-  result = inputsList( numinputs-1, maxval )
+  result = inputsList( numinputs-1, minval, maxval )
   new_result = Vector{Int64}[]
   for r in result
-    for i = 1:maxval
+    for i = minval:maxval
       dcr = deepcopy(r)
       push!(dcr,i)
       push!(new_result,dcr)
@@ -838,7 +842,7 @@ function inputsList( numinputs::Int64, maxval::Int64 )
   end
   #println("numimnputs: ",numinputs,"  new_result: ",new_result)
   new_result
-end      
+end     
 
 # Produces a list of all circuits corresponding the paramters p --- except that it ignores the levelsback parameter
 function enumerate_circuits( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
@@ -854,8 +858,8 @@ function enumerate_circuits( p::Parameters, numints::Int64, funcs::Vector{Func};
   prev_result = enumerate_circuits( p, numints-1, funcs ) 
   result = Chromosome[]
   for prev_ch in prev_result
-    for func in funcs
-      for inputs in inputsList( maxarity, p.numinputs+numints-1 )
+    for inputs in inputsList( maxarity, max(1,p.numinputs+numints-p.numlevelsback), p.numinputs+numints-1 )
+      for func in funcs
         new_interiors = vcat(prev_ch.interiors,[InteriorNode(func,inputs)])
         new_ch = Chromosome( p, prev_ch.inputs,new_interiors,[OutputNode(p.numinputs+numints)],0.0,0.0) 
         push!(result,new_ch)
@@ -866,164 +870,19 @@ function enumerate_circuits( p::Parameters, numints::Int64, funcs::Vector{Func};
 end
 
 function int_to_chromosome( ch_int::Int128, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
-  inputs = [ InputNode(i) for i = 1:p.numinputs ]
-  g_ints = gate_int_list( ch_int, p, maxarity, funcs )
+  nfuncs = length(funcs)
+  inputnodes = [ InputNode(i) for i = 1:p.numinputs ]
   interiors = InteriorNode[]
-  for i = 1:p.numinteriors
-    push!(interiors, int_to_gate( g_ints[i], i, p, maxarity, funcs ) )
+  for i in p.numinteriors:-1:1
+    inputs_list = inputsList( p.nodearity, max(1,p.numinputs+i-p.numlevelsback), i+p.numinputs-1 )
+    fct = funcs[ch_int % nfuncs + 1 ]
+    ch_int = div( ch_int, nfuncs )
+    inputs = inputs_list[ ch_int % length(inputs_list) + 1 ]
+    ch_int = div( ch_int, length(inputs_list) )
+    push!( interiors, InteriorNode( fct, inputs ) )
   end
   outputs = [ OutputNode(i) for i = (p.numinputs + p.numinteriors -p.numoutputs + 1):p.numinputs + p.numinteriors]
-  Chromosome( p, inputs, interiors, outputs, 0.0, 0.0 )
-end
-
-# list of the gate_ints used by chromsosome_int 
-function gate_int_list( ch_int::Integer, p::Parameters, maxarity::Int64, funcs::Vector{Func}=default_funcs(p.numinputs) )
-  result = zeros(Int64,p.numinteriors)
-  multipliers = [ length(funcs)*(p.numinputs+i+1)^maxarity for i = 1:p.numinteriors-1 ]
-  #println("multipliers: ",multipliers)
-  for i = p.numinteriors:-1:2
-    result[i] = ch_int % multipliers[i-1] 
-    ch_int = div(ch_int,multipliers[i-1])
-  end
-  result[1] = ch_int
-  result
-end
-
-function int_to_gate( g_int::Int64, i::Int64, p::Parameters, maxarity::Int64, funcs::Vector{Func}=default_funcs(p.numinputs) )
-  il = inputsList( maxarity, p.numinputs+i )
-  ni = (p.numinputs+i)^maxarity
-  InteriorNode( funcs[div(g_int,ni)+1], il[ g_int % ni ] )
-end
-
-
-#= Outdated:  replaced by the newer version below
-# Returns an unique integer for i^{th} interior node (gate) of chromosome ch 
-# Ignores any limitations due to the levelsback parameter
-function gate_int( i::Int64, ch::Chromosome, funcs::Vector{Func} )
-  #println("funcs: ",funcs)
-  result = (findall(x->x==ch.interiors[i].func,funcs)[1]-1)*(ch.params.numinputs+1)
-  #println("gi result: ",result)
-  for j = 1:ch.interiors[i].func.arity
-    @assert ch.interiors[i].inputs[j] <= ch.params.numinputs+i+1
-    result += ch.interiors[i].inputs[j]-1
-    result = j < length(ch.interiors[i].inputs) ?  result*(ch.params.numinputs+i+1) : result
-    #println("j: ",j,"  result: ",result)
-  end
-  #println("gate_int result: ",result)
-  result
-end
-=#
-
-# Outdated 9/13/21
-# Returns a vector of integers which is a characterization of the chromosome for the parameters c.params
-# The length of the result should be p.numinteriors*(1+p.nodearity).
-# Not correct in that codes for gate inputs are sometimes too large.
-function circuit_code( c::Chromosome )
-  result = Int64[]
-  funcs = default_funcs(c.params.numinputs)
-  if length(c.interiors) == 0
-    return Int64[]
-  end
-  for i = 1:c.params.numinteriors
-    # Determine index of gate function
-    j = 0
-    while j < length(funcs) && funcs[j+1].func != c.interiors[i].func.func
-      j += 1
-    end
-    if j > length(funcs)
-      error("illegal function in function circuit_code()")
-    end
-    #println("i: ",i,"  function code: ",j)
-    push!(result,j)
-    # Add interior node inputs to result
-    index = i + c.params.numinputs  # node index in chromosome
-    for k = 1:length(c.interiors[i].inputs)
-      code = max(c.interiors[i].inputs[k]-(index-c.params.numlevelsback),0)
-      #println("i: ",i,"  k: ",k,"  code: ",code)
-      push!(result, code)
-    end
-  end
-  # Note:  assumes that the input fields of output nodes are set by default and thus don't need to be recorded
-  result
-end
-
-# Outdated 9/13/21 Not correct
-# Converts a circuit code to a Chromosome.   Inverse function to circuit_code().
-function code_to_circuit( code::Vector{Int64}, p::Parameters )
-  funcs = default_funcs( p.numinputs )
-  interior_nodes = InteriorNode[]
-  for i = 1:p.numinteriors
-    j = 3*(i-1)+1   # index of code component
-    func = funcs[code[j] + 1]
-    index = i + p.numinputs  # node index in Chromosome
-    input1 = code[j+1] + max(index-p.numlevelsback,0)
-    input2 = code[j+2] + max(index-p.numlevelsback,0)
-    #println("i: ",i,"  j: ",j,"  func: ",func,"  input1: ",input1,"  input2: ",input2)
-    push!( interior_nodes, InteriorNode(func,[input1,input2]) )
-  end
-  input_nodes = [ InputNode(j) for j = 1:p.numinputs ]
-  output_nodes = [ OutputNode(j) for j = (p.numinputs+p.numinteriors-p.numoutputs+1):(p.numinputs+p.numinteriors) ]
-  c = Chromosome(p, input_nodes, interior_nodes, output_nodes, 0.0, 0.0 )
-end
-
-# Outdated  9/13/21 by chromosome_to_int() 
-# An integer that characterizes the chromosome
-# Doesn't overflow for 11 gates, 8 numlevelsback
-function circuit_int( c::Chromosome )
-  circuit_int( circuit_code(c), c.params )
-end
-
-# Outdated  9/13/21 by chromosome_to_int() 
-# Not correct  See diary12_25.txt for example.
-function circuit_int( c_code::Vector{Int64}, p::Parameters )
-  result = Int128(0)
-  multiplier = 1
-  funcs = default_funcs( p.numinputs )
-  k = 1
-  for i = 1:p.numinteriors
-    multiplier = length(funcs)
-    result = c_code[k] + result*multiplier
-    #print("i: ",i,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
-    #println("  result: ",result)
-    k += 1
-    multiplier = min(p.numlevelsback,i-1+p.numinputs)
-    for j = 1:p.nodearity
-      #println("result: ",result,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
-      result = c_code[k] + result*multiplier
-      #print("i: ",i,"  j: ",j,"  k: ",k,"  multiplier: ",multiplier,"  c_code[k]: ",c_code[k])
-      #println("  result: ",result)
-      k += 1
-    end
-  end
-  result
-end
-
-# Outdated:  replaced in functionality by int_to_chromosome()     
-function int_to_circuit_code( c_int::Integer, p::Parameters )
-  c_int = Int128(c_int)
-  c_code = zeros(Int64,3*p.numinteriors)
-  k = 3*p.numinteriors
-  for i = p.numinteriors:-1:1
-    multiplier = min(p.numlevelsback,i-1+p.numinputs)
-    println("i: ",i,"  multiplier: ",multiplier)
-    for j = p.nodearity:-1:1
-      c_int_mod= c_int % multiplier 
-      #prev_c_int =c_int
-      c_int ÷= multiplier
-      #c_int_mod = prev_c_int - c_int
-      println("i: ",i,"  j: ",j,"  c_int: ",c_int,"  c_int_mod: ",c_int_mod)
-      c_code[k] = c_int_mod
-      k -= 1
-    end
-    multiplier = length(funcs)
-    println("i: ",i,"  multiplier: ",multiplier)
-    c_int_mod= c_int % multiplier 
-    c_int ÷= multiplier
-    println("i: ",i,"  c_int: ",c_int,"  c_int_mod: ",c_int_mod)
-    c_code[k] = c_int_mod
-    k -= 1
-  end
-  c_code
+  Chromosome( p, inputnodes, reverse(interiors), outputs, 0.0, 0.0 )
 end
 
 # Hamming distance between chromosomes normalized to be between 0.0 and 1.0
@@ -1055,10 +914,10 @@ function count_circuits( p::Parameters; nfuncs::Int64=0 )
     #print("i: ",i,"  mf: ",mf,"  mij: ",mij,"  log multiplier: ",log10(multiplier))
     exp = trunc(log10(multiplier))
     fract = 10^(log10(multiplier)-exp)
+    #=
     println("  exp: ",exp,"  fract: ",fract)
     @printf("  multiplier: %4.2f",fract)
     @printf("e+%2i\n",exp)
-    #=
     try
       @printf("  multiplier:  %8.2e\n",multiplier)
     catch

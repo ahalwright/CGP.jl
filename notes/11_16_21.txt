@@ -1,0 +1,41 @@
+Thinking about evolvability and the evolution of complexity.
+
+Evolvability should measure the ability to generate complexity.
+Successful evolution should be consistently generating complexity.
+But this complexity must be preserved by natural selection.
+
+Reading "What is complexity" (Adami 2002).
+I agree with his claim that his "physical complexity" is a good measure of complexity.
+"it is sufficient to think of the physical complexity of a sequence as the amount of information that 
+is coded in the genomes of an adapting population, about the environment to which it is adapting."
+This notion of complexity requires an environment, so my Tononi and Kolmogorov complexities cannt
+directly measure physical complexity.
+
+Conjecture:  Physical complexity the the mutual information between the genomes of the adapting
+population and the environment.  The following statements from (Adami 2002, 1088) confirm this:
+"As described above, the amount of information that a population X stores about the environment E 
+in which it evolves is then given by the difference: 
+$I(X : E) = H_{max} - H(X|E) = L+\sum_{i=1} p_i \log p_i$ (5)"
+and "Let me re-emphasize at this point that Eq. (5), because it represents the amount of information 
+an ensemble has about its environment in mutation-selection balance, is the same as the physical complexity."
+Note that I(X:E) does correspond to the standard definition of mutual information.
+
+Where do we have a sequence?  Only in the phenotype.  In my recent runs where I am evolving towards
+a target phenotype, the target phenotype is the environment.  So potentially we could measure the mutual 
+information between the phenotypes of the mutational neighborhoods and the target phenotype.  A hypothesis
+would be that this is increasing over a run of epochal evolution to the target phenotype.
+
+Mutual information (and relative entropy (KL divergence)) is defined on a random variable.
+The logical random variable is the abundance of phenotypes over all phenotypes.  
+One of my definitions of mutual_information is defined over two populations, and these could be
+the target phenotype (which might be over multiple goals) and the phenotype distribution of the
+mutational neighborhood of the current genotype.
+
+Difficulty:  My current definition of the joint_entropy() of two populations requires that the
+two populations are indexed over the same set.  This is fixable by taking the entropy of the intersection
+of the two populations.
+H(X,Y) = \sum p(x,y) \log p(x,y)  (CT 2.8)
+I(X;Y) = H(X) + H(Y) - H(X,Y)   (CT 2.45)
+If Y is a single element population (e. g. a goal), H(Y)=0.0.  H(X,Y) will correspond to the overlap.
+
+

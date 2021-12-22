@@ -1,0 +1,55 @@
+Started reading Weiss and Ahnert 2020 paper "Using small samples to estimate neutral
+component size and robustness in the genotype–phenotype map of RNA secondary structure."
+
+Suggests a research project:  Approximating their methodology of estimating neutral
+network component size when applied to the logic gate circuit G-P maps, either 
+Cartesian or LinearGP representation.
+
+Difficulty:  Their method depends on the sequence nature of the RNA secondary structure
+genotype.  We have this approximately for the LinearGP representation, but the positions
+in the sequence don't have the same meaning.
+
+Preliminary functions already written:
+count_circuits() in Chromosome.jl
+enumerate_circuits() in Chromosome.jl    # Ignors levelsback parameter
+
+Consistency check:
+p2 = Parameters(2,1,4,5)   # Note:  enumerate_circuits ignores numlevelsback, so numlevelsback must be numinteriors+1
+funcs
+# 4-element Vector{Func}:
+#  Func(&, 2, "AND")
+#  Func(|, 2, "OR")
+#  Func(Main.CGP.Nand, 2, "NAND")
+#  Func(Main.CGP.Nor, 2, "NOR") 
+ec2 = enumerate_circuits( p2, funcs); length(ec2)
+#  3686400
+julia> count_circuits(p2,nfuncs=4)
+  multiplier: 3.69e+ 6
+#  3686400
+# consistency test succeeds (and does so for other 2-input cases)
+
+It should be possible to enumerate genotype space in interesting cases.
+
+TODO:  write function to compute genotype network.  Done on 12/18/21 in temporary file fnc.jl.
+
+TODO:  Write test functions.
+
+TODO:  Extend to take numlevelsback into account
+
+TODO:  write these functions for LinearGP.
+
+
+    
+
+Ideas for empirical estimation:
+
+Assumptions:
+1.  We know the size of genotype and phenotype space.
+2.  Note:  two kinds of mutations:  function and wiring.
+Possible estimators:
+1.  Starting with a genotype in the NC (neutral component), do a random walk and measure the number of repeated genetypes.
+2.  Starting with a genotype in the NC,  do a random walk and measure the number of steps to a repeated genotype.
+3.  Do 1) and 2) using only function mutations.
+3.  Do 1) and 2) using only wiring mutations.
+
+

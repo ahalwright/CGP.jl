@@ -1,0 +1,23 @@
+Testing the hypothesis that complexity(x) is correlated with entropy(x) for all 1-output phenotypes x.
+Entropy(x) is the entropy of the bit vector corresponding to x.  In other words, it is the entropy of 
+the probablity distribution [count_ones(x)/len, (len-count_ones(x))/len] where len==2^numinputs.
+Defined the following function in Entropy.jl:
+function entropy( x::MyInt, numinputs::Int64; base::Float64=2.0 )
+  len = 2^numinputs
+  cnt_ones = count_ones(x)
+  entropy( [cnt_ones/len, (len-cnt_ones)/len ], base=base )
+end
+
+pwd()  # "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity"
+edf = read_dataframe("data/10_16_21/geno_complexity10_16_21V.csv")
+edf.entropy = map(x->CGP.entropy(x,3), 0x0000:0x00ff )
+scatter(edf.complexity,edf.entropy,ylabel="entropy",xlabel="complexity",legend=:none)
+spearman_cor( edf, :complexity, :entropy ) # (0.4793295400309962, 2.059004445298551e-16)
+Hypothesis somewhat weakly confirmed.
+
+cdf = read_dataframe("data/11_10_21/geno_complexity11_10_21CRD.csv")   # 4x1 11_8 2000 goals
+goals =map(x->eval(Meta.parse(x))[1],cdf.goal)
+cdf.entropy = map(x->CGP.entropy(x,4),
+scatter(cdf.complexity,cdf.entropy,smooth=true,ylabel="entropy",xlabel="complexity",legend=:none)
+savefig("data/11_10_21/entropy_vs_complexity_4x1_11_8_2000goals.png")
+# outliers above trend line with high entropy and low complexity.

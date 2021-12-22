@@ -1,4 +1,5 @@
 # Test of why threading runs slower
+using Base.Threads
 using BenchmarkTools
 
 function time_threading( nreps::Int64, p::Parameters, numcircuits::Int64 )
@@ -6,7 +7,13 @@ function time_threading( nreps::Int64, p::Parameters, numcircuits::Int64 )
 end
 
 function test_threading( nreps::Int64, p::Parameters, numcircuits::Int64 )
-  if Threads.nthreads() > 1
+  println("nthreads: ",nthreads())
+  println("nprocs: ",nprocs())
+  if nprocs() > 2
+    proc_nreps = div(nreps,nprocs()-1)
+    println("proc_nreps: ",proc_nreps)  
+    pmap(x->test_worker( nreps, p, numcircuits ), collect(1:nprocs()-1))
+  elseif Threads.nthreads() > 1
     thread_nreps = div(nreps,Threads.nthreads())
     println("thread_nreps: ",thread_nreps)
     Threads.@threads for i = 1:Threads.nthreads()

@@ -1,0 +1,17 @@
+See cce/random_walk_phnet_evolution_evolvability11_29_21.docx for comparison of evolvability methods 
+and hypothesis that epochal evolution can evolve complex goals without being trapped in local optima.
+
+Epochal evolution is a form of hill climbing.  It seems remarkable that one can use mostly neutral 
+hill-climbing starting with random genotypes to evolve the most complex phenotypes.  But this is the 
+case for 4-input 1-output phenotypes.  For 4000 random phenotypes, I did up to 64 epochal evolutions 
+with 11 gates and 8 levelsback, and for all but one of these phenotypes, there was at least 1 successful 
+evolution of a genotype that maps to the phenotype.
+
+This raises the question of the reason for the unsuccessful evolutions.  It might be because there are 
+multiple connected components of the genotype network of the complex phenotypes, or it might be just 
+that extensive neutral exploration is necessary to find the hill climbing path to a genotype that maps 
+to the phenotype.
+
+I also did runs with 5-input 1-output phenotypes with up to 1,000,000 evolutionary steps per evolution, 
+15 gates, 8 levelsback.  For 100 random phenotypes, there were 32 phenotypes where all 64 of the evolutions 
+failed.

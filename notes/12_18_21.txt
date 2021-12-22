@@ -1,0 +1,76 @@
+Continued development on NCs (neutral components) of the genotype network for a parameter settings
+and a given genotype.  Currently, numlevelsback is ignored.  See notes/12_17_21.txt 
+to describe the motivation and setup.
+
+BELOW:  Comparison of threading, pmap, and single process models.
+
+Code is in the temporary file src/fnc.jl
+Examples:  p = Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 5)
+julia> funcs = default_funcs(p.numinputs)
+4-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+
+0x004f:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  239
+@time S=find_neutral_components(ec2,0x004f); print_lengths(S)  # 92.5 seconds
+sum([length(S[ky]) for ky in keys(S)])   # 13504
+One large single component of size 12400
+length(keys(S))  #  119
+Components of size:  4, 6, 12, 16, 20, 28, 56
+
+0x0079:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  61
+ERROR: no genotypes that map to the given phenothype UInt16[0x0079]
+0x0061:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  69
+ERROR: no genotypes that map to the given phenothype UInt16[0x0079]
+
+0x007a:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  187
+length(ch_list): 288
+All components of length 1
+
+0x006c:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  954
+length(ch_list): 128
+All components of length 1
+
+0x005a:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  6603
+length(ch_list): 8848
+@time S=find_neutral_components(ec2,0x005a); print_lengths(S)  # 90 seconds
+Two large components of size 3984  other components of sizes 1, 2, 4
+
+0x0044:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  16262
+length(ch_list): 336960 
+@time S=find_neutral_components(ec2,0x0044); print_lengths(S) # 5573 seconds on surt2
+Two NCs of equal size.  (SURPRISING)
+
+0x005f:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  16788
+length(ch_list): 973440 
+
+0x005f:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  16788
+length(ch_list): 86464
+@time S=find_neutral_components(ec2,0x0054); print_lengths(S)  # 766 seconds
+sum([length(S[ky]) for ky in keys(S)]):  86464
+length(keys(S)):  34
+One large component of size 77472
+One medium component of size 8928 
+All remaining components of size 2
+
+============================================================================================
+Comparison of threading, pmap, and single process models.
+
+julia> @time test_threading( nreps, p, numcircuits )
+nprocs(): 1
+nthreads(): 28
+thread_nreps: 357142
+500.482356 seconds (6.43 G allocations: 648.309 GiB, 84.85% gc time, 0.01% compilation time)
+
+julia> @time test_threading( nreps, p, numcircuits )
+nprocs(): 29
+nthreads(): 1
+955.547202 seconds (151.26 k allocations: 8.170 MiB, 0.01% compilation time)
+
+julia> @time test_threading( nreps, p, numcircuits )
+nprocs(): 1
+nthreads(): 1
+nreps: 10000000
+629.786645 seconds (6.43 G allocations: 648.336 GiB, 13.56% gc time, 0.07% compilation time)
