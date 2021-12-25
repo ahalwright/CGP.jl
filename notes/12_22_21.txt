@@ -1,0 +1,25 @@
+Rewrote int_to_chromosome() in src/Chromosome.jl.
+Test in test/test_chromosome.jl (moved from testChromosome.jl)
+
+On surt2
+julia> p = Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 5, 3) 
+julia> funcs=default_funcs(p.numinputs) 
+4-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR") 
+julia> count_circuits(p)
+60466176 
+julia> @time cl=enumerate_circuits(p,funcs);
+ 98.511471 seconds (509.75 M allocations: 31.781 GiB, 63.27% gc time, 0.06% compilation time) 
+julia> ints3_5_3=zeros(Int64,256) 
+julia> for i = 0:length(cl)-1
+                goal=output_values(cl[i+1])[1]
+                ints3_5_3[goal+1] = ints3_5_3[goal+1] + 1
+              end  
+julia> findall(x->x==0,ints3_5_3)
+90-element Vector{Int64}: 
+julia> write_to_dataframe_file(p,ints3_5_3,funcs,csvfile="../data/12_22_21/ints3_5_3.csv")
+IOStream(<file ../data/12_22_21/ints3_5_3.csv>)
+

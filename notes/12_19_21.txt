@@ -1,9 +1,92 @@
 Using test_threading.jl to compare multi threads, multi processes, and single threads/processes.
+Some results in evotech/complexity/data/12_19_21/test_threading_results.xlsx
 
-On lycosa using jula 1.6.3.
+LYCOSA
+On lycosa using jula 1.6.3 with 4 threads/processes
 
 julia> @time test_threading(nreps,p,numcircuits)
 nthreads: 4
 nprocs: 1
 thread_nreps: 250000
 105.886138 seconds (2.30 G allocations: 260.794 GiB, 46.02% gc time, 0.02% compilation time)
+
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 1
+nprocs: 5
+244.738140 seconds (162.52 k allocations: 9.465 MiB, 0.05% compilation time)
+4-element Vector{Nothing}:
+ nothing
+ nothing
+ nothing
+ nothing
+
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 1
+nprocs: 1
+nreps: 1000000
+166.577428 seconds (2.30 G allocations: 260.787 GiB, 10.97% gc time)
+
+On lycosa using jula 1.7.0 with 4 threads/processes
+nreps = 5*10^6
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 1
+nprocs: 5
+proc_nreps: 1250000
+1351.065123 seconds (1.21 M allocations: 66.513 MiB, 0.00% gc time, 0.07% compilation time)
+4-element Vector{Nothing}:
+ nothing
+ nothing
+ nothing
+ nothing
+
+julia-1.7.0
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 4
+nprocs: 1
+thread_nreps: 1250000
+489.717420 seconds (11.64 G allocations: 1.193 TiB, 42.38% gc time, 0.14% compilation time)
+
+SURT2
+
+On surt2 using julia 1.6.3 with 8 threads/processes
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 1
+nprocs: 1
+nreps: 1000000
+223.799520 seconds (2.30 G allocations: 260.835 GiB, 16.45% gc time, 0.26% compilation time)
+
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 8
+nprocs: 1
+thread_nreps: 125000
+133.853013 seconds (2.30 G allocations: 260.864 GiB, 69.08% gc time, 0.10% compilation time)
+
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 1
+nprocs: 9
+proc_nreps: 125000
+246.370772 seconds (1.11 M allocations: 66.010 MiB, 0.01% gc time, 0.24% compilation time)
+8-element Vector{Nothing}:
+
+
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 1
+nprocs: 1
+nreps: 5000000
+1096.108183 seconds (11.51 G allocations: 1.273 TiB, 16.23% gc time)
+
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 1
+nprocs: 9
+proc_nreps: 625000
+1208.633185 seconds (650 allocations: 29.547 KiB)
+8-element Vector{Nothing}:
+ nothing
+ nothing
+
+julia> nreps = 5*10^6 5000000
+julia> @time test_threading(nreps,p,numcircuits)
+nthreads: 8
+nprocs: 1
+thread_nreps: 625000
+646.586720 seconds (11.51 G allocations: 1.273 TiB, 68.81% gc time)
