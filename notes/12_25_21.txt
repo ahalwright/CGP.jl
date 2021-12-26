@@ -1,0 +1,70 @@
+Wrote a parallel version of fnc.jl (find_neutral_components())
+
+Example:
+[aw167054e@surt2 src]$ julia -p 8 -L CGP.jl -L fnc.jl 
+p = Parameters(3,1,4,5)
+funcs
+4-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+
+ec2 = enumerate_circuits( p, funcs); length(ec2)
+@time S=find_neutral_components(ec2,0x005a,jld_file="../data/12_25_21/fnc_4funcs_p3_4_5_ph0x005a.jld"); print_lengths(S)
+time with empty jld_file:  39 seconds
+
+Example (lycosa 1 process):
+julia> p = Parameters(2,1,2,2)
+julia> funcs=default_funcs(p.numinputs)
+julia> ec2 = enumerate_circuits( p, funcs); length(ec2)  # 256
+julia> @time S=find_neutral_components(ec2,0x0005); print_lengths(S)
+length(ch_list): 56
+  0.313669 seconds (386.40 k allocations: 21.288 MiB, 90.63% compilation time)
+ky: 56  length(S[ky])): 4
+ky: 54  length(S[ky])): 52 
+julia> dict_to_csv(S,p,funcs)
+2×11 DataFrame
+ Row │ key    length  avg_robust  std_robust  rng_robust  avg_evo   std_evo   rng_evo  avg_cmplx  std_cmplx  rng_cmplx
+     │ Int64  Int64   Float64     Float64     Float64     Float64   Float64   Float64  Float64    Float64    Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │    56       4    0.2         0.0              0.0  0.4       0.0           0.0   0.5        0.0             0.0
+   2 │    54      52    0.538462    0.183809         0.6  0.353846  0.156508      0.5   0.139329   0.206954        0.5
+# Debugged on 12/26/21
+
+# The following was run on 12/26/21:
+julia> p = Parameters(2,1,3,3) # Parameters(1, 4, 0.05, 0.0, 2, 1, 2, 3, 3)
+julia> funcs
+4-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+julia> ec2 = enumerate_circuits( p, funcs); length(ec2)  # 20736 
+julia> @time S=find_neutral_components(ec2,0x000b); print_lengths(S)
+  0.804150 seconds (2.04 M allocations: 151.420 MiB, 2.02% gc time)
+ky: 517  length(S[ky])): 20
+ky: 764  length(S[ky])): 56
+ky: 620  length(S[ky])): 8
+ky: 768  length(S[ky])): 656
+ky: 518  length(S[ky])): 20
+ky: 644  length(S[ky])): 8
+julia> df = dict_to_csv(S,p,funcs) #  6×11 DataFrame
+ Row │ key    avg_robust  std_robust  rng_robust  avg_evo   std_evo    rng_evo   avg_cmplx  std_cmplx  rng_cmplx
+     │ Int64  Float64     Float64     Float64     Float64   Float64    Float64   Float64    Float64    Float64
+─────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │   517    0.178947   0.0843489    0.315789  0.484211  0.0323993  0.105263   0.8201    0.110981   0.270426
+   2 │   518    0.178947   0.0843489    0.315789  0.484211  0.0323993  0.105263   0.8201    0.110981   0.270426
+   3 │   620    0.131579   0.0487274    0.105263  0.447368  0.0487274  0.105263   0.613158  0.0336254  0.0629073
+   4 │   644    0.131579   0.0487274    0.105263  0.447368  0.0487274  0.105263   0.613158  0.0336254  0.0629073
+   5 │   764    0.180451   0.0687018    0.210526  0.443609  0.0435831  0.157895   0.686394  0.122264   0.292481
+   6 │   768    0.379974   0.11692      0.526316  0.408376  0.0446757  0.263158   0.341576  0.2784     0.792481 
+julia> rdf = consolidate_df(df,p)  #  4x11 DataFrame
+ Row │ len      count    avg_robust  std_robust  rng_robust  avg_evo   std_evo    rng_evo   avg_cmplx  std_cmplx  rng_cmplx
+     │ Float64  Float64  Float64     Float64     Float64     Float64   Float64    Float64   Float64    Float64    Float64
+─────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │     8.0      2.0    0.131579   0.0487274    0.105263  0.447368  0.0487274  0.105263   0.613158  0.0336254  0.0629073
+   2 │    20.0      2.0    0.178947   0.0843489    0.315789  0.484211  0.0323993  0.105263   0.8201    0.110981   0.270426
+   3 │    56.0      1.0    0.180451   0.0687018    0.210526  0.443609  0.0435831  0.157895   0.686394  0.122264   0.292481
+   4 │   656.0      1.0    0.379974   0.11692      0.526316  0.408376  0.0446757  0.263158   0.341576  0.2784     0.792481
+
