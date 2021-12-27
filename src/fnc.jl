@@ -2,9 +2,9 @@ using JLD, HDF5, Tables, Base.Threads
 
 # Combines calls to enumerate_circuits(), find_neutral_components(), dict_to_csv() and consolidate_df(), 
 #    and writes the resulting dataframe to a file if the csvfile keyword argument is a non-empty string.G
-function component_properties( p::Parameters, pheno::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); csvfile::String="" )
+function component_properties( p::Parameters, pheno::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); csvfile::String="", jld_file::String="" )
   ecl = enumerate_circuits( p, funcs )
-  S=find_neutral_components(ecl,pheno,funcs)
+  S=find_neutral_components( ecl, pheno, funcs, jld_file=jld_file )
   df = dict_to_csv(S,p,funcs)
   rdf = consolidate_df(df,p,funcs,csvfile=csvfile)
   if length(csvfile) > 0
@@ -304,4 +304,80 @@ function filter_parallel( ch_list::Vector{Int64}, nprcs::Integer )
     #Slist = map(cl->find_neutral_comps( cl, phenotype ), chl )
     chl
   #end
+end
+
+function pheno_counts( p::Parameters, funcs::Vector{Func}; csvfile::String="" )
+  counts = zeros(Int64,2^2^p.numinputs)
+  ecl = enumerate_circuits(p,funcs)
+  for ch in ecl
+    indx = output_values(ch)[1]
+    counts[indx+1] = counts[indx+1] + 1
+  end
+  df = DataFrame()
+  df.goal = map(g->@sprintf("0x%04x",g),map(MyInt,collect(0:2^2^p.numinputs-1)))
+  df.counts = counts
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      println(f,"# date and time: ",Dates.now())
+      numprocs = nprocs()==1 ? 1 : nprocs()-1
+      println(f,"# host: ",hostname," with ",numprocs,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ",funcs)
+      println(f,"# nthreads: ",nthreads())
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+function random_walk_repeats( ch::Chromosome, steps::Int64, maxsteps::Int64, funcs::Vector{Func})
+  @assert ch.params.numoutputs == 1
+  counts = Dict{Int128,Int64}()
+  goal = output_values(ch)[1]
+  println("goal: ",@sprintf("0x%04x",goal))
+  mlist = mutate_all( ch, funcs )
+  if length(mlist) == 0
+    println("chromosome ch in random_walk_repeats() has robustness 0")
+    return counts
+  end
+  total_steps = 0
+  for i = 1:steps
+    j = 1
+    while j <= maxsteps   # terminated by a break statement
+      sav_ch = deepcopy(ch)
+      (ch,active) = mutate_chromosome!( ch, funcs )
+      output = output_values(ch)[1]
+      if output == goal
+        #println("successful step for i= ",i,"  output: ",output)
+        break
+      end
+      ch = sav_ch
+      j += 1
+    end
+    if j < maxsteps
+      ci = chromosome_to_int( ch, funcs )
+      res = get( counts, ci, -1 )
+      if res == -1
+        counts[ci] = 1
+      else
+        counts[ci] = res + 1
+      end
+    else
+      error("Failed to find neutral mutation")
+    end
+    total_steps += j
+  end
+  println("total_steps: ",total_steps)  
+  total_counts = Dict{Int64,Int64}()
+  for ky in keys(counts)
+    cnt = counts[ky]
+    res = get( total_counts, cnt, -1 )
+    if res == -1
+      total_counts[cnt] = 1
+    else
+      total_counts[cnt] = res + 1
+    end
+  end
+  total_counts
 end

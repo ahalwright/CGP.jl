@@ -1,0 +1,28 @@
+# From screen on surt2:
+@time S=find_neutral_components(ec2,0x0077); print_lengths(S)
+58022.506412 seconds (16.94 G allocations: 25.404 TiB, 1.57% gc time)
+ky: 973402  length(S[ky])): 119424
+ky: 973440  length(S[ky])): 854016
+
+
+[aw167054e@surt2 src]$ julia -L CGP.jl -L fnc.jl
+julia> p = Parameters(3,1,5,3)
+julia> funcs=default_funcs(p.numinputs)
+4-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+@time ecl = enumerate_circuits(p,funcs); length(ecl)
+ 91.991734 seconds (509.75 M allocations: 31.781 GiB, 63.95% gc time, 0.07% compilation time)
+60466176
+julia> funcs=[AND,OR,NAND,NOR,XOR]
+5-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+ Func(xor, 2, "XOR")
+julia> @time ecl5 = enumerate_circuits(p,funcs); length(ecl5)
+1003.513391 seconds (1.50 G allocations: 92.069 GiB, 89.51% gc time)
+184528125
