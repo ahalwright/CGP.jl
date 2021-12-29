@@ -1,9 +1,10 @@
 # Linear GP circuit chromosome functions
+# When Parameters are used, numinteriors specifies numinstructions.
 # When Parameters are used, numlevelsback specifies numregisters.
 # A circuit is a sequence of instructions on the register array R 
 #   which has length numregisters + numinputs
 # R is normally local to the function where is is used.
-# The first numregisters components or R are calculation registers.
+# The first numregisters components of R are calculation registers.
 # The remaining numinputs components are read-only input registers which are 
 #   initialized with the components of the current context.
 # Even though there is a nodearity keyword value, this file assumes nodearity==2
@@ -30,7 +31,7 @@ export num_instructions # This is the total number of possible instructions for 
 export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, mutate_all, print_circuit
 export instruction_vects_to_instruction_ints, instruction_ints_to_instruction_vects
 export instruction_ints_to_circuit_int, circuit_int_to_instruction_ints
-export circuit_int_to_circuit, circuit_to_circuit_int
+export circuit_int_to_circuit, circuit_to_circuit_int, enumerate_circuits_lc
 #export circuit_int
 OutputType = Int64
 
@@ -51,6 +52,10 @@ function output_values( c::LinCircuit, funcs::Vector{Func}=Func[] )
   R = execute_lcircuit( c, funcs )
   R[1:c.params.numoutputs]
 end  
+
+function output_values( cv::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func} )
+  output_values( LinCircuit( cv, p ), funcs )
+end
 
 # Not used.  Assumes that R and funcs are in the execution environment
 function vect_to_funct( lc::Vector{MyInt} )
@@ -448,3 +453,79 @@ function circuit_distance( circuit_vect1::Vector{Vector{MyInt}},circuit_vect2::V
   sum_distances
 end  
 
+function enumerate_circuits_lc( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs))
+  ecl = enumerate_circuits_lc( p, p.numinteriors, funcs )
+  map( ec->LinCircuit( ec, p ), ecl )
+end
+
+# Recursive helper function
+# Returns only a circuit_vect which will be included in a LinCircuit by the top-level caller
+function enumerate_circuits_lc( p::Parameters, numinstructions::Int64, funcs::Vector{Func}; maxarity::Int64=2 )
+  #println("ec_lc: numinstructions: ",numinstructions)
+  if numinstructions == 0
+    result =  [[ MyInt[] ]]
+    return result
+  end
+  prev_result = enumerate_circuits_lc( p, numinstructions-1, funcs )
+  #println("prev_result: ",prev_result)
+  new_result = Vector{Vector{MyInt}}[]
+  for prev_circ in prev_result
+    if length(prev_circ[1])==0
+      pop!(prev_circ)
+    end
+    for i = 1:length(funcs)
+      for j = 1:p.numlevelsback
+        for h = 1:p.numlevelsback+p.numinputs
+          for k = 1:p.numlevelsback+p.numinputs
+            pc = push!(deepcopy(prev_circ),MyInt[i,j,h,k] )
+            push!( new_result, pc )
+          end
+        end
+      end
+    end
+  end
+  new_result
+end
+
+#= Moved into fnc.jl 12/28/21
+function find_neutral_comps( lc_list::Vector{LinCircuit}, phenotype::MyInt, funcs::Vector{Func} )
+  S = Dict{Int64,Set{Int128}}()
+  p = lc_list[1].params
+  new_key = 1
+  for lc in lc_list
+    #println("lc: ",lc)
+    lci = circuit_to_circuit_int(lc,funcs)
+    # mutate_all() keyword arguments don't work
+    cv_list = filter( x->output_values(x,p,funcs)[1]==phenotype, mutate_circuit_all(lc.circuit_vects, p, funcs))
+    #mlist = map(ci->LinCircuit(ci,p) for ci in cv_list )
+    mlist = [ LinCircuit(ci,p) for ci in cv_list ]
+    ihlist = map(h->circuit_to_circuit_int(h,funcs),mlist)
+    push!(ihlist,circuit_to_circuit_int(lc,funcs))
+    push!(ihlist,lci)
+    ihset = Set(ihlist)
+    if length(ihset) > 0
+      for ky in keys(S)
+        #println("ky: ",ky,"  S[ky]: ",S[ky])
+        if length( intersect( ihset, S[ky] ) ) > 0
+          union!( ihset, S[ky] )
+          delete!( S, ky )
+        end
+      end
+      S[ new_key ] = ihset
+      if new_key % 100 == 0
+        print("lci: ",lci,"  length(ihset): ",length(ihset),"   ")
+        println("length(S[",new_key,"]) = ",length(S[new_key]))
+      end
+      new_key += 1
+    end
+  end
+  for ky0 in keys(S)
+    for ky1 in keys(S)
+      if length(intersect(S[ky0],S[ky1]))>0 && ky0 != ky1
+        println("the intersection of set S[",ky0,"] and set S[",ky1,"] is nonempty")
+      end
+    end
+  end
+  S
+end  
+=#

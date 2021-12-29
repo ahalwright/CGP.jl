@@ -2,8 +2,9 @@ using JLD, HDF5, Tables, Base.Threads
 
 # Combines calls to enumerate_circuits(), find_neutral_components(), dict_to_csv() and consolidate_df(), 
 #    and writes the resulting dataframe to a file if the csvfile keyword argument is a non-empty string.G
-function component_properties( p::Parameters, pheno::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); csvfile::String="", jld_file::String="" )
-  ecl = enumerate_circuits( p, funcs )
+function component_properties( p::Parameters, pheno::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); 
+      use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
+  ecl = use_lincircuit ? enumerate_circuits_lc( p, funcs ) : enumerate_circuits_ch( p, funcs )
   S=find_neutral_components( ecl, pheno, funcs, jld_file=jld_file )
   df = dict_to_csv(S,p,funcs)
   rdf = consolidate_df(df,p,funcs,csvfile=csvfile)
@@ -23,10 +24,13 @@ function component_properties( p::Parameters, pheno::MyInt, funcs::Vector{Func}=
   rdf
 end
 
-# p = Parameters(3,1,4,5)  # Example
-#  funcs = default_funcs(p.numinputs) #  ecl = enumerate_circuits( p, funcs); length(ecl) 
-#  @time S=find_neutral_components(ec2,0x005a); print_lengths(S)
-function find_neutral_components( ch_list::Vector{Chromosome}, phenotype::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); jld_file::String="" )
+# p = Parameters(3,1,4,3)  # Example
+#  phenotype = 0x0015   # count=6848 from data/12_26_21/pheno_counts_12_26_21_F.csv (Cartesian)
+#  funcs = default_funcs(p.numinputs);  
+#  for Chromosomes:  ecl = enumerate_circuits_ch( p, funcs); length(ecl) 
+#  for LinCircuits:  ecl = enumerate_circuits_lc( p, funcs); length(ecl) 
+#  @time S=find_neutral_components(ecl,0x005a,funcs); print_lengths(S)  # Works for both Chromosomes and LinCircuits
+function find_neutral_components( ch_list::Union{Vector{Chromosome},Vector{LinCircuit}}, phenotype::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); jld_file::String="" )
   p = ch_list[1].params
   ch_list = filter( x->output_values(x)[1]==phenotype, ch_list )
   println("length(ch_list): ",length(ch_list))
@@ -34,7 +38,7 @@ function find_neutral_components( ch_list::Vector{Chromosome}, phenotype::MyInt,
     error("no genotypes that map to the given phenothype ",[phenotype])
   end
   if nprocs() == 1
-    S = find_neutral_comps( ch_list, phenotype )
+    S = find_neutral_comps( ch_list, phenotype, funcs )
   else
     # Break ch_list into sublists for parallel processing
     split = div(length(ch_list),nprocs()-1) + 1
@@ -44,7 +48,7 @@ function find_neutral_components( ch_list::Vector{Chromosome}, phenotype::MyInt,
       push!(chl,ch_list[i*split+1:min((i+1)*split,length(ch_list))])
     end
     #println("chl: ",chl)
-    Slist = map(cl->find_neutral_comps( cl, phenotype ), chl )
+    Slist = map(cl->find_neutral_comps( cl, phenotype, funcs ), chl )
     S = Dict{Int64,Set{Int128}}()
     for i = 1:length(Slist)
       S = merge_dictionaries!( S, Slist[i] )
@@ -58,7 +62,7 @@ function find_neutral_components( ch_list::Vector{Chromosome}, phenotype::MyInt,
   S
 end
 
-function find_neutral_comps( ch_list::Vector{Chromosome}, phenotype::MyInt )
+function find_neutral_comps( ch_list::Vector{Chromosome}, phenotype::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs) )
   S = Dict{Int64,Set{Int128}}()
   new_key = 1
   for g in ch_list
@@ -92,6 +96,46 @@ function find_neutral_comps( ch_list::Vector{Chromosome}, phenotype::MyInt )
   end
   S
 end
+
+function find_neutral_comps( lc_list::Vector{LinCircuit}, phenotype::MyInt, funcs::Vector{Func} )
+  S = Dict{Int64,Set{Int128}}()
+  p = lc_list[1].params
+  new_key = 1
+  for lc in lc_list
+    lci = circuit_to_circuit_int(lc,funcs)
+    # mutate_all() keyword arguments don't work
+    cv_list = filter( x->output_values(x,p,funcs)[1]==phenotype, mutate_circuit_all(lc.circuit_vects, p, funcs))
+    #mlist = map(ci->LinCircuit(ci,p) for ci in cv_list )  # Didn't work.  Replaced by the next statement
+    mlist = [ LinCircuit(ci,p) for ci in cv_list ]   
+    ihlist = map(h->circuit_to_circuit_int(h,funcs),mlist)
+    push!(ihlist,circuit_to_circuit_int(lc,funcs))
+    push!(ihlist,lci)
+    ihset = Set(ihlist)
+    if length(ihset) > 0
+      for ky in keys(S)
+        #println("ky: ",ky,"  S[ky]: ",S[ky])
+        if length( intersect( ihset, S[ky] ) ) > 0
+          union!( ihset, S[ky] )
+          delete!( S, ky )
+        end
+      end
+      S[ new_key ] = ihset
+      if new_key % 100 == 0
+        print("lci: ",lci,"  length(ihset): ",length(ihset),"   ")
+        println("length(S[",new_key,"]) = ",length(S[new_key]))
+      end
+      new_key += 1
+    end
+  end
+  for ky0 in keys(S)
+    for ky1 in keys(S)
+      if length(intersect(S[ky0],S[ky1]))>0 && ky0 != ky1
+        println("the intersection of set S[",ky0,"] and set S[",ky1,"] is nonempty")
+      end
+    end
+  end
+  S
+end  
 
 function merge_set_to_dict( set::Set{Int128}, S::Dict{Int64,Set{Int128}} )
   new_key = length(keys(S))==0 ? 1 : maximum(keys(S)) + 1
@@ -246,14 +290,16 @@ function robust_evo_cmplx( set::Set{Int128}, p::Parameters, funcs::Vector{Func}=
     sum_evo += evo; sum_sq_evo += evo^2; max_evo= evo>max_evo ? evo : max_evo; min_evo=evo<min_evo ? evo : min_evo
     sum_cmplx += cmplx; sum_sq_cmplx += cmplx^2; max_cmplx=cmplx>max_cmplx ? cmplx : max_cmplx; min_cmplx=cmplx<min_cmplx ? cmplx : min_cmplx
   end
-  sd_robust = sqrt( 1.0/(n-1.0)*(sum_sq_robust - sum_robust^2/n) )
-  sd_evo = sqrt( 1.0/(n-1.0)*(sum_sq_evo - sum_evo^2/n) )
-  sd_cmplx = sqrt( 1.0/(n-1.0)*(sum_sq_cmplx - sum_cmplx^2/n) )
+  sd_robust = sqrtn( 1.0/(n-1.0)*(sum_sq_robust - sum_robust^2/n) )
+  sd_evo = sqrtn( 1.0/(n-1.0)*(sum_sq_evo - sum_evo^2/n) )
+  sd_cmplx = sqrtn( 1.0/(n-1.0)*(sum_sq_cmplx - sum_cmplx^2/n) )
   rng_robust = max_robust-min_robust
   rng_evo = max_evo-min_evo
   rng_cmplx = max_cmplx-min_cmplx
   ( sum_robust/n, sd_robust, rng_robust, sum_evo/n, sd_evo, rng_evo, sum_cmplx/n, sd_cmplx, rng_cmplx )
 end
+
+sqrtn( x::Float64 ) = x >= 0.0 ? sqrt(x) : 0.0
 
 # Consolidates df by averaging dataframe rows that correspond to rows of the same length
 function consolidate_df( df::DataFrame, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); csvfile::String="" )
@@ -278,7 +324,7 @@ function consolidate_df( df::DataFrame, p::Parameters, funcs::Vector{Func}=defau
   ordered_keys = sort([ky for ky in keys(dict)])
   println("ordered_keys: ",ordered_keys)
   rdf = DataFrame( vcat([:len=>Float64[],:count=>Float64[]],[ Symbol(nm)=>Float64[] for nm in names(df)[3:end] ] ))
-  println("names(rdf): ",names(rdf))
+  #println("names(rdf): ",names(rdf))
   for ky in ordered_keys
     #println("ky: ",ky,"  dict[ky]: ",dict[ky])
     ssum = dict[ky]

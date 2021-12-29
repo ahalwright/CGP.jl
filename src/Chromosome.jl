@@ -10,7 +10,7 @@ export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits
 export code_to_circuit   # outdate 9/13/21
 export insert_gate!, delete_gate!
-export enumerate_circuits, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
+export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
 
 PredType = Int64
 #= Commented out.  The included definition is in aliases.jl.
@@ -844,18 +844,18 @@ function inputsList( numinputs::Int64, minval::Int64, maxval::Int64 )
   new_result
 end     
 
-# Produces a list of all circuits corresponding the paramters p --- except that it ignores the levelsback parameter
-function enumerate_circuits( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
-  enumerate_circuits( p, p.numinteriors, funcs, maxarity=maxarity )
+# Produces a list of all circuits corresponding the paramters p 
+function enumerate_circuits_ch( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
+  enumerate_circuits_ch( p, p.numinteriors, funcs, maxarity=maxarity )
 end
 
 # Recursive helper function
-function enumerate_circuits( p::Parameters, numints::Int64, funcs::Vector{Func}; maxarity::Int64=2 )
+function enumerate_circuits_ch( p::Parameters, numints::Int64, funcs::Vector{Func}; maxarity::Int64=2 )
   if numints == 0
     result = [Chromosome( p, map(i->InputNode(i),collect(1:p.numinputs)), InteriorNode[], [OutputNode(p.numinputs)], 0.0, 0.0 )]
     return result
   end
-  prev_result = enumerate_circuits( p, numints-1, funcs ) 
+  prev_result = enumerate_circuits_ch( p, numints-1, funcs ) 
   result = Chromosome[]
   for prev_ch in prev_result
     for inputs in inputsList( maxarity, max(1,p.numinputs+numints-p.numlevelsback), p.numinputs+numints-1 )
