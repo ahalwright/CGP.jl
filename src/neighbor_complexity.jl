@@ -28,7 +28,7 @@ function neighbor_complexity( g::Goal, p::Parameters, maxreps::Int64, maxsteps::
     c_output = output_values(c)
     #println("goal: ",g,"  i: ",i,"  nrepeats: ",nrepeats,"  c_output: ",c_output)
     @assert sort(c_output) == sort(g)   
-    output_chromes = mutate_all( c, funcs, output_chromosomes=true )
+    output_chromes = mutate_all( c, funcs, output_circuits=true )
     for out_c in output_chromes
       #print("out_c: ")
       #print_build_chromosome(out_c[2])

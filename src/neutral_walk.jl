@@ -37,7 +37,7 @@ function neutral_walk( c::Chromosome, p::Parameters, steps::Int64, maxsteps::Int
     end
     if attempts == maxtries
       # Alternatively, try all mutations of c in our attempt to extend walk
-      all_chromes = map( x->x[2], mutate_all( deepcopy(c), funcs, output_chromosomes=true )) 
+      all_chromes = map( x->x[2], mutate_all( deepcopy(c), funcs, output_circuits=true )) 
       filter!( x->output_values(x)==g, all_chromes )  # only chromosomes that map to g
       #println(" attempts == maxtries  len(all_chromes): ",length(all_chromes))
       if length(all_chromes) == 0  
@@ -52,7 +52,7 @@ function neutral_walk( c::Chromosome, p::Parameters, steps::Int64, maxsteps::Int
     end
     @assert output_values(c) == g
     # mutate_all() returns a list of pairs where the second element of the pair is the chromosome
-    all_chromes = map( x->x[2], mutate_all( c, funcs, output_chromosomes=true )) 
+    all_chromes = map( x->x[2], mutate_all( c, funcs, output_circuits=true )) 
     filter!( x->output_values(c)==g, all_chromes )
     for ch in all_chromes 
       push!( circuit_ints, circuit_int(ch) )

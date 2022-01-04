@@ -926,7 +926,7 @@ function geno_properties( cl_ss::Tuple{Vector{Chromosome}, Int64} ) # Tuple of c
     @assert output_values(c) == g
     sum_robust += mutational_robustness( c, funcs )
     sum_complexity += complexity5(c) 
-    genotypes = Set(mutate_all(c,funcs,output_outputs=true,output_chromosomes=false))
+    genotypes = Set(mutate_all(c,funcs,output_outputs=true,output_circuits=false))
     sum_evolvability += length(genotypes)-1
     #println("len(genotypes): ",length(genotypes),"  genotypes: ",genotypes)
     genotype_set = union( genotype_set, genotypes )

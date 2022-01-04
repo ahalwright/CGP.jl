@@ -451,7 +451,9 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
   num_gates_exceptions = 0
   funcs = default_funcs(p.numinputs)
   complexities_list = Float64[]
-  robust_evol_list = Tuple{Float64,Float64}[]
+  #robust_evol_list = Tuple{Float64,Float64}[]
+  robust_list = Float64[]
+  evol_list = Float64[]
   num_gates = p.numinteriors+1   # decrement on the first iteration
   p_current = p
   found_c = Chromosome(p,[],[],[],0.0,0.0)  # dummy chromosome to establish scope
@@ -491,7 +493,10 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
     num_gates += 1  # now set to the minimum number of gates for successful circuit
   end  
   push!(complexities_list, complexity5(found_c))
-  push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
+  #push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
+  (rlist,elist) = mutate_all( found_c, funcs,robustness_only=true)
+  push!(robust_list, rlist )
+  push!(evol_list, elist )
   p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
   tries = 1
   iter = 0  # put a bound on iterations
@@ -513,19 +518,26 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
         p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
         num_gates_exceptions += 1
         complexities_list = Float64[]  # restart complexities_list
-        robust_evol_list = Tuple{Float64,Float64}[]  # restart robust_evol_list 
+        #robust_evol_list = Tuple{Float64,Float64}[]  # restart robust_evol_list 
+        robust_list = Float64[]  # Restart robust_list
+        evol_list = Float64[]    # Restart evol_list
         iter = 0
         tries = 1  # do more tries
       end
       push!(complexities_list, complexity5(c))
-      push!(robust_evol_list, mutate_all( c, funcs,robustness_only=true))
+      #push!(robust_evol_list, mutate_all( c, funcs,robustness_only=true))
+      (rlist,elist) = mutate_all( c, funcs,robustness_only=true)
+      push!(robust_list, rlist )
+      push!(evol_list, elist )
       tries += 1
     end
     iter += 1
   end
   #println("tries: ",tries)
   avg_complexity = sum(complexities_list)/length(complexities_list)
-  avg_robustness = sum( map(x->x[1],robust_evol_list))/length(robust_evol_list)
-  avg_evolvability = sum( map(x->x[2],robust_evol_list))/length(robust_evol_list)
+  #avg_robustness = sum( map(x->x[1],robust_evol_list))/length(robust_evol_list)
+  avg_robustness = sum(robust_list)/length(robust_list)
+  #avg_evolvability = sum( map(x->x[2],robust_evol_list))/length(robust_evol_list)
+  avg_evolvability = sum(evol_list)/length(evol_list)
   (g,num_gates,number_active_gates(found_c),avg_complexity,tries,avg_robustness,avg_evolvability,num_gates_exceptions)
 end

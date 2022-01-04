@@ -31,7 +31,7 @@ export num_instructions # This is the total number of possible instructions for 
 export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, mutate_all, print_circuit
 export instruction_vects_to_instruction_ints, instruction_ints_to_instruction_vects
 export instruction_ints_to_circuit_int, circuit_int_to_instruction_ints
-export circuit_int_to_circuit, circuit_to_circuit_int, enumerate_circuits_lc
+export circuit_int_to_circuit, circuit_to_circuit_int, enumerate_circuits_lc, count_circuits_lc
 #export circuit_int
 OutputType = Int64
 
@@ -390,9 +390,20 @@ function mutate_circuit!( circuit::LinCircuit, funcs::Vector{Func}; nodearity::I
   LinCircuit( mutate_circuit!( circuit.circuit_vects, circuit.params, funcs ), circuit.params )
 end
 
+function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 ) 
+  mutate_circuit_all( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
+end
+
+function mutate_circuit_all( circuit::LinCircuit, funcs::Vector{Func}=circuit.params.numinputs; nodearity::Int64=2 ) 
+  mutate_circuit_all( circuit.circuit_vects, circuit.params, funcs )
+end
+
 function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 ) 
+  numinstructions = length(circuit_vect)
+  p = Parameters( numinputs, 1, numinstructions, numregisters )  # Assumes 1 output
   lenfuncs = length(funcs)
   result = Vector{Vector{MyInt}}[]
+  #result = LinCircuit[]
   for ind = 1:length(circuit_vect)
     mutated_instructions=mutate_instruction_all(circuit_vect[ind],numregisters,numinputs,funcs,nodearity=nodearity) 
     for mi in mutated_instructions
@@ -404,20 +415,35 @@ function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, numregisters::
   result
 end
 
-function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 ) 
-  mutate_circuit_all( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
-end
-
-function mutate_all( circuit::LinCircuit, lfuncs::Vector{Func}=Func[]; output_outputs::Bool=true, nodearity::Int64=2 ) 
-  mca = mutate_circuit_all( circuit, lfuncs, nodearity=nodearity ) 
-  map( x->output_values(LinCircuit(x,circuit.params)), mca )
-end
-
-function mutate_circuit_all( circuit::LinCircuit, funcs::Vector{Func}=Func[]; nodearity::Int64=2 ) 
-  if length(funcs) == 0
-    funcs = lin_funcs( circuit.params.numinputs )
+# Mutates ciruit in all possible ways.
+# The result depends on the keyword arguments.
+# If !output_outputs && output_circuits returns list of the chromsomes produced by mutation
+# If output_outputs && !output_circuits returns list of the outputs of chromsomes produced by mutation
+# If output_outputs && output_circuits returns both the list of outputs and the list of chromosomes as a pair
+# If robustness_only==true returns the pair: (avg_robustness, evolvability)
+# Deterministic if all functions in default_funcs() have the same arity                 
+function mutate_all( circuit::LinCircuit, funcs::Vector{Func}=default_funcs(circuit.params.numinputs); 
+      robustness_only::Bool=false, output_outputs::Bool=true, output_circuits::Bool=false, nodearity::Int64=2 )
+  phenotype = output_values(circuit)   
+  mca = mutate_circuit_all( circuit, funcs, nodearity=nodearity ) 
+  if output_outputs || robustness_only
+    outputs = map( x->output_values(LinCircuit(x,circuit.params)), mca )
   end
-  mutate_circuit_all( circuit.circuit_vects, circuit.params, funcs )
+  if robustness_only
+    output_outputs = output_circuits = false
+    robustness_sum = 0.0; robustness_count = 0
+    robustness_avg = length(filter(x->x==phenotype,outputs))/length(outputs)
+    evolvability = length(unique(outputs))/length(outputs)
+    result = (robustness_avg,evolvability)
+  elseif output_outputs && !output_circuits
+    result = outputs
+    return result
+  elseif !output_outputs && output_circuits
+    result = mca
+    return result
+  elseif output_outputs && output_circuits
+    result = (outputs,mca)
+  end
 end
 
 function print_circuit( f::IO, circuit::LinCircuit, funcs::Vector{Func} )
@@ -452,6 +478,12 @@ function circuit_distance( circuit_vect1::Vector{Vector{MyInt}},circuit_vect2::V
   end
   sum_distances
 end  
+
+function count_circuits_lc( p::Parameters; nfuncs::Int64=length(default_funcs(p.numinputs) ) )
+  @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
+  numcircuits_per_instruction = nfuncs*p.numlevelsback*(p.numlevelsback+p.numinputs)^2
+  numcircuits_per_instruction^p.numinteriors^p.numoutputs
+end
 
 function enumerate_circuits_lc( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs))
   ecl = enumerate_circuits_lc( p, p.numinteriors, funcs )

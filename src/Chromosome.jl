@@ -7,7 +7,7 @@ export output_values, number_active, number_active_gates, hamming_distance, iham
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code, circuit_int
 export circuit, print_circuit
-export circuit_distance, remove_inactive, count_circuits
+export circuit_distance, remove_inactive, count_circuits_ch
 export code_to_circuit   # outdate 9/13/21
 export insert_gate!, delete_gate!
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
@@ -201,25 +201,30 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
   (c,active)
 end
 
-# Mutates c in all possible ways and returns a list of the outputs of the mutated chromosomes
-#    or the pair (avg_robustness, evolvability)
-# Deterministic if all functions in default_funcs() have the same arity
+# Mutates c in all possible ways. 
+# The result depends on the keyword arguments.
+# If !output_outputs && output_circuits returns list of the chromsomes produced by mutation   
+# If output_outputs && !output_circuits returns list of the outputs of chromsomes produced by mutation   
+# If output_outputs && output_circuits returns both the list of outputs and the list of chromosomes as a pair
 # If robustness_only==true returns the pair: (avg_robustness, evolvability)
-# Otherwise returns vector of either outputs, or chromosomes, or (outputs, chromosomes) pairs
-function mutate_all( c::Chromosome, funcs::Vector{Func}; 
-      robustness_only::Bool=false, output_outputs::Bool=true, output_chromosomes::Bool=false )
+# Deterministic if all functions in default_funcs() have the same arity
+# TODO:  simplify by using the model of mutate_all() in LinChromosome.jl
+function mutate_all( c::Chromosome, funcs::Vector{Func}=default_funcs(c.params.numinputs); 
+      robustness_only::Bool=false, output_outputs::Bool=true, output_circuits::Bool=false )
   #println("mutate_all: numlevelsback: ", c.params.numlevelsback )
   #sav_c = deepcopy(c)
   if robustness_only
-    output_outputs = output_chromosomes = false
+    output_outputs = output_circuits = false
     robustness_sum = 0.0; robustness_count = 0
     result = Vector{MyInt}[]   # Save outputs to give a measure of evolvability
-  elseif output_outputs && !output_chromosomes
+  elseif output_outputs && !output_circuits
     result = Vector{MyInt}[]
-  elseif !output_outputs && output_chromosomes 
+  elseif !output_outputs && output_circuits 
     result = Chromosome[]
-  elseif output_outputs && output_chromosomes 
-    result = Tuple{Vector{MyInt},Chromosome}[]
+  elseif output_outputs && output_circuits 
+    #result = Tuple{Vector{MyInt},Chromosome}[]
+    outputs_list = Vector{MyInt}[]
+    ch_list = Chromosome[]
   end
   context = construct_context(c.params.numinputs)
   orig_output = output_values(c)
@@ -228,7 +233,7 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
   num_inputs_list = map(length, interiors_inputs_list)
   num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
   for mutate_location = 1:num_mutate_locs
-    new_c = output_chromosomes ? deepcopy(c) : c
+    new_c = output_circuits ? deepcopy(c) : c
     if mutate_location <= num_funcs_to_mutate   # mutate a func
       #println("mutate a func ml:",mutate_location,"  node: ",c.interiors[mutate_location])
       active = c[mutate_location].active
@@ -258,7 +263,7 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
           end
         end 
         new_c = deepcopy(c)  # This is necessary:  test done on 9/24/21
-        #new_c = output_chromosomes ? deepcopy(c) : c
+        #new_c = output_circuits ? deepcopy(c) : c
         new_c.interiors[mutate_location] = InteriorNode(new_func,new_inputs)
         deactivate_chromosome!(new_c)
         new_output = execute_chromosome(new_c,context)
@@ -266,12 +271,14 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
           robustness_sum = (new_output == orig_output) ? robustness_sum + 1 : robustness_sum
           robustness_count+=1
           push!(result,new_output)
-        elseif output_outputs && !output_chromosomes
+        elseif output_outputs && !output_circuits
           push!(result,new_output)
-        elseif !output_outputs && output_chromosomes
+        elseif !output_outputs && output_circuits
           push!(result,new_c)
-        elseif output_outputs && output_chromosomes
-          push!(result,(new_output,new_c))
+        elseif output_outputs && output_circuits
+          #push!(result,(new_output,new_c))
+          push!(outputs_list,new_output)
+          push!(ch_list,new_c)
         end
       end
       #println("new interior node: ",new_c.interiors[mutate_location])
@@ -307,12 +314,14 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
           robustness_sum = (new_output == orig_output) ? robustness_sum + 1 : robustness_sum
           robustness_count+=1
           push!(result,new_output)
-        elseif output_outputs && !output_chromosomes
+        elseif output_outputs && !output_circuits
           push!(result,new_output)
-        elseif !output_outputs && output_chromosomes
+        elseif !output_outputs && output_circuits
           push!(result,new_c)
-        elseif output_outputs && output_chromosomes
-          push!(result,(new_output,new_c))
+        elseif output_outputs && output_circuits
+          #push!(result,(new_output,new_c))
+          push!(outputs_list,new_output)
+          push!(ch_list,new_c)
         end
       end
     elseif mutate_location > num_funcs_to_mutate + sum(num_inputs_list)   # mutate an output
@@ -344,6 +353,8 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
   end
   if robustness_only
     (robustness_sum/robustness_count, length(unique(result))/length(result)) # pair of avg robustenss and evolvability
+  elseif output_outputs && output_circuits
+    return (outputs_list,ch_list)
   else
     result
   end
@@ -899,7 +910,7 @@ end
 
 # Return the number of circuits for parameters p and number of funcs nfuncs if nfuncs>0
 # If nfuncs==0, nfuncs is reset to be length(default_funcs(p.numinputs))
-function count_circuits( p::Parameters; nfuncs::Int64=0 )
+function count_circuits_ch( p::Parameters; nfuncs::Int64=0 )
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
   multiplier = Int128(1)
@@ -924,7 +935,7 @@ function count_circuits( p::Parameters; nfuncs::Int64=0 )
     end
     =#
   end
-  multiplier
+  multiplier^p.numoutputs
 end
 
 # Mutates chromosome c by inserting a gate or deleting a gate

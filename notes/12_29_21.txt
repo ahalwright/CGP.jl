@@ -1,0 +1,35 @@
+Wrote pheno_counts_ch() and pheno_counts_lc() in fnc.jl.  
+  Included is a keyword argument to save the entire G-P map as a Vector indexed by
+    chromosome_ints/circuit_ints and mapping to single-output phenotypes.
+
+Example:
+julia> p = Parameters(2,1,3,2) 
+julia> funcs = default_funcs(p.numinputs) 
+julia> (cdf,P) = pheno_counts_lc( p, funcs, output_vect=true )
+julia> cdf
+(16×2 DataFrame
+ Row │ goal    counts
+     │ String  Int64
+─────┼────────────────
+   1 │ 0x0000  617025
+   2 │ 0x0001   84672
+   3 │ 0x0002   19648
+   4 │ 0x0003  176960
+   5 │ 0x0004   19648
+   6 │ 0x0005  176960
+   7 │ 0x0006      64
+   8 │ 0x0007   84672
+   9 │ 0x0008   84672
+  10 │ 0x0009      64
+  11 │ 0x000a  176960
+  12 │ 0x000b   19648
+  13 │ 0x000c  176960
+  14 │ 0x000d   19648
+  15 │ 0x000e   84672
+  16 │ 0x000f  354880
+
+# Test
+julia> pheno=0x000f
+0x000f   # can be any goal (phenotype) 
+julia> for j in findall(x->x==pheno,P) @assert pheno == output_values(circuit_int_to_circuit(Int128(j-1),p,funcs))[1] end
+

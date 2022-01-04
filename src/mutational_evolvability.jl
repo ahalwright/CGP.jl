@@ -79,7 +79,7 @@ function mutational_evolvability( c::Chromosome, num_mutations::Int64 )
   goal_set = Set( Goal[] )
   for i = 1:num_mutations
     if i == 1
-      goal_circuit_pairs = mutate_all( c, funcs, output_chromosomes=true ) 
+      goal_circuit_pairs = mutate_all( c, funcs, output_circuits=true ) 
       circuit_set = Set( map( x->x[2], goal_circuit_pairs ))
       goal_list =  map( x->x[1], goal_circuit_pairs )
       robustness = length(filter(x->x==g,goal_list))/length(goal_list)
@@ -91,7 +91,7 @@ function mutational_evolvability( c::Chromosome, num_mutations::Int64 )
       j = 0
       for c in circuit_set_previous
         j += 1
-        goal_circuit_pairs = mutate_all( c, funcs, output_chromosomes=true ) 
+        goal_circuit_pairs = mutate_all( c, funcs, output_circuits=true ) 
         circuit_set = union( Set(map( x->x[2], goal_circuit_pairs )), circuit_set )
         goal_set = union( Set( map( x->x[1], goal_circuit_pairs ) ), goal_set )
         #println("j: ",j,"  lengths: cl: ",length(circuit_list),"  gs: ",length(goal_set))

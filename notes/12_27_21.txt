@@ -1,0 +1,16 @@
+Results for find_neutral_components.
+All 3 inputs, 1 output, Cartesian
+
+run_find_neutral_components_12_27_21_*.jl and neutral_components_12_27_21_*.csv
+
+suffix numints levsback nfuncs pheno    components
+A       3       2       5       0x00aa   8->1, 848->1
+M       5       4       4       0x0056   9792->1, 9824->1, 10144->1, plus 1,2,4
+N       4       4       5       0x0056   27732->2, 2464->1, 2312->1, 1456->2, plus 1,2,4,6,32
+O       4       4       5       0x004a   2494->1, 180->4, plus 1,2,4,6,12
+P       4       4       5       0x005a   154168->1,416->2,408->2, plus 2,4,8,16,20
+Q       4       4       5       0x00aa   1793928->1, plus 1,4
+
+
+
+

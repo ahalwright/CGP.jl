@@ -1,0 +1,48 @@
+Started writing Neutral_components_genotype_network12_28_21.docx.  Got refworks to work in Word.
+
+Succeeded in writing enumerate_circuits_lc() in LinCircuit.jl.  However, found that the number
+of circuits generated grows very rapidly with numinteriors=numinstructions and numlevelsback=numregisters 
+and exceeds memory with p=Parameters(3,1,4,2) and 4 functions.
+Examples:
+p = Parameters(3,1,4,2); funcs = default_funcs(p.numinputs)
+funcs = [funcs[1]] 
+julia> @time ecl=enumerate_circuits_lc( p, funcs ); length(ecl)
+  8.987296 seconds (66.71 M allocations: 5.049 GiB, 21.19% gc time)
+6250000
+julia> funcs = default_funcs(p.numinputs); funcs= funcs[3:4]
+julia> @time ecl=enumerate_circuits_lc( p, funcs ); length(ecl)
+448.980218 seconds (1.06 G allocations: 79.913 GiB, 74.44% gc time)
+100000000
+
+Here is an example that works:
+julia> p = Parameters(3,1,3,2)
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 3, 2)
+julia> @time component_properties(p,0x00aa,funcs[1:2],use_lincircuit=true)
+length(ch_list): 105320 
+
+julia> @time component_properties(p,0x00cc,funcs[1:2],use_lincircuit=true)
+length(ch_list): 105320
+
+@time component_properties(p,0x00f0,funcs,use_lincircuit=true)
+length(ch_list): 105320 
+
+julia> @time component_properties(p,0x00fe,funcs,use_lincircuit=true)
+length(ch_list): 6576 
+ 42.709173 seconds (294.33 M allocations: 35.054 GiB, 13.05% gc time, 3.94% compilation time)
+2×11 DataFrame
+ Row │ len      count    avg_robust  std_robust  rng_robust  avg_evo   std_evo   rng_evo   avg_cmplx  std_cmplx  rng_cmplx
+     │ Float64  Float64  Float64     Float64     Float64     Float64   Float64   Float64   Float64    Float64    Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │     1.0   6240.0    0.47906     0.0         0.0       0.438586  0.0       0.0        0.558967   0.0        0.0
+   2 │     2.0    336.0    0.489749    0.123463    0.174603  0.422784  0.113408  0.160384   0.564224   0.182641   0.258294
+
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 3, 2)
+@time component_properties(p,0x00aa,funcs[1:2],use_lincircuit=true)
+15135.738801 seconds (45.01 G allocations: 5.567 TiB, 48.06% gc time, 0.00% compilation time)
+length(ch_list): 106808  (something isn't right) should be 105320
+2×11 DataFrame
+ Row │ len      count    avg_robust  std_robust  rng_robust  avg_evo   std_evo   rng_evo   avg_cmplx  std_cmplx  rng_cmplx
+     │ Float64  Float64  Float64     Float64     Float64     Float64   Float64   Float64   Float64    Float64    Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │     1.0  81752.0    0.469713    0.0         0.0       0.442088  0.0       0.0        0.55654    0.0             0.0
+   2 │ 25056.0      1.0    0.477357    0.166542    0.777778  0.437664  0.133862  0.555556   0.554137   0.280401        1.0

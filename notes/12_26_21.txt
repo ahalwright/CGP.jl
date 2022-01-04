@@ -1,3 +1,20 @@
+Results for pheno_counts (Cartesian) and find_neutral_components.
+All 3 inputs, 1 output Cartesian
+From data/12_26_21/README.txt for pheno_counts:
+suffix numints levsback nfuncs
+A       4       3         4
+B       5       3         4
+C       4       4         4
+E       4       4         5
+
+run_find_neutral_components_12_27_21_*.jl and neutral_components_12_27_21_*.csv
+suffix numints levsback nfuncs pheno    components
+E       5       3         4    0x0056   216->8,208->24,plus 1,2,4,20,24
+F       5       3         4    0x005d   7328->1,5024->1,3392->1,672->1,448->2,144->2,plus 12,24,48,72,96
+G       5       3         4    0x0051   3264->1,2256->2,1248->2,1184->2,288->2,144->2,plus 12,24,48,88,96,112,120
+H       5       3         4    0x0072   1216->2,304->2,144->2,92->8,plus 2,4,8,20,24,32,40,64,88 
+I       5       3         4    0x0099   2816->2,2656->2,1824->4,704->2,416->4,272->4,plus 2,4,8,20,24,40,64,92,176 
+
 # From screen on surt2:
 @time S=find_neutral_components(ec2,0x0077); print_lengths(S)
 58022.506412 seconds (16.94 G allocations: 25.404 TiB, 1.57% gc time)
