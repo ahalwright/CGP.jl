@@ -1,0 +1,66 @@
+Add the average of rand_evo_walk() runs to the output of component_properties() 
+    and find_neutral_components() in Fnc.jl.
+
+First, verify that the two versions dict_to_csv() and dict_csv() agree.
+julia> p = Parameters(2,1,2,3)
+julia> ch = random_chromosome(p)
+julia> ch_list = [ch]
+julia> D = find_neutral_comps( ch_list, output_values(ch)[1] )
+julia> Random.seed!(1); dict_csv( D, p )
+julia> Random.seed!(1); dict_to_csv( D, p )  # Results agree, used default values for nwalks, num_walks, walk_length
+
+julia> p = Parameters(3,1,3,2)
+julia> ch = circuit_int_to_circuit(Int128(29661),p,funcs)
+julia> output_values(ch)[1] #  0x00f7
+julia> ch_list = [ch]
+julia> D = find_neutral_comps( ch_list, output_values(ch)[1], funcs )
+julia> Random.seed!(1); dict_csv( D, p, use_lincircuit=true  )
+julia> Random.seed!(1); dict_to_csv( D, p, use_lincircuit=true )  
+
+
+DJLD = load("../data/1_8_22/phenos_lc_0xf7_4funcs_3_3_2.jld") 
+JD = DJLD["D"]  
+for k in keys(JD)
+  println("k: ",k,"  length(JD[k]): ",length(JD[k]))
+end 
+length(JD["4760"])  # 3920
+# Shows that 29661 is in this set
+julia> JD["4158"]
+Set{Int128} with 10 elements:
+  6443120
+  4683120
+  6483120
+  6083120
+  4523120
+  4483120
+  4563120
+  6283120
+  6403120
+  4883120
+julia> ch = circuit_int_to_circuit(Int128(6443120),p,funcs)
+julia> ch_list = [ch];
+julia> D = find_neutral_comps( ch_list, output_values(ch)[1], funcs )
+Dict{Int64, Set{Int128}} with 1 entry:
+  1 => Set([6443120, 6483120, 6403120])
+julia> Random.seed!(1); dict_csv( D, p, use_lincircuit=true  )
+julia> Random.seed!(1); dict_to_csv( D, p, use_lincircuit=true )  # results agree
+
+However, running:
+julia> component_properties( p, 0x0007, funcs, use_lincircuit=true )  # using dict_csv() and dict_to_csv() differ with inconsistent results for avg_walk
+# using dict_to_csv gives reasonable avg_walk results, using dict_csv gives unreasonable results
+
+Tried with pheno 0x0023 count 320
+Random.seed!(1); component_properties( p, 0x0023, funcs, use_lincircuit=true, nwalks_per_circuit=3, nwalks_per_set=3, walk_length=10, use_dict_csv=false )
+Random.seed!(1); component_properties( p, 0x0023, funcs, use_lincircuit=true, nwalks_per_circuit=3, nwalks_per_set=3, walk_length=10, use_dict_csv=true )
+ Row │ len      count    avg_robust  std_robust  rng_robust  avg_evo   std_evo     rng_evo    avg_walk
+     │ Float64  Float64  Float64     Float64     Float64     Float64   Float64     Float64    Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │    10.0     32.0         0.1   0.0495163    0.194444  0.464583  0.00764912  0.0173611    3.0625
+Results agree and are plausible.  
+Note:  Found errors in both dict_csv() and dict_to_csv().  Previous results incorrect.
+
+A simpler example which was used for debugging:
+julia> p = Parameters(2,1,2,3) 
+julia> funcs = default_funcs(p) 
+julia> component_properties( p, 0x0002, funcs, use_lincircuit=true, nwalks_per_circuit=1, nwalks_per_set=2, walk_length=10, use_dict_csv=false )
+julia> component_properties( p, 0x0002, funcs, use_lincircuit=true, nwalks_per_circuit=1, nwalks_per_set=2, walk_length=10, use_dict_csv=true ) 

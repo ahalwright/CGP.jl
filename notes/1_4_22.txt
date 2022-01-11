@@ -1,0 +1,14 @@
+Extending find_neutral_components() to LinCircuits.
+Data are in data/1_3_22/.  Revised run*.jl files to give CSV files and JLD files more meaningful names.
+Revised Fnc.jl to always use funcs when calling output_values().
+
+The parameter settings p=Parameters(3,1,4,1) with both 4 funcs and 5 funcs give interesting results.
+Example on surt2:
+data/1_3_22/neutral_components_lc_0x0b_5funcs_3_4_1_E.csv ran in 175 seconds
+Many NC lengths ranging from 4 to 4208.
+However, trends toward increasing robustness decreasing complexity with NC length are weak (especially the latter).
+
+Another surt2 example:
+neutral_components_lc_0xf5_5funcs_3_4_1_F.csv   5485 seconds
+NC sizes:s 1,3,6,8,,10,464,736,9024,10048,115600,139776
+Again, robustness and complexity trends are weak at best.

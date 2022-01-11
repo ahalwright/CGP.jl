@@ -42,6 +42,10 @@ function setup_funcs( numinputs::Int64 )
   ONE = Func(One, 0, "1")
 end
 
+function default_funcs( p::Parameters )
+  default_funcs( p.numinputs )
+end
+
 function default_funcs( numinputs::Int64 )
   Ones = Main.CGP.construct_ones(numinputs)[numinputs]
   ONE = Func(One, 0, "1")

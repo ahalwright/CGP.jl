@@ -454,6 +454,10 @@ function output_values( c::Chromosome )
   end
 end
 
+function output_values( c::Chromosome, funcs::Vector{Func} )
+  output_values( c )
+end
+
 function deactivate_chromosome!( c::Chromosome )
   for in in c.inputs
     in.active = false
@@ -880,7 +884,8 @@ function enumerate_circuits_ch( p::Parameters, numints::Int64, funcs::Vector{Fun
   result
 end
 
-function int_to_chromosome( ch_int::Int128, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
+function int_to_chromosome( ch_int::Integer, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
+  ch_int = Int128(ch_int)
   nfuncs = length(funcs)
   inputnodes = [ InputNode(i) for i = 1:p.numinputs ]
   interiors = InteriorNode[]
