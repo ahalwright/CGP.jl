@@ -1,0 +1,24 @@
+Ran two pheno_counts runs:
+pheno_counts_lc_4funcs_3_4_2_D.csv:  LC Parameters(3,1,4,2), 4 funcs
+4409 seconds
+38 goals with zero counts38-element Vector{Int64}:
+[23 25 37 42 46 58 67 74 76 90 98 100 102 105 106 108 110 122 127 130 135 147 149 151 152 155 157 159 167 181 183 190 199 211 215 220 232 234]
+lcdf = read_dataframe("../data/1_11_22/pheno_counts_lc_4funcs_3_4_2_D.csv") 
+B = findall(x->x==0,lcdf.counts)
+38-element Vector{Int64}: 
+
+pheno_counts_ch_4funcs_3_5_4_E.csv
+27858 seconds
+30 goals with zero counts. 30-element Vector{Int64}:
+[23 25 37 42 46 58 74 76 98 100 105 106 108 110 122 135 147 149 151 152 157 159 181 183 199 211 215 220 232 234]
+chdf = read_dataframe("../data/1_11_22/pheno_counts_ch_4funcs_3_5_4_E.csv") 
+A = findall(x->x==0,chdf.counts) 
+30-element Vector{Int64}: 
+
+setdiff(B,A)
+8-element Vector{Int64}: 
+# Implies that A is a subset of B.
+# Goals that are difficult under ch are difficult under lc and vice versa.
+
+Tried to run run_find_neutral_components_lcA.jl with Parameters(3,1,4,2) LC, 4 funcs, pheno 0x0009,
+but had to stop since it was running out of memory running with pheno_counts_ch run.

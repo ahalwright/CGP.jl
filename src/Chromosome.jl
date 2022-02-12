@@ -403,6 +403,7 @@ function check_recursive( c::Chromosome )
   end
 end
 
+#=
 function number_active_old( c::Chromosome )
   num_active = 0
   for i = 1:c.params.numinputs
@@ -417,7 +418,9 @@ function number_active_old( c::Chromosome )
   end
   num_active
 end
+=#
 
+# Counts number active nodes which includes inputs
 function number_active( c::Chromosome )
   if !c[c.outputs[1].input].active   # if chromosome has not been executed
     context = construct_context(c.params.numinputs)
@@ -428,6 +431,7 @@ function number_active( c::Chromosome )
   num_act_in + num_act_int
 end
 
+# Counts number active gates which does not include inputs
 function number_active_gates( c::Chromosome )
   if !c[c.outputs[1].input].active   # if chromosome has not been executed
     context = construct_context(c.params.numinputs)

@@ -42,6 +42,36 @@ i_ints=map( x->instruction_vect_to_instruction_int( x, numregisters,numinputs,lf
 @test MyInt[ 0x4, 0x3, 0xc, 0xa ] == execute_lcircuit( i_ints, numregisters,numinputs,lfuncs)
 cint = instruction_ints_to_circuit_int( i_ints, p, lfuncs )
 @test i_ints == circuit_int_to_instruction_ints( instruction_ints_to_circuit_int( i_ints, p, lfuncs), p, lfuncs )
+# Executing this circuit one step at a timne.
+# p = Parameters(2,1,4,2)
+# circ = LinCircuit( lc, p )
+# R = fill(MyInt(0), p.numlevelsback + p.numinputs ) # numlevelsback is the number of computational registers
+# R[(p.numlevelsback+1):end] = construct_context(p.numinputs)
+# i=1; R[lc[i][2]] = funcs[lc[i][1]].func(R[lc[i][3]],R[lc[i][4]]); R
+# 4-element Vector{UInt16}:
+#  0x0000
+#  0x000e
+#  0x000c
+#  0x000a
+# i = 2; R[lc[i][2]] = funcs[lc[i][1]].func(R[lc[i][3]],R[lc[i][4]]); R
+# 4-element Vector{UInt16}:
+#  0x000c
+#  0x000e
+#  0x000c
+#  0x000a
+# i = 3; R[lc[i][2]] = funcs[lc[i][1]].func(R[lc[i][3]],R[lc[i][4]]); R
+# 4-element Vector{UInt16}:
+#  0x000c
+#  0x0003
+#  0x000c
+#  0x000a
+# i = 4; R[lc[i][2]] = funcs[lc[i][1]].func(R[lc[i][3]],R[lc[i][4]]); R
+# 4-element Vector{UInt16}:
+#  0x0004
+#  0x0003
+#  0x000c
+#  0x000a
+
 
 # Test of the circuit of Hu (2020, 378)
 numinputs=3

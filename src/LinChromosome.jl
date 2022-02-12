@@ -127,10 +127,31 @@ function num_instructions( p::Parameters, funcs::Vector{Func} )
   num_instructions( p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
-function number_active( circuit::LinCircuit )  # Dummy function for now 10/16/21
-  return 0
+#  Assumes 1 output registers 
+#  Not finished and not debugged
+#=
+function number_active( circ::LinCircuit )
+  p = circ.params
+  @assert p.numoutputs = 1
+  numoutputs = p.numoutputs
+  output_instructions = Int64[]
+  output_registers = Set(collect(MyInt(1):MyInt(numoutputs)))
+  output_registers_found = Set(MyInt[])
+  input_registers_found = Set(MyInt[])
+  for i = p.numinteriors:-1:1
+    println("i: ",i,"  cv: ",circ.circuit_vects[i][2],"  oi: ",output_instructions,"  or: ",output_registers,"  orf: ",output_registers_found)
+    if circ.circuit_vects[i][2] in output_registers && !(circ.circuit_vects[i][2] in output_registers_found)
+      push!( output_instructions, i )
+      push!( output_registers_found,circ.circuit_vects[i][2] )
+    end
+    println("i: ",i,"  cv: ",circ.circuit_vects[i][2],"  oi: ",output_instructions,"  or: ",output_registers,"  orf: ",output_registers_found)
+    output_registers = output_registers_found
+    output_registers_found = Set(MyInt[])
+  end
+  ( output_instructions, output_registers_found )
 end
-
+=#
+      
 function degeneracy( circuit::LinCircuit )  # Dummy function for now 10/16/21
   return 0
 end
@@ -445,6 +466,7 @@ function mutate_all( circuit::LinCircuit, funcs::Vector{Func}=default_funcs(circ
     result = (outputs,mca)
   end
 end
+
 
 function print_circuit( f::IO, circuit::LinCircuit, funcs::Vector{Func} )
   print(f,"(")

@@ -1,0 +1,24 @@
+Assessing methods of estimating NC size.  Code is in Fnc.jl.
+
+These results show three estimates of NC size:
+Non-rigorously:
+robustness: robustness seems to be correlated with NC size       
+evolvability:  evolvability does not seem to correlated with NC size   
+complexity:  complexity may be correlated with NC size 
+
+Measures of NC size:
+
+1.  rand_evo_walks() and rand_evo_walks_mutate_all() in Fnc.jl.
+  Do a random neutral walk starting at a genotype of the NC with a specified length.
+  Count the number of unique genotypes encountered.  Clearly, this measure is upper-bounded
+  by the size of the NC.  So intuitively, this should be a good estimate of NC size.
+  Both seems to work.
+
+2.  Same as (1) only use stepwise random walks as explained in NC_size_estimation_1_31_22.docx stepwise random walks as explained in NC_size_estimation_1_31_22.docx
+
+3.  For Cartesian, number_active_gates() or number_active() in Chromosome.jl.
+    For LinCircuit, num_active_lc() in num_active_lc.jl.
+
+Extend component_properties() to running with multiple parameters, phenotypes, and maybe setting of use_lincircuit.
+Show generate a dataframe with one row per (parameter, phenotype) pair that includes the parameter and phenotype settings.
+

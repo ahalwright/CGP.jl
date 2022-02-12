@@ -1,0 +1,12 @@
+Trying to write a number_active() function for LinCircuits.
+
+Decided to write a recursive evaluation similar to the one for chromosomes in Execute.jl.
+This is easy to test.
+
+Description:  Given an instruction index, for each of the input registers of the instruction,
+find the last preceding instruction that sets a value for the register.  If there is such an 
+instruction, execute it recursively to get the value of this register.  If not, take the value
+from the context.  Use these values to execute the instruction corresponding to the instruction
+index, and return the output value of the instruction.
+
+Assumes 1 output.

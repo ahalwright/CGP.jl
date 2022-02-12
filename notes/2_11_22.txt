@@ -1,0 +1,14 @@
+Function num_active_lc() in num_active_lc.jl works for varying numinstructions==numinteriors and numregisters==numlevelsback!!
+Separated into a main function and a helper function.
+Test function is test_num_active_lc() which is at the end of num_active_lc.jl.
+
+Example run:
+julia> p = Parameters(2,1,7,3); funcs=default_funcs(p)
+4-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+julia> test_num_active_lc(p,funcs,10000)
+test_num_active: p: Parameters(1, 4, 0.05, 0.0, 2, 1, 2, 7, 3)  numtries: 10000  numtries: 0
+numactive_counts: [583 4548 2676 1485 502 174 30 2]

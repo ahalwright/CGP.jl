@@ -1,0 +1,29 @@
+Reassessing where I am in research.
+
+See evotech/complexity/cce/NC_size_estimation_1_30_22.docx or a more recent version.
+
+Many examples:
+Locations of Fnc (find neutral components) results:
+12_26_21:  Cartesian  5 gates, 3 lb, 4 funcs
+12_27_21:  Cartesian  mostly 4 gates, 4 lb, 5 funcs
+1_3_22:  LC  4 instructions 1 register
+1_10_22:  LC  include avg_walk results, but only for 2 inputs
+
+These results show three estimates of NC size:
+robustness
+evolvability
+complexity
+
+Non-rigorously: 
+robustness seems to be correlated with NC size
+evolvability does not seem to correlated with NC size
+complexity may be correlated with NC size
+
+Another potential measure of NC size is the following:
+Do a random neutral walk starting at a genotype of the NC with a specified length.
+Count the number of unique genotypes encountered.  Clearly, this measure is upper-bounded
+by the size of the NC.  So intuitively, this should be a good estimate of NC size.
+I have this programmed, but it is not fully debugged and tested.
+
+
+
