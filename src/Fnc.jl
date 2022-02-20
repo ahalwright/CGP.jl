@@ -53,7 +53,7 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
       CSV.write( f, cdf, append=true, writeheader=true )
     end
   end
-  df
+  (df,cdf)
 end
 
 function find_neutral_comps( chp_list::Union{Vector{Tuple{Chromosome,MyInt}},Vector{Tuple{LinCircuit,MyInt}}}, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs) )
