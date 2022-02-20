@@ -1,7 +1,16 @@
 using JLD, HDF5, Tables, Base.Threads
 
+#  As of 2/20/22, julia -p 4 -L CGP.jl -L Fnc.jl -L num_active_lc.jl -L to_sublists.jl 
+#  Example:  if use_lincircuit==true, let p = Parameters(3,1,4,3)  else let p = Parameters(3,1,3,2) 
+#    For use_lincircuits==true, larger values of numinteriors=numinstructions and numlevelsback=numregisters exceed memory even on surt2
+#  phenotype = 0x0015   # count=6848 from data/12_26_21/pheno_counts_12_26_21_F.csv (Cartesian)
+#  funcs = default_funcs(p);  
+#  for Chromosomes:  ecl = enumerate_circuits_ch( p, funcs); length(ecl) 
+#  for LinCircuits:  ecl = enumerate_circuits_lc( p, funcs); length(ecl) 
+#  phl = [0x0015,0x005a]
+#  df = component_properties( pp, phl, use_lincircuit=false );
 function component_properties( p::Parameters, pheno_list::Vector{MyInt}, 
-      nwalks_per_set::Int64=2, walk_length::Int64=5, nwalks_per_circuit::Int64=3,
+      nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10,
       funcs::Vector{Func}=default_funcs(p.numinputs); use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
   function chp_list_to_rdf( chp_list, p::Parameters )
     S = find_neutral_comps( chp_list, p, funcs )
@@ -23,16 +32,12 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
   end  
   rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
   #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
-  #=
-  i = 1
-  for chp_list in chp_lists
-    S = find_neutral_comps( chp_list, funcs )
-    df = dict_to_csv(S,p,pheno_list[i],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit) 
-    rdf = consolidate_df(df,p,funcs)
-    push!(rdf_list,rdf)
-    i += 1
+  cdf_list = DataFrame[]
+  for rdf in rdf_list
+    ccdf = scorrelations(rdf)
+    push!(cdf_list,ccdf)
   end  
-  =#
+  cdf = vcat(cdf_list...)
   df = vcat(rdf_list...)
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
@@ -43,6 +48,7 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
       println(f,"# funcs: ",funcs)
       println(f,"# use_lincircuit: ",use_lincircuit)
       CSV.write( f, df, append=true, writeheader=true )
+      CSV.write( f, cdf, append=true, writeheader=true )
     end
   end
   df
@@ -586,4 +592,32 @@ function robust_filter( pheno::MyInt, circuits::Union{Vector{Chromosome},Vector{
   new_circuits
 end
 
+# Returns a MyInt written in hex notataion as a string
+# Works for MyInt = UInt8, UInt16 but not UInt32 (TODO: fix)
 prhex( x::MyInt ) = @sprintf("0x%04x",x)
+
+function scorrelations( rdf::DataFrame )
+  df = DataFrame()
+  df.pheno = [rdf.pheno[1]]
+  df.count = [rdf.len'*rdf.count]
+  #df.numinputs = [rdf.numinputs[1]]
+  #df.ngates = [rdf.ngates[1]]
+  #df.levsback = [rdf.levsback[1]]
+  df.walklen = [rdf.walk_length[1]]
+  df.nwlkset = [rdf.nwalks_set[1]]
+  df.nwlkcirc = [rdf.nwalks_circ[1]]
+  df.rbst = [spearman_cor(rdf,:len,:avg_robust)[1]]
+  df.rbstt = [spearman_cor(rdf,:len,:avg_robust)[2]]
+  df.evo = [spearman_cor(rdf,:len,:avg_evo)[1]]
+  df.evot = [spearman_cor(rdf,:len,:avg_evo)[2]]
+  df.cplx = [spearman_cor(rdf,:len,:avg_cmplx)[1]]
+  df.cplxt = [spearman_cor(rdf,:len,:avg_cmplx)[2]]
+  df.walk = [spearman_cor(rdf,:len,:avg_walk)[1]]
+  df.walkt = [spearman_cor(rdf,:len,:avg_walk)[2]]
+  df.mawlk = [spearman_cor(rdf,:len,:sum_ma_walk)[1]]
+  df.mawlkt = [spearman_cor(rdf,:len,:sum_ma_walk)[2]]
+  df.nactive = [spearman_cor(rdf,:len,:avg_nactive)[1]]
+  df.nactivet = [spearman_cor(rdf,:len,:avg_nactive)[2]]
+  df
+end
+

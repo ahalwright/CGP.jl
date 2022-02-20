@@ -1,0 +1,5 @@
+On surt2 with data/1_11_22/ rsyncd to surt2.
+[wright@lycosa data]$ rsyn 2_19_22 surt2:evotech/CGP.jl/data/
+julia> phl = map(x->eval(Meta.parse(x)),pdfr.goal)  # produces a 84 element Vector of MyInts.
+julia> pp = Parameters(3,1,4,3); funcs=default_funcs(pp)
+
