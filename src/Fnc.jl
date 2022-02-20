@@ -34,8 +34,10 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
   #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
   cdf_list = DataFrame[]
   for rdf in rdf_list
-    ccdf = scorrelations(rdf)
-    push!(cdf_list,ccdf)
+    if size(df)[1] >= 4
+      ccdf = scorrelations(rdf)
+      push!(cdf_list,ccdf)
+    end
   end  
   cdf = vcat(cdf_list...)
   df = vcat(rdf_list...)
@@ -53,44 +55,6 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
   end
   df
 end
-
-# Not used
-#  Example:  if use_lincircuit==true, let p = Parameters(3,1,4,3)  else let p = Parameters(3,1,3,2) 
-#    For use_lincircuits==true, larger values of numinteriors=numinstructions and numlevelsback=numregisters exceed memory even on surt2
-#  phenotype = 0x0015   # count=6848 from data/12_26_21/pheno_counts_12_26_21_F.csv (Cartesian)
-#  funcs = default_funcs(p.numinputs);  
-#  for Chromosomes:  ecl = enumerate_circuits_ch( p, funcs); length(ecl) 
-#  for LinCircuits:  ecl = enumerate_circuits_lc( p, funcs); length(ecl) 
-#  @time S=find_neutral_components(ecl,0x005a,funcs); print_lengths(S)  # Works for both Chromosomes and LinCircuits
-#=
-function find_neutral_components( ch_list::Union{Vector{Chromosome},Vector{LinCircuit}}, phenotype::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); 
-    jld_file::String="" )
-  p = ch_list[1].params
-  S = find_neutral_comps( ch_list, phenotype, funcs )
-  #=
-  else
-    # Break ch_list into sublists for parallel processing
-    split = div(length(ch_list),nprocs()-1) + 1
-    chl = Vector{Chromosome}[]
-    for i = 0:nprocs()-2
-      #println("i: ",i,"  cl: ",ch_list[i*split+1:min((i+1)*split,length(ch_list))])
-      push!(chl,ch_list[i*split+1:min((i+1)*split,length(ch_list))])
-    end
-    #println("chl: ",chl)
-    Slist = map(cl->find_neutral_comps( cl, phenotype, funcs ), chl )
-    S = Dict{Int64,Set{Int128}}()
-    for i = 1:length(Slist)
-      S = merge_dictionaries!( S, Slist[i] )
-      #println("md: S: ",S)
-    end
-    =#
-  if length(jld_file) > 0
-    D = dict_int_keys_to_string_keys( S )
-    save(jld_file,"D",D)
-  end
-  S
-end
-=#
 
 function find_neutral_comps( chp_list::Union{Vector{Tuple{Chromosome,MyInt}},Vector{Tuple{LinCircuit,MyInt}}}, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs) )
   #D println("find_neutral_comps: chp_list: ",chp_list)
