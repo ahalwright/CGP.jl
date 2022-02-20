@@ -1,67 +1,54 @@
 using JLD, HDF5, Tables, Base.Threads
 
-function component_properties( param_pheno_walk_tuples::Vector{Tuple{Parameters,MyInt,Int64,Int64,Int64}}, funcs::Vector{Func}=default_funcs(p.numinputs);
-      use_lincircuit::Bool, use_dict_csv::Bool=false, csvfile::String="", jld_file::String="" )
+function component_properties( p::Parameters, pheno_list::Vector{MyInt}, 
+      nwalks_per_set::Int64=2, walk_length::Int64=5, nwalks_per_circuit::Int64=3,
+      funcs::Vector{Func}=default_funcs(p.numinputs); use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
+  function chp_list_to_rdf( chp_list, p::Parameters )
+    S = find_neutral_comps( chp_list, p, funcs )
+    df = dict_to_csv(S,p,chp_list[1][2],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit) 
+    rdf = consolidate_df(df,p,funcs)
+  end
+  println("walk params: ",(nwalks_per_set,walk_length,nwalks_per_circuit))
+  sort!(pheno_list)
   rdf_list = DataFrame[]
-  for ppw in param_pheno_walk_tuples
-    println("ppw: ",ppw)
-    params = ppw[1]
-    pheno = ppw[2]
-    nwalks_per_set = ppw[3]
-    walk_length = ppw[4]
-    nwalks_per_circuit = ppw[5]
-    println("walk params: ",(nwalks_per_set,walk_length,nwalks_per_circuit))
-    #rdf = component_properties( params, pheno, funcs, use_lincircuit=use_lincircuit, nwalks_per_set=nwalks_per_set, walk_length=walk_length, 
-    #    nwalks_per_circuit=nwalks_per_circuit )
-    rdf = component_properties( params, pheno, funcs, use_lincircuit=use_lincircuit, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit, nwalks_per_set=nwalks_per_set ) 
-    push!(rdf_list,rdf)
-  end
-  rdf_list
-end
-
-# Combines calls to enumerate_circuits(), find_neutral_components(), dict_to_csv() and consolidate_df(), 
-#    and writes the resulting dataframe to a file if the csvfile keyword argument is a non-empty string.G
-function component_properties( p::Parameters, pheno::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); 
-      nwalks_per_set::Int64=2, walk_length::Int64=5, nwalks_per_circuit::Int64=3, use_dict_csv::Bool=false,
-      use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
   ecl = use_lincircuit ? enumerate_circuits_lc( p, funcs ) : enumerate_circuits_ch( p, funcs )
-  S=find_neutral_components( ecl, pheno, funcs, jld_file=jld_file )
-  if use_dict_csv
-    df = dict_csv(S,p,pheno,funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit)
-  else
-    df = dict_to_csv(S,p,pheno,funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit)
-  end
-  rdf = consolidate_df(df,p,funcs,csvfile=csvfile)
+  println("length(ecl): ",length(ecl))
+  chp_lists = pairs_to_sublists( ecl, pheno_list, funcs ) 
+  chp_nonempty_lists = use_lincircuit ? Vector{Tuple{LinCircuit,MyInt}}[] : Vector{Tuple{Chromosome,MyInt}}[]
+  for chp_list in chp_lists
+    println("length(chp_list): ",length(chp_list))
+    if length(chp_list) > 0
+      push!(chp_nonempty_lists,chp_list)
+    end
+  end  
+  rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
+  #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
+  #=
+  i = 1
+  for chp_list in chp_lists
+    S = find_neutral_comps( chp_list, funcs )
+    df = dict_to_csv(S,p,pheno_list[i],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit) 
+    rdf = consolidate_df(df,p,funcs)
+    push!(rdf_list,rdf)
+    i += 1
+  end  
+  =#
+  df = vcat(rdf_list...)
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
       hostname = chomp(open("/etc/hostname") do f read(f,String) end)
       println(f,"# date and time: ",Dates.now())
       numprocs = nprocs()==1 ? 1 : nprocs()-1
       println(f,"# host: ",hostname," with ",numprocs,"  processes: " )
-      print_parameters(f,p,comment=true)
       println(f,"# funcs: ",funcs)
       println(f,"# use_lincircuit: ",use_lincircuit)
-      println(f,"# phenotype: ",@sprintf("0x%04x",pheno))
-      println(f,"# walk_length: ",walk_length)
-      println(f,"# nwalks_per_set: ",nwalks_per_set)
-      println(f,"# nwalks_per_circuit: ",nwalks_per_circuit)
-      #println(f,"# nthreads: ",nthreads())
-      CSV.write( f, rdf, append=true, writeheader=true )
+      CSV.write( f, df, append=true, writeheader=true )
     end
   end
-  rdf
+  df
 end
 
-function dataframe_count_phenos( rdf::DataFrame )
-  @assert "len" in names(rdf)
-  @assert "count" in names(rdf)
-  ssum = 0
-  for i = 1:size(rdf)[1]
-    ssum += rdf.len[i]*rdf.count[i]
-  end
-  ssum
-end
-
+# Not used
 #  Example:  if use_lincircuit==true, let p = Parameters(3,1,4,3)  else let p = Parameters(3,1,3,2) 
 #    For use_lincircuits==true, larger values of numinteriors=numinstructions and numlevelsback=numregisters exceed memory even on surt2
 #  phenotype = 0x0015   # count=6848 from data/12_26_21/pheno_counts_12_26_21_F.csv (Cartesian)
@@ -69,16 +56,12 @@ end
 #  for Chromosomes:  ecl = enumerate_circuits_ch( p, funcs); length(ecl) 
 #  for LinCircuits:  ecl = enumerate_circuits_lc( p, funcs); length(ecl) 
 #  @time S=find_neutral_components(ecl,0x005a,funcs); print_lengths(S)  # Works for both Chromosomes and LinCircuits
+#=
 function find_neutral_components( ch_list::Union{Vector{Chromosome},Vector{LinCircuit}}, phenotype::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); 
     jld_file::String="" )
   p = ch_list[1].params
-  ch_list = filter( x->output_values(x,funcs)[1]==phenotype, ch_list )
-  println("length(ch_list): ",length(ch_list))
-  if length(ch_list) == 0
-    error("no genotypes that map to the given phenothype ",[phenotype])
-  end
-  if nprocs() == 1
-    S = find_neutral_comps( ch_list, phenotype, funcs )
+  S = find_neutral_comps( ch_list, phenotype, funcs )
+  #=
   else
     # Break ch_list into sublists for parallel processing
     split = div(length(ch_list),nprocs()-1) + 1
@@ -94,39 +77,42 @@ function find_neutral_components( ch_list::Union{Vector{Chromosome},Vector{LinCi
       S = merge_dictionaries!( S, Slist[i] )
       #println("md: S: ",S)
     end
-  end
+    =#
   if length(jld_file) > 0
     D = dict_int_keys_to_string_keys( S )
     save(jld_file,"D",D)
   end
   S
 end
+=#
 
-function find_neutral_comps( ch_list::Vector{Chromosome}, phenotype::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs) )
+function find_neutral_comps( chp_list::Union{Vector{Tuple{Chromosome,MyInt}},Vector{Tuple{LinCircuit,MyInt}}}, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs) )
+  #D println("find_neutral_comps: chp_list: ",chp_list)
+  use_lincircuit = (typeof(chp_list)==Vector{Tuple{LinCircuit,MyInt}}) 
   S = Dict{Int64,Set{Int128}}()
   new_key = 1
-  for g in ch_list
-    ig = chromosome_to_int(g,funcs)
-    mlist = filter( x->output_values(x,funcs)[1]==phenotype, mutate_all( g, funcs, output_circuits=true, output_outputs=false ) )
-    ihlist = map(h->chromosome_to_int(h,funcs),mlist)
-    push!(ihlist,ig)
+  for chp in chp_list
+    mlist = filter( x->output_values(x,funcs)[1]==chp[2], mutate_all( chp[1], funcs, output_circuits=true, output_outputs=false ) )
+    ihlist = use_lincircuit ?  map(h->circuit_to_circuit_int(h,funcs),mlist) : map(h->chromosome_to_int(h,funcs),mlist) 
+    ich = use_lincircuit ? circuit_to_circuit_int(chp[1],funcs) : chromosome_to_int(chp[1],funcs)
+    push!(ihlist,ich)
     ihset = Set(ihlist)
-    #println("ig: ",ig,"  ihset: ",ihset)
-    #ihphenos = map(ic->output_values(int_to_chromosome(ic,p,funcs))[1],ihlist)
-    #println("ihphenos: ",ihphenos)   # Correctness check
+    #D println("ich: ",ich,"  ihset: ",ihset)
+    ihphenos = use_lincircuit ? map(ic->output_values(circuit_int_to_circuit(ic, p, funcs))[1],ihlist) : map(ic->output_values(int_to_chromosome(ic,p,funcs))[1],ihlist) 
+    #D println("ihphenos: ",ihphenos)   # Correctness check
     if length(ihset) > 0
       for ky in keys(S)
-        #println("ky: ",ky,"  S[ky]: ",S[ky])
+        ##D println("ky: ",ky,"  S[ky]: ",S[ky])
         if length( intersect( ihset, S[ky] ) ) > 0
           union!( ihset, S[ky] )
-          #println("ihset after union!: ",ihset)
+          ##D println("ihset after union!: ",ihset)
           delete!( S, ky )
         end
       end
       S[ new_key ] = ihset
       if new_key % 100 == 0
-        print("ig: ",ig,"  length(ihset): ",length(ihset),"   ")
-        println("length(S[",new_key,"]) = ",length(S[new_key]))
+        #D print("ich: ",ich,"  length(ihset): ",length(ihset),"   ")
+        #D println("length(S[",new_key,"]) = ",length(S[new_key]))
       end
       new_key += 1
     end
@@ -134,54 +120,22 @@ function find_neutral_comps( ch_list::Vector{Chromosome}, phenotype::MyInt, func
   for ky0 in keys(S)
     for ky1 in keys(S)
       if length(intersect(S[ky0],S[ky1]))>0 && ky0 != ky1
-        println("the intersection of set S[",ky0,"] and set S[",ky1,"] is nonempty")
+        #D println("the intersection of set S[",ky0,"] and set S[",ky1,"] is nonempty")
       end
     end
   end
   S
 end
 
-function find_neutral_comps( lc_list::Vector{LinCircuit}, phenotype::MyInt, funcs::Vector{Func} )
-  S = Dict{Int64,Set{Int128}}()
-  p = lc_list[1].params
-  new_key = 1
-  for lc in lc_list
-    lci = circuit_to_circuit_int(lc,funcs)
-    cv_list = filter( x->output_values(x,p,funcs)[1]==phenotype, mutate_circuit_all(lc.circuit_vects, p, funcs))
-    #mlist = map(ci->LinCircuit(ci,p) for ci in cv_list )  # Didn't work.  Replaced by the next statement
-    mlist = [ LinCircuit(ci,p) for ci in cv_list ]   
-    ihlist = map(h->circuit_to_circuit_int(h,funcs),mlist)
-    push!(ihlist,circuit_to_circuit_int(lc,funcs))
-    push!(ihlist,lci)
-    ihset = Set(ihlist)
-    #println("lc: ",lc,"  lci: ",lci,"  ihset: ",ihset)
-    #ihphenos = map(ic->output_values(circuit_int_to_circuit(lci,p,funcs))[1],ihlist)
-    #println("ihphenos: ",ihphenos)   # Correctness check
-    if length(ihset) > 0
-      for ky in keys(S)
-        #println("ky: ",ky,"  S[ky]: ",S[ky])
-        if length( intersect( ihset, S[ky] ) ) > 0
-          union!( ihset, S[ky] )
-          delete!( S, ky )
-        end
-      end
-      S[ new_key ] = ihset
-      if new_key % 100 == 0
-        print("lci: ",lci,"  length(ihset): ",length(ihset),"   ")
-        println("length(S[",new_key,"]) = ",length(S[new_key]))
-      end
-      new_key += 1
-    end
+function dataframe_count_phenos( rdf::DataFrame )
+  @assert "len" in names(rdf)
+  @assert "count" in names(rdf)
+  ssum = 0
+  for i = 1:size(rdf)[1]
+    ssum += rdf.len[i]*rdf.count[i]
   end
-  for ky0 in keys(S)
-    for ky1 in keys(S)
-      if length(intersect(S[ky0],S[ky1]))>0 && ky0 != ky1
-        println("the intersection of set S[",ky0,"] and set S[",ky1,"] is nonempty")
-      end
-    end
-  end
-  S
-end  
+  ssum
+end
 
 function merge_set_to_dict( set::Set{Int128}, S::Dict{Int64,Set{Int128}} )
   new_key = length(keys(S))==0 ? 1 : maximum(keys(S)) + 1
@@ -218,100 +172,10 @@ function dict_int_keys_to_string_keys( S::Dict{Int64,Set{Int128}} )
   D
 end
 
-# A less efficient but simpler test function for dict_to_csv()
-function dict_csv( S::Dict{Int64,Set{Int128}}, p::Parameters, pheno::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); 
-    use_lincircuit::Bool=false,nwalks_per_set::Int64=20, walk_length::Int64=50, nwalks_per_circuit::Int64=3 )
-  println("dict_csv: use_lincircuit: ",use_lincircuit)
-  #println("S: ",S)
-  key_list = Int64[]
-  length_list = Int64[]
-  avg_robust_list = Float64[]
-  std_robust_list = Float64[]
-  rng_robust_list = Float64[]
-  avg_evo_list = Float64[]
-  rng_evo_list = Float64[]
-  std_evo_list = Float64[]
-  if !use_lincircuit 
-    avg_cmplx_list = Float64[]
-    std_cmplx_list = Float64[]
-    rng_cmplx_list = Float64[]
-  end
-  avg_walk_list = Float64[]
-  for ky in keys(S)
-    push!(key_list,ky)
-    push!(length_list,length(S[ky]))
-    robust_list = Float64[]
-    evo_list = Float64[]
-    cmplx_list = Float64[]
-    n = length(S[ky])
-    walk_list = Float64[]
-    walk_count = 1
-    for s in S[ky]
-      if use_lincircuit
-        c = circuit_int_to_circuit( s, p, funcs )
-      else
-        c = int_to_chromosome( s, p, funcs )
-      end
-      (robust,evo) = mutate_all( c, funcs, robustness_only=true ) 
-      cmplx = use_lincircuit ? 0 : complexity5(c)
-      push!(robust_list,robust)
-      push!(evo_list,evo)
-      if !use_lincircuit push!(cmplx_list,cmplx) end
-      wlk_inc = walk_count<=nwalks_per_set ? rand_evo_walks(deepcopy(c),walk_length,nwalks_per_circuit)[end]/nwalks_per_circuit : 0
-      #println("s: ",s,"  walk_count: ",walk_count,"  wlk_inc: ",wlk_inc)
-      push!(walk_list,wlk_inc)
-      #push!(walk_list,walk_count<=nwalks_per_set ? rand_evo_walks(deepcopy(c),walk_length,nwalks_per_circuit)[end] : 0 )
-      walk_count += 1
-    end
-    push!(avg_robust_list,sum(robust_list)/n)
-    push!(avg_evo_list,sum(evo_list)/n)
-    if !use_lincircuit push!(avg_cmplx_list,sum(cmplx_list)/n) end
-    #=
-    push!(std_robust_list,std(robust_list))
-    push!(std_evo_list,std(evo_list))
-    if !use_lincircuit push!(std_cmplx_list,std(cmplx_list)) end
-    push!(rng_robust_list,maximum(robust_list)-minimum(robust_list))
-    push!(rng_evo_list,maximum(evo_list)-minimum(evo_list))
-    if !use_lincircuit push!(rng_cmplx_list,maximum(cmplx_list)-minimum(cmplx_list)) end
-    =#
-    wlk_denom = min(n,nwalks_per_set)
-    avg_inc = sum(walk_list)/wlk_denom
-    #println("ky: ",ky,"  wlk_denom: ",wlk_denom,"  ave_inc: ",avg_inc)
-    push!(avg_walk_list,avg_inc)
-    #push!(avg_walk_list,sum(walk_list)/min(n,nwalks_per_set))
-  end
-  lendf = length(key_list)
-  df = DataFrame()
-  df.key = key_list
-  df.length = length_list
-  df.numinputs = fill(p.numinputs,lendf)
-  if use_lincircuit
-    df.ninstr = fill(p.numinteriors,lendf)
-    df.nregs = fill(p.numlevelsback,lendf)
-  else
-    df.ngates = fill(p.numinteriors,lendf)
-    df.levsback = fill(p.numlevelsback,lendf)
-  end
-  df.pheno = fill(pheno,lendf)
-  df.avg_robust = avg_robust_list
-  #df.std_robust = std_robust_list
-  #df.rng_robust = rng_robust_list
-  df.avg_evo = avg_evo_list
-  #df.std_evo = std_evo_list
-  #df.rng_evo = rng_evo_list
-  if !use_lincircuit 
-    df.avg_cmplx = avg_cmplx_list
-    #df.std_cmplx = std_cmplx_list
-    #df.rng_cmplx = rng_cmplx_list
-  end
-  df.avg_walk = avg_walk_list
-  df
-end  # dict_csv
-
 function dict_to_csv( S::Dict{Int64,Set{Int128}}, p::Parameters, pheno::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); 
     use_lincircuit::Bool=false, nwalks_per_set::Int64=20, walk_length::Int64=50, nwalks_per_circuit::Int64=3 )
   #println("dict_to_csv nwalks_per_set: ",nwalks_per_set,"  walk_length: ",walk_length,"  nwalks_per_circuit: ",nwalks_per_circuit)
-  println("dict_to csv: use_lincircuit: ",use_lincircuit)
+  #println("dict_to_csv: use_lincircuit: ",use_lincircuit)
   #println("S: ",S)
   key_list = Int64[]
   length_list = Int64[]
@@ -363,6 +227,7 @@ function dict_to_csv( S::Dict{Int64,Set{Int128}}, p::Parameters, pheno::MyInt, f
   df = DataFrame()
   df.key = key_list
   df.length = length_list
+  df.pheno = fill(pheno,lendf)
   df.numinputs = fill(p.numinputs,lendf)
   if use_lincircuit
     df.ninstr = fill(p.numinteriors,lendf)
@@ -374,7 +239,7 @@ function dict_to_csv( S::Dict{Int64,Set{Int128}}, p::Parameters, pheno::MyInt, f
   df.nwalks_set = fill(nwalks_per_set,lendf)
   df.walk_length = fill(walk_length,lendf)
   df.nwalks_circ = fill(nwalks_per_circuit,lendf)
-  df.pheno = fill(pheno,lendf)
+  #df.pheno = fill(pheno,lendf)
   df.avg_robust = avg_robust_list
   #df.std_robust = std_robust_list
   #df.rng_robust = rng_robust_list
@@ -394,7 +259,7 @@ end   # dict_to_csv
 
 function robust_evo_cmplx( set::Set{Int128}, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); 
     use_lincircuit::Bool=false, nwalks_per_set::Int64=30, walk_length::Int64=50, nwalks_per_circuit::Int64=3 )
-  #println("robust_evo_cmplx use_lincircuit: ",use_lincircuit,"   nwalks_per_set: ",nwalks_per_set)
+  #println("robust_evo_cmplx use_lincircuit: ",use_lincircuit,"   nwalks_per_set: ",nwalks_per_set,"  walk_length: ",walk_length)
   sum_robust = 0.0
   sum_cmplx = 0.0
   sum_evo = 0.0
@@ -425,12 +290,12 @@ function robust_evo_cmplx( set::Set{Int128}, p::Parameters, funcs::Vector{Func}=
     if !use_lincircuit 
       sum_cmplx += cmplx; sum_sq_cmplx += cmplx^2; max_cmplx=cmplx>max_cmplx ? cmplx : max_cmplx; min_cmplx=cmplx<min_cmplx ? cmplx : min_cmplx
     end
-    sum_walk_plus = walk_count <= nwalks_per_set ? rand_evo_walks(deepcopy(c),walk_length,nwalks_per_circuit)[end]/nwalks_per_circuit : 0
+    sum_walk_plus = walk_count <= nwalks_per_set ? rand_evo_walks(deepcopy(c),walk_length,nwalks_per_circuit,funcs)[end]/nwalks_per_circuit : 0
     sum_walk += sum_walk_plus
-    sum_ma_walk_plus = walk_count <= nwalks_per_set ? rand_evo_walks_mutate_all(deepcopy(c),walk_length,nwalks_per_circuit)[end]/nwalks_per_circuit : 0
+    sum_ma_walk_plus = walk_count <= nwalks_per_set ? rand_evo_walks_mutate_all(deepcopy(c),walk_length,nwalks_per_circuit,funcs)[end]/nwalks_per_circuit : 0
     sum_ma_walk += sum_ma_walk_plus
     walk_count += 1
-    numactive = use_lincircuit ? num_active_lc( circ, funcs ) : number_active_gates( c )
+    numactive = use_lincircuit ? num_active_lc( c, funcs ) : number_active_gates( c )
     sum_numactive += numactive
   end
   sd_robust = sqrtn( 1.0/(n-1.0)*(sum_sq_robust - sum_robust^2/n) )
@@ -454,7 +319,7 @@ sqrtn( x::Float64 ) = x >= 0.0 ? sqrt(x) : 0.0
 
 # Consolidates df by averaging dataframe rows that correspond to rows of the same value of len
 # Also, converts the pheno column which is Float64 to string by using the prhex() function
-function consolidate_df( df::DataFrame, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); csvfile::String="" )
+function consolidate_df( df::DataFrame, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs) )
   ssum = zeros(Float64,size(df)[2]-1)
   df_matrix = Tables.matrix(df[:,3:end])
   dict = Dict{Int64,Vector{Float64}}()
@@ -644,7 +509,7 @@ end
 # Examples:
 # rand_evo_walks( random_chromosome(p,funcs), 10, 2 )
 # rand_evo_walks( rand_lcircuit(p,funcs), 10, 2 )
-function rand_evo_walks( c::Union{Chromosome,LinCircuit}, walk_length::Int64, nwalks_per_circuit::Int64, funcs::Vector{Func}=default_funcs(p.numinputs) )
+function rand_evo_walks( c::Union{Chromosome,LinCircuit}, walk_length::Int64, nwalks_per_circuit::Int64, funcs::Vector{Func} )
   #D print("rand_evo_walks ic: ",circuit_to_circuit_int(c,funcs),"   ")
   count_mutations = 0
   sum_unique_genotypes = zeros(Int64,walk_length)
@@ -681,7 +546,7 @@ end
 # Examples:
 # rand_evo_walks_mutate_all( random_chromosome(p,funcs), 10, 2 )
 # rand_evo_walks_mutate_all( rand_lcircuit(p,funcs), 10, 2 )
-function rand_evo_walks_mutate_all( c::Union{Chromosome,LinCircuit}, walk_length::Int64, nwalks_per_circuit::Int64, funcs::Vector{Func}=default_funcs(p.numinputs) )
+function rand_evo_walks_mutate_all( c::Union{Chromosome,LinCircuit}, walk_length::Int64, nwalks_per_circuit::Int64, funcs::Vector{Func}) 
   count_mutations = 0
   p = c.params
   sum_unique_genotypes = zeros(Int64,walk_length)
@@ -696,7 +561,8 @@ function rand_evo_walks_mutate_all( c::Union{Chromosome,LinCircuit}, walk_length
       count_mutations += length(circuits)
       circuits = robust_filter(phenotype[1],circuits,phenos)
       #D println("step: ",step,"  circuits: ",circuits)
-      circuit_ints = use_lincircuit ? map(x->circuit_to_circuit_int(LinCircuit(x,p),funcs),circuits) : map(x->chromosome_to_int(x,funcs),circuits) 
+      #circuit_ints = use_lincircuit ? map(x->circuit_to_circuit_int(LinCircuit(x,p),funcs),circuits) : map(x->chromosome_to_int(x,funcs),circuits) 
+      circuit_ints = use_lincircuit ? map(x->circuit_to_circuit_int(x,funcs),circuits) : map(x->chromosome_to_int(x,funcs),circuits) 
       union!(returned_genotypes,Set(circuit_ints))
       #D println("step: ",step,"  unique: ",length(returned_genotypes) )
       sum_unique_genotypes[step] += length(returned_genotypes)
@@ -709,9 +575,9 @@ function rand_evo_walks_mutate_all( c::Union{Chromosome,LinCircuit}, walk_length
   sum_unique_genotypes./nwalks_per_circuit
 end
 
-function robust_filter( pheno::MyInt, circuits::Union{Vector{Chromosome},Vector{Vector{Vector{MyInt}}}}, phenos::Vector{Vector{MyInt}} )
+function robust_filter( pheno::MyInt, circuits::Union{Vector{Chromosome},Vector{LinCircuit}}, phenos::Vector{Vector{MyInt}} )
   @assert length(circuits) == length(phenos)
-  new_circuits = Union{Chromosome,Vector{Vector{MyInt}}}[]
+  new_circuits = Union{Chromosome,LinCircuit}[]
   for i = 1:length(circuits)
     if phenos[i][1] == pheno
       push!(new_circuits,circuits[i])

@@ -1,7 +1,7 @@
 # Returns the number active not inluding inputs.
 function num_active_lc( circ::LinCircuit, funcs::Vector{Func}=default_funcs(circ.params) )
   p = circ.params
-  ninstructions = p.numinteriors
+  numinstructions = p.numinteriors
   res = num_active_lc( circ, numinstructions, numinstructions+1, funcs )
   reduce(+,res[2])
 end
@@ -46,6 +46,7 @@ function eval_lincircuit( circ::LinCircuit, i::Int64, count::Int64, instruction_
   v = circ.circuit_vects
   Rinit = fill(MyInt(0), p.numlevelsback + p.numinputs ) # numlevelsback is the number of computational registers
   Rinit[(p.numlevelsback+1):end] = construct_context(p.numinputs)
+  done = false   # establish scope
   rc = MyInt[]
   for m = 3:4
     #println("m: ",m)
@@ -97,6 +98,7 @@ end
 function test_num_active_lc( p::Parameters, funcs::Vector{Func}, numtries::Int64 )
   numactive_counts = zeros( Int64, p.numinteriors+1 )
   print("test_num_active: p: ",p,"  numtries: ",numtries)
+  done = false
   while numtries > 0 && !done
     numinstructions = p.numinteriors
     circ = rand_lcircuit( p, funcs )

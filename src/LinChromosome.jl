@@ -423,14 +423,14 @@ function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, numregisters::
   numinstructions = length(circuit_vect)
   p = Parameters( numinputs, 1, numinstructions, numregisters )  # Assumes 1 output
   lenfuncs = length(funcs)
-  result = Vector{Vector{MyInt}}[]
-  #result = LinCircuit[]
+  #result = Vector{Vector{MyInt}}[]
+  result = LinCircuit[]
   for ind = 1:length(circuit_vect)
     mutated_instructions=mutate_instruction_all(circuit_vect[ind],numregisters,numinputs,funcs,nodearity=nodearity) 
     for mi in mutated_instructions
       mutated_circuit = deepcopy(circuit_vect)
       mutated_circuit[ind] = mi
-      push!(result,mutated_circuit)
+      push!(result,LinCircuit(mutated_circuit,p))
     end
   end
   result
@@ -445,10 +445,11 @@ end
 # Deterministic if all functions in default_funcs() have the same arity                 
 function mutate_all( circuit::LinCircuit, funcs::Vector{Func}=default_funcs(circuit.params.numinputs); 
       robustness_only::Bool=false, output_outputs::Bool=true, output_circuits::Bool=false, nodearity::Int64=2 )
+  #println("mutate_all: circuit: ",circuit)
   phenotype = output_values(circuit)   
   mca = mutate_circuit_all( circuit, funcs, nodearity=nodearity ) 
   if output_outputs || robustness_only
-    outputs = map( x->output_values(LinCircuit(x,circuit.params)), mca )
+    outputs = map( x->output_values(x), mca )
   end
   if robustness_only
     output_outputs = output_circuits = false

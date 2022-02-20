@@ -1,0 +1,20 @@
+Trying to debug pairs_to_sublists() in to_sublists.jl using the function test_to_sublists() in to_sublists.jl.
+
+Tests now succeed with different parameter values.
+use_lincircuits = false
+julia> p = Parameters(2,1,2,2)
+julia> ecl = enumerate_circuits_ch( p, funcs )  # ecl has length 256
+
+julia> p = Parameters(3,1,3,3)
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 3, 3)
+julia> ecl = use_lincircuit ? enumerate_circuits_lc( p, funcs ) : enumerate_circuits_ch( p, funcs ); length(ecl)
+46656
+julia> for i = 1:30 test_to_sublists( ecl, random_phl(p,.01), funcs ) end
+julia> for i = 1:30 test_to_sublists( ecl, random_phl(p,.99), funcs ) end
+
+use_lincircuits = true
+julia> p = Parameters(2,1,2,2)
+julia> ecl = use_lincircuit ? enumerate_circuits_lc( p, funcs ) : enumerate_circuits_ch( p, funcs ); length(ecl); length(ecl)
+16384
+julia> @time for i = 1:30 test_to_sublists( ecl, random_phl(p,.50), funcs ) end
+  4.051098 seconds (40.36 M allocations: 2.107 GiB, 8.01% gc time)ZZZZ
