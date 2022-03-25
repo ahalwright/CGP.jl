@@ -1,9 +1,0 @@
-Wrote functions neutral_walk() and run_neutral_walk() in neutral_walk_connectivity.jl
-Still not fully debugged.
-Did a push to github.
-
-p = Parameters(2,1,5,4)
-g = randgoal(p.numinputs,p.numoutputs)
-1-element Array{UInt16,1}:
- 0x0006
-run_neutral_walk( g, p, 30, 40, 10000, 10)

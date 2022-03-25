@@ -1,7 +1,0 @@
-Working on laptop at cabin.
-
-Finished coding function mutational_robustness() and moved from file Mutaitonal_robustness.jl
-to Avg_mutational_robustness.jl.  avg_mutational_robustness() failed because of entropy functions,
-Temporarily set redundancy, complexity, degeeneray to 1.0.  Probably pardosa version of
-entropy will solve this problem.  With these temporary fixes, got avg_mutational_robustness()
-to run.  Need to do further checking.

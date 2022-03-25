@@ -1,0 +1,57 @@
+Preview paper plots 11/27
+1.  Logic gate circuits.
+2.  log10 goal freq vs goal rank
+3.  infrequent goals have higher evolvability
+4.  evolvability vs log freq
+5.  evo count vs sample size for rare and frequent goals
+6.  evo count vs sample size for rare and frequent goals log scale
+7.  robustness vs genotypic and phenotypic evolvability
+8.  phenotypic evolvability vs robustness
+9.  complexity vs robustness
+10. complexity vs evolvability
+11. evolvability vs epistasis
+12. robustness vs log freq
+13. evolvability vs log freq
+14. complexity vs log freq
+15. complexity vs neighbor complexity
+16. log steps vs complexity (log steps is difficulty of evolution)
+17. log steps vs log freq
+18. log freq vs complexity
+19. kolmogorov complexity vs tononi complexity
+20. genotype evolvability vs robustness for minimum gate circuits
+
+Wagner outline:
+Note:  sequence <==> genotype,  structure <==> phenotype
+1.  Genotype and phenotype robustness
+2.  High sequence robustness means low sequence evolvability
+3.  High structure robustness means high structure evolvability
+4.  Populations evolving on large neutral networks can access greater amounts of variation
+5.  Even when populations or mutation rates are small, populations with robust phenotypes 
+    access more variation
+6.  An evolutionary search’s ability to find a target structure is only weakly correlated with
+    robustness
+Discussion
+
+Greenbury & Ahnert Fibonacci GP map
+Distribution of neutral sizes
+Correlations of genotype robustness vs evolvability and of phenotype robustness vs evolvability
+Robustness vs frequency
+
+Greenbury, Johnston, Ard, Ahnert Polynomial GP map
+Background and examples of GP maps
+Polynomial model
+3. Properties of GP maps, comparison of polynomial, RNA, and HP models
+3.1. Redundancy 
+3.2. Phenotype bias 
+3.3. Components and connectivity
+3.4. Shape space covering
+      Shape space covering is measured by counting the average fraction of phenotypes found when 
+      applying a given number of independent mutations (the radius, n) to a genotype in the GP map. 
+3.5. Robustness
+3.6. Robustness versus evolvability
+
+
+
+
+
+

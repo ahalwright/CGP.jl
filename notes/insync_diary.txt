@@ -1,0 +1,2 @@
+Diary of rsync saves to NAS:
+3/7/21: rsyn evotech backups@192.168.1.10:/volume2/backups/evotech/3_7_21/ 

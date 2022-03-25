@@ -1,0 +1,93 @@
+Continuation of 2/24/22:
+
+My current idea is to relate complexity to information to entropy in different domains
+including technological and cultural evolution.  I think there are connections to our
+recent research on digital circuit simulation, but I don't currently have a concise
+explanation of these connections.
+
+The following summarizes important points from 3 articles by Christoph Adami.
+
+Adami:  What is complexity?  BioEssays 24:1085–1094, 2002 Wiley Periodicals, Inc.
+
+The physical complexity of a sequence refers to the amount of information that is stored 
+in that sequence about a particular environment. For a genome, this environment is the one
+in which it replicates and in which its host lives, a concept roughly equivalent to what 
+we call a niche.
+
+Entropy is a measure of potential knowledge, or if applied to a sequence, a measure of how 
+much information a sequence could hold, and thus quantifies our uncertainty about the genetic 
+identity of a randomly selected individual from a pool. 
+
+This is precisely what physical complexity measures, since physical complexity is
+information about the environment that can be used to make predictions about it. Being able 
+to predict the environment allows an organism to exploit it for survival. In such a manner,
+physical complexity translates into fitness for the organism.
+
+======================================================================
+Adami: "What is information?" Adami C. 2016 What is
+information? Phil. Trans. R. Soc. A 374: 20150230.
+http://dx.doi.org/10.1098/rsta.2015.0230
+
+My main takeway from this review article is the entropy strongly depends on
+how you observe or encode the world.
+
+(1) Entropy, also known as ‘uncertainty’, is something that is mathematically defined for a
+‘random variable’. But physical objects are not mathematical. They are messy complicated
+things. They become mathematical when observed through the looking glass of a
+measurement device that has a finite resolution. We then understand that a physical object
+does not ‘have an entropy’. Rather, its entropy is defined by the measurement device I
+choose to examine it with. Information theory therefore is a theory of the relative state of
+measurement devices.
+(2) Entropy, also known as uncertainty, quantifies how much you do not know about
+something (a random variable). But in order to quantify how much you do not know,
+you have to know something about the thing you do not know. These are the hidden
+assumptions in probability theory and information theory. These are the things you did
+not know you knew.
+(3) Shannon’s entropy is written in terms of ‘p log p’, but these ‘p’ are really conditional
+probabilities if you know that they are not uniform, that is, all p the same for all states.
+They are not uniform given what else you know
+
+I(X : Y) = H(X) − H(X | Y). (4.1)
+I(X : Y) = H(Y) − H(Y | X). (4.2)
+
+Even at the purely phenomenological level, entropy is an anthropomorphic concept. For it is a property, 
+not of the physical system, but of the particular experiments you or I choose to perform on it.’
+
+======================================================================
+Adami: The use of information theory in evolutionary biology 
+doi: 10.1111/j.1749-6632.2011.06422.x
+Ann. N.Y. Acad. Sci. 1256 (2012) 49–65 !c 2012 New York Academy of Sciences.
+
+"Colloquially, information is often described as something that aids in decision making. Interestingly, 
+this is very close to the mathematical meaning of “information,” which is concerned with quantifying 
+the ability to make predictions about uncertain systems." (p. 50)
+
+An excellent example of comparing entropy (and hence information---I think) of different taxonomic
+groups of eukaryotes to animals to chordates etc.
+
+Relationship to measures based on robot sensor and motor states.
+
+A section on Integrated Information relating to simple and complex brains.
+Potential relationship to our Tononi complexity.  Application to the evolution of animats.
+
+Figure 7:  Correlation of information-theoretic measures of complexity with fitness.
+
+Conclusions:  Information is the central currency for organismal fitness,80 and appears to be 
+that which increases when organisms adapt to their niche.13 Information about the niche is 
+stored in genes, and used to make predictions about the future states of the environment. 
+Because fitness is higher in well-predicted environments (simply because it is easier to take
+advantage of the environment’s features for reproduction if they are predictable), organisms with
+more information about their niche are expected to outcompete those with less information, 
+suggesting a direct relationship between information content and fitness within a niche 
+(comparisons of information content across niches, on the other hand, are meaningless because 
+the information is not about the same system). A very similar relationship, also enforced by the 
+rules of natural selection, can be found for information acquired not through the evolutionary 
+process, but instead via an organism’s sensors.
+
+Future directions:  "Generally speaking, it appears that there is a fundamental law that links 
+information to fitness (suitably defined)."
+
+Thus, the ability of making predictions about the world that range far into the future may be 
+the ultimate measure of functional complexity82 and perhaps even intelligence.83
+
+My comment:  There might be a relationship between the rate of evolution and extinction.

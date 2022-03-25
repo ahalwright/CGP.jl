@@ -1,2 +1,0 @@
-Wrote function circuit_complexities() that computes the complexities of num_circuits random chromosomes.
-Function is in RecordOutputs.jl.

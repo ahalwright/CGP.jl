@@ -1,4 +1,0 @@
-See the Windows files:
-complexity/result_summaries/robustness increases complexity 6_19_20.docx
-and 
-complexity/result_summaries/robustness doesnt increase complexity 6_23_20.docx

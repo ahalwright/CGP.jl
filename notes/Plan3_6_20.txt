@@ -1,0 +1,41 @@
+Computation plan for disovering goals of increasing complexity.
+
+1.  Determine how to index logic functions with different numbers of inputs and outputs.
+    a.  As a bit string
+    b.  As a hash of the bit string
+2.  Set up experiment to generate random circuits with a given number of inputs, outputs, gates,
+    and levels-back.  Keep track of the logic functions generated.
+3.  Do experiment for NAND gates.  
+    a.  Find frequencies of Arthur-Polak goal functions
+    b.  How does number-of-gates and levels-back affect results?
+4.  Do experiment with gates chosen from the results of (3).
+
+The definition of contexts and how to specify a logic fuction from the file Contexts.jl
+
+Construct contexts for up to 7 inputs if MyInt = UInt128
+# Example of context for 2 inputs
+# Context[1] = 0x0c = 1100
+# Context[2] = 0x0a = 1010
+# We consider this as a 2 by 4 bit matrix where Context[i] is the ith row.
+# Each column of this matrx corresponds to 2 inputs to the circuit.
+# All columns of the matrix correspond to all possible inputs to the circuit.
+# Column 1 corresponds to input1 = 1, input2 = 1
+# Column 2 corresponds to input1 = 1, input2 = 0
+# Column 3 corresponds to input1 = 0, input2 = 1
+# Column 4 corresponds to input1 = 0, input2 = 0
+# Thus, the 4-bit output string describes the output of the circuit for all inputs.
+# This specifies a truth table where columns of the Context matrix correspoing to
+#   rows of the truth table.
+
+# When there are 3 inputs, Context has 3 components, one for each input.
+# Thus, the matrix has 3 rows and 8 = 2^3 columns and the function computed by the
+#   circuit is specified by the 8 bit output string.
+
+# The logic function multi-output circuit is specified by sequence of output bit
+#   strings for each output, or by the concatenation of these bit strings into
+#   a single bit string. 
+
+# In general, it requires m 2^n bits to specify a logic function with n inputs 
+#  and m outputs.
+
+# The above is implemented in Contexts.jl

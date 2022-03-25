@@ -1,0 +1,25 @@
+See complexity/cce/Entropy_information_complexity_Adami3_21_22.docx
+
+Idea for relating Adami complexity to digital circuits.
+
+For a given parameter setting, each gate of a circuit is specified by the gate function and the inputs to the gate.  
+The circuit is specified by the gates, and this sequence can be the equivalent of a genome for the circuit.  Thus, 
+it is straightforward to compute the entropy of a population of circuits.
+
+An environment can be specified by a fitness function over the space of phenotypes.
+
+Thus, it looks like I can compute the Adami complexity of a population of circuits relative to the environment 
+specified by a fitness function over the space of phenotypes.  I should be able to track how complexity changes 
+as a population evolves. 
+
+I would like to do this where the number of gates of circuits changes during the course of evolution.  Maybe 
+a way to do this is to assign gate parameters of non-existent gates to have maximum entropy.
+
+Hypothesis:  The Adami complexity of a population of circuits evolved to a low Tononi complexity phenotype will be high.
+
+  1.  By Gecco Figure 10, the log redundancy of a phenotype  is negatively and almost linearly related to Tononi complexity.
+
+  2.  High redundany means that there are many genotypes per phenotype suggesting that the fitness landscape will be "flat" 
+      or have a flat peak.  Thus, the population will be less converged ==> high entropy ==> low Adami complexity
+ 
+

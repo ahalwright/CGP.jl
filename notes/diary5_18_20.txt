@@ -1,5 +1,0 @@
-Idea:  technological evolution follows the following process:
-1.  When there is a failure, investigate that failure and fix it.
-    Modularity helps this process.
-2.  Add a new feature which gives some new capability.
-3.  Create a new entity/technology to satisfy a new goal.

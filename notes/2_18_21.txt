@@ -1,1 +1,41 @@
-../../nearly-neutral/notes/2_18_21.txt
+Goal:  replicate Labar & Adami 2016.
+Need simple population evolution functions.
+Found:  Pop_evolve.jl from June, July of 2020.  No notes.
+  Got it to work.  See data/7_27.  The primary apparent objective was to evolve robustness.
+  It is not simple.
+
+Simple version should define fitness by a scaling of Hamming distance (or inverted Hamming 
+distance) to a goal or list of goals.  Variation should be produced by circuit simple 
+mutation with the possible addition of mutation to increase and decrease numgates.
+Selection should be by proportional selection.
+
+To duplicate Labar/Adami, we must scale fitness so that the number of deleterious
+mutations accepted varies with popsize for the range of popsizes used.
+
+Keep track of neutral, deleterious, beneficial mutations.  Perhaps two definitions
+of neutral, deleterious, benefical: one base on optimum in the population when the
+mutation occured, and one based on the current population.  
+
+Keep track of generations to optimum.
+
+Question: if we use a small number of inputs and outputs (such as 3x1 or 4x1) with
+large fitness incrments or a large number of inputs and outputs (such as 4x2
+or 5x2 or 4x4) for smaller fitness increments. 
+
+Perhaps can make the case that circuit evolution is an alternative to Avida.
+
+Continue as of 2/20/21:
+
+Give each individual a unique unsigned integer identifier for that generation, and 
+then keep track each individual's ancestors.  Then a lethal mutation is one with
+no descendants, and a deleterious mutation is one with no descendants past
+2 or 3 or 4 generations.
+
+Compare this with a definition of deleterious as fitness below current mean
+fitness of the parent generation, and beneficial as fitness above current
+mean fitness.  Or a definition as fitness decreases, stays same, or increases
+from the parent.
+
+Consider using numgates considerably larger than in previous experiments so that
+a high proportion of mutations do not change the phenotype (high robustness).
+

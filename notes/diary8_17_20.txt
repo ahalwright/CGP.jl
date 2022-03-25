@@ -1,4 +1,0 @@
-Frenken and Nuvolari (2004) use an alternative definition of mutual_information that is described
-in 1969 and 1972 books by Henri Theil.  The defintion of Cover & Thomas only applies to two populations,
-while the Frenken/Theil definition applies to any number of populations.  Both definitions are based
-on the joint distribution of the populations.

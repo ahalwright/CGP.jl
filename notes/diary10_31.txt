@@ -1,2 +1,0 @@
-# Distribution of complexities for circuits evolving into a given goal for a list of random goals.
-# Results in data/10_31

@@ -1,0 +1,7 @@
+tr11 = [ "x"=>erdf11.robust, "y"=>erdf11.evolvable, "mode"=>"markers", "name"=>"11 ints","color"=>"blue","size"=>3]
+
+tr10 = [ "x"=>erdf11.robust, "y"=>erdf11.evolvable, "mode"=>"markers", "name"=>"11 ints","color"=>"blue","size"=>3]
+
+lay = ["title"=>"Evolvability vs Robustness","xaxis"=>["title"=>"Robustness","showline"=>false],"yaxis"=>["title"=>"Evolvability"]];
+
+

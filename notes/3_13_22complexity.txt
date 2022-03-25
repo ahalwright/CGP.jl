@@ -1,0 +1,21 @@
+Note the two files Complexity_Information_Entropy_Technology2_27_22.docx and 
+Complexity_information_entropy2_26_22.docx.
+
+Complexity/information ideas:
+
+1.  Given a goal phenotype, use epochal evolution to evolve a circuit which maps to the goal.
+Conjecture:  The mutual information between the output of the current circuit and the goal
+decreases somewhat monotonically to zero.
+
+2.  Similar to the GECCO paper choose random 4-input 1-output goals.  Evolve circuits to these goals as in 
+the GECCO paper except start with a small number of gates and work up to an increased number of gates.
+
+2a.  Measure the mutual information between the goals and the output the evolving circuits.
+Question:  does the largest mutual information predict whether a descendant of the circuit
+will converge to the goal?  
+
+2b.  Find a way to use Adami's definition of complexity to measure the complexity of a circuit
+relative to a goal phenotype (the environment).  Perhaps let the entropy of the output of 
+random circuits with a given number of gates correspond to the entropy of a random sequence.
+Let complexity = random circuit entropy - circuit output entropy.
+How does this relate to mutual information between circuit output and goal phenotyp?

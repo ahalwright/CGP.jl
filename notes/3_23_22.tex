@@ -1,0 +1,36 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{1ex}
+\textwidth=15.7cm
+\textheight=22.9cm
+\voffset=-2.54cm
+\hoffset=-2cm
+
+\begin{document}
+
+Conditional entropy  
+
+\url{https://en.wikipedia.org/wiki/Conditional\_entropy}
+$$
+H(Y|X) = -\sum_{x \in X} \sum_{y \in Y} p(x,y) \log \frac{p(x,y)}{p(x)}
+$$
+
+Mutual information  
+
+\url{https://en.wikipedia.org/wiki/Mutual\_information}
+$$
+I(X;Y) = \sum_{y \in Y} \sum_{x \in Y} p(x,y) \log \left( \frac{p(x,y)}{p(x)p(y)} \right)
+$$
+
+Relationship to conditional and joint entropy:
+\begin{flalign*}
+I(X;Y) & = H(X) - H(X|Y) &\\
+       & = H(Y) - H(Y|X) &\\
+       & = H(X) + H(Y) - H(X,Y) &\\
+       & = H(X,Y) - H(X|Y) - H(Y|X)
+\end{flalign*}
+
+
+\end{document}

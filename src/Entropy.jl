@@ -3,11 +3,11 @@
 #using CSV
 using DataFrames
 export dist_check, pop_to_dist, pops_to_dist, pops_to_tbl, pop_counts_to_tbl, table_row_to_dist
-export entropy, relative_entropy, conditional_entropy, joint_entropy, mutual_information
+export entropy, relative_entropy, rel_entropy, conditional_entropy, joint_entropy, mutual_information
 export sherwin_mutual_information, row_marginal, column_marginal, adami_complexity
 #include("../../information_theory/src/aliases.jl")
 
-
+ 
 function dist_check( p::DIST_TYPE )
   sum = 0.0
   for x in keys(p)
@@ -165,15 +165,23 @@ function relative_entropy( q::Population, p::Population; base::Float64=2.0 )
   relative_entropy( pop_to_dist(q), pop_to_dist(p), base=base )
 end
 
-function relative_entropy( p::Vector{Float64}, q::Vector{Float64}; base::Float64=2.0 )
+function relative_entropy( q::Vector{Float64}, p::Vector{Float64}; base::Float64=2.0 )
+  @assert length(q) == length(p)
   result = 0.0
   for i = 1:length(p)
     if q[i] == 0.0
       return NaN
     end
-    result += p[i]*log(base,p[i]/q[i])
+    result += p[i] == 0.0 ? 0.0 : p[i]*log(base,p[i]/q[i])
   end
   result
+end
+
+# relative entropy of two incidence vectors:
+function rel_entropy( q::Vector{Int64}, p::Vector{Int64} )
+  q = q/sum(q)
+  p = p/sum(p)
+  relative_entropy( q, p )
 end
 
 # Conditional entropy of a table.

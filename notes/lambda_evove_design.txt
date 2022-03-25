@@ -1,0 +1,3 @@
+Objective: Evolve selecting for mutational robustness and see if Frenken mutual information 
+(as an alternative for Tononi comlexity increases).  Note that it is easy to show that Tononi
+complexity applied to get_bits of a random vector is correlated with Frenken mutual information.

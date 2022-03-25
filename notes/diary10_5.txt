@@ -1,9 +1,0 @@
-Worked on rewriting evolvability() to not use mut_evolve_increase_numints().  Made progress but not finished.
-Perhaps run_geno_robustness() and run_geno_complexity() as sufficient as alternatives (and are much less complicated).
-
-Rewrote run_geno_robustness() in Evolvability.jl to use mut_evolve() instead of mut_evolve_increase_numints().
-Rewrote run_geno_complexity() in Evolvability.jl to use mut_evolve() instead of mut_evolve_increase_numints().
-Did runs of both of these on surt2, and used the output to generate Excel plots.
-data/10_5/geno_robust_evo10_5C.xlsx
-data/10_5/geno_complexity10_5C.xlsx  plots of complexity vs. robustness, complexity vs evolvability.
-Might be able to combine these.

@@ -1,0 +1,62 @@
+Note that I saved an interim presentation to evotech/complexity/presentations.
+
+Hello Anna,
+
+Cheyenne and I have been working on the evolution of genotype-phenotype maps using
+the simulation of the evolution of digital logic gate circuits as an example.  
+One of the questions that we have investigated is the evolution of increasing
+complexity.  I have some new ideas that relate complexity, information, and 
+cultural/technological evolution.  My ideas are based on what Christoph Adami 
+calls physical complexity. I give a brief description below, and I am attaching 
+some Adami papers for more details.  Below I ask for some suggestions for relevant 
+research on phylogenetic approaches to technological evolution.
+
+Cheyenne should be available to talk to you about this approach Tuesday morning
+after her class which ends at about 10:20.  I will then meet with Cheyenne after
+a distributed systems seminar that I am teaching which ends at 11.
+
+I will try to give you an idea of how Adami defines genomic complexity in terms of information.
+He calls his version of complexity "physical complexity" which is somewhat confusing in that
+it refers to the complexity of a genomic sequence.  "it is sufficient to think of the physical 
+complexity of a sequence as the amount of information that is coded in the genomes of an adapting 
+population about the environment to which it is adapting."  (Adami 2002 "What is complexity" p. 1088).
+Clearly, if this information allows the organisms of the population to predict their environment, the
+information should enhance the likelihood that the organism can survive and reproduce.
+
+"Whether or not complexity increases in evolution is one of the central questions of evolutionary biology."
+(Adami 2002).  This is also one of the central questions for other kinds of evolution
+including technological and artificial evolution.
+
+This notion of complexity can be mathematically defined in terms of entropy.  The details
+are given both in (Adami 2002 "What is complexity") and in (Adami 2012 "The use of information theory 
+in evolutionary biology").  To summarize, entropy measures the capability of a sequence to encode 
+information.  Information can only be defined for a population of sequences and
+is the reduction in entropy of a population of sequences from organisms that are adapted to
+the environment in question.  For example, one can consider the amino acid sequence of 
+a particular protein.  The protein sequence for an essential protein of a taxonomic class of 
+organisms will have reduced entropy because at particular positions in the amino acid sequence all, 
+or almost all, organisms will have the same amino acid.  In other words, the protein sequence
+will be constrained by purifying selection which reduces its entropy.  This reduction in 
+entropy is the measure of the amount of information that this protein sequence of the organism
+gives the organism about its environment, and this is also the measure of the "physical" complexity
+of the organism.
+
+I am trying to extend these ideas to technological/cultural evolution.  The first problem is 
+that technological artifacts do not have an explicit genome.  The most obvious substitute is a list of 
+the attributes of the artifact.  This is the approach of (Lycett 2016 "The Importance of a “Quantitative 
+Genetic” Approach to the Evolution of Artifact Morphological Traits".)
+One obvious measure of the complexity of an artifact is the number of attributes of the artifact,
+and this measure can be related to the "reduction in entropy" definition of complexity previously
+described.  Using an existing phylogenetic research paper to define the attributes has advantages
+and disadvantages.  An advantage is that if the attributes were defined for some other purpose,
+then this reduces the potential bias of defining attributes that confirm a complexity hypothesis.
+But the corresponding disadvantage is that a complexity hypothesis may not be supported.
+
+I would like suggestions for technological phylogentic research that could be useful test
+cases for this approach.
+
+I will comment that I checked the Larissa Straffon (2016) "Cultural Phylogenetics"  book out of the 
+library and it is useful.  The Caridi and Schneinson paper on mutual information contains
+good ideas.
+
+Alden

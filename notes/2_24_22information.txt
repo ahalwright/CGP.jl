@@ -1,0 +1,42 @@
+2/24/22:
+Complexity is information.
+
+Information must be about something.  Refer to Adami's definition of complexity.
+
+The complexity of an entity (organism, ecology, technological artifact, economy, species, etc) 
+is the amount of information that must be transmitted through time to maintain the entity
+through time.  Evolution is enhanced by complexity.
+
+The most crucial property of life is its ability to encode the information of organisms in
+a separate physical medium (mostly DNA).  See the Davies book.  The software and hardware
+of life.
+
+This suggests a synthetic biology approach to understanding the origin of life.  
+Try to construct the simplest living organism based on DNA or RNA and proteins.
+
+Or in artificial life:  try to construct the simplest "universal constructor"
+as defined by von Neuman --- see the Davies book.  Is a univeral Turing machine
+a universal constructor?
+
+Important events in the history of the evolution of complexity:
+1.  The origin continuing evolution by natural selection.
+2.  The origin of life which encodes its information.
+3.  The evolution of cooperation such as microfilms.
+4.  Eukaryotes and their more complex representation of information with nucliei
+5.  Multicellularity.
+6.  Nervous systems.
+7.  Technology.  Or maybe niche construction.  
+8.  Transmission of technological information through time.  Relationship to cummulative cultural evolution.
+9.  Human spoken language.  Related to human cultural cooperation.
+10.  Human written language.
+11.  Printing.
+12.  Science.
+
+The evolution of complexity is enabled by the existence of increasingly complex adaptations---a property of nature.
+
+2/25/22:
+Information is always about something.
+
+‘The Information Theory of Life’, by Kevin Hartnett, Quanta.  https://www.quantamagazine.org/the-information-theory-of-life-20151119/
+
+https://www.quantamagazine.org/computer-science-and-biology-explore-algorithmic-evolution-20181129/
