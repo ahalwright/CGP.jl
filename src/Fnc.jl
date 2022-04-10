@@ -50,7 +50,7 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
       println(f,"# funcs: ",funcs)
       println(f,"# use_lincircuit: ",use_lincircuit)
       CSV.write( f, df, append=true, writeheader=true )
-      CSV.write( f, cdf, append=true, writeheader=true )
+      #CSV.write( f, cdf, append=true, writeheader=true )
     end
   end
   (df,cdf)
@@ -564,6 +564,7 @@ function scorrelations( rdf::DataFrame )
   df = DataFrame()
   df.pheno = [rdf.pheno[1]]
   df.count = [rdf.len'*rdf.count]
+  df.ncomps = [size(rdf)[1]]
   #df.numinputs = [rdf.numinputs[1]]
   #df.ngates = [rdf.ngates[1]]
   #df.levsback = [rdf.levsback[1]]
@@ -571,17 +572,245 @@ function scorrelations( rdf::DataFrame )
   df.nwlkset = [rdf.nwalks_set[1]]
   df.nwlkcirc = [rdf.nwalks_circ[1]]
   df.rbst = [spearman_cor(rdf,:len,:avg_robust)[1]]
-  df.rbstt = [spearman_cor(rdf,:len,:avg_robust)[2]]
+  df.rbstp = [spearman_cor(rdf,:len,:avg_robust)[2]]
   df.evo = [spearman_cor(rdf,:len,:avg_evo)[1]]
-  df.evot = [spearman_cor(rdf,:len,:avg_evo)[2]]
+  df.evop = [spearman_cor(rdf,:len,:avg_evo)[2]]
   df.cplx = [spearman_cor(rdf,:len,:avg_cmplx)[1]]
-  df.cplxt = [spearman_cor(rdf,:len,:avg_cmplx)[2]]
+  df.cplxp = [spearman_cor(rdf,:len,:avg_cmplx)[2]]
   df.walk = [spearman_cor(rdf,:len,:avg_walk)[1]]
-  df.walkt = [spearman_cor(rdf,:len,:avg_walk)[2]]
+  df.walkp = [spearman_cor(rdf,:len,:avg_walk)[2]]
   df.mawlk = [spearman_cor(rdf,:len,:sum_ma_walk)[1]]
-  df.mawlkt = [spearman_cor(rdf,:len,:sum_ma_walk)[2]]
+  df.mawlkp = [spearman_cor(rdf,:len,:sum_ma_walk)[2]]
   df.nactive = [spearman_cor(rdf,:len,:avg_nactive)[1]]
-  df.nactivet = [spearman_cor(rdf,:len,:avg_nactive)[2]]
+  df.nactivep = [spearman_cor(rdf,:len,:avg_nactive)[2]]
   df
 end
 
+function scorrelations_df( rdf::DataFrame )
+  current_pheno = rdf.pheno[1]
+  current_pheno_index = 1
+  println("  current_pheno: ",current_pheno)
+  #=
+  cdf = DataFrame()
+  symnames = map(Symbol,names(rdf))
+  for j = 1:size(rdf)[2]
+    insertcols!(cdf,symnames[j]=>Vector{typeof(rdf[1,j])}[] )
+  end
+  =#
+  ssdf = DataFrame()  # Establish scope
+  sdf = DataFrame()   # Establish scope
+  k = 1
+  for i = 2:size(rdf)[1]
+    println("i: ",i,"  rdf.pheno[i]: ",rdf.pheno[i])
+    if current_pheno != rdf.pheno[i] || i == size(df)[1]
+      ndf = rdf[current_pheno_index:i,:]
+      if size(ndf)[1] > 4
+        sdf = scorrelations( ndf )
+        if k == 1
+          ssdf = sdf
+        else
+          ssdf = vcat(ssdf,sdf)
+        end
+        k += 1
+      end
+      println("i: ",i,"  size(sdf): ",size(sdf),"  size(ssdf): ",size(ssdf))
+      current_pheno = rdf.pheno[i]
+      current_pheno_index = i
+    end
+  end
+  ssdf
+end
+
+# included from to_sublists.jl on 4/10/22
+using Test
+
+function pairs_to_sublists( ecl::Union{Vector{Chromosome},Vector{LinCircuit}}, pheno_list::Vector{MyInt}, funcs::Vector{Func} )
+  sort!(pheno_list)
+  chp_list = [ (ec,output_values(ec,funcs)[1]) for ec in ecl ] 
+  sort!( chp_list, by=x->x[2] )  
+  if typeof(ecl) == Vector{Chromosome}
+    ch_pheno_lists = Vector{Tuple{Chromosome,MyInt}}[]
+    empty_chp_sublist = Tuple{Chromosome,MyInt}[]
+  elseif typeof(ecl) == Vector{LinCircuit}
+    ch_pheno_lists =Vector{Tuple{LinCircuit,MyInt}}[]
+    empty_chp_sublist = Tuple{Union{Chromosome,LinCircuit},MyInt}[]
+  end
+  chp_sublist = deepcopy(empty_chp_sublist)
+  if length(pheno_list)==0 return ch_pheno_lists end
+  #D println("pheno_list: ",pheno_list)
+  i = 1
+  j = 1
+  chp = chp_list[j]
+  while i <= length(pheno_list) && j <= length(chp_list)
+    chp = chp_list[j]
+    #D println("j: ",j,"  i: ",i,"  chp[2]: ",prhex(chp[2]),"  pheno_list[i]: ",prhex(pheno_list[i]),"  length(chp_sublist): ",length(chp_sublist))
+    if chp[2] < pheno_list[i]
+       j += 1  
+       #D print("j: ",j,"  increment j  ")
+    elseif chp[2] == pheno_list[i]
+      push!(chp_sublist,chp)
+      #D print("j: ",j,"  chp: ",prhex(chp[2]),"  push chp:  length chp_sublist:  ",length(chp_sublist),"   ")
+      j += 1
+    elseif chp[2] > pheno_list[i]
+      push!(ch_pheno_lists,chp_sublist)                
+      #D print("j: ",j,"  i: ",i,"  chp: ",prhex(chp[2]),"  push chp_sublist: length chp_sublist: ",length(chp_sublist))
+      #D println("  length ch_pheno_lists: ",length(ch_pheno_lists))
+      i += 1
+      chp_sublist = deepcopy(empty_chp_sublist)
+    end
+  end  # while
+  #D println()
+  #D println("end while: i: ",i,"  j: ",j)
+  while i <= length(pheno_list)
+    push!(ch_pheno_lists,chp_sublist)                
+    #D print("j: ",j,"  i: ",i,"  chp: ",prhex(chp[2]),"  push chp_sublist: length chp_sublist: ",length(chp_sublist))
+    #D println("  length ch_pheno_lists: ",length(ch_pheno_lists))
+    i += 1
+  end
+  if j > length(chp_list)
+    push!(ch_pheno_lists,chp_sublist)                
+    #D print("j: ",j,"  i: ",i,"  chp: ",prhex(chp[2]),"  push chp_sublist: length chp_sublist: ",length(chp_sublist))
+  end
+  ch_pheno_lists
+end
+
+function test_to_sublists( ecl::Union{Vector{Chromosome},Vector{LinCircuit}}, pheno_list::Vector{MyInt}, funcs::Vector{Func} )
+  #@testset begin "testing to_sublists() using random sets of phenotypes"
+    chp_lists=pairs_to_sublists( ecl, pheno_list, funcs )
+    sublists_lengths = map(x->length(x),chp_lists)
+    #D println("sublists_lengths: ",sublists_lengths," length(sublists_lengths): ",length(sublists_lengths))
+    i = 1
+    for ph in pheno_list
+      ch_list = filter( x->output_values(x,funcs)[1]==ph, ecl )
+      #D println("i: ",i,"  ph: ",prhex(ph),"  length(ch_list): ",length(ch_list))
+      #@test length(ch_list) == sublists_lengths[i]
+      i += 1
+    end
+  #end # testset
+end
+
+function random_phl( p::Parameters, prob::Float64 )
+  phl = MyInt[]
+  for i = 0:(2^2^p.numinputs-1)
+    if rand() < prob
+      push!(phl,MyInt(i))
+    end
+  end
+  phl
+end
+
+# Returns the number active not inluding inputs.
+function num_active_lc( circ::LinCircuit, funcs::Vector{Func}=default_funcs(circ.params) )
+  p = circ.params
+  numinstructions = p.numinteriors
+  res = num_active_lc( circ, numinstructions, numinstructions+1, funcs )
+  reduce(+,res[2])
+end
+
+# Included from num_active_lc.jl
+function num_active_lc( circ::LinCircuit, i::Int64, count::Int64, funcs::Vector{Func}=default_funcs(circ.params) )
+  if count <= 0   # return if recursion infinite loop
+    return
+  end
+  #D println("num_active_lc: i: ",i,"  count: ",count)
+  p = circ.params
+  instruction_active = fill(false,p.numinteriors)  # p.numinteriors == numinstructions
+  v = circ.circuit_vects
+  @assert p.numoutputs == 1
+  n_instructions = length(circ.circuit_vects)
+  Rinit = fill(MyInt(0), p.numlevelsback + p.numinputs ) # numlevelsback is the number of computational registers
+  Rinit[(p.numlevelsback+1):end] = construct_context(p.numinputs)
+  if v[i][2] == 1    # instruction does output result to output register
+    rval = eval_lincircuit( circ, i, count-1, instruction_active, funcs )
+    #D println("v[i][2] == 1: count: ",count,"  rval: ",rval)
+    return ( rval, instruction_active )
+  else  # instruction does not output result to output register: search for last instruction that does
+    j = i-1
+    while j >= 1 && v[j][2] != 1
+      j -= 1
+    end
+    if j >=1
+      instruction_active[j] = true
+      rval = eval_lincircuit( circ, j, count-1, instruction_active, funcs )
+    else
+      rval = Rinit[1]
+    end
+    #D println("j: ",j,"  rval: ",prhex(rval))
+    return ( rval, instruction_active )
+  end
+end
+
+function eval_lincircuit( circ::LinCircuit, i::Int64, count::Int64, instruction_active::Vector{Bool},
+      funcs::Vector{Func}=default_funcs(circ.params) ) 
+  #D println("eval_lincircuit: i: ",i,"  count: ",count)
+  instruction_active[i] = true
+  p = circ.params
+  v = circ.circuit_vects
+  Rinit = fill(MyInt(0), p.numlevelsback + p.numinputs ) # numlevelsback is the number of computational registers
+  Rinit[(p.numlevelsback+1):end] = construct_context(p.numinputs)
+  done = false   # establish scope
+  rc = MyInt[]
+  for m = 3:4
+    #println("m: ",m)
+    done = false
+    if v[i][m] >= 3
+      #D println("i: ",i,"  m: ",m,"  v[i][m]: ",v[i][m],"  push context Rinit[v[i][m]]: ",prhex(Rinit[v[i][m]]))
+      push!(rc,Rinit[v[i][m]])
+      done = true
+    else
+      for j = (i-1):-1:1
+        if v[j][2] == v[i][m]
+          #D println("i: ",i,"  before recurse: rc: ",rc)
+          rval = eval_lincircuit( circ, j, count-1, instruction_active, funcs )
+          #D println("i: ",i,"  j: ",j,"  rc: ",rc,"  push rval: ",prhex(rval))
+          push!(rc,rval)
+          done = true
+          break
+        #else
+          #println("i: ",i," v[i][m]: ",v[i][m],"  j: ",j," push Rinit[v[i][m]]: ",prhex(Rinit[v[i][m]]))
+          #push!(rc,Rinit[v[i][m]])
+          #done = true
+        end
+      end
+    end
+    if !done
+      #D println("i: ",i," m: ",m,"  !done push Rinit[v[i][m]]: ",prhex(Rinit[v[i][m]]))
+      push!(rc,Rinit[v[i][m]])
+    end
+    #D println("i: ",i,"  m: ",m,"  rc: ",rc)
+  end
+  return_value = funcs[circ.circuit_vects[i][1]].func(rc[1],rc[2])
+  #D println("i: ",i,"  func: ",funcs[circ.circuit_vects[i][1]],"  return value: ",prhex(return_value),"  count: ",count)
+  return return_value
+end
+  
+prhex( x::MyInt ) = @sprintf("0x%04x",x)
+  
+function execl( circuit::LinCircuit, funcs::Vector{Func} )
+  p = circuit.params
+  R = fill(MyInt(0), p.numlevelsback + p.numinputs ) # numlevelsback is the number of computational registers
+  R[(p.numlevelsback+1):end] = construct_context(p.numinputs)
+  for lc in circuit.circuit_vects
+    R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]])
+    #D println("lc: ",lc,"  R: ",R)
+  end
+  R
+end
+
+function test_num_active_lc( p::Parameters, funcs::Vector{Func}, numtries::Int64 )
+  numactive_counts = zeros( Int64, p.numinteriors+1 )
+  print("test_num_active: p: ",p,"  numtries: ",numtries)
+  done = false
+  while numtries > 0 && !done
+    numinstructions = p.numinteriors
+    circ = rand_lcircuit( p, funcs )
+    Rr = execute_lcircuit( circ, funcs )
+    nalc = num_active_lc(circ,numinstructions,numinstructions+1,funcs)
+    numactive = reduce(+,nalc[2])
+    numactive_counts[ numactive+1 ] += 1
+    done = Rr[1]==nalc[1] ? false : true
+    numtries -= 1
+  end
+  println("  numtries: ",numtries)
+  println("numactive_counts: ",numactive_counts')
+end 

@@ -1,0 +1,7 @@
+Adami entropy worked.  See data/3_23_22/results.txt
+
+Ideas/Hypotheses:
+1.  Relationship between redundancy (frequency) and Adami entropy.
+2.  Relationship between mutual information between populations evolved to 2 phenotypes
+    and the mutual information between the phenotypes.
+

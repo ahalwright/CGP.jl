@@ -1,0 +1,25 @@
+Can I do mutual information between a genotype space and a phenotype space?
+
+Assume a positive fitness function on phenotype space, and define probabilities
+by normalizing the fitness function to sum to 1.
+
+Assume a population of genotypes and define the probability distribution over 
+genotypes given by normalizing the population frequencies.  This will be a
+probability distribution over those genotypes that actually occur in the 
+population.  With this assumption, all probabilities will be positive avoiding
+division by zero in the formula for mutual information.
+
+Problem:  How does one define the joint distributionn? 
+Requirements:  The distribution over genotypes and the distribution over phenotypes
+must be marginals of the joint distribution.  And if one uses multiplication to
+define the joint distribution, then the two distributions will be independent 
+and mutual information will be zero.
+
+The idea has to be that there is one element of the joint distribution for each
+genotype (chromosome).  
+
+Example:  Suppose we have 3 genotypes A, B, and C.  A and B map to phenotype X
+while C maps to phenotype Y.  Assume A, B, C are equiprobable.  Thus,
+Pr(X) = 2/3, Pr(Y) = 1/3.  
+
+

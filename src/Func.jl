@@ -71,8 +71,8 @@ function lin_funcs( numinputs::Int64 )
 #    return [AND, OR, NOT, ZERO, ONE]
 #    return [ZERO, ONE]
 #    return [AND, OR, XOR, NAND, NOR, NOT, ZERO, ONE]
-    return [AND, OR, NAND, NOR]   # Hu's gate set
-#    return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
+#    return [AND, OR, NAND, NOR]   # Hu's gate set
+    return [AND, OR, XOR, NAND, NOR]   # Raman's gate set
 #     return [AND, OR, XOR, NAND, NOR, IN1, IN2 ]   # Raman's gate set plus IN1 and IN2
 end
 

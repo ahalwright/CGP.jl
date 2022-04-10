@@ -1,4 +1,25 @@
-# Circuit entropy and Adami complexity
+# Circuit entropy, Adami complexity, and mutual information between the genotype and phenotype fitness distributions.
+# A dataframe of results is produced by running simple_pop_evolve()
+# Test functions are test_update_chrome_values() and check_marginals()
+# See data/4_3_22/  for the output of a test run.
+
+# The parameters that describe one chromosome.
+# Assumes that gates are arity 2.
+# The three components of an interior node (gate) of a chromosome are the function and the two inputs.
+# The parameters for the interior node are integers specifying these three components.
+function chrome_params( ch::Chromosome, funcs::Vector{Func} )
+  arities = gate_arities( p, funcs )
+  ch_params = Vector{Int64}[]
+  for i = 1:ch.params.numinteriors
+    j = 1  # determine index of func of interior node i
+    while j <= length(funcs) && ch.interiors[i].func.func != funcs[j].func
+      j += 1
+    end
+    #println("i: ",i,"  j: ",j)
+    push!(ch_params, [ j, ch.interiors[i].inputs[1]-arities[i][2][2], ch.interiors[i].inputs[2]-arities[i][3][2] ])
+  end
+  ch_params
+end
 
 # based on random_chromosome() in Chromosome.jl
 # The three components of an interior node of a chromosome are the function and the two inputs.
@@ -104,6 +125,69 @@ function avg_pop_entropy( pop::Vector{Chromosome}, funcs::Vector{Func}=default_f
   sum(entvalues)/length(entvalues)
 end
 
+function hamming_fitness_nonzero( x::MyInt, target::MyInt, numinputs::Int64 )
+  1.0 - hamming_distance( x, target, numinputs)  + 1/2^numinputs
+end
+
+# by Standard formula Equation 2.28 of Cover & Thomas
+function mut_info( pop::Vector{Chromosome}, target::MyInt, funcs::Vector{Func} ) 
+  (pheno_fitness_dict,geno_count_dict,joint_dict) = mut_info_prob_dists( pop, target, funcs )
+  sum( joint_dict[kj]*log2(joint_dict[kj]/geno_count_dict[kj[1]]/pheno_fitness_dict[kj[2]]) for kj in keys(joint_dict) )
+end
+
+# Creates dictionaries representing fitness probability distributions over phenotypes, genotypes, 
+#   and the joint distribution over phenotypes and genoypes.  
+# Genotypes that do not occur in the population pop are not included
+function mut_info_prob_dists( pop::Vector{Chromosome}, target::MyInt, funcs::Vector{Func} )
+  p = pop[1].params
+  arities=gate_arities(p,funcs)    
+  pheno_fitness_dict = Dict{MyInt,Float64}()
+  geno_count_dict = Dict{Vector{Vector{Int64}},Float64}()
+  joint_dict = Dict{Tuple{Vector{Vector{Int64}},MyInt},Float64}()
+  for ch in pop
+    pheno = output_values( ch )[1]
+    ph_fit = hamming_fitness_nonzero( pheno, target, p.numinputs )
+    pheno_fitness_dict[pheno] = get( pheno_fitness_dict, pheno, 0.0 ) + ph_fit 
+    ch_params = chrome_params( ch, funcs )
+    geno_count_dict[ch_params] = get( geno_count_dict, ch_params, 0.0 ) + ph_fit
+    joint_dict[(ch_params,pheno)] = get( joint_dict, (ch_params,pheno), 0.0 ) + ph_fit
+  end
+  ph_sum = sum( pheno_fitness_dict[k] for k in keys(pheno_fitness_dict) ) 
+  for kp in keys(pheno_fitness_dict)
+    pheno_fitness_dict[kp] = pheno_fitness_dict[kp]/ph_sum
+  end
+  geno_sum = sum( geno_count_dict[k] for k in keys(geno_count_dict) ) 
+  for kg in keys(geno_count_dict)
+    geno_count_dict[kg] = geno_count_dict[kg]/geno_sum
+  end
+  #(pheno_fitness_dict, geno_count_dict)
+  joint_sum = sum( joint_dict[k] for k in keys(joint_dict) )
+  for kj in keys(joint_dict)
+    joint_dict[kj] = joint_dict[kj]/joint_sum
+  end
+  (pheno_fitness_dict,geno_count_dict,joint_dict)
+end
+
+# Computes marginal vectors for the genotype and phenotype distributions computed by mut_info_prob_dists()
+function marginals( joint_dict::Dict{Tuple{Vector{Vector{Int64}},MyInt},Float64}, 
+    pheno_fitness_dict::Dict{MyInt,Float64}, geno_count_dict::Dict{Vector{Vector{Int64}},Float64} )
+  geno_marginals = [ sum( get( joint_dict, (kg,kf), 0.0 ) for kf in keys(pheno_fitness_dict) ) for kg in keys(geno_count_dict) ]
+  pheno_marginals = [ sum( get( joint_dict, (kg,kf), 0.0 ) for kg in keys(geno_count_dict) ) for kf in keys(pheno_fitness_dict) ] 
+  (geno_marginals,pheno_marginals)
+end
+
+# Checks that the marginal vectors agree with the genotype and phenotype distributions computed by mut_info_prob_dists() 
+# An important check of correctness.
+function check_marginals( joint_dict::Dict{Tuple{Vector{Vector{Int64}},MyInt},Float64},
+    pheno_fitness_dict::Dict{MyInt,Float64}, geno_count_dict::Dict{Vector{Vector{Int64}},Float64} )
+  (gm,pm) = marginals( joint_dict, pheno_fitness_dict, geno_count_dict )
+  gdist = [geno_count_dict[k] for k in keys(geno_count_dict)]
+  pdist = [pheno_fitness_dict[k] for k in keys(pheno_fitness_dict)]
+  @assert gm==gdist
+  @assert pm==pdist
+  [ (gm,gdist),(pm,pdist) ]
+end
+  
 # Tests only that there are no indexing errors
 function test_update_chrome_values(p,popsize::Int64,funcs=default_funcs(p))
   pop = Chromosome[]
@@ -119,14 +203,89 @@ end
 #=
 p = Parameters(2,1,4,3)
 funcs = default_funcs(p)
-pop = Chromosome[]
 println("arities: ",circuit_arities(p,funcs))
-popsize = 4
-for i = 1:popsize
-  push!(pop,random_chromosome(p,funcs))
-end
+popsize = 8
+pop = [ random_chromosome(p,funcs) for _=1:popsize ];
+(ph,gn,jt) = mut_info(pop,target,funcs); 
+check_marginals( jt, ph, gn );
 circuit_pop_entropy( p, funcs, pop )
 for j = 1:popsize
   println(ch_values(pop[j],3 ))
 end
 =#
+# A simple no-frills pop_evolve().
+# Copied from simple_pop_evolve.jl into adami.jl on 4/3/22
+
+function random_population( p::Parameters, popsize::Int64, funcs::Vector{Func} )
+  pop = [ random_chromosome(p,funcs) for i = 1: popsize ]
+end
+
+# Does a population genetic algorithm and creates a simple dataframe including avg_pop_entropy
+#   and mutual_information between genotype and phenotype distributions
+function simple_pop_evolve( pop::Vector{Chromosome}, gl::GoalList, ngens::Int64, mutrate::Float64=1.0;
+    prdebug::Bool=false )
+  df = DataFrame()
+  df.gen = Int64[]
+  df.fract_optimal = Float64[]
+  df.avg_pop_entropy = Float64[]
+  df.mutual_inf = Float64[]
+  funcs = default_funcs( p.numinputs )
+  target = gl[1][1]
+  for gen = 1:ngens
+    fitness_vector = rescale_fitnesses([ pop[i].fitness for i = 1:popsize ])
+    prdebug ? println("fit_vect: ",fitness_vector) : nothing
+    prdebug ? println("gen: ",gen,"  max fit: ",maximum(fitness_vector)) : nothing
+    propsel!( pop, fitness_vector, maxfit=findmax(fitness_vector)[1] )
+    prdebug ? println("after propsel gen: ",gen) : nothing
+    for c in pop
+      #c.fitness = hamming_distance( gl, output_values(c), p.numinputs )
+      c.fitness = fitness_funct( p, c, gl )
+      prdebug ? print_circuit(c,include_fitness=true,include_robustness=false,include_pheno=true) : nothing
+    end       
+    #println("fract opt: ",@sprintf("%3.2f",fract_optimal_chromes( pop )),"  ave_ent: ",@sprintf("%3.2f",avg_pop_entropy( pop )))
+    push!(df,[gen,fract_optimal_chromes(pop),avg_pop_entropy(pop),mut_info(pop,target,funcs)])
+    sav_pop = deepcopy( pop )  
+    for i in 1:popsize
+      c = pop[i]
+      if rand() <= mutrate
+        pop[i] = c = mutate_chromosome!(deepcopy(c),funcs)[1]   
+      end
+    end
+  end
+  #pop
+  df
+end
+
+function print_pop( pop::Vector{Chromosome} )
+  for c in pop
+    print_circuit(c,include_fitness=true,include_robustness=false,include_pheno=true)
+  end
+end
+
+function fract_optimal_chromes( pop::Vector{Chromosome} )
+  count = 0
+  for c in pop
+    if c.fitness == 1.0
+      count += 1
+    end
+  end
+  count/length(pop)
+end
+
+# Copied from Pop_evolve.jl.  Remove
+function rescale_fitnesses( fit_vect::Vector{Float64} )
+  fit_min = minimum( fit_vect )
+  #fit_min = quantile( fit_vect, 0.20 )
+  fit_max = maximum( fit_vect )
+  frange = fit_max - fit_min
+  if frange > 0.0
+    return [ (f-fit_min)/frange for f in fit_vect ]
+  else
+    return fit_vect
+  end
+end        
+
+# Copied from Pop_evolve.jl.  Remove
+function fitness_funct( p::Parameters, c::Chromosome, gl::GoalList )
+  maximum( 1.0-hamming_distance( g, output_values(c), p.numinputs ) for g in gl )
+end

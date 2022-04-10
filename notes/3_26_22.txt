@@ -1,0 +1,15 @@
+TODO list for 3/26 and 3/27:
+
+TODO
+Look for other Adami papers.
+Look for more papers on information theory and evolution.
+Review Tononi complexity.
+Letter to Bodnar.
+
+DONE on 3/26
+Found paper: edlund_integrated_information_evolution2011.pdf
+Found paper: hintze_markov_brains2017.pdf
+DONE on 3/27
+Found paper: bialek_predictability_complexity_learning2001.pdf
+
+Notes file: cce/Information_theory_complexity3_27_22.docx

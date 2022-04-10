@@ -1,0 +1,11 @@
+Updated version of complexity/cce/Adami_complexity3_24_22.docx
+Talked to Cheyenne.  She suggested a connection to scaling, like metabolism scaling with size.
+
+Ideas:  
+
+Entropy decreases and complexity increases with learning as well as with evolution.
+
+Multiple evolving populations should learn different information about the same environment.
+This is where we would like to use mutual information and/or Kullback-Leibler divergence.
+
+

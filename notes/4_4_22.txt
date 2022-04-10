@@ -1,0 +1,25 @@
+Appended simple_pop_evolve.jl to adami.jl.
+
+Successfully implemented mut_info_prob_dists() in adami.jl which computes the mutual information between the
+genotype fitness distribution and the phenotype fitness distribution.  
+
+simple_pop_evolve() returns a dataframe which shows the entropy and mutual information results of multiple generations 
+of population evolution.  A sample run is shown in data/4_3_21/.
+
+Results for Adami entropy are encouraging with entropy decreasing as the population converges to a target phenotype,
+but discorageing for mutual informaiton with mutual information also decreasing as the population converges to a target 
+phenotype.  TODO:  Understand mut_info results.
+
+Possible next step:  Try to look at symmetric relative entropy (Kullback Liebler divergence) between two populations evolving
+to a target phenotype distribution.  The target distribution might have one or multiple high-fitness phenotypes.  If one 
+high-fitness phenotype, might demonstrate convergent evolution:  different circuits evolve to map to the same phenotype target.
+
+Another direction:  Simulate increased complexity by symbiosis.  Pick a difficult/complex phenotype and choose subcircuits
+of a corresponding genotype.  Phenotypes of these circuits are candidates for symbiosis.  Given two such phenotypes, evolve
+either separately or with dual goals toward these phenotypes.  In the dual goals situation we want to assume that the
+population has members close to both goals.
+
+Then add fitness to the original complex phenotype.  
+Hypothesis:  Evolution will find the complex phenotype faster than evolving "from scratch".
+
+Another idea:  How to combine epochal evolution with population-based evolution?
