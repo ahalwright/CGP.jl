@@ -189,6 +189,8 @@ All diary topics:
 10_12: Color and size by complexity
 
 
+2022:
+4_4:  Evolution of Adami complexity
 
 
 All plots:

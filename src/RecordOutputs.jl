@@ -286,6 +286,7 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Tuple{Int6
   df
 end
 
+#= Moved to Utilities.jl on 4/20/22
 function write_df_to_csv( df::DataFrame, p::Parameters, funcs::Vector{Func}, csvfile::String )
   open( csvfile, "w" ) do f
     hostname = chomp(open("/etc/hostname") do f read(f,String) end) 
@@ -296,6 +297,7 @@ function write_df_to_csv( df::DataFrame, p::Parameters, funcs::Vector{Func}, csv
     CSV.write( f, df, append=true, writeheader=true )
   end
 end
+=#
 
 # print the elements of the output list that are greater than increment
 # if show_small==true, print the elements of the output list that are less than or equal to  increment

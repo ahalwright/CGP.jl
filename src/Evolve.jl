@@ -756,7 +756,7 @@ function findminrand( A::AbstractVector )
   end
 end
 
-# Evolves a LinCircuit that maps to g starting with chromosome c.
+# Evolves a Chromsome or LinCircuit that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
 # insert_gate_prob is the probability of inserting a gate on a mutation of a chromosome.

@@ -34,7 +34,7 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
   #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
   cdf_list = DataFrame[]
   for rdf in rdf_list
-    if size(df)[1] >= 4
+    if size(rdf)[1] >= 4
       ccdf = scorrelations(rdf)
       push!(cdf_list,ccdf)
     end
