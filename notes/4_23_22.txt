@@ -1,0 +1,28 @@
+Instructions for Cooper to try out Julia code for the CGP project.
+
+If you haven't already done so, go to 
+https://docs.microsoft.com/en-us/devops/develop/git/install-and-set-up-git
+and install Git for Windows.
+
+I also suggest that you install "Windows Terminal" which can be found in 
+Microsoft Store.  It is a better version of Command Prompt and Windows Powershell.
+
+Go to https://github.com/ahalwright/CGP.jl and click on the "Code" tab.
+You will see a "Clone" window with https://github.com/ahalwright/CGP.jl.git.
+Use a Windows Terminal prompt go to the folder where you want to install the code.
+Do "git clone https://github.com/ahalwright/CGP.jl.git".  This will install
+the current version of my code in a subdirectory CGP.jl.  My code is in the
+subdirectory "src" and my notes are in subdirectory "notes".  You don't need
+to be very concerned with the notes.  But this file should be notes/4_23_22.txt.
+
+Then you will need to Julia install all of the packages that I use.  
+You can run "julia -L install_packages.jl" to install these packages.
+It will probably take 15-20 minutes to pre-compile many packages.
+
+To start a Julia prompt with packages loaded, do "julia -L CGP.jl".
+
+To load specific additional Julia files, such as "neutral_evol.jl", do
+"include("neutral_evol.jl").  If you write your own functions, this is
+how you can load them into Julia.
+
+The file "neutral_evol.jl" includes instructions for running as comments.
