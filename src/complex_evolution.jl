@@ -7,45 +7,21 @@ function test_complexity_evolution( p::Parameters, gl::GoalList, popsize::Intege
   df = DataFrame()
   df.pheno = String[]
   df.count = Int64[]
-  df.csteps_avg = Float64[]
-  #df.csucceed = Bool[]
-  df.dsteps_avg = Float64[]
-  #df.dsucceed = Bool[]
+  df.csteps_mean = Float64[]
+  df.csteps_std = Float64[]
+  df.dsteps_mean = Float64[]
+  df.dsteps_std = Float64[]
   for g in gl
-    csteps_sum = 0
-    dsteps_sum = 0
     step_list = pmap(_->test_cmplx_helper( p, g, popsize, max_steps, funcs ), 1:nreps )
-    #step_list = map(_->test_cmplx_helper( p, g, popsize, max_steps, funcs ), 1:nreps )
-    println("step_list: ",step_list)
-    csteps_sum = 0
-    dsteps_sum = 0
-    count = 0
-    for tt in step_list
-      if tt != nothing
-        csteps_sum += tt[2]
-        dsteps_sum += tt[3]
-        count += 1
-      end
-    end
-    println("count: ",count)
-    push!(df,(@sprintf("0x%04x",g[1]),count,csteps_sum/count,dsteps_sum/count))
+    ##step_list = map(_->test_cmplx_helper( p, g, popsize, max_steps, funcs ), 1:nreps )
+    #println("step_list: ",step_list)
+    fslist = filter( x->x!=nothing, step_list )
+    csteps_mean = mean( map(x->x[2], fslist ))
+    dsteps_mean = mean( map(x->x[3], fslist ))
+    csteps_std = std( map(x->x[2], fslist ))
+    dsteps_std = std( map(x->x[3], fslist )) 
+    push!(df,(@sprintf("0x%04x",g[1]),length(fslist),csteps_mean,csteps_std,dsteps_mean,dsteps_std))
   end
-    #=
-    for r = 1:nreps
-      c = random_chromosome(p,funcs)
-      (cc,csteps) = complexity_evolution( deepcopy(c), g, popsize, max_steps, funcs, true )
-      csucceed = cc != nothing
-      (dc,dsteps) = complexity_evolution( deepcopy(c), g, popsize, max_steps, funcs, false )
-      dsucceed = dc != nothing
-      if csucceed && dsucceed
-        count += 1
-        csteps_sum += csteps
-        dsteps_sum += dsteps
-      end    
-    end
-    push!(df,(@sprintf("0x%04x",g[1]),count,csteps_sum/count,dsteps_sum/count))
-  end
-  =#
   df
 end
 
