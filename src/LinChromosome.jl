@@ -109,6 +109,7 @@ function lincomplexity( circuit::LinCircuit, funcs::Vector{Func}; nodearity::Int
   i = 1
   for lc in circuit.circuit_vects
     #println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
+    #println("lc: ",lc,"  R: ",R)
     R[lc[2]] = X[i] = funcs[lc[1]].func(R[lc[3]],R[lc[4]])
     #println("lc: ",lc,"  func: ",funcs[lc[1]],"  R: ",R)
     i += 1
@@ -128,8 +129,11 @@ function num_instructions( p::Parameters, funcs::Vector{Func} )
 end
 
 #  Assumes 1 output registers 
-#  Not finished and not debugged
+function number_active( circ::LinCircuit )
+  return 0
+end
 #=
+#  Not finished and not debugged
 function number_active( circ::LinCircuit )
   p = circ.params
   @assert p.numoutputs = 1
@@ -321,7 +325,7 @@ end
 # Assumes gates are arity 2
 # p.numinteriors is equivalent to numinstructions
 # p.numlevelsback is equivalent to numregisters
-function rand_lcircuit( p::Parameters, funcs::Vector{Func}=lin_funcs(p.numinputs) )
+function rand_lcircuit( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs) )
   LinCircuit( [ rand_ivect( p.numlevelsback, p.numinputs, funcs ) for _ = 1:p.numinteriors], p )
 end
 

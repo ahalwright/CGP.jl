@@ -1,0 +1,67 @@
+Runs on surt2 (C) and fluda (D) for circuits with 5 inputs, 1 output, 24 gates.
+data/4_22_22/geno_complexity4_22_22C.csv
+data/4_22_22/geno_complexity4_22_22D.csv
+C has 9 levelsback, D has 13 levelsback.
+C time:  74 hours, D time:  77 hours. 
+
+Var           C    D
+ntries      233   139
+nsuccesses  97.6  100
+log_avg_st  5.67  5.34
+robustness  .255  .296
+evo_count   7687  10010
+complexity  26.6  26.9
+
+Increasing levelback
+decreases log_avg_steps
+increases robustness
+increases evolvability
+no change complexity
+
+All 200 phenotypes evolve
+
+using plots
+gr()
+# Evolvability vs robustness
+df = read_dataframe("../data/4_22_22/geno_complexity4_22_22C.csv")
+scatter( df.robustness, df.evo_count, title="evo_count vs robustness 5x1 24 gates 9 lb", xlabel="fractional robustness", ylabel="evolvability count", labels="")
+savefig("../data/4_22_22/evo_count_vs_robustness_5x1_24gts_9lb.png")
+corspearman( df.robustness, df.evo_count) = -0.878808517281235
+df = read_dataframe("../data/4_22_22/geno_complexity4_22_22D.csv")
+scatter( df.robustness, df.evo_count, title="evo_count vs robustness 5x1 24 gates 13 lb", xlabel="fractional robustness", ylabel="evolvability count", labels="")
+savefig("../data/4_22_22/evo_count_vs_robustness_5x1_24gts_13lb.png")
+corspearman( df.robustness, df.evo_count) =  -0.9586438643864387
+
+Results for 13 levelsback are much better than for 9 levelsback.  
+9lb has many "outliers" below the main curve, while 13 lb has only 1.
+
+I get error messages that I don't understand when calling scatter() the first time:
+process:31692): GLib-GIO-WARNING **: 20:59:03.177: Unexpectedly, UWP app `DellInc.DellSupportAssistforPCs_3.10.7.0_x64__htrsf667h5kn2' (AUMId `DellInc.DellSupportAssistforPCs_htrsf667h5kn2!App') supports 1 extensions but has no verbs
+(process:31692): GLib-GIO-WARNING **: 20:59:04.149: Unexpectedly, UWP app `Microsoft.ZuneMusic_10.22031.10091.0_x64__8wekyb3d8bbwe' (AUMId `Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic') supports 20 extensions but has no verbs
+(process:31692): GLib-GIO-WARNING **: 20:59:04.211: Unexpectedly, UWP app `Microsoft.ZuneVideo_10.22031.10071.0_x64__8wekyb3d8bbwe' (AUMId `Microsoft.ZuneVideo_8wekyb3d8bbwe!Microsoft.ZuneVideo') supports 33 extensions but has no verbs
+
+# Evolvability vs complexity
+df = read_dataframe("../data/4_22_22/geno_complexity4_22_22C.csv")
+scatter( df.complexity, df.evo_count, title="evo_count vs complexity 5x1 24 gates 9 lb", xlabel="complexity", ylabel="evolvability count", labels="")
+savefig("../data/4_22_22/evo_count_vs_complexity_5x1_24gts_9lbNN.png")
+# earlier result without the NN is different.  WHY??  Earlier results clearly incorrect as verified by doing chart in Excel
+corspearman( df.complexity, df.evo_count) 0.7989222889993625
+df = read_dataframe("../data/4_22_22/geno_complexity4_22_22D.csv")
+scatter( df.complexity, df.evo_count, title="evo_count vs complexity 5x1 24 gates 13 lb", xlabel="complexity", ylabel="evolvability count", labels="")
+savefig("../data/4_22_22/evo_count_vs_complexity_5x1_24gts_13lb.png")
+corspearman( df.complexity, df.evo_count) = 0.9527992799279928
+
+# log_avg_steps vs complexity
+df = read_dataframe("../data/4_22_22/geno_complexity4_22_22C.csv")
+scatter( df.complexity, df.log_avg_steps, title="log avg steps vs complexity 5x1 24 gates 9 lb", xlabel="complexity", ylabel="log average steps", labels="")
+savefig("../data/4_22_22/log_avg_steps_vs_complexity_5x1_24gts_9lbNN.png")
+# earlier result without the NN is different.  WHY??  Earlier results clearly incorrect as verified by doing chart in Excel  
+corspearman( df.complexity, df.log_avg_steps) =0.387974797479748
+df = read_dataframe("../data/4_22_22/geno_complexity4_22_22D.csv")
+scatter( df.complexity, df.log_avg_steps, title="log avg steps vs complexity 5x1 24 gates 13 lb", xlabel="complexity", ylabel="log average steps", labels="")
+savefig("../data/4_22_22/log_avg_steps_vs_complexity_5x1_24gts_13lb.png")
+corspearman( df.complexity, df.evo_count) = 0.9527992799279928
+
+Results for both are strongly positive with no outliers
+
+# Note that redundancy results are not possible due to the impossibility of sampling.

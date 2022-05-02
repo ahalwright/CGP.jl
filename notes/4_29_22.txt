@@ -1,0 +1,21 @@
+Figuring out how I created the GECCO plots.
+
+Moved Dropbox/evotech/complexity/data to Dropbox/evotech/CGP.jl/data on Windows to be consistent with Linux.
+
+Revisiting, and modifiying, data/diary/diary11_18.txt.  Successfully reading the appropriate dataframes
+and producing the appropriate plots.  Includes an evolvability vs. robustness plot for 5 inputs, 18 gates, 8 lb.
+
+Successfully did 5 gate evolvability vs. robustness vs. complexity plots (all combinations)
+Times for 100 phenotypes 74 hours on surt2 28procs, 77 hours on fluda 24 procs.
+Plots are in CGP.jl/data/4_22_22/ on Windows
+See notes/4_22_22.txt
+13lb gave much better results than 9lb.
+Note that first run of two pairs was incorrect.  Also, I got errors.
+
+4/30/22:  Checked execution times for computing complexity with 24 gates, 9, 13, 18 lb.
+complexity5() is faster than complexity6, complexity7, complexity8, but 
+complexity8() gave results inconsistent with the other complexity functions.
+Time for complexity5() was about 1 minute and did not seem to vary much with lb,
+but did vary with random chromosome.
+
+Rerunning with 15lb and 50 phenotypes on surt2 and fluda.

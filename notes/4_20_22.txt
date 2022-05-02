@@ -1,0 +1,25 @@
+Revisiting evolution of Adami complexity described in notes/4_4_22.txt.  
+
+Moved write_df_to_csv() from RecordOutputs.jl to a new file Utilities.jl.
+Now running simple_pop_evolve() (which is in adami.jl) works and writes to 
+an appropriate CSV file in data/4_20_22.
+
+See http://www.cgplibrary.co.uk/files2/CartesianGeneticProgramming-txt.html#Cartesian_Genetic_Programming
+for an overview of CGP.  Of particular note is the description of the evolution strategy.
+"The evolutionary strategy commonly used by CGP is to select one parent from each generation and use it to produce four children 
+via mutation alone.  The next generation then comprises of the selected parent and the four generated children.  The population 
+size is therefore five; four children plus one parent.  This strategy is formally written as (1 + 4)-ES."
+
+My evolution strategy is (1+1)-ES:  The next generation comprises the selected parent and one generated child.
+
+I should compare (1+1)-ES with (1+4)-ES.
+
+Results for 4-inputs, 1-output, Cartesian:  geno_complexity4_20_22?.csv
+suffix  gates lb  log_av  rbst  evo  cmplx 
+T       11    8   4.64    .232  928  6.72
+VV      14    11
+W       14    11  4.45    .365 1281  9.25
+X       18    9   3.99    .419 1407 13.73
+
+
+

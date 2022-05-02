@@ -1,6 +1,7 @@
 All diary topics:
 
 2020:
+Note that all of these files are in the subfolder diary and have a "diary" prefix.
 9/26:  outdated on effects of mutation on complexity.  Examples of get_bits(). Examples of high/low complexity: test_complexity()
 9/27:  gb_complexity meaningless.
 9/28:  Tried to understand integration version of complexity.
@@ -82,6 +83,7 @@ All diary topics:
 12_31: Parallelized robust_evolvability() in random_walk.jl.  Degree of parallelism to high.
 
 2021:
+These files now have suffix  _21.txt
 1_1:   Found a major bug in run_walks_parallel() in random_walk.jl.
         union() was used to combine dictionaries rather than merge().
 1_2:   Major revision of robust_evolvability() in random_walk.jl.

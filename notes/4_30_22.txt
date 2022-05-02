@@ -1,0 +1,33 @@
+Idea for GPTP paper:  Redo most GECCO results using LinearGP instead of CartesianGP.
+
+Continuing to figure out how I produced GECCO plots and checking that they work with LinCircuits.
+
+run_geno_complexity() works for LinCircuits with the following changes.  
+
+Set number_active() to return 0.  There is a number_active() function commented out and not debugged.
+
+In Func.jl, lin_funcs() must be set to the same functions as default_funcs().
+
+See data/5_1_22/run_geno_complexityB.jl and data/5_1_22/geno_complexity_linGP_5_1_22B.csv
+
+
+
+surt2:  data/4_30_22/
+@time include("../data/4_30_22/run_count_outputs_lincircD.jl")
+@time include("../data/4_30_22/run_count_outputs_lincircE.jl")
+
+Note that the minimum sampling reduncancy is 10 for D with 6 instructions, 2 registers and 10^11 reps.
+
+Saving the circuit_ints in a dataframe:
+df = DataFrame()
+df.pheno = collect(0x0000:0x00ff);
+df.counts=outlist;
+df.circ_ints_list = circ_ints_list;
+# Note:  an buffer too small error without doing the next step
+# ERROR: ArgumentError: row size (4268469) too large for writing buffer (4194304), pass a larger value to `bufsize` keyword argument
+for i = 1:length(df.circ_ints_list)
+  df.circ_ints_list[i] = df.circ_ints_list[i][1:min(length(circ_ints_list[i]),1000)]  # reduces the length of each circ_ints_list element to at most 1000
+end
+write_dataframe_with_comments(df,"../data/4_30_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_10_11.csv","../data/4_30_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_10_11circints.csv")
+
+Now I still need to see if I can convert the circuit_ints to circuits.

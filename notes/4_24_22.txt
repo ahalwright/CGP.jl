@@ -1,0 +1,77 @@
+Less formal ideas on complexity:
+* Number of inherently different components (diversity of parts)
+* Functional specialization and functional integration (See Tononi 1998)
+
+In particular, a measure taken from the statistical foundations of information theory, called ‘mutual information’, can be used to measure the statistical dependence between two subsets of neural elements.  A quantity derived from mutual information, called ‘integration’, can be used to measure the total statistical dependence among the elements of a neural system. A functional cluster (Fig. 1) can then be defined as a subset of brain regions for which the statistical dependence within the subset (integration) is much larger than that between the subset and rest of the brain (mutual information).
+
+From a theoretical point of view, high information and high integration present opposing requirements: the former requires the mutually independent firing of specialized groups of neurons, the latter requires that their joint activity be highly coherent.  This paradox can be addressed by considering functional segregation and integration within a unified theoretical framework provided by the statistical foundations of information theory. The key idea is to estimate the average integration for subsets of the neural system of increasing size; that is, at multiple spatial scales45. When this is done (Fig.  2A), the degree of specialization and integration within the system can be simultaneously evaluated. For example, if a system is composed of functionally segregated elements, the average integration for small subsets is low. This indicates that, taken a few at a time, such elements have independent specialized functions: they provide the system with different sources of information. On the other hand, if the same system shows cooperative behavior at the global level, the average integration for large subsets is high. This indicates that different sources of information are being integrated into a coherent whole. 
+
+A number of complexity measures have been proposed, but only a few satisfy the requirement of attaining small values for both completely random and completely regular systems.
+
+the well-known algorithmic (or Kolmogorov) complexity is defined as the length of the shortest computer program that generates a particular bit stringe. While this measure is appropriately low for completely regular strings, it is highest for random strings, and thus it too does not satisfy the above criterion for complexity.
+
+Roughly speaking, the physical complexity of a sequence can be understood as the amount of information that is stored in that sequence about a particular environment. 
+===============================
+
+Informal experiments on complexity and numinteriors and numlevelsback.
+
+Example:
+p = Parameters(4,1,16,6) 
+funcs = default_funcs(p)
+@time complexity5(random_chromosome(p,funcs))
+#  0.112736 seconds (2.08 M allocations: 80.020 MiB, 5.47% gc time)
+#  8.787993573036367
+
+First result:  decreasing numlevelsback seems to increase the complexity of a random chromosome.
+This might mean that for small values of numlevelsback, the separation between the complexity densities
+of random genotypes and random phenotypes (Fig. 5 of GECCO) is greater than for large values of numlevelsback.
+
+Second result:  computing complexity of chromosome c with complexity5(c) is computationally feasble for up to 19 gates.
+julia> p = Parameters(5,1,19,7)
+Parameters(1, 4, 0.05, 0.0, 5, 1, 2, 19, 7)
+@time complexity5(random_chromosome(p,funcs))
+#  2.277652 seconds (36.33 M allocations: 1.204 GiB, 10.44% gc time, 0.17% compilation time)
+#  14.28322644377107
+
+Experiments on discovering complexity:
+
+1)  Start with a random chromosome, perhaps selected to have high complexity.
+Look at the distribution of complexities and robustnesses of the 1 and 2 step mutational neighborhood
+of the chromosome.  Especially look for maximum complexity.
+
+2)  Same as 1), only start with a random phenotype and evolve one or more chromosomes that maps
+to the phenotype.
+
+3)  Start with a hard target phenotype, perhaps one of the ones listed below, and evolve chromosomes that map 
+to nearby phenotypes.  Start with these chromosomes, and ask if it is easier to evolve the target phenotype
+compared to starting with a random chromosome.  Perhaps also try symbiosis or crossover between these nearby
+chromosomes.
+
+
+
+Hard 5-input phenotypes:
+[
+0x31e3401e,
+0x34296a08,
+0xebb1993a,
+0x8e4927be,
+0x16d87d6d,
+0x67e77c81,
+0xf5b83f49,
+0x8604fcf8,
+0xdf10d901,
+0xe70a97ca
+]
+
+ 0x0107d6c4
+ 0x16d87d6d
+ 0x31e3401e
+ 0x34296a08
+ 0x67e77c81
+ 0x835e4b2b
+ 0x8604fcf8
+ 0x8e4927be
+ 0xdf10d901
+ 0xe70a97ca
+ 0xebb1993a
+ 0xf5b83f49

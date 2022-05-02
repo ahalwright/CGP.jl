@@ -1,4 +1,4 @@
-# An older simple version version of the function "neutral_evolution().
+# An older simple version version of the function neutral_evolution().
 # To run:
 #   Go to the "CGP.jl/src" subdirectory of the code cloned from GitHub.
 #   Start julia with "julia -L CGP.jl".  You should get the prompt:
@@ -16,7 +16,7 @@
 #   Then you set the target phenotype by:
 # julia> ph = [0x0003]
 #   You can run the neutral_evolution function by:
-# julia> (ch,steps) = neutral_evolution( c, funcs, 1000)
+# julia> (ch,steps) = neutral_evol( c, funcs, 1000)
 #   (Chromosome(Parameters(1, 4, 0.05, 0.0, 2, 1, 2, 5, 3), InputNode[InputNode(1, false, 0x0000), InputNode(2, false, 0x0000)], InteriorNode[InteriorNode(Func(&, 2, "AND"), Integer[2, 2], true, 0x000a), InteriorNode(Func(Main.CGP.Nor, 2, "NOR"), Integer[1, 3], true, 0x0001), InteriorNode(Func(|, 2, "OR"), Integer[3, 3], false, 0x0000), InteriorNode(Func(Main.CGP.Nand, 2, "NAND"), Integer[3, 3], true, 0x0005), InteriorNode(Func(Main.CGP.Nor, 2, "NOR"), Integer[6, 4], true, 0x000a)], OutputNode[OutputNode(7)], 0.0, 0.0), 6)
 #   If the evolution succeeds, ch is the discovered circuit that maps to the target phenotype 0x0003.
 #   You can print this circuit with:
@@ -30,8 +30,8 @@
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
-function neutral_evolution( c::Chromosome, g::Goal, max_steps::Integer; print_steps::Bool=false )
-  funcs = default_funcs( c.params.numinputs )
+function neutral_evol( c::Chromosome, g::Goal, max_steps::Integer, funcs::Vector{Func}; print_steps::Bool=false )
+  #funcs = default_funcs( c.params.numinputs )
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )

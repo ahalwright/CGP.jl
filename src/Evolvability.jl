@@ -704,10 +704,10 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   num_goals = 2^2^p.numinputs
   #println("sample size: ",sample_size,"  num_goals: ",num_goals)
   #println("list_goals: ",list_goals)
-  result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
-      maxsteps_recover, maxtrials_recover, iter_maxtries, use_lincircuit=use_lincircuit ), list_goals)
-  #result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
-  #    maxsteps_recover, maxtrials_recover, maxtries_recover, use_lincircuit=use_lincircuit ), list_goals)
+  #result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
+  #    maxsteps_recover, maxtrials_recover, iter_maxtries, use_lincircuit=use_lincircuit ), list_goals)
+  result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
+      maxsteps_recover, maxtrials_recover, maxtries_recover, use_lincircuit=use_lincircuit ), list_goals)
   #println("after pmap:  size(geno_complexity_df): ",size(geno_complexity_df))
   for res in result
     #println("length(res): ",length(res))
@@ -799,6 +799,8 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
   while i < max_tries && numsuccesses < iter_maxreps 
     i += 1
     c = use_lincircuit ? rand_lcircuit(p,funcs) : random_chromosome(p,funcs)
+    #println("i: ",i,"  funcs: ",funcs)
+    #print_circuit(c,funcs)
     c_output = output_values(c)
     #(c,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [goal], funcs, maxsteps )
     (c,steps) = neutral_evolution( c, goal, maxsteps )
