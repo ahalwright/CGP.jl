@@ -67,6 +67,7 @@ include("Complexity.jl")
 include("Degeneracy.jl")
 include("Evo_dict.jl")
 include("Composition.jl")
+include("Utilities.jl")
 #include("random_walk.jl")
 end
 using Main.CGP

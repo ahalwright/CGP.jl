@@ -114,7 +114,7 @@ function randgoal_filtered( cdf::DataFrame, count_field::Symbol, min_count::Int6
     iter += 1
   end
   if iter < max_iters
-    goal
+    (goal,count)
   else
     error("too many iterations in randgoal filtered")
   end
@@ -124,17 +124,17 @@ end
 # The goals are filtered by count from the dataframe cdf field count_field.
 function randgoallist_filtered( cdf::DataFrame, count_field::Symbol, min_count::Int64, ngoals::Int64, numinputs::Int64, 
      numoutputs::Int64; repetitions::Int64=1)
-  result = Vector{MyInt}[]
+  result = Tuple{Vector{MyInt},Int64}[]
   if ngoals % repetitions != 0
     error("ngoals=",ngoals," must be a multiple of repetitions=",repetitions," in randgoallist")
   end
   #println("  collect(1:repetitions.ngoals): ",collect(1:repetitions:ngoals))
   for i = 1:repetitions:ngoals
-    goal = randgoal_filtered( cdf, count_field, min_count, numinputs, numoutputs )
+    (goal,count) = randgoal_filtered( cdf, count_field, min_count, numinputs, numoutputs )
     for j = 1:repetitions
       #println("(i,j): ",(i,j)," i+j-1: ",i+j-1)
       #result[i+j-1] = goal
-      push!(result,goal)
+      push!(result,(goal,count))
     end
   end
   result

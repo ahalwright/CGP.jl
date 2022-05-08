@@ -1,0 +1,9 @@
+Debugged complex_evolution.jl.  
+Purpose:  test the Zenil hypothesis that choosing mutations that increase complexity will speed up evolution.
+
+Problem:  the function default_funcs() sets the global variable Ones which is used in count_outputs().
+However, pmap() called test_cmplx_helper() with funcs as an argument.  This meant that default_funcs()
+was not called on processors other than the start processor.  So I removed the funcs argument from
+test_cmplx_helper() and instead called default_funcs().
+
+
