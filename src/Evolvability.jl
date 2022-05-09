@@ -704,10 +704,10 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   num_goals = 2^2^p.numinputs
   #println("sample size: ",sample_size,"  num_goals: ",num_goals)
   #println("list_goals: ",list_goals)
-  #result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
-  #    maxsteps_recover, maxtrials_recover, iter_maxtries, use_lincircuit=use_lincircuit ), list_goals)
-  result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
-      maxsteps_recover, maxtrials_recover, maxtries_recover, use_lincircuit=use_lincircuit ), list_goals)
+  result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
+      maxsteps_recover, maxtrials_recover, iter_maxtries, use_lincircuit=use_lincircuit ), list_goals)
+  #result = map(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
+  #    maxsteps_recover, maxtrials_recover, maxtries_recover, use_lincircuit=use_lincircuit ), list_goals)
   #println("after pmap:  size(geno_complexity_df): ",size(geno_complexity_df))
   for res in result
     #println("length(res): ",length(res))

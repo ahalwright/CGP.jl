@@ -57,6 +57,11 @@ function output_values( cv::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{
   output_values( LinCircuit( cv, p ), funcs )
 end
 
+# ci is a circuit_int
+function output_values( ci::Int128, p::Parameters, funcs::Vector{Func} )
+  output_values(instruction_ints_to_instruction_vects(circuit_int_to_instruction_ints(ci,p,funcs),p,funcs),p,funcs)
+end
+
 # Not used.  Assumes that R and funcs are in the execution environment
 function vect_to_funct( lc::Vector{MyInt} )
   (lc)->R[lc[2]] = funcs[lc[1]].func(R[lc[3]],R[lc[4]]) 

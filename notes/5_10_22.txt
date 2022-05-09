@@ -1,0 +1,3 @@
+Copied data/4_30_22/run_count_outputs_lincircA.jl to 5_10_22.
+Added function output_values( ci::Int128, p::Parameters, funcs::Vector{Func} )
+to src/LinCircuit.jl and verified that the outputs produced by count_outputs_parallel() are correct.

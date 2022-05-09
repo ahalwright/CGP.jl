@@ -4,3 +4,5 @@ Implemented a test for Zenil's hypothesis that choosing mutations that increase 
   evolution to a complex goal in src/complex_evolution.jl.
 Based on "Algorithmically probable mutations reproduce aspects of evolution . . . " by Santiago Hernandes-Orcozo, Narsis Kiani, and Hector Zenil. 
   http://dx.doi.org/10.1098/rsos.180399
+
+See notes/5_8_22.txt for results.

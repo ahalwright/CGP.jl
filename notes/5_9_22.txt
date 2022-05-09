@@ -1,0 +1,33 @@
+Running run_geno_complexity() from Evolvability.jl on LinCircuits.
+
+Runs on fluda with:
+maxreps = 60
+iter_maxreps = 10
+max_tries = 100
+max_steps=200000
+40 rows
+
+Suffix inputs insts regs seed nsucc<10
+E       3       6     2    2    6
+F       3       7     2    2    4
+Suffix inputs insts regs seed nsucc==0
+M       4       8     3    2    13
+N       4       8     3    2    10
+
+with:
+maxreps = 100
+iter_maxreps = 30
+max_tries = 200
+max_steps=300000
+40 rows
+These runs are taking about 15 minutes on fluda.
+Suffix inputs insts regs seed nsucc==0
+P       4       8     3    2    9
+Q       4       7     3    2   21 
+R       4       8     3    2    7
+S       4       9     3    2    2 
+T       4      10     3    2    2 
+U       4      10     2    2    0 
+V       4       9     2    2    5 
+W       4      10     2    3    1 
+Conclusion:  10 instructions 2 registers works for the 4 inputs 1 output case.

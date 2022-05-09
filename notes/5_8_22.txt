@@ -1,9 +1,39 @@
 Debugged complex_evolution.jl.  
-Purpose:  test the Zenil hypothesis that choosing mutations that increase complexity will speed up evolution.
+Implemented a test for Zenil's hypothesis that choosing mutations that increase Kolmogorov complexity will speed up Cartesian
+  evolution to a complex goal in src/complex_evolution.jl.
+Based on "Algorithmically probable mutations reproduce aspects of evolution . . . " by Santiago Hernandes-Orcozo, Narsis Kiani, and Hector Zenil.
+  http://dx.doi.org/10.1098/rsos.180399ZZ
+I have written up a very brief description of these results in 
+evotech/cce/Complexity_fragility_robustness5_9_22.docx.
 
 Problem:  the function default_funcs() sets the global variable Ones which is used in count_outputs().
 However, pmap() called test_cmplx_helper() with funcs as an argument.  This meant that default_funcs()
 was not called on processors other than the start processor.  So I removed the funcs argument from
 test_cmplx_helper() and instead called default_funcs().
 
+Results in data/5_8_22 on surt2 and fluda in 
+test_complex_evolution_4funcs_3inputs_8gates_5lb_B.csv on surt2 (nreps=500) and
+test_complex_evolution_4funcs_3inputs_8gates_5lb_C.csv on fluda (nreps=1000).
+Both 20 goals with min_count 1000.  max_steps=100000.
+surt2:
+julia> df[df.csteps_mean.>=df.dsteps_mean,:]
+1×8 DataFrame
+ Row │ pheno   count   nreps  csteps_mean  csteps_std  dsteps_mean  dsteps_std  pvalue
+     │ String  Int64   Int64  Float64      Float64     Float64      Float64     Float64
+─────┼───────────────────────────────────────────────────────────────────────────────────
+   1 │ 0x00a3  580335    500      490.782     480.775       478.09     489.474  0.679222
+julia> mean(df.pvalue)
+0.11211552423978047
+fluda:
+julia> df[df.csteps_mean.>=df.dsteps_mean,:]
+1×8 DataFrame
+ Row │ pheno   count    nreps  csteps_mean  csteps_std  dsteps_mean  dsteps_std  pvalue
+     │ String  Int64    Int64  Float64      Float64     Float64      Float64     Float64
+─────┼────────────────────────────────────────────────────────────────────────────────────
+   1 │ 0x0050  8059291   1000       63.548     63.2352       60.707     63.5182  0.316289 
+julia> mean(df.pvalue)
+0.08490576810436681  
 
+I did 5 runs of 20 reps using suffixes C, D, E, F, G, and combined the results into one csv file
+test_complex_evolution_4funcs_3inputs_8gates_5lbCDEFG.csv.  In 104 rows there were three with
+csteps_mean >= dsteps_mean showing statistical significance.
