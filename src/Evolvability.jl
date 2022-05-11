@@ -692,6 +692,10 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   list_goals = Goal[]
   num_iterations = Int(ceil(maxreps/iter_maxreps))  # The number of iterations for each goal
   iter_maxtries = Int(ceil(max_tries/num_iterations))
+  println("num_iterations: ",num_iterations,"  iter_maxtries: ",iter_maxtries,"  iter_maxreps: ",iter_maxreps)
+  if iter_maxtries < iter_maxreps
+    error("iter_maxtries should be greater than iter_maxreps in run_geno_complexity.")
+  end
   for g in goallist
     for i = 1:num_iterations
       #println("i: ",i,"  goal: ",g)
@@ -710,7 +714,6 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   #    maxsteps_recover, maxtrials_recover, maxtries_recover, use_lincircuit=use_lincircuit ), list_goals)
   #println("after pmap:  size(geno_complexity_df): ",size(geno_complexity_df))
   for res in result
-    #println("length(res): ",length(res))
     push!(geno_complexity_df,res)
   end
   geno_complexity_df.evo_count = zeros(Int64,size(geno_complexity_df)[1] )
@@ -769,10 +772,6 @@ end
 function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxsteps::Int64, max_tries::Int64,
       maxsteps_recover::Int64, maxtrials_recover::Int64, maxtries_recover::Int64; use_lincircuit::Bool=false )
   #println("geno_complexity: goal: ",goal)
-  if max_tries < iter_maxreps
-    println("max_tries: ",max_tries,"  iter_maxreps: ",iter_maxreps)
-    error("max_tries should be greater than iter_maxreps in geno_complexity.")
-  end
   funcs = default_funcs(p.numinputs)
   #W = Walsh(2^p.numinputs)
   all_outputs_sum = 0

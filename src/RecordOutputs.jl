@@ -41,7 +41,7 @@ MyFunc = Main.CGP.MyFunc
 # If output_complex==true the returned outlist is a list of pairs, where the first element of the pair is the number of times the
 #   output is produced, and the second is the average of the Tononi complexities of the genotypes that produce that output.
 # Not used by construct_pheno_net() in PhenotypeNetwork.jl since nesting calls to pmap() doesn't work (stack overflow error)
-function count_outputs_parallel( nreps::Int64, p::Parameters, numcircuits::Int64=0, funcs::Vector{Func}=Func[]; 
+function count_outputs_parallel( nreps::Int64, p::Parameters, numcircuits::Int64, funcs::Vector{Func}=Func[]; 
     csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false )
   count_outputs_parallel( nreps::Int64, p.numinputs, p.numoutputs, p.numinteriors, p.numlevelsback, numcircuits, funcs,
     csvfile=csvfile, use_lincircuit=use_lincircuit, output_complex=output_complex )
@@ -68,7 +68,7 @@ function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int
   else
     nreps_p = nreps 
   end
-  println("nreps_p: ",nreps_p)
+  println("nreps_p: ",@sprintf("%.1e",nreps_p))
   println("numcircuits: ",numcircuits)
   #println("csvfile: ",csvfile) 
   count_out_funct(x) = count_outputs( nreps_p, numinputs, numoutputs, numinteriors, numlevelsback, numcircuits, 
@@ -91,8 +91,7 @@ function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int
     vcat_arrays!(circ_ints_list,result[i][2])
   end
   if length(csvfile) > 0
-    #write_to_dataframe_file( p, outlist, funcs, csvfile=csvfile )
-    write_to_dataframe_file( p, outlist, circ_ints_list, funcs, csvfile=csvfile )
+    write_to_dataframe_file( p, outlist, circ_ints_list, funcs, numcircuits, nreps, csvfile=csvfile )
   end
   #println("outlist: ",outlist)
   #println("circ_ints_list: ",circ_ints_list)
@@ -227,10 +226,10 @@ function vcat_arrays!( lst1::Vector{Vector{Int128}}, lst2::Vector{Vector{Int128}
   end
   lst1
 end
-
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, funcs::Vector{Func}; csvfile::String="" )
+#=
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
   df = DataFrame()
-  df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
   #println("len goals: ",length(df.:goals))
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
   df[!,sym] = outputs_list
@@ -239,14 +238,22 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )     
     print_parameters(f,p,comment=true)
+    if numcircuits > 0
+      println(f,"# numcircuits: ",numcircuits)
+    end
+    if nreps > 0
+      spr = @sprintf("%.2e",nreps)
+      println(f,"# nreps: $(spr)")
+    end
     println(f,"# funcs: ",funcs)
     CSV.write( f, df, append=true, writeheader=true )
   end
 end
 
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Int64}, funcs::Vector{Func}; csvfile::String="" )
+#function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Int64}, funcs::Vector{Func}; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
   df = DataFrame()
-  df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
   df.:igoals = [ @sprintf("%d",g) for g = 0:(2^2^p.numinputs-1) ]
   #println("len goals: ",length(df.:goals))
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
@@ -256,47 +263,56 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Int64}, fu
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )     
     print_parameters(f,p,comment=true)
+    if numcircuits > 0
+      println(f,"# numcircuits: ",numcircuits)
+    end
+    if nreps > 0
+      spr = @sprintf("%.2e",nreps)
+      println(f,"# nreps: $(spr)")
+    end
     println(f,"# funcs: ",funcs)
     CSV.write( f, df, append=true, writeheader=true )
   end
 end
+=#
 
-# Not called.
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0;
+     csvfile::String="" )
   df = DataFrame()
-  df.:goals = [ @sprintf("0x%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
   #println("len goals: ",length(df.:goals))
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
   df[!,sym] = outputs_list
   df.:circuits_list = circuits_list
   if length(csvfile) > 0
-    write_df_to_csv( df, p, funcs, csvfile )
+    write_df_to_csv( df, p, funcs, csvfile, numcircuits=numcircuits, nreps=nreps )
   end
   df 
 end
 
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Int128}}, funcs::Vector{Func}; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Int128}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; 
+    csvfile::String="" )
   df = DataFrame()
-  df.:goals = [ @sprintf("0x04%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
   #println("len goals: ",length(df.:goals))
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
   df[!,sym] = outputs_list
   df.:circuits_list = circuits_list
   if length(csvfile) > 0
-    write_df_to_csv( df, p, funcs, csvfile )
+    write_df_to_csv( df, p, funcs, csvfile, numcircuits=numcircuits, nreps=nreps )
   end
   df 
 end
 
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Tuple{Int64,Float64}}, funcs::Vector{Func}; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Tuple{Int64,Float64}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
   df = DataFrame()
-  df.:goals = [ @sprintf("0x04%x",g) for g = 0:(2^2^p.numinputs-1) ]
+  df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
   df[!,sym] = map(x->x[1],outputs_list)
   df.:complexity = map( x->x[2], outputs_list )
   #df.:circuits_list = circuits_list
   if length(csvfile) > 0
-    write_df_to_csv( df, p, funcs, csvfile )
+    write_df_to_csv( df, p, funcs, csvfile, numcircuits=numcircuits, nreps=nreps )
   end
   df
 end
@@ -349,7 +365,7 @@ function write_to_file( outputs_list::Vector{MyFunc}, filename::String, comments
     end
     for i = 1:length(outputs_list)
       if hex
-        @printf(f,"0x04%x\n",outputs_list[i])
+        @printf(f,"0x%04x\n",outputs_list[i])
       else
         println(f, outputs_list[i] )
       end
@@ -387,7 +403,7 @@ function read_counts_files(filename::String...)
         @assert length(lines) == length(my_goals[i-1])
       end
       filter!(x->x[1]!='#',lines)
-      goals = [ @sprintf("0x04%x",i) for i = 0:(length(lines)-1) ]
+      goals = [ @sprintf("0x%04x",i) for i = 0:(length(lines)-1) ]
       if i > 1
         @assert goals == my_goals[i-1]
       end
@@ -422,8 +438,8 @@ function add_counts_to_dataframe( df::DataFrame, counts_filename::String, counts
   cdf = read_dataframe(counts_filename)
   # eval(Meta.parse(df.goal[i]))  converts the string df.goal[i] to Julia Vector.  Example:  UInt16[0x09b5]
   # eval(Meta.parse(df.goal[i]))[1]  extracts the sole element of this vector
-  # @sprintf("0x04%x",eval(Meta.parse(df.goal[i]))[1])   converts to a string of the same format as in the goals field of cdf.
-  counts = [cdf[cdf.goal.==@sprintf("0x%x",eval(Meta.parse(df.goal[i]))[1]),counts_field][1] for i = 1:size(df)[1]]
+  # @sprintf("0x%04x",eval(Meta.parse(df.goal[i]))[1])   converts to a string of the same format as in the goals field of cdf.
+  counts = [cdf[cdf.goal.==@sprintf("0x%04x",eval(Meta.parse(df.goal[i]))[1]),counts_field][1] for i = 1:size(df)[1]]
   #println("counts: ",counts)
   insertcols!(df, size(df)[2]+1, counts_field=>counts )
   df

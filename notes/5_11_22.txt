@@ -1,0 +1,48 @@
+Notes on run_geno_complexity() in Evolvability.jl:
+
+Call from data/5_9_22/run_geno_complexityE.jl
+maxreps = 500
+iter_maxreps = 40
+max_tries = 400
+max_steps=300000
+num_iterations = Int(ceil(maxreps/iter_maxreps))  # 13
+iter_maxtries = Int(ceil(max_tries/num_iterations))  # 31 
+max_tries < iter_maxreps:  400 < 40  # translates to iter_maxtries < iter_maxreps: 31 < 40 true
+
+Call from data/2020/10_27/run_geno_complexityE.jl
+max_tries = 300
+max_steps=300000
+iter_maxreps = 100
+num_iterations = Int(ceil(maxreps/iter_maxreps))  # 31
+iter_maxtries = Int(ceil(max_tries/num_iterations))   # 60
+max_tries < iter_maxreps:  60 < 100 # translates to iter_maxtries < iter_maxreps:  60 < 100 true
+
+gcdf = run_geno_complexity(goallist,maxreps,iter_maxreps,p,max_steps,max_tries, use_lincircuit=use_lincircuit, csvfile=csvfile )
+
+function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::Int64, p::Parameters,
+      max_steps::Int64, max_tries::Int64, maxsteps_recover::Int64=0, maxtrials_recover::Int64=0, maxtries_recover::Int64=0;
+      use_lincircuit::Bool=false, consolidate::Bool=true, csvfile::String = "" )    
+
+num_iterations = Int(ceil(maxreps/iter_maxreps))  # The number of iterations for each goal
+# 13 in first example
+# 5 in second example
+iter_maxtries = Int(ceil(max_tries/num_iterations))   
+# 31 in second example 
+# 60 in second example
+for g in goallist
+    for i = 1:num_iterations
+      push!(list_goals,g)
+    end
+end  
+result = pmap(g->geno_complexity( g, iter_maxreps, p, max_steps, iter_maxtries,
+      maxsteps_recover, maxtrials_recover, iter_maxtries, use_lincircuit=use_lincircuit ), list_goals)  
+for res in result
+    push!(geno_complexity_df,res)
+end 
+
+function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxsteps::Int64, max_tries::Int64,    # note max_tries set to iter_maxtries
+      maxsteps_recover::Int64, maxtrials_recover::Int64, maxtries_recover::Int64; use_lincircuit::Bool=false ) 
+  if max_tries < iter_maxreps
+    println("max_tries: ",max_tries,"  iter_maxreps: ",iter_maxreps)
+    error("max_tries should be greater than iter_maxreps in geno_complexity.")
+  end                                             
