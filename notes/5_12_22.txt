@@ -1,0 +1,9 @@
+Using neutral (phenotype-preserving) evolution to increase the robustness of genotypes mapping to a target phenotype.
+
+functions  robust_evolution_parallel(), robust_evolution(), and robust_evolution_pop() in robust_evolution.jl.
+
+Forgot that when using funcs and pmap(), default_funcs() must be called within the function that pmap calls.
+
+No CSV files generated yet.
+
+No test functions yet.

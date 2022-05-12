@@ -141,7 +141,7 @@ end
 #  Not finished and not debugged
 function number_active( circ::LinCircuit )
   p = circ.params
-  @assert p.numoutputs = 1
+  @assert p.numoutputs == 1
   numoutputs = p.numoutputs
   output_instructions = Int64[]
   output_registers = Set(collect(MyInt(1):MyInt(numoutputs)))
@@ -551,45 +551,3 @@ function enumerate_circuits_lc( p::Parameters, numinstructions::Int64, funcs::Ve
   new_result
 end
 
-#= Moved into fnc.jl 12/28/21
-function find_neutral_comps( lc_list::Vector{LinCircuit}, phenotype::MyInt, funcs::Vector{Func} )
-  S = Dict{Int64,Set{Int128}}()
-  p = lc_list[1].params
-  new_key = 1
-  for lc in lc_list
-    #println("lc: ",lc)
-    lci = circuit_to_circuit_int(lc,funcs)
-    # mutate_all() keyword arguments don't work
-    cv_list = filter( x->output_values(x,p,funcs)[1]==phenotype, mutate_circuit_all(lc.circuit_vects, p, funcs))
-    #mlist = map(ci->LinCircuit(ci,p) for ci in cv_list )
-    mlist = [ LinCircuit(ci,p) for ci in cv_list ]
-    ihlist = map(h->circuit_to_circuit_int(h,funcs),mlist)
-    push!(ihlist,circuit_to_circuit_int(lc,funcs))
-    push!(ihlist,lci)
-    ihset = Set(ihlist)
-    if length(ihset) > 0
-      for ky in keys(S)
-        #println("ky: ",ky,"  S[ky]: ",S[ky])
-        if length( intersect( ihset, S[ky] ) ) > 0
-          union!( ihset, S[ky] )
-          delete!( S, ky )
-        end
-      end
-      S[ new_key ] = ihset
-      if new_key % 100 == 0
-        print("lci: ",lci,"  length(ihset): ",length(ihset),"   ")
-        println("length(S[",new_key,"]) = ",length(S[new_key]))
-      end
-      new_key += 1
-    end
-  end
-  for ky0 in keys(S)
-    for ky1 in keys(S)
-      if length(intersect(S[ky0],S[ky1]))>0 && ky0 != ky1
-        println("the intersection of set S[",ky0,"] and set S[",ky1,"] is nonempty")
-      end
-    end
-  end
-  S
-end  
-=#

@@ -193,6 +193,12 @@ These files now have suffix  _21.txt
 
 2022:
 4_4:  Evolution of Adami complexity
+4_20: 5 input run_geno_complexity() results
+4_22: 5 input plots
+5_8:  Zenil's hypothesis the choosing mutations with larger complexity speeds evolution to a complex phenotyp.
+5_9:  Preliminary runs of run_geno_complexity() in data/5_9_22.  Concluded that 10 instructions 2 registers is good for 4 inputs.
+5_10:  Results for LinCircuit count_outputs with 10^11 samples.  Verifies that all 3-input goals were sampled approximately 10 times.
+5_11:  Results for run_geno_complexity() with both 3 and 4 inputs in data5/9/22.  Plus investigation of how iter_maxreps and iter_maxtries work.
 
 
 All plots:

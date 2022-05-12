@@ -10,6 +10,15 @@ data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_E.csv
 data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_F.csv
 Minimum count for both is 8 for different phenotypes.
 
+Something was wrong with these csv files.
+Combined them as follows on lycosa:
+julia> df1 = read_dataframe("../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_E.csv")
+julia> df2 = read_dataframe("../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_F.csv")
+julia> df = merge_count_dataframes(df1,df2)
+julia> write_dataframe_with_comments(df,"../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_E.csv","../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_EF.csv")
+IOStream(<file ../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_EF.csv>)
+
+
 edf = read_dataframe("../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_E.csv") 
 fdf = read_dataframe("../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_F.csv") 
 julia> edf[edf.ints6_2.<=15,:]

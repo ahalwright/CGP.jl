@@ -445,6 +445,22 @@ function add_counts_to_dataframe( df::DataFrame, counts_filename::String, counts
   df
 end 
 
+function merge_count_dataframes( df1::DataFrame, df2::DataFrame )
+  df = DataFrame()
+  if  "goals" in names(df1) && "goals" in names(df2)
+    df.goals = df1.goals
+  end
+  if "ints6_2" in names(df1) && "ints6_2" in names(df2)
+    df.ints6_2 = df1.ints6_2 + df2.ints6_2
+  end
+  if "circuits_list" in names(df1) && "circuits_list" in names(df2)
+    df1.cl = map(x->eval(Meta.parse(x)),df1.circuits_list)
+    df2.cl = map(x->eval(Meta.parse(x)),df2.circuits_list)
+    df.circuits_list = map((x,y)->vcat(x,y),df1.cl,df2.cl)
+  end
+  df
+end
+
 # Create a pair (goal_list,complexity_list) where a pair (goal_list[i], complexity_list[i]) corresponds to a random circuit.
 function circuit_complexities( p::Parameters, num_circuits::Int64 )
   println("circuit_complexities: num_circuits: ",num_circuits)

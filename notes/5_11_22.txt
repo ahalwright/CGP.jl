@@ -1,5 +1,80 @@
 Notes on run_geno_complexity() in Evolvability.jl:
 
+More runs of run_geno_complexity.
+5_9_22/geno_complexity_linGP_5_9_22K.csv   4 inputs, 10 instructions, 2 registers (surt2)
+   Minimum number of successses: 0/100,   3 with numsuccesses=0
+5_9_22/geno_complexity_linGP_5_9_22H.csv   3 inputs, 6 instructions, 2 registers (fluda)
+   Minimum number of successses: 65/100.   
+
+Note that evo_count below is an evolution evolvability.
+
+Plots:
+PS C:\Users\oldmtnbiker\Dropbox\evotech\CGP.jl\data\5_9_22> julia -L ../../src/CGP.jl
+julia> df = read_dataframe("geno_complexity_linGP_5_9_22H.csv")
+julia> using Plots
+julia> gr()   # Warnings about UWP apps
+
+# Evolution evolvability vs robustness
+julia> scatter( df.robustness, df.evo_count, title="evo_count vs robustness 3 inputs 6 insts 2 regs", xlabel="fractional robustness", ylabel="evolvability count", labels="")
+julia> savefig("evo_count_vs_robustness_3x1_6inst_2regs.png")
+julia> corspearman( df.robustness, df.evo_count )
+-0.7314230770411694
+# comment: reasonable results:  compare to Figure 6a of GECCO.
+
+julia> df = read_dataframe("geno_complexity_linGP_5_9_22K.csv")
+julia> scatter( df.robustness, df.evo_count, title="evo_count vs robustness 4 inputs 10 insts 2 regs", xlabel="fractional robustness", ylabel="evolvability count", labels="")
+julia> savefig("evo_count_vs_robustness_4x1_10inst_2regs.png")
+julia> corspearman( df.robustness, df.evo_count )
+0.45896317284490656
+# comment: Positive correlation instead of negative
+#  probably need to filter result to only those with a maximum number or high number of successes.
+
+# Evolution evolvability vs log redundancy
+See notes/5_10_22.txt for directions on how to create the file: data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_EF.csv
+which contains redundancies for each genotype.
+julia> cdf = read_dataframe("../5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_EF.csv")
+julia> lg10(x::Int64) = x > 0 ? log10(x) : 0.0  # non-overflow log10
+julia> cdf.lg_redund = map(lg10,cdf.ints6_2)
+julia> scatter(cdf.lg_redund,df.evo_count,title="evo count vs log redundancy 3 inputs 6 inst 2 regs",ylabel="evo count",xlabel="log redundancy",labels="")
+julia> corspearman(cdf.lg_redund,df.evo_count)
+-0.6868236213686635
+# Comment:  Compare to GECCO Figure 7a.
+#   Reasonably good negative relationship except for some outliers with both low evo_count and low redundancy.  Should probably filter these out.
+
+# Evolution evolvability vs complexity
+julia> scatter(df.complexity,df.evo_count,title="evo count vs complexity 3 inputs 6 inst 2 regs",ylabel="evo count",xlabel="complexity",labels="")
+julia> savefig("evo_count_vs_complexity_3x1_6inst_2regs.png")
+julia> corspearman(df.complexity,df.evo_count)
+0.6031516286405794
+# Comment:  Compare to GECCO Figure 8a.  OK except outliers with high evolvability and medium complexity.
+
+# Robustness vs complexity
+julia> scatter(df.complexity,df.robustness,title="robustness vs complexity 3 inputs 6 inst 2 regs",ylabel="robustness",xlabel="complexity",labels="")
+julia> savefig("robustness_vs_complexity_3x1_6inst_2regs.png")
+julia> corspearman(df.complexity,df.robustness)
+-0.4701763242956818
+# Comment:  Compare to GECCO Figure 9.
+#   This plot shows that there are quite a few genotypes with zero robustness
+  
+# Log redundancy vs complexity
+julia> savefig("robustness_vs_complexity_3x1_6inst_2regs.png")
+julia> scatter(df.complexity,cdf.lg_redund,title="log redundancy vs complexity 3 inputs 6 inst 2 regs",ylabel="log reduncancy",xlabel="complexity",labels="")
+julia> savefig("log_redundancy_vs_complexity_3x1_6inst_2regs.png")
+julia> corspearman(df.complexity,cdf.lg_redund)
+-0.4840064188205155
+# Comment:  Compare to GECCO Figure 10.                                 
+#  Many outliers with low log redundancy
+
+# Robustness vs log redundancy
+julia> scatter(cdf.lg_redund,df.robustness,title="log redundancy vs robustness3 inputs 6 inst 2 regs",xlabel="log reduncancy",ylabel="robustness",labels="")
+julia> savefig("robustness_vs_log_redundancy_3x1_6inst_2regs.png")
+ulia> corspearman(df.robustness,cdf.lg_redund)
+0.9726113657594561
+# Comment:  Compare to GECCO Figure 11.                                 
+#  No outliers, strong positive relationship
+
+
+Understanding run_geno_complexity() and geno_complexity() in Evolvability.jl:
 Call from data/5_9_22/run_geno_complexityE.jl
 maxreps = 500
 iter_maxreps = 40

@@ -738,9 +738,12 @@ function print_circuit( f::IO, c::Chromosome; include_fitness::Bool=false, inclu
 end
 
 function print_circuit( c::Chromosome; include_fitness::Bool=false, include_robustness::Bool=false, include_pheno::Bool=false ) 
-  print_circuit( Base.stdout, c, include_fitness=include_fitness, include_robustness=include_robustness,
-    include_pheno=include_pheno ) 
+  print_circuit( Base.stdout, c, include_fitness=include_fitness, include_robustness=include_robustness, include_pheno=include_pheno ) 
 end    
+
+function print_circuit( c::Chromosome, funcs::Vector{Func}; include_fitness::Bool=false, include_robustness::Bool=false, include_pheno::Bool=false ) 
+  print_circuit( Base.stdout, c, include_fitness=include_fitness, include_robustness=include_robustness, include_pheno=include_pheno ) 
+end
 
 # The following struct defintions and function definitions build_chromosome() and print_build_chromosome()
 #   have mostly been replaced by the above definitions of circuit() and print_circuit()
