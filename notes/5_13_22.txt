@@ -1,0 +1,71 @@
+Log frequency vs rank plot (similar to GECCO Figure 2).
+Data and plots in data/5_10_22/ and in data/5_13_22/.
+
+For 3 inputs, 6 instructions, 2 registers
+Combines to runs each with nreps = 10^11 for a total nreps = 2*10^11
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+julia> cdf = read_dataframe("../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_EF.csv")
+julia> lg10(x)=x>0 ? log10(x) : 0.0
+julia> cdf.ints6_2log = map(lg10,cdf.ints6_2)
+julia> Y1=sort(cdf.ints6_2log,rev=true)
+julia> X = collect(0:2^2^3-1)
+julia> scatter(X,Y1,title="log redundancy vs rank 3x1 6 instructions 2 registers",xlabel="rank",ylabel="log reduncancy",labels="")
+julia> savefig("../data/5_10_22/log_redund_vs_rank_3x1_6insts2regs.png") 
+julia> cdf[cdf.ints6_2.<=40,:]
+12×4 DataFrame
+ Row │ goals    ints6_2  circuits_list                      ints6_2log
+     │ String7  Int64    String                             Float64
+─────┼─────────────────────────────────────────────────────────────────
+   1 │ 0x0029        30  Int128[36233339060801, 124278461…     1.47712
+   2 │ 0x0049        22  Int128[31226268227805, 445826690…     1.34242
+   3 │ 0x0061        28  Int128[63379059204751, 634586920…     1.44716
+   4 │ 0x006b        36  Int128[5592832238455, 4461408839…     1.5563
+   5 │ 0x006d        26  Int128[44582414128255, 152931342…     1.41497
+   6 │ 0x0079        25  Int128[7417223233851, 3951704409…     1.39794
+   7 │ 0x0086        26  Int128[6124418059605, 4619044608…     1.41497
+   8 │ 0x0092        33  Int128[55125114068301, 606759290…     1.51851
+   9 │ 0x0094        26  Int128[61534738066905, 375672360…     1.41497
+  10 │ 0x009e        26  Int128[23417283223905, 463506910…     1.41497
+  11 │ 0x00b6        28  Int128[28675208638351, 207649270…     1.44716
+  12 │ 0x00d6        28  Int128[21567365222701, 442610428…     1.44716
+
+For all of the following
+julia> lg10(x)=x>0 ? log10(x) : 0.0
+julia> X = collect(0:2^2^4-1)
+nreps = 2*10^11.
+
+For 4 inputs, 11 instructions, 2 registers
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+julia>cdf9 = read_dataframe("../data/5_13_22/count_outputs_lc_4funcs_4inputs_9insts_2regs_C.csv")
+julia> findall(x->x==0,cdf9.ints9_2)
+  41226-element Vector{Int64}:
+julia> cdf9.ints9_2log = map(lg10,cdf9.ints9_2)
+julia> Y1=sort(cdf9.ints9_2log,rev=true)
+
+For 4 inputs, 10 instructions, 2 registers
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+julia> cdf10 = read_dataframe("../data/5_13_22/count_outputs_lc_4funcs_4inputs_10insts_2regs_B.csv")
+julia> findall(x->x==0,cdf10.ints10_2)
+  39207-element Vector{Int64}:
+julia> cdf10.ints10_2log = map(lg10,cdf10.ints10_2)
+julia> Y2=sort(cdf10.ints10_2log,rev=true)
+julia> scatter(X,Y2,title="4x1 10 instructions 2 registers LC"))
+julia> scatter(X,Y2,title="4x1 10 instructions 2 registers LC",labels="")
+julia> scatter!(xlabel="rank",ylabel="log_redundancy")
+julia> savefig("../data/5_13_22/log_redund_vs_rank_4x1_lc_10_insts_2regs.png")
+
+For 4 inputs, 11 instructions, 2 registers
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+julia> cdf11 = read_dataframe("../data/5_13_22/count_outputs_lc_4funcs_4inputs_11insts_2regs_D.csv")
+julia> findall(x->x==0,cdf11.ints11_2)
+  37610-element Vector{Int64}:
+julia> cdf11.ints11_2log = map(lg10,cdf11.ints11_2)
+julia> Y3=sort(cdf11.ints11_2log,rev=true)
+
+julia> scatter(X,[Y1,Y2,Y3],title="4x1 10 instructions 2 registers LC",labels="")
+julia> scatter!(xlabel="rank",ylabel="log_redundancy",title="4x1 9,10,11 instructions 2 registers")
+julia> savefig("../data/5_13_22/log_redund_vs_rank_lc_9_10_11insts_2regs.png")

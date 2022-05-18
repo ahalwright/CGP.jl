@@ -1,0 +1,6 @@
+Redoing sampling complexities.  I found that I had already done this
+and I have spent time redoing what I had already done.
+The older method that works is to specify output_complex=true when calling
+count_outputs_parallel.  This technique is applied in data/5_16_22.
+Cleanup of function build_dataframe() in RecordOutputs.jl:  Commented out all but one version.
+Data and results in data/5_16_22/.

@@ -1,0 +1,10 @@
+Convert the list of circuit ints produced by count_outputs_parallel() into a list of complexities.
+map(ci->complexity5(int_to_chromosome(ci,p,funcs)),eval(Meta.parse(cdf.circuits_list[1])))
+[ map(ci->complexity5(int_to_chromosome(ci,p,funcs)),eval(Meta.parse(cdf.circuits_list[i]))) for i = 1:256] 
+avg0(lst) = length(lst) > 0 ? sum(lst)/length(lst) : 0.0
+cdf.cmplx_avg = [ avg0(cdf.complexities_list[i])  for i=1:256]
+write_dataframe_with_comments(cdf,"../data/5_15_22/count_outputs_ch_4funcs_3inputs_5gates_4lb_A.csv","../data/5_15_22/complexities_ch_4funcs_3inputs_5gates_4lb_A.csv")
+   IOStream(<file ../data/5_15_22/complexities_ch_4funcs_3inputs_5gates_4lb_A.csv>)
+
+avg0(map(ci->complexity5(int_to_chromosome(ci,p,funcs)),cdf.circuits_list[1]))   
+

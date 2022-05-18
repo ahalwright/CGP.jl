@@ -7,3 +7,5 @@ Forgot that when using funcs and pmap(), default_funcs() must be called within t
 No CSV files generated yet.
 
 No test functions yet.
+
+Tried on surt2 and got high robustness starting with random Chromosomes or LinCircuits.

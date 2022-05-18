@@ -3,22 +3,41 @@
 #using HypothesisTests
 using Random
 
+function robust_evolution_csv( c::Circuit, max_steps::Integer, nreps::Int64, funcs::Vector{Func}, csvfile::String )
+  df = DataFrame()
+  df.numinputs = Int64[]
+  df.numints = Int64[]
+  df.numlb = Int64[]
+  df.max_steps = Int64[]
+  df.nreps = Int64[]
+  df.goal = Vector{MyInt}[]
+  df.start_rbst = Float64[]
+  df.final_rbst = Float64[]
+  g = output_values(c,funcs)
+  start_rbst = robustness(c,funcs)
+  rlist = robust_evolution_parallel(c,max_steps,nreps,funcs)
+  push!(df,(c.params.numinputs,c.params.numinteriors,c.params.numlevelsback,max_steps,nreps,g,start_rbst,rlist[1][2]))
+  write_df_to_csv( df, p, funcs, csvfile, max_steps=max_steps, nreps=nreps )
+  df
+end
+  
+
 # Returns result_list which is a list of (circuit,rbst) pairs where rbst is the robustness() of the circuit.
 # The first element of the list has maximum robustness.
 function robust_evolution_parallel( c::Circuit, max_steps::Integer, nreps::Int64, funcs::Vector{Func} )
   g = output_values(c)
   rbst = robustness(c,funcs)
-  print("par:  g: ",g,"  rbst: ",rbst,"   ")
+  print("par:  g: ",g,"  nreps: ",nreps,"  rbst: ",rbst,"   ")
   print_circuit(c,funcs)
   result_list = pmap( _->robust_evolution( c, max_steps ), collect(1:nreps) )
   #result_list = map( _->robust_evolution( c, max_steps ), collect(1:nreps) )
+  sort!(result_list,lt=(x,y)->x[2]<y[2],rev=true)
   #=
   for r in result_list
     print("r[2]: ",r[2],"   ")
     print_circuit(r[1],funcs)
   end
   =#
-  sort!(result_list,lt=(x,y)->x[2]<y[2],rev=true)
   result_list
 end
 
