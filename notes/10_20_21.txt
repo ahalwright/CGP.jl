@@ -1,5 +1,4 @@
 
-
 Windows:  
 Synced data directories to windows
 julia -L CGP.jl -L .\wanalyze.jl   # copied analyze.jl to wanalyze.jl since Windows is not case sensitive

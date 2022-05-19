@@ -1,3 +1,4 @@
+# Revisited and revised described in notes/5_19_22.txt
 pwd() "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\10_6_21"
 ah9df = read_dataframe("../10_6_21/adapt_evo10_6_21E.csv")
 ai9df = read_dataframe("../10_6_21/adapt_evo10_6_21F.csv")

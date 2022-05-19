@@ -3,6 +3,12 @@ CR plots are in data/11_15_21/ and LC plots are in data/11_21_21/.
 LC plots are based on correlation_csvs/lruns10_30_21.csv.
 CR plots are based on correlation_csvs/cruns11_7_21.csv.
 
+Note:  
+eevolv:  evolution evolvability
+revolv:  Rwalk evolvability  (random walk)
+pevolv:  Phenonety evolvability
+See data/correlation_csvs/cruns11_7_21.csv
+
 Example for CR:  
 scatter_plot(cdf, "CRpevolv2", "CRrevolv2", "CRlsteps", data_subdir = "11_15_21")
 fname: 11_15_21/CRrevolv2 vs CRpevolv2 markers CRlsteps 3x1 8_5.png

@@ -70,3 +70,47 @@ function neutral_evol( c::Chromosome, g::Goal, max_steps::Integer, funcs::Vector
     return (c, step)
   end
 end
+
+function accessible_path( c::Chromosome, g::Goal, max_steps::Integer, funcs::Vector{Func} )
+  #  circuit_ints_list::Vector{Vector{UInt128}} )
+  rand_fitvec = rand(2^numinputs)
+  ov = MyInt(0)
+  phfit1 = pheno_fitness(ph1,ov,numinputs,random_fit=rand_fitvec)
+  phfit2 = pheno_fitness(ph2,ov,numinputs,random_fit=rand_fitvec)
+  if phfit1 > phfit2
+    tmp_ph = deepcopy(ph1)
+    tmp_c = deepcopy( c1)
+    tmp_fit = phfit1
+    ph1 = ph2
+    c1 = c2
+    phfit1 = phfit2
+    ph2 = tmp_ph
+    c2 = tmp_c
+    phfit2 = tmp_fit
+  end
+  step = 0
+  ov = output_values( c1 ) 
+  current_fitness = pheno_fitness( g, ov, c.params.numinputs, random_fit=rand_fitvec )
+  new_c = deepcopy(c)
+  while step < max_steps && ov != g
+    step += 1
+    (new_c,active) = mutate_chromosome!( new_c, funcs )
+    new_ov = output_values( new_c )
+    new = pheno_fitness( g, new_ov, c.params.numinputs, random_fit=rand_fitvec )
+  end
+end
+  
+
+function pheno_fitness( g::Goal, output_value::Goal, numinputs::Int64; random_fit::Vector{Float64}=Float64[])
+  if length(random_fitvec) > 0
+    return random_fitvec[g[1]]   # Assumes a single-component goal
+  else
+    #print("  hd: ",hamming_distance( output_value, g, numinputs ))
+    return (1.0 - hamming_distance( output_value, g, numinputs ))
+  end
+end
+
+function find_path_between_phenotypes( ph1:Goal, c1::Circuit,  ph2:Goal, c2::Circuit, numinputs::Int64 )
+end
+
+

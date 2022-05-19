@@ -189,9 +189,47 @@ These files now have suffix  _21.txt
 9_27: Parallelized construct_pheno_net() in PhenotypeNetwork.jl.  
       Wrote markov_chain_stationary() in PhenotypeNetwork.
 10_12: Color and size by complexity
-
+10_13: Compute complexity for LinCircuits in lincomplexity() in LinCircuit.jl
+10_14: Comments and references on Adami complexity.  
+        Data in 10_7_21 and 10_13_21 relationships between CGP and LGP complexity and evolvability
+10_15:  Idea:  Change a phenotype from a bit string to a real-valued vector over bits.
+10_16:  Adapting geno_complexity() in Evolvability.jl for LinCircuits so that I can compute evolution evolvability for LinCircuits.
+10_17:  Scatter plots for evolvabe lincircuit complexity.  Data in 10_16_21.
+10_18:  Bug found in consolidate_dataframe() in the computation of :evo_count.  Making sense of evolution evolvability for LinCircuits.
+10_19:  Changed PhenotypeNetwork.jl to compute evolvabilities and robustness and output as part of the *rowcol.csv file
+10_20:  Scatter plots evolvability, cartesian and linear complexity, robustness.  data/10_20_21/
+10_21:  Fixed bugs in run_random_walks() in random_walk.jl.  All tests in test/test_random_walk.jl run apparently correctly.
+10_22:  Computed d_evolvability, s_evolvability, robustness and complexity using random walks technique of Hu2020 for both Chromosomes and LinCircuits.
+10_25:  Plotting revised evovability values from data/correlation_csvs/evolvable10_24_21.csv
+10_30:  Generated many plots in data/10_28_21 data/10_29_21 data/10_31_21 based on lruns* in data/correlation_csvs/.  Code is in src/correlations.jl
+11_1:  Setting up run files to redo current results for Chromosomes. See 'cce/Comparison of 3 methods of computing evolvability10_31_21.docx'
+11_7:  Comparing LinearGP and CartesianGP results.
+11_9:  Cleanup/simplify code for geno_complexity().  Results on nsuccesses for CGP and LGP.
+11_15: resolving problems with running out of memory in PhenotypeNetwork.jl
+11_16: Thinking about evolvability and the evolution of complexity.  Adami complexity, mutual information.
+11_17: Ideas about Adami complexity.
+11_21: Finished doing all 3 pairs of scatter plots for eevolv, pevolv, and revolv for both CR and LC.
+11_25: Fixed problem in Evolvability.jl
+11_29: Reasons for failure of epochal evolution.  Numbers of failures for up to 5 inputs for CGP
+11_30: Testing the hypothesis that complexity(x) is correlated with entropy(x) for all 1-output phenotypes x. Hypothesis weakly confirmed.
+12_16: Looked into Julia multi-threading and came up with a race example and a method to do synchronization in ~/julia/threading/race_example.jl.
+        Rewrote PhenotypeNetwork.jl to PhenoNet.jl using this technique.
+12_17: Reading Weiss and Ahnert 2020 paper "Using small samples to estimate neutral component size and robustness in the genotype–phenotype map of RNA secondary structure." 
+12_18: Continued development on NCs (neutral components) of the genotype network for a parameter settings
+12_19: Using test_threading.jl to compare multi threads, multi processes, and single threads/processes.  Some results in evotech/complexity/data/12_19_21/test_threading_results.xlsx
+12_22: Rewrote int_to_chromosome() in src/Chromosome.jl.  Test in test/test_chromosome.jl (moved from testChromosome.jl)
+12_25: Wrote a parallel version of fnc.jl (find_neutral_components()).  Since fnc.jl moved to Fnc.jl.
+12_26: Results for pheno_counts (Cartesian) and find_neutral_components.
+12_27: Results for find_neutral_components.
+12_28: Started writing Neutral_components_genotype_network12_28_21.docx.  Succeeded in writing enumerate_circuits_lc() in LinCircuit.jl. 
+12_29: Wrote pheno_counts_ch() and pheno_counts_lc() in fnc.jl.  Included is a keyword argument to save the entire G-P map as a Vector indexed by
+    chromosome_ints/circuit_ints and mapping to single-output phenotypes.
+12_31: Test of find_neutral_comps() for LinCircuits on lycosa.:
 
 2022:
+1_1:  Wrote rand_evo_walk() and rand_evo_walk_mutate_all() in Fnc.jl.  Renamed fnc.jl to Fnc.jl
+1_5:  Worked on Fnc.jl.  How to integrate random_walk() and random_walk_mutate_all() into the statistics about NCs.
+1_8:  Add the average of rand_evo_walk() runs to the output of component_properties() and find_neutral_components() in Fnc.jl.
 4_4:  Evolution of Adami complexity
 4_20: 5 input run_geno_complexity() results
 4_22: 5 input plots
@@ -199,8 +237,9 @@ These files now have suffix  _21.txt
 5_9:  Preliminary runs of run_geno_complexity() in data/5_9_22.  Concluded that 10 instructions 2 registers is good for 4 inputs.
 5_10:  Results for LinCircuit count_outputs with 10^11 samples.  Verifies that all 3-input goals were sampled approximately 10 times.
 5_11:  Results for run_geno_complexity() with both 3 and 4 inputs in data5/9/22.  Plus investigation of how iter_maxreps and iter_maxtries work.
-5_13:  Counts results (mostly LC) with complexitiesvi r
+5_13:  Counts results (mostly LC) with complexities for both 3 inputs 6 and 7 instructions, and 4 inputs 9, 10, 11 instructions
 5_17:  Runs of count_outputs_parallel() with output_complex=true.  Cleanup of function build_dataframe() in RecordOutputs.jl
+5_18:  Refer back to 5_13 for 3x1 runs with 7 instructions 2 registers
 
 
 All plots:

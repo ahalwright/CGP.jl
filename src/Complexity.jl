@@ -142,6 +142,12 @@ function run_explore_complexity( nreps::Int64, nruns::Int64, p::Parameters, goal
       println(f,"# num_circuits: ",num_circuits)
       println(f,"# max_ev_steps: ",max_ev_steps)
       println(f,"# ngoals: ",ngoals)
+      if insert_gate_prob > 0.0
+        println(f,"# insert_gate_prob: ",insert_gate_prob)
+      end 
+      if delete_gate_prob > 0.0
+        println(f,"# delete_gate_prob: ",delete_gate_prob)
+      end 
       CSV.write( f, df, append=true, writeheader=true )
     end
   end
@@ -154,6 +160,12 @@ function run_explore_complexity( nreps::Int64, nruns::Int64, p::Parameters, goal
   println("# num_circuits: ",num_circuits)
   println("# max_ev_steps: ",max_ev_steps)
   println("# ngoals: ",ngoals)
+  if insert_gate_prob > 0.0
+    println("# insert_gate_prob: ",insert_gate_prob)
+  end 
+  if delete_gate_prob > 0.0
+    println("# delete_gate_prob: ",delete_gate_prob)
+  end 
   df
 end
 
@@ -170,6 +182,14 @@ function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList
     df = DataFrame()
     df.numgates = Float64[]
     df.levelsback = Float64[]
+    #=  Too complicated for now.  5/19/22
+    if insert_gate_prob > 0.0
+      df.insert_gate_prob = Float64[]
+    end 
+    if delete_gate_prob > 0.0
+      df.delte_gate_prob = Float64[]
+    end 
+    =#
     df.steps = Int64[]
     df.unique_goals = Int64[]
     df.mean_complexity = Float64[]

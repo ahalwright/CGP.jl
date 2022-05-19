@@ -1,4 +1,3 @@
-
 Windows  evolvabe lincircuit complexity.:
 pwd() "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
 el6df = read_dataframe("../../complexity/data/10_16_21\\geno_complexity10_16_21C.csv")

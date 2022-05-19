@@ -1,0 +1,33 @@
+Revisiting explore_complexity() in Complexity.jl with increase_gate_prob and decrease_gate_prob nonzero.
+Added output to dataframe to show these probabilities.
+
+Copied from notes/10_12_21
+pwd()  "C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+ah9df = read_dataframe("../data/10_6_21/adapt_evo10_6_21E.csv")
+#ai9df = read_dataframe("../data/10_6_21/adapt_evo10_6_21F.csv")
+e9df = read_dataframe("../data/5_9_22/geno_complexity_linGP_5_9_22H.csv")
+
+
+# try coloring by complexity
+cmin=findmin(e9df.complexity)[1]
+cmax=findmax(e9df.complexity)[1]
+# Normalized complexity
+cmplx = map(x->(1.0/(cmax-cmin))*(e9df.complexity[x]-cmin),collect(1:256))
+# Red increases, blue decreases with high complexity
+color_cmplx = map(x->RGB(x,0.0,1.0-x),cmplx)
+size_cmplx = 5 .+ (10 .* cmplx)
+scatter(ah9df.avg_num_successes,e9df.evo_count,smooth=true,legend=:none,c=color_cmplx,markersize=size_cmplx)
+scatter!(xlabel="adaptive evolvability",ylabel="evolution evolvability",title="evolution vs adaptive evolvability with complexity by size")
+savefig("../10_12_21/adaptive_evol_vs_evolution_evol_complexity_by_size_9gts5lb.png")
+
+# Comment:  the call to scatter() gives the errors:  (I need to look at the source code.)
+┌ Warning: Indices Base.OneTo(256) of attribute `seriescolor` does not match data indices 1:2.
+└ @ Plots C:\Users\oldmtnbiker\.julia\packages\Plots\rDbWY\src\utils.jl:132
+┌ Warning: Indices Base.OneTo(256) of attribute `linecolor` does not match data indices 1:2.
+└ @ Plots C:\Users\oldmtnbiker\.julia\packages\Plots\rDbWY\src\utils.jl:132
+┌ Warning: Indices Base.OneTo(256) of attribute `fillcolor` does not match data indices 1:2.
+└ @ Plots C:\Users\oldmtnbiker\.julia\packages\Plots\rDbWY\src\utils.jl:132
+┌ Warning: Indices Base.OneTo(256) of attribute `markercolor` does not match data indices 1:2.
+└ @ Plots C:\Users\oldmtnbiker\.julia\packages\Plots\rDbWY\src\utils.jl:132
+┌ Warning: Indices Base.OneTo(256) of attribute `markersize` does not match data indices 1:2.
+└ @ Plots C:\Users\oldmtnbiker\.julia\packages\Plots\rDbWY\src\utils.jl:132

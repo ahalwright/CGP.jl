@@ -30,6 +30,15 @@ julia> cdf[cdf.ints6_2.<=40,:]
   11 │ 0x00b6        28  Int128[28675208638351, 207649270…     1.44716
   12 │ 0x00d6        28  Int128[21567365222701, 442610428…     1.44716
 
+Run on 5/17/22:
+julia> cdf = read_dataframe("../data/5_10_22/count_outputs_lc_4funcs_3inputs_7insts_2regs_MN.csv")
+julia> cdf.ints7_2log = map(lg10,cdf.ints7_2)
+julia> Y1=sort(cdf.ints7_2log,rev=true)
+julia> X = collect(0:2^2^3-1)
+julia> scatter(X,Y1,title="log redundancy vs rank 3x1 7 instructions 2 registers",xlabel="rank",ylabel="log reduncancy",labels="")
+julia> savefig("../data/5_10_22/log_redund_vs_rank_3x1_7insts2regs.png")   
+
+4x1:
 For all of the following
 julia> lg10(x)=x>0 ? log10(x) : 0.0
 julia> X = collect(0:2^2^4-1)
