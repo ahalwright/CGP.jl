@@ -240,6 +240,7 @@ These files now have suffix  _21.txt
 5_13:  Counts results (mostly LC) with complexities for both 3 inputs 6 and 7 instructions, and 4 inputs 9, 10, 11 instructions
 5_17:  Runs of count_outputs_parallel() with output_complex=true.  Cleanup of function build_dataframe() in RecordOutputs.jl
 5_18:  Refer back to 5_13 for 3x1 runs with 7 instructions 2 registers
+5_22:  Redoing run_geno_complexity() in Complexity.jl with 5 funcs.
 
 
 All plots:

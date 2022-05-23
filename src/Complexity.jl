@@ -173,10 +173,11 @@ end
 # Also, discoverd goals are removed from goallist on subsequent runs.
 function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList, num_circuits::Int64, max_ev_steps::Int64;
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
+  max_complexity_tries = 40
   df = DataFrame()
   done = false
   explore_complexity_tries = 0
-  while !done
+  while !done && explore_complesity_tries <= max_complexity_tries
     explore_complexity_tries += 1
     #println("while !done loop.")
     df = DataFrame()
