@@ -60,7 +60,7 @@ julia> cdf10 = read_dataframe("../data/5_13_22/count_outputs_lc_4funcs_4inputs_1
 julia> findall(x->x==0,cdf10.ints10_2)
   39207-element Vector{Int64}:
 julia> cdf10.ints10_2log = map(lg10,cdf10.ints10_2)
-julia> Y2=sort(cdf10.ints10_2log,rev=true)
+julia> Y1=sort(cdf10.ints10_2log,rev=true)
 julia> scatter(X,Y2,title="4x1 10 instructions 2 registers LC"))
 julia> scatter(X,Y2,title="4x1 10 instructions 2 registers LC",labels="")
 julia> scatter!(xlabel="rank",ylabel="log_redundancy")

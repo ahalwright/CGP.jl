@@ -1,0 +1,20 @@
+Cooper is producing GECCO-type double plots for the GPTP paper.  5_27:  Idea:  both scatters on one plot.  See 5_27_22.txt
+
+Reproduced the GECCO complexity density plot using the procedure at the end of notes/diary/diary12_18.txt reproduced here:
+
+Redo 11 gts 8 lb on 2/2/21:
+Revised on 5_26_22:  working
+using StatsPlots
+using Measures
+homedir()
+scdb = read_dataframe("C:\\Users\\oldmtnbiker\\OneDrive\\evotech\\data\\12_20\\circuit_complexities12_20DR.csv")
+gpdf = read_dataframe("C:\\Users\\oldmtnbiker\\OneDrive\\evotech\\data\\12_20\\geno_pheno12_20D.csv")
+p1=density([scdb.complexities,gpdf.complex],labels=["complexities of random circuits" "complexities of random phenotypes"])
+plot!(p1,size=(1024,512),tickfontsize=14,guidefontsize=14,legendfontsize=14)
+plot!(p1,bottom_margin=Measures.Length(:mm,4),left_margin=Measures.Length(:mm,1))
+plot!(p1,ylims=[0.0,0.34])
+cd("../Dropbox\\evotech\\complexity\\data")     
+
+Got data/5_26_21/run_geno_phenoA.jl and run_geno_phenoB.jl to run by dropping fields df.degen] sdegen, and f_mutinf 
+from the dataframe and the type geno_pheno_result_type in src/aliases.jl.  Also had to get the function pops_to_tbl()
+extracted from entropy.jl and define the type FPopulation.

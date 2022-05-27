@@ -26,14 +26,14 @@ function run_geno_pheno_evolution( iterations::Int64, numinputs::IntRange, numou
   println("run time in minutes: ",ttime/60)
   println("cor( df.logsteps, df.complex): ",cor( df.logsteps, df.complex))
   println("cor( df.logsteps, df.gb_complex): ",cor( df.logsteps, df.gb_complex))
-  println("cor( df.logsteps, df.degen): ",cor( df.logsteps, df.degen))
-  println("cor( df.logsteps, df.sdegen): ",cor( df.logsteps, df.sdegen))
-  println("cor( df.logsteps, df.f_mutinf): ",cor( df.logsteps, df.f_mutinf))
-  println("cor( df.complex, df.f_mutinf): ",cor( df.complex, df.f_mutinf))
-  println("cor( df.gb_complex, df.f_mutinf): ",cor( df.gb_complex, df.f_mutinf))
+  #println("cor( df.logsteps, df.degen): ",cor( df.logsteps, df.degen))
+  #println("cor( df.logsteps, df.sdegen): ",cor( df.logsteps, df.sdegen))
+  #println("cor( df.logsteps, df.f_mutinf): ",cor( df.logsteps, df.f_mutinf))
+  #println("cor( df.complex, df.f_mutinf): ",cor( df.complex, df.f_mutinf))
+  #println("cor( df.gb_complex, df.f_mutinf): ",cor( df.gb_complex, df.f_mutinf))
   println("cor( df.logsteps, df.mutrobust): ",cor( df.logsteps, df.mutrobust))
   println("cor( df.mutrobust, df.complex: ",cor( df.mutrobust, df.complex))
-  println("cor( df.mutrobust, df.degen: ",cor( df.mutrobust, df.degen))
+  #println("cor( df.mutrobust, df.degen: ",cor( df.mutrobust, df.degen))
   hostname = chomp(open("/etc/hostname") do f read(f,String) end)
   open( csvfile, "w" ) do f
     println(f,"# date and time: ",Dates.now())
@@ -42,14 +42,14 @@ function run_geno_pheno_evolution( iterations::Int64, numinputs::IntRange, numou
     println(f,"# funcs: ", Main.CGP.default_funcs(numinputs[end]))
     println(f,"# cor( df.logsteps, df.complex): ",cor( df.logsteps, df.complex))
     println(f,"# cor( df.logsteps, df.gb_complex): ",cor( df.logsteps, df.gb_complex))
-    println(f,"# cor( df.logsteps, df.degen): ",cor( df.logsteps, df.degen))
-    println(f,"# cor( df.logsteps, df.sdegen): ",cor( df.logsteps, df.sdegen))
-    println(f,"# cor( df.logsteps, df.f_mutinf): ",cor( df.logsteps, df.f_mutinf))
-    println(f,"# cor( df.complex, df.f_mutinf): ",cor( df.complex, df.f_mutinf))
-    println(f,"# cor( df.gb_complex, df.f_mutinf): ",cor( df.gb_complex, df.f_mutinf))
+    #println(f,"# cor( df.logsteps, df.degen): ",cor( df.logsteps, df.degen))
+    #println(f,"# cor( df.logsteps, df.sdegen): ",cor( df.logsteps, df.sdegen))
+    #println(f,"# cor( df.logsteps, df.f_mutinf): ",cor( df.logsteps, df.f_mutinf))
+    #println(f,"# cor( df.complex, df.f_mutinf): ",cor( df.complex, df.f_mutinf))
+    #println(f,"# cor( df.gb_complex, df.f_mutinf): ",cor( df.gb_complex, df.f_mutinf))
     println(f,"# cor( df.logsteps, df.mutrobust): ",cor( df.logsteps, df.mutrobust))
     println(f,"# cor( df.mutrobust, df.complex: ",cor( df.mutrobust, df.complex))
-    println(f,"# cor( df.mutrobust, df.degen: ",cor( df.mutrobust, df.degen))
+    #println(f,"# cor( df.mutrobust, df.degen: ",cor( df.mutrobust, df.degen))
     #println(f,"# nodearity: ",nodearity)
     #println(f,"# active_only: ",active_only)
     CSV.write( f, df, append=true, writeheader=true )
@@ -86,9 +86,9 @@ function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::Int
   df.redund=Float64[]
   df.complex=Float64[]
   df.gb_complex=Float64[]
-  df.degen=Float64[]
-  df.sdegen=Float64[]
-  df.f_mutinf=Float64[]
+  #df.degen=Float64[]
+  #df.sdegen=Float64[]
+  #df.f_mutinf=Float64[]
   df.mutrobust=Float64[]
   df.evolvability=Float64[]
   println("size(df): ",size(df))
@@ -123,6 +123,7 @@ function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::Int
   for r = new_gp_result_list
     new_row = gp_result_to_tuple(r)
     #println("length new row: ",length(new_row))
+    #println("size(df): ",size(df))
     Base.push!( df, new_row )
   end
   df
@@ -174,9 +175,9 @@ function run_gp_evolve!( rr::geno_pheno_result_type; maxints_for_degen::Int64, g
   rr.redund = redundancy( c, base=base )
   rr.complex = rr.numints <= maxints_for_degen ? complexity5( c, base=base ) : 0.0
   #rr.gb_complex = rr.numints <= maxints_for_degen ? gb_complexity_chrome( c, base=base ) : 0.0 # meaningless 9/27
-  rr.degen = rr.numints <= maxints_for_degen ? degeneracy( c, base=base ) : 0.0
-  rr.sdegen = rr.numints <= maxints_for_degen ? degeneracy( c, base=base, mutinf=mutinf2 ) : 0.0
-  rr.f_mutinf = fmi_chrome( c )
+  #rr.degen = rr.numints <= maxints_for_degen ? degeneracy( c, base=base ) : 0.0
+  #rr.sdegen = rr.numints <= maxints_for_degen ? degeneracy( c, base=base, mutinf=mutinf2 ) : 0.0
+  #rr.f_mutinf = fmi_chrome( c )
   mutall = mutate_all( c, funcs, robustness_only=true )
   rr.mutrobust = mutall[1]
   rr.evolvability = mutall[2]
@@ -204,9 +205,9 @@ function gp_result( gl::Vector{Vector{MyInt}}, p::Parameters, num_goals::Int64, 
     0.0,    # redund
     0.0,    # complex
     0.0,    # gb_complex
-    0.0,    # degen
-    0.0,    # sdegen
-    0.0,    # f_mutinf
+    #0.0,    # degen
+    #0.0,    # sdegen
+    #0.0,    # f_mutinf
     0.0,    # mutrobust
     0.0     # evolvability
   )
@@ -229,9 +230,9 @@ function gp_result_to_tuple( rr::geno_pheno_result_type )
   rr.redund,
   rr.complex,
   rr.gb_complex,
-  rr.degen,
-  rr.sdegen,
-  rr.f_mutinf,
+  #rr.degen,
+  #rr.sdegen,
+  #rr.f_mutinf,
   rr.mutrobust,
   rr.evolvability
  )

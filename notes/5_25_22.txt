@@ -1,0 +1,71 @@
+Procedure for adding redundancy counts to geno_complexity dataframes in
+data/5_22_22/geno_complexity_linGP_5_22_22D.csv   and
+data/5_22_22/geno_complexity_cartGP_5_22_22E.csv.
+
+ddf = read_dataframe("../data/5_22_22/geno_complexity_linGP_5_22_22D.csv")
+edf = read_dataframe("../data/5_22_22/geno_complexity_cartGP_5_22_22E.csv")
+
+Note that these two dataframes have identical "goal" columns since they were generated with the same random number seed.
+
+I have counts dataframes for both LGP and CGP:
+lcdf = read_dataframe("../data/5_24_22/count_outputs_lc_5funcs_4inputs_10insts_2regs_B.csv")   column: ints10_2
+cgdf = read_dataframe("../data/counts/count_out_4x1_all_ints_11_8.csv")   column: ints11_8
+cgdf.goal = lcdf.goals  # Make the :goal column of cgdf the same as the :goals column of lcdf
+
+So the problem is to extract the appropriate counts from the counts dataframes and insert them into the geno_complexity dataframes.
+
+goals = [ edf.goal[i][8:end-1] for i = 1:length(edf.goal) ]  # this extracts the hexadecimal single goals
+#  The same goals list works for LGP (ddf) and CGP (edf).
+500-element Vector{SubString{String15}}:
+ "0x001d"
+ "0x015b"
+ "0x0338"
+
+
+# Do CGP:
+#bv = [ lcdf.goals[i] in goals for i = 1:length(lcdf.goals) ] 
+julia> bv = BitVector([ cgdf.goal[i] in goals for i = 1:length(cgdf.goal) ]) 
+julia> sum(bv)   # 498  # the problem is that there are two duplicate goals in edf.goal and in ddf.goals.
+julia> cglscnts = cgdf[ bv, [:goal,:ints11_8 ]  
+julia> findall(i->goals[i]==goals[i+1],1:499)
+2-element Vector{Int64}:
+ 114
+ 140
+julia> goals[114:115]
+2-element Vector{SubString{String15}}:
+ "0x3989"
+ "0x3989"
+julia> goals[140:141]
+2-element Vector{SubString{String15}}:
+ "0x45b8"
+ "0x45b8"
+julia> cg1 = cglscnts[114,:]
+DataFrameRow
+ Row │ goal     ints11_8
+     │ String7  Int64
+─────┼───────────────────
+ 114 │ 0x3989        644
+
+julia> cg2 = cglscnts[140,:]
+DataFrameRow
+ Row │ goal     ints11_8
+     │ String7  Int64
+─────┼───────────────────
+ 140 │ 0x4635         85
+
+julia> push!(cglscnts,cg1)
+julia> push!(cglscnts,cg2)
+julia> sort!(cglscnts,:goal)
+julia> edf.ints11_8 = cglscnts.ints11_8
+julia> write_dataframe_with_comments(edf,"../data/5_22_22/geno_complexity_cartGP_5_22_22E.csv","../data/5_22_22/geno_complexity_cartGP_5_25_22E.csv")
+
+# Do LGP:
+julia> bv = BitVector([ lcdf.goals[i] in goals for i = 1:length(lcdf.goals ]) 
+julia> sum(bv)   # 498  # the problem is that there are two duplicate goals in edf.goal and in ddf.goals. 
+julia> lglscnts = lcdf[ bv, [:goals,:ints10_2]]
+498×2 DataFrame
+julia> lc1 = lglscnts[114,:]
+julia> lc2 = lglscnts[140,:]
+julia> ddf.ints10_2 = lglscnts.ints10_2 
+julia> write_dataframe_with_comments(ddf,"../data/5_22_22/geno_complexity_linGP_5_22_22D.csv","../data/5_22_22/geno_complexity_linGP_5_25_22D.csv")
+IOStream(<file ../data/5_22_22/geno_complexity_linGP_5_25_22D.csv>)

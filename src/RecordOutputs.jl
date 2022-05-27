@@ -32,13 +32,10 @@ using Printf
 using Dates
 using CSV
 export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list, read_counts_files
-export add_counts_to_dataframe, build_dataframe, circuit_complexities, run_circuit_complexities
+export add_counts_to_dataframe, write_to_dataframe_file, circuit_complexities, run_circuit_complexities
 export create_lincircuits_list, create_chromosome_ints_list, increment_circuit_ints_list! 
 
 MyFunc = Main.CGP.MyFunc
-
-#function count_outputs_complexity( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64,
-#    funcs::Vector{Func}=Func[]; csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false ) 
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
 #  This list is indexed over phenotypes.
 # If output_complex==true the returned outlist is a list of pairs, where the first element of the pair is the number of times the
@@ -50,14 +47,22 @@ function count_outputs_parallel( nreps::Int64, p::Parameters, numcircuits::Int64
     csvfile=csvfile, use_lincircuit=use_lincircuit, output_complex=output_complex )
 end
 
+# Not used by construct_pheno_net() in PhenotypeNetwork.jl since nesting calls to pmap() doesn't work (stack overflow error)
 function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64, 
     funcs::Vector{Func}=Func[]; csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false ) 
+  #=
+  if use_lincircuit && output_complex
+    println("Warning: output_complex reset to false when use_lincircuit==true")
+    output_complex=false
+  end
+  =#
   p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
   if length(funcs) == 0
     funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
   end
   print_parameters( p )
   println("nprocs: ",nprocs())
+  #n_procs=nprocs()
   if nprocs() > 1
     nreps_p = Int(round(nreps/(nprocs()-1)))
   else
@@ -85,17 +90,12 @@ function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int
   for i = 2:length(result)
     vcat_arrays!(circ_ints_list,result[i][2])
   end
-  df = build_dataframe( p, outlist, circ_ints_list, funcs, numcircuits, nreps, csvfile=csvfile )
   if length(csvfile) > 0
-    write_df_to_csv( df, p, funcs, csvfile, numcircuits=numcircuits, nreps=nreps )
+    write_to_dataframe_file( p, outlist, circ_ints_list, funcs, numcircuits, nreps, csvfile=csvfile )
   end
   #println("outlist: ",outlist)
   #println("circ_ints_list: ",circ_ints_list)
-  #(outlist,circ_ints_list)
-  #if ouptut_complex
-  #  add_complexities_to_dataframe( df::DataFrame, p::Parameters, funcs::Vector{Func} )
-  #end
-  df
+  (outlist,circ_ints_list)
 end
 
 # Return an output list of the number of times that an output (phenotype)  was produced by randomly generating genotypes with these parameters
@@ -118,7 +118,7 @@ function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numin
     #outlist = fill( Int64(0), numoutputs*2^2^numinputs )
     outlist = fill( UInt128(0), numoutputs*2^2^numinputs )
   end
-  circuit_ints_list = [ Int128[] for _ = 1:p.numoutputs*2^2^p.numinputs ]
+   circuit_ints_list = [ Int128[] for _ = 1:p.numoutputs*2^2^p.numinputs ]
   for _ = 1:nreps
     if use_lincircuit
       c = rand_lcircuit( p, funcs )
@@ -275,8 +275,8 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
   end
 end
 =#
-#= Comment out 3 definitions on 5/17/22 to see if they are really needed.  Preliminary testing suggests not.
-function build_dataframe( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0;
+
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0;
      csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
@@ -290,7 +290,7 @@ function build_dataframe( p::Parameters, outputs_list::Vector{UInt128}, circuits
   df 
 end
 
-function build_dataframe( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Int128}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; 
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Int128}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; 
     csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
@@ -304,7 +304,7 @@ function build_dataframe( p::Parameters, outputs_list::Vector{UInt128}, circuits
   df 
 end
 
-function build_dataframe( p::Parameters, outputs_list::Vector{Tuple{Int64,Float64}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Tuple{Int64,Float64}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
@@ -315,48 +315,6 @@ function build_dataframe( p::Parameters, outputs_list::Vector{Tuple{Int64,Float6
     write_df_to_csv( df, p, funcs, csvfile, numcircuits=numcircuits, nreps=nreps )
   end
   df
-end
-=#
-
-function build_dataframe( p::Parameters, outputs_list::Vector{Tuple{Int64,Float64}}, circuits_list::Vector{Vector{Int128}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
-  df = DataFrame()
-  df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
-  sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
-  df[!,sym] = map(x->x[1],outputs_list)
-  df.:complexity = map( x->x[2], outputs_list )
-  if length(csvfile) > 0
-    write_df_to_csv( df, p, funcs, csvfile, numcircuits=numcircuits, nreps=nreps )
-  end
-  df
-end
-
-avg0(lst::Vector{Float64}) = length(lst) > 0 ? sum(lst)/length(lst) : 0.0  # average of lst with 0.0 returned if lst is empty
-
-function add_complexities_to_dataframe( cdf::DataFrame, p::Parameters, funcs::Vector{Func} ) 
-  # use the next two lines if cdf.circuits_list is a list of strings
-  # Ran on 5/17/22 with seemingly incorrect results:  complexities all within a range of 1.53 to 1.70
-  cdf.circ_list = map(i->eval(Meta.parse(cdf.circuits_list[i])),collect(1:size(cdf)[1]))
-  insertcols!(cdf,3,:avg_cmplx=>[ avg0(map(ci->complexity5(int_to_chromosome(ci,p,funcs)),cdf.circ_list[i])) for i = 1:size(cdf)[1] ])
-  #insertcols!(cdf,3,:avg_cmplx=>[ avg0(map(ci->complexity5(int_to_chromosome(ci,p,funcs)),cdf.circuits_list[i])) for i = 1:size(cdf)[1] ])
-  avg_cmplx = Float64[]
-  for i = 1:size(cdf)[1]
-    complexities = map(ci->complexity5(int_to_chromosome(ci,p,funcs)),cdf.circuits_list[i])
-    push!( avg_cmplx, avg0(complexities) )
-  end
-  insertcols!(cdf,3,:avg_cmplx=>avg_cmplx)
-  cdf
-end
-
-# Time consuming and memory intensive
-# As of 5/16/22, robustness() is in robust_evoution.jl which must be separately included
-function add_robustness_to_dataframe( cdf::DataFrame, p::Parameters, funcs::Vector{Func} ) 
-  avg_robust = Float64[]
-  for i = 1:size(cdf)[1]
-    robustnesses = map(ci->robustness(int_to_chromosome(ci,p,funcs),funcs),cdf.circuits_list[i])
-    push!( avg_robust, avg0(robustnesses) )
-  end
-  insertcols!(cdf,3,:avg_robust=>avg_robust)
-  cdf
 end
 
 #= Moved to Utilities.jl on 4/20/22
@@ -504,13 +462,17 @@ function merge_count_dataframes( df1::DataFrame, df2::DataFrame )
 end
 
 # Create a pair (goal_list,complexity_list) where a pair (goal_list[i], complexity_list[i]) corresponds to a random circuit.
-function circuit_complexities( p::Parameters, num_circuits::Int64 )
+function circuit_complexities( p::Parameters, num_circuits::Int64; use_lincircuit::Bool=false )
   println("circuit_complexities: num_circuits: ",num_circuits)
   funcs = default_funcs(p.numinputs)
   complexity_list = zeros(Float64,num_circuits)
   goal_list = Goal[]
   for i = 1:num_circuits
-    c = random_chromosome( p, funcs )
+    if use_lincircuit
+      c = rand_lcircuit( p, funcs )
+    else
+      c = random_chromosome( p, funcs )
+    end
     push!( goal_list, output_values(c) )
     complexity = complexity5(c)
     complexity_list[i] = complexity >= 0.0 ? complexity : 0.0
@@ -525,7 +487,7 @@ function circuit_complexities( p::Parameters, num_circuits::Int64 )
   =#
 end
 
-function run_circuit_complexities( p::Parameters, num_circuits::Int64; csvfile::String="" )
+function run_circuit_complexities( p::Parameters, num_circuits::Int64; use_lincircuit::Bool=false, csvfile::String="" )
   num_circuits_per_proc = Int(trunc(num_circuits/(nprocs()-1)))
   goal_complexity_pairs = pmap(x->circuit_complexities( p, num_circuits_per_proc), collect(1:(nprocs()-1)) )
   goals = Goal[]
@@ -543,6 +505,7 @@ function run_circuit_complexities( p::Parameters, num_circuits::Int64; csvfile::
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      println(f,"# use_lincircuit: ",use_lincircuit)
       print_parameters(f,p,comment=true)
       println(f,"# num_circuits: ",num_circuits) 
       CSV.write( f, df, append=true, writeheader=true )

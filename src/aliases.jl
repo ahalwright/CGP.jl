@@ -131,10 +131,10 @@ mutable struct geno_pheno_result_type
   redund::Float64
   complex::Float64
   gb_complex::Float64
-  degen::Float64
+  #degen::Float64
   #gb_degen::Float64
-  sdegen::Float64   
-  f_mutinf::Float64
+  #sdegen::Float64   
+  #f_mutinf::Float64
   mutrobust::Float64
   evolvability::Float64
 end

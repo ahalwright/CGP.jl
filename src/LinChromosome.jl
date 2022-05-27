@@ -46,7 +46,7 @@ end
 
 function output_values( c::LinCircuit, funcs::Vector{Func}=Func[] )
   if length(funcs) == 0
-    funcs = lin_funcs( c.params.numinputs )
+    funcs = default_funcs( c.params.numinputs )
   end
   #println("funcs: ",funcs)
   R = execute_lcircuit( c, funcs )
@@ -256,7 +256,7 @@ end
 
 function instruction_vects_to_instruction_ints( circ::LinCircuit, funcs::Vector{Func}=Func[] )
   if length(funcs) == 0
-    funcs = lin_funcs( circ.params.numinputs )
+    funcs = default_funcs( circ.params.numinputs )
   end
   instruction_vects_to_instruction_ints( circ.circuit_vects, circ.params.numlevelsback, circ.params.numinputs, funcs )
 end
@@ -269,7 +269,7 @@ end
 function instruction_ints_to_instruction_vects( c_ints::Vector{Int64}, p::Parameters, funcs::Vector{Func}=Func[];
     nodearity::Int64=2 )
   if length(funcs) == 0
-    funcs = lin_funcs( p.numinputs )
+    funcs = default_funcs( p.numinputs )
   end
   instruction_ints_to_instruction_vects( c_ints, p.numlevelsback, p.numinputs, funcs )
 end
@@ -277,7 +277,7 @@ end
 #=
 function circuit_vect_to_circuit_ints( c::LinCircuit, funcs::Vector{Func}=Func[] )
   if length(funcs) == 0
-    funcs = lin_funcs( c.params.numinputs )
+    funcs = default_funcs( c.params.numinputs )
   end
   circuit_vect_to_circuit_ints( c.circuit_vects, c.params.numinteriors, c.params.numinputs, funcs )
 end

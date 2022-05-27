@@ -1,0 +1,5 @@
+Ran 3x1 count_outputs_parallel() LC for 7 instructions 2 registers on surt2 and fluda and combined into the file:
+data/5_10_22/count_outputs_lc_4funcs_3inputs_7insts_2regs_MN.csv
+Created a plot without outliers.  Procedure described in notes/5_13_22.txt.
+Plot file:
+data/5_10_22/count_outputs_lc_4funcs_3inputs_7insts_2regs_MN.csv

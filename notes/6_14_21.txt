@@ -23,3 +23,5 @@ scatter( collect(1:65536), sort(cdf.s8_5log,rev=true),title="Goal frequency vs. 
 cd("../")
 savefig("6_14/goal_freq_vs_goal_rank8_5.png")
 Also copied to Dropbox/evotech/complexity/GECCO/presentation/plots
+
+See notes/5_27_22.txt for description of a REDO.

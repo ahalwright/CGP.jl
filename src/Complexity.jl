@@ -117,10 +117,10 @@ function run_explore_complexity( nreps::Int64, nruns::Int64, p::Parameters, goal
       csvfile::String="", insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
   ngoals = length(goallist)
   result_dfs = DataFrame[]
-  result_dfs = pmap(x->run_explore_complexity( nruns, p, goallist, num_circuits, max_ev_steps,
-        insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob), collect(1:nreps))
-  #result_dfs = map(x->run_explore_complexity( nruns, p, goallist, num_circuits, max_ev_steps, 
+  #result_dfs = pmap(x->run_explore_complexity( nruns, p, goallist, num_circuits, max_ev_steps,
   #      insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob), collect(1:nreps))
+  result_dfs = map(x->run_explore_complexity( nruns, p, goallist, num_circuits, max_ev_steps, 
+        insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob), collect(1:nreps))
   println("length(result_dfs): ",length(result_dfs))
   df = average_dataframes( result_dfs )
   insertcols!(df, 1, :generation=>collect(1:size(df)[1]))
@@ -177,7 +177,7 @@ function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList
   df = DataFrame()
   done = false
   explore_complexity_tries = 0
-  while !done && explore_complesity_tries <= max_complexity_tries
+  while !done && explore_complexity_tries <= max_complexity_tries
     explore_complexity_tries += 1
     #println("while !done loop.")
     df = DataFrame()
@@ -276,6 +276,26 @@ function explore_complexity( p::Parameters, goallist::GoalList, circuit_list::Ve
   #println("length(circuits_list): ",length(circuits_list))
   return (circuits_list, goals_found, row_tuple)
 end
+
+# Example:  pops_to_tbl([2,2,1,3],[1,1,1,3]) =
+#  2×3 Array{Float64,2}:
+#   0.25  0.125  0.125
+#   0.0   0.375  0.125
+function pops_to_tbl( P::Vector{FPopulation} )
+  lengths = map(length,P)
+  @assert( all(lengths .==  lengths[1]))   # Check that esch population has the same length
+  sums = map(sum,P)
+  try
+    @assert( all(sums .≈ 1.0 ))   # Check that each population has approximate sum 1.0
+  catch
+    println("assertion error pops_to_tbl:  sums: ",sums)
+  end
+  result = zeros(Float64,length(P),length(P[1]))
+  for i = 1:length(P)
+    result[i,:] = P[i]/length(P)
+  end
+  result
+end  
 
 # Averages a list of dataframes which should all be the same size with the same names.
 # All columns should be numerical.  All columns of the result are Float64.

@@ -1,0 +1,49 @@
+REDO of 6_14_21.txt
+
+
+Procedure for paper is in notes/diary10_18.txt.
+Revision:  data is now in data/2020/ rather than data/.
+
+Running Julia on xps and on Windows.
+
+cdf = read_dataframe("../data/2020/10_18/scatter_data_logfreq_vs_goal_rank.csv")
+#  65536×6 DataFrame
+#  │ Row   │ rank  │ log rank │ s11_5log │ s8_5log │ s11_8log │ s11_8log_1 │
+#  │       │ Int64 │ Float64  │ Float64  │ Float64 │ Float64  │ Float64    │
+#  ├───────┼───────┼──────────┼──────────┼─────────┼──────────┼────────────┤
+#  │ 1     │ 1     │ 0.0      │ 9.40945  │ 9.28536 │ 9.19228  │ 9.19228    │
+
+scatter( collect(1:65536), sort(cdf.s11_8log,rev=true),title="Phenotype frequency vs phenotpype rank", ylabel="log(goal frequency)", xlabel="goal rank",label=:none,markerstrokecolor=:blue)
+savefig("../data/5_27_22/pheno_freq_vs_pheno_rankCGP11_8.png")
+
+Copied from notes/5_13_22.txt and then modified:
+julia> lg10(x)=x>0 ? log10(x) : 0.0
+julia> X = collect(0:2^2^4-1);
+julia> cdf10 = read_dataframe("../data/5_13_22/count_outputs_lc_4funcs_4inputs_10insts_2regs_B.csv") 
+For 4 inputs, 10 instructions, 2 registers
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\CGP.jl\\src"
+julia> cdf10 = read_dataframe("../data/5_25_22/geno_complexity_linGP_5_25_22D.csv
+julia> findall(x->x==0,cdf10.ints10_2)
+   4-element Vector{Int64}:
+julia> cdf10.ints10_2log = map(lg10,cdf10.ints10_2)
+julia> Y2=sort(cdf10.ints10_2log,rev=true)
+julia> scatter(X,Y2,title="4x1 10 instructions 2 registers LC",labels="")
+julia> scatter!(xlabel="rank",ylabel="log_redundancy")
+julia> savefig("../data/5_13_22/log_redund_vs_rank_4x1_lc_10_insts_2regs.png")
+
+
+Windows:  Generate a plot with one scatter for CGP and one scatter for LGP.
+Maybe a better alternative than double plots.
+ddf = read_dataframe("../data/5_25_22/geno_complexity_linGP_5_25_22D.csv")
+edf = read_dataframe("../data/5_25_22/geno_complexity_cartGP_5_25_22E.csv")
+ddf.ints10_2log = map(lg10,ddf.ints10_2)
+ddf.ints11_8log = map(lg10,edf.ints11_8)
+scatter(1:500,sort(ddf.ints10_2log,rev=true))
+scatter(1:500,sort(edf.ints11_8log,rev=true))
+scatter(1:500,[sort(edf.ints11_8log,rev=true),sort(ddf.ints10_2log,rev=true)],labels=["CGP 11 gates 2 levelsback" "LGP 10 gates 2 registers"])
+scatter!(xlabel="rank","ylabel=log_redundancy")
+savefig("../data/5_25_22/log_redund_vs_rank_CGP11_8_LGP10_2.png")
+
+
+
