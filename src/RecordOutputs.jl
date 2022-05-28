@@ -283,7 +283,9 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
   #println("len goals: ",length(df.:goals))
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
   df[!,sym] = outputs_list
-  df.:circuits_list = circuits_list
+  if length(circuits_list) > 0
+    df.:circuits_list = circuits_list
+  end
   if length(csvfile) > 0
     write_df_to_csv( df, p, funcs, csvfile, numcircuits=numcircuits, nreps=nreps )
   end
@@ -297,7 +299,9 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
   #println("len goals: ",length(df.:goals))
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
   df[!,sym] = outputs_list
-  df.:circuits_list = circuits_list
+  if length(circuits_list) > 0
+    df.:circuits_list = circuits_list
+  end
   if length(csvfile) > 0
     write_df_to_csv( df, p, funcs, csvfile, numcircuits=numcircuits, nreps=nreps )
   end

@@ -45,5 +45,12 @@ scatter(1:500,[sort(edf.ints11_8log,rev=true),sort(ddf.ints10_2log,rev=true)],la
 scatter!(xlabel="rank","ylabel=log_redundancy")
 savefig("../data/5_25_22/log_redund_vs_rank_CGP11_8_LGP10_2.png")
 
-
+Regenerate the CGP 11_8 Figure 2 plot of GECCO to combine with an LGP plot.
+Derived from notes/6_14_21.txt
+cdf = read_dataframe("../data/2020/10_18/scatter_data_logfreq_vs_goal_rank.csv")
+scatter(1:65531,sort(cdf.s11_8log,rev=true))
+cdf10 = read_dataframe("../data/5_13_22/count_outputs_lc_4funcs_4inputs_10insts_2regs_B.csv")
+cdf10.ints10_2log = map(lg10,cdf10.ints10_2)
+scatter(1:65531,sort(cdf10.ints10_2log,rev=true))
+scatter(1:65531,[sort(cdf.s11_8log,rev=true),sort(cdf10.ints10_2log,rev=true)])
 

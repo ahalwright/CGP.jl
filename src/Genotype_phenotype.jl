@@ -17,12 +17,12 @@ using Dates
 
 function run_geno_pheno_evolution( iterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
     numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange,
-    levelsback::IntRange, csvfile::String; 
+    levelsback::IntRange, csvfile::String; use_lincircuit::Bool=false,
     base::Float64=2.0, allgoals::Bool=false, active_only::Bool=false, gl_repetitions::IntRange=1)
   println(default_funcs(2))
   (df,ttime) =
     @timed run_geno_pheno( iterations, numinputs, numoutputs, numinteriors, goallistlength, maxsteps, levelsback,
-        base=base, allgoals=allgoals, active_only=active_only, gl_repetitions=gl_repetitions )
+        base=base, use_lincircuit=use_lincircuit, allgoals=allgoals, active_only=active_only, gl_repetitions=gl_repetitions )
   println("run time in minutes: ",ttime/60)
   println("cor( df.logsteps, df.complex): ",cor( df.logsteps, df.complex))
   println("cor( df.logsteps, df.gb_complex): ",cor( df.logsteps, df.gb_complex))
@@ -60,7 +60,7 @@ end
 # Tentative conclusion:  10/6/20:  The robustness and evolvability computed are genotypic rather than phenotypic.
 # Not what we really want.  The computations in geno_robustness() and geno_complexity() in Evolvability.jl should be correct.
 function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
-    numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange, levelsback::IntRange ; 
+    numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange, levelsback::IntRange;  use_lincircutt::Bool=false,
     base::Float64=2.0, allgoals::Bool=false, active_only::Bool=false, gl_repetitions::IntRange=1)
   max_numinteriors = collect(numinteriors)[end]
   maxints_for_degen = Main.CGP.maxints_for_degen
@@ -118,8 +118,8 @@ function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::Int
       end
     end
   end
-  new_gp_result_list = pmap(r->run_gp_evolve!(r,maxints_for_degen=maxints_for_degen,gl_repetitions=gl_repetitions,base=base,repeat_limit=repeat_limit),gp_result_list)
-  #new_gp_result_list = map(r->run_gp_evolve!(r,maxints_for_degen=Main.CGP.maxints_for_degen,gl_repetitions=gl_repetitions,base=base,repeat_limit=repeat_limit),gp_result_list)
+  new_gp_result_list = pmap(r->run_gp_evolve!(r,maxints_for_degen=maxints_for_degen,use_lincircuit=use_lincircuit,gl_repetitions=gl_repetitions,base=base,repeat_limit=repeat_limit),gp_result_list)
+  #new_gp_result_list = map(r->run_gp_evolve!(r,maxints_for_degen=Main.CGP.maxints_for_degen,use_lincircuit=use_lincircuit,gl_repetitions=gl_repetitions,base=base,repeat_limit=repeat_limit),gp_result_list)
   for r = new_gp_result_list
     new_row = gp_result_to_tuple(r)
     #println("length new row: ",length(new_row))
@@ -130,7 +130,7 @@ function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::Int
 end
 
 # Tentative conclusion:  10/6/20:  The robustness and evolvability computed are genotypic rather than phenotypic.
-function run_gp_evolve!( rr::geno_pheno_result_type; maxints_for_degen::Int64, gl_repetitions::Int64=1, base::Float64=2.0,
+function run_gp_evolve!( rr::geno_pheno_result_type; use_lincirucit::Bool=false, maxints_for_degen::Int64, gl_repetitions::Int64=1, base::Float64=2.0,
       repeat_limit::Int64=10 )
   #repeat_limit = 10
   #println("run_gp_evolve! fault_tol: ",rr.fault_tol)
