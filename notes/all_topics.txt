@@ -237,10 +237,12 @@ These files now have suffix  _21.txt
 5_9:  Preliminary runs of run_geno_complexity() in data/5_9_22.  Concluded that 10 instructions 2 registers is good for 4 inputs.
 5_10:  Results for LinCircuit count_outputs with 10^11 samples.  Verifies that all 3-input goals were sampled approximately 10 times.
 5_11:  Results for run_geno_complexity() with both 3 and 4 inputs in data5/9/22.  Plus investigation of how iter_maxreps and iter_maxtries work.
+5_12:  functions  robust_evolution_parallel(), robust_evolution(), and robust_evolution_pop() in robust_evolution.jl.
 5_13:  Counts results (mostly LC) with complexities for both 3 inputs 6 and 7 instructions, and 4 inputs 9, 10, 11 instructions
 5_17:  Runs of count_outputs_parallel() with output_complex=true.  Cleanup of function build_dataframe() in RecordOutputs.jl
 5_18:  Refer back to 5_13 for 3x1 runs with 7 instructions 2 registers
 5_22:  Redoing run_geno_complexity() in Complexity.jl with 5 funcs.
+5_25:  Procedure for adding redundancy counts to geno_complexity dataframes
 5_26:  Complexity density results
 5_27:  Redo of log redundancy vs rank
 

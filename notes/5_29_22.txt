@@ -1,0 +1,49 @@
+# Discovered that counts computed by when nreps=10^10 and nreps = 2*10^11 are inconsistent.
+# Runs using test_count_outputs.jl with nreps=10^10 gives 8452 zero counts for findall(x->x==0,df.counts)
+# where df = df = read_dataframe("../data/5_28_22/count_phenos_lc_5funcs_4inputs_10insts_2regs_E.csv")
+
+df = read_dataframe("../data/5_24_22/count_outputs_lc_5funcs_4inputs_10insts_2regs_B.csv")
+65536×3 DataFrame 
+findall(x->x==0,cdf10.ints10_2)
+531-element Vector{Int64}:
+
+Inconsistent results:
+data/5_13_22/run_count_outputs_lincircB.jl 
+data/5_13_22/count_outputs_lc_4funcs_4inputs_10insts_2regs_B.csv
+were run with 4 funcs.
+
+Thus, it appears that the incorrect results were due to using 4 funcs rather than 5.
+
+RecordOutputs.jl were incorrect for LGP 4x1 10_2.
+# compute_complexities() in compute_complexities.jl is a simple implementation.
+# Gives 2/3 zero count out of 65536 phenotypes.
+
+Redo Log redundancy vs rank based on notes/5_27_22.txt
+
+cdf = read_dataframe("../data/2020/10_18/scatter_data_logfreq_vs_goal_rank.csv")
+scatter(1:65531,sort(cdf.s11_8log,rev=true))
+cdf10 = read_dataframe("../data/5_24_22/count_outputs_lc_5funcs_4inputs_10insts_2regs_B.csv")
+#cdf10 = read_dataframe("../data/5_13_22/count_outputs_lc_5funcs_4inputs_10insts_2regs_B.csv")
+#count_outputs_lc_4funcs_4inputs_10insts_2regs_B.csv
+cdf10.ints10_2log = map(lg10,cdf10.ints10_2)
+scatter(1:65531,sort(cdf10.ints10_2log,rev=true))
+scatter(1:65531,[sort(cdf.s11_8log,rev=true),sort(cdf10.ints10_2log,rev=true)])
+savefig("../data/5_27_22/log_redundancy_on_rank_CGP_and_LGP_overlay.png")
+
+
+Robust evolution:
+julia -p 4 -L CGP.jl -L robust_evolution.jl
+# Chose the phenotype [0xb4d9] as the phenotype from our standard 500 with maximum complexity
+gcdf = read_dataframe("../data/5_22_22/geno_complexity_cartGP_5_22_22E.csv") 
+findmax(gcdf.complexity) #  (7.979099962643634, 350)
+gcdf[350,[:goal,:complexity]] #  350 │ UInt16[0xb4d9]      7.9791
+p = Parameters(4,1,11,8); funcs=default_funcs(p); rc = random_chromosome(p,funcs); print_circuit(rc)
+(nc,steps) = neutral_evolution( rc, [0xb4d9], 50000 ); print_circuit(nc)
+(nc,steps) = neutral_evolution( random_chromosome(p,funcs), [0xb4d9], 50000 ); print_circuit(nc)
+@time robust_evolution_csv( nc, 5000, 4, funcs, "../data/5_29_22/robust_evolution_test3.csv")
+ Row │ numinputs  numints  numlb  max_steps  nreps  goal            start_rbst  final_rbst
+     │ Int64      Int64    Int64  Int64      Int64  Array…          Float64     Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────
+   1 │         4       11      8       5000      4  UInt16[0xb4d9]    0.247191    0.337079
+The most variance is caused by changing the evolved circuit nc.
+Suggests that maybe this phenotype has multiple connected components.

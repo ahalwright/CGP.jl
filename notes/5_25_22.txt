@@ -60,7 +60,8 @@ julia> edf.ints11_8 = cglscnts.ints11_8
 julia> write_dataframe_with_comments(edf,"../data/5_22_22/geno_complexity_cartGP_5_22_22E.csv","../data/5_22_22/geno_complexity_cartGP_5_25_22E.csv")
 
 # Do LGP:
-julia> bv = BitVector([ lcdf.goals[i] in goals for i = 1:length(lcdf.goals ]) 
+julia> goals = [ ddf.goal[i][8:end-1] for i = 1:length(ddf.goal) ]
+julia> bv = BitVector([ lcdf.goals[i] in goals for i = 1:length(lcdf.goals) ]) 
 julia> sum(bv)   # 498  # the problem is that there are two duplicate goals in edf.goal and in ddf.goals. 
 julia> lglscnts = lcdf[ bv, [:goals,:ints10_2]]
 498×2 DataFrame

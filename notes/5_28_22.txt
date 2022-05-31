@@ -1,0 +1,24 @@
+Problem:  did a run of LGP 4x1 10_2 counts by sampling which returned over 50% of phenotypes not found.
+Wrote functions count_phenotypes() count_phenotypes_parallel() currently in test_count_outputs.jl (to be moved to RecordOutputs.jl).
+
+Verified that only about 8000 phenotypes not found in a sample of 10^10 genotypes.
+
+Added a "complexity" option so that the function will also compute complexities.  Thus, sampling complexities by genotypes is possible,
+but since running with complexity=true very much slows down computation, so maybe only for 3 inputs.
+How should genotypes that don't occur be counted?  Probably just skip them.
+
+data/5_26_22/circuit_complexities_LGP_5_26_22B.csv is a good source of complexities by phenotypes.
+
+Redo 11 gts 8 lb on 2/2/21:
+Revised on 5_26_22:  working
+using StatsPlots
+using Measures
+homedir()
+scdb = read_dataframe("C:\\Users\\oldmtnbiker\\OneDrive\\evotech\\data\\12_20\\circuit_complexities12_20DR.csv")
+gpdf = read_dataframe("C:\\Users\\oldmtnbiker\\OneDrive\\evotech\\data\\12_20\\geno_pheno12_20D.csv")
+p1=density([scdb.complexities,gpdf.complex],labels=["complexities of random circuits" "complexities of random phenotypes"])
+plot!(p1,size=(1024,512),tickfontsize=14,guidefontsize=14,legendfontsize=14)
+plot!(p1,bottom_margin=Measures.Length(:mm,4.5),left_margin=Measures.Length(:mm,4))
+plot!(p1,ylims=[0.0,0.34])
+plot!(xlabel="complexity",ylabel="fractional density")
+cd("../Dropbox\\evotech\\complexity\\data")     

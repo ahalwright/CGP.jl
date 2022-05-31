@@ -15,6 +15,8 @@ plot!(p1,bottom_margin=Measures.Length(:mm,4),left_margin=Measures.Length(:mm,1)
 plot!(p1,ylims=[0.0,0.34])
 cd("../Dropbox\\evotech\\complexity\\data")     
 
+Continued in notes/5_28_22.txt
+
 Got data/5_26_21/run_geno_phenoA.jl and run_geno_phenoB.jl to run by dropping fields df.degen] sdegen, and f_mutinf 
 from the dataframe and the type geno_pheno_result_type in src/aliases.jl.  Also had to get the function pops_to_tbl()
 extracted from entropy.jl and define the type FPopulation.

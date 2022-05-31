@@ -9,3 +9,5 @@ No CSV files generated yet.
 No test functions yet.
 
 Tried on surt2 and got high robustness starting with random Chromosomes or LinCircuits.
+
+Revisited on in notes/5_29_22.txt.
