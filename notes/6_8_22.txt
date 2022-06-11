@@ -1,0 +1,76 @@
+Redoing Figure 3 of GECCO 2021 with the goal of doing for LGP.
+
+Running data/6_8_22/run_k_complexityD.jl on surt2 with 26 processes.  It just died despite being run on screen.
+
+Tried to re-run on fluda:
+
+ERROR: LoadError: On worker 26:
+BoundsError: attempt to access 0-element Vector{OutputNode} at index [1]
+Stacktrace:
+  [1] getindex
+    @ ./array.jl:861 [inlined]
+  [2] number_active
+    @ ~/evotech/CGP.jl/src/Chromosome.jl:425
+  [3] #complexity5#338
+    @ ~/evotech/CGP.jl/src/InfTheory.jl:261
+  [4] complexity5
+    @ ~/evotech/CGP.jl/src/InfTheory.jl:259 [inlined]
+  [5] kolmogorov_complexity
+    @ ~/evotech/CGP.jl/src/Complexity.jl:536
+  [6] #635
+    @ ~/evotech/CGP.jl/src/Complexity.jl:453
+  [7] #106
+    @ /usr/local/julia-1.7.1/share/julia/stdlib/v1.7/Distributed/src/process_messages.jl:278
+  [8] run_work_thunk
+    @ /usr/local/julia-1.7.1/share/julia/stdlib/v1.7/Distributed/src/process_messages.jl:63
+  [9] macro expansion
+    @ /usr/local/julia-1.7.1/share/julia/stdlib/v1.7/Distributed/src/process_messages.jl:278 [inlined]
+ [10] #105
+    @ ./task.jl:423
+Stacktrace:
+  [1] (::Base.var"#892#894")(x::Task)
+    @ Base ./asyncmap.jl:177
+  [2] foreach(f::Base.var"#892#894", itr::Vector{Any})
+    @ Base ./abstractarray.jl:2694
+  [3] maptwice(wrapped_f::Function, chnl::Channel{Any}, worker_tasks::Vector{Any}, c::Vector{Vector{UInt16}})
+    @ Base ./asyncmap.jl:177
+  [4] wrap_n_exec_twice
+    @ ./asyncmap.jl:153 [inlined]
+  [5] #async_usemap#877
+    @ ./asyncmap.jl:103 [inlined]
+  [6] #asyncmap#876
+    @ ./asyncmap.jl:81 [inlined]
+  [7] pmap(f::Function, p::WorkerPool, c::Vector{Vector{UInt16}}; distributed::Bool, batch_size::Int64, on_error::Nothing, retry_delays::Vector{Any}, retry_check::Nothing)
+    @ Distributed /usr/local/julia-1.7.1/share/julia/stdlib/v1.7/Distributed/src/pmap.jl:126
+  [8] pmap
+    @ /usr/local/julia-1.7.1/share/julia/stdlib/v1.7/Distributed/src/pmap.jl:101 [inlined]
+  [9] #pmap#227
+    @ /usr/local/julia-1.7.1/share/julia/stdlib/v1.7/Distributed/src/pmap.jl:156 [inlined]
+ [10] pmap
+    @ /usr/local/julia-1.7.1/share/julia/stdlib/v1.7/Distributed/src/pmap.jl:156 [inlined]
+ [11] run_kolmogorov_complexity(p::Parameters, gl::Vector{Vector{UInt16}}, max_goal_tries::Int64, max_ev_steps::Int64; csvfile::String)
+    @ Main.CGP ~/evotech/CGP.jl/src/Complexity.jl:453
+ [12] top-level scope
+    @ ~/evotech/CGP.jl/data/6_8_22/run_k_complexityD.jl:24
+ [13] include
+    @ ./client.jl:451 [inlined]
+ [14] top-level scope
+    @ ./timing.jl:220 [inlined]
+ [15] top-level scope
+    @ ./REPL[5]:0
+in expression starting at /home/wright/evotech/CGP.jl/data/6_8_22/run_k_complexityD.jl:24
+
+Lines 424-425 of Chromosome.jl:
+function number_active( c::Chromosome )
+  if !c[c.outputs[1].input].active   # if chromosome has not been executed
+
+
+
+
+Maybe it looks like the requirement for running with LGP is a number_active function for LinCircuits.
+(Or maybe number_active() doesn't work.)
+
+Algorithm:
+Start by searching backwards in instructions to find last instruction that outputs to register 1 (the output register).
+
+Rfunction: given an instruction, find previous instructions that output to the inputs of the given instruction.

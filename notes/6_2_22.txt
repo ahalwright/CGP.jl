@@ -1,0 +1,9 @@
+# Counts plot for 4 gates.  Replaced by plot described in notes/6_6_22.txt
+using Plots
+gr()
+lg10(x::Number) = (x == 0.0) ? 0.0 : log10(x)
+cdf10 = read_dataframe("../data/5_13_22/count_outputs_lc_4funcs_4inputs_10insts_2regs_B.csv")
+cdf11=read_dataframe("../data/5_27_22/count_outputs_4x1_raman_11_8Y.csv")
+cdf11.ints11_8lgsrt = sort(map(lg10,cdf11.ints11_8),rev=true)
+cdf10.ints10_2lgsrt = sort(map(lg10,cdf10.ints10_2),rev=true)
+scatter(1:65536,[ cdf11.ints11_8lgsrt, cdf10.ints10_2lgsrt ],labels=["CGP 11 gates 8 levelsback" "LGP 10 gates 2 registers"])

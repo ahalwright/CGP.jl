@@ -1,0 +1,15 @@
+Redoing CGP and LGP log redundancy vs rank plots
+Replaced by a minor revision in 6_6_22.txt
+
+#lcdf = read_dataframe("../data/5_13_22/count_outputs_lc_4funcs_4inputs_10insts_2regs_B.csv")
+lcdf = read_dataframe("../data/5_24_22/count_outputs_lc_5funcs_4inputs_10insts_2regs_B.csv")
+log10(sum(lcdf.ints10_2)) # 11.317420411834778
+ccdf = read_dataframe("../data/counts/count_out_4x1_all_ints_10_10.csv")
+log10(sum(lcdf.ints10_2))  # log10(sum(lcdf.ints10_2))
+ccdf.ints11_8sort = sort(ccdf.ints11_8,rev=true)
+lcdf.ints10_2sort = sort(lcdf.ints10_2,rev=true)
+ccdf.ints11_8log = map(x->lg10(x), ccdf.ints11_8sort)
+lcdf.ints10_2log = map(x->lg10(x), lcdf.ints10_2sort)
+plot(collect(1:65536),[ccdf.ints11_8log,lcdf.ints10_2log],labels=["CGP 11 gates 8 levelsback" "LGP 10 instructions 2 registers"])
+plot!(xlabel="redundancy", ylabel="rank" )
+savefig("../data/5_25_22/log_redund_vs_rank_5gates_CGP11_8_LGP10_2.png")
