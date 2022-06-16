@@ -27,4 +27,5 @@ ccdf.ints11_8log = map(x->lg10(x), ccdf.ints11_8sort)
 lcdf.ints10_2log = map(x->lg10(x), lcdf.ints10_2sort)
 plot(collect(1:65536),[ccdf.ints11_8log,lcdf.ints10_2log],labels=["CGP 11 gates 8 levelsback" "LGP 10 instructions 2 registers"])
 plot!(ylabel="log redundancy", xlabel="rank" )
+savefig("../data/6_6_22/log_redund_vs_rank_5gates_CGP11_8_LGP10_2.png")
 

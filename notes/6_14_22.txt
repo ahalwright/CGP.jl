@@ -1,0 +1,56 @@
+# Goal for src/ShapeSpace.jl
+# Test the extent to which the shape space covering property is true for circuits.
+# Does it depend on the complexity or evovability of the starting circuit?
+
+Ideas:
+It is hard to start from a highly redundant phenotype to find a high-complexity 
+low-redundancy phenotype because there will be few genotypes of the many genotypes
+of the highly redundant phenotype that mutate to a genotype of the high-complexity 
+phenotype.  This is what is wrong with Wagner's definition of phenotype evolvability 
+because these mutations count towards the evolvability of the highly redundant 
+phenotype.
+
+On the other hand, since the high-complexity phenotype has relatively very few
+genotypes, it is much easier to find one that mutates to the highly redundant
+phenotype.
+
+Specific runs starting with random genotypes (circuits):
+
+Runs starting with 200 random genotypes:  4 gates 3x1 8 ints, 6 lb
+@time include("../data/6_14_22/run_shape_spaceB.jl")
+data/6_14_22/shape_space_counts6_14_22B.csv on surt2 24 procs 1096 seconds 200 starting genotypes
+julia> spearman_cor(df,:complexity,:results)
+(0.1671569949952067, 0.008995355196573563)
+julia> spearman_cor(df,:evolvability,:results)
+(0.6883810134887768, 1.0003780606484302e-29)
+
+Runs starting with 56 random genotypes:  4 gates 4x1 11 ints, 8 lb
+@time include("../data/6_14_22/run_shape_spaceE.jl")
+data/6_14_22/shape_space_counts6_14_22E.csv on surt2 5047 seconds 28 processes 56 starting genotypes
+julia> spearman_cor(df,:complexity,:results)
+(-0.06794258373205742, 0.30940278863565707)
+julia> spearman_cor(df,:evolvability,:results)
+(0.6029605443712797, 4.37681718293108e-7)
+
+
+Specific runs starting with genotypes (circuits) evolved to given target phenotypes:
+
+Runs starting with all 3x1 phenotypes:  both with 4 gates  3x1 8 ints, 6 lb
+julia> @time include("../data/6_14_22/run_shape_spaceM.jl")  # surt2 28 processes, 1447 seconds
+julia> spearman_cor(df,:complexity,:results)
+(0.572831822384119, 5.027373480788898e-24)
+julia> spearman_cor(df,:evolvability,:results)
+(0.857403427138653, 1.5389283873153612e-75)
+
+julia> @time include("../data/6_14_22/run_shape_spaceN.jl")  # fluda 24 processes, 2464 seconds
+julia> spearman_cor(df,:complexity,:results)
+(0.5473971731991205, 1.0266082934805237e-21)
+julia> spearman_cor(df,:evolvability,:results)
+(0.8557683408906863, 5.865506118107848e-75)
+
+julia> time @include("../data/6_14_22/run_shape_spaceR.jl")  # surt2 28 processes, 6261 seconds 5 gates
+julia> spearman_cor(df,:complexity,:results)
+(0.6258003927260309, 3.5069306377942216e-7)
+julia> spearman_cor(df,:evolvability,:results)
+(0.9014760310841057, 4.057075203726681e-20)
+

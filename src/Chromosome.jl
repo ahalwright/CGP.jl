@@ -5,7 +5,7 @@ export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromos
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_gates, hamming_distance, ihamming_distance, hamming, deactivate_chromosome!
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old
-export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code, circuit_int
+export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code 
 export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits_ch
 export code_to_circuit   # outdate 9/13/21

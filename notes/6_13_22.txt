@@ -1,0 +1,34 @@
+New code in src/Psample.jl  src/ShapeSpace.jl
+See notes/6_14_22.txt for ShapeSpace.jl
+
+# Goal for src/ShapeSpace.jl
+# Test the extent to which the shape space covering property is true for circuits.
+
+# Goal for src/Psample.jl
+# Goal:  Evolve genotypes to map to a given target phenotype where this is difficult, such as 5 inputs.
+# Method:  Build a random pre-sample of genotype-phenotype pairs by sampling genotypes and computing their phenotypes.
+# Choose a subset of the pre-sample whose phenotypes are close to the target phenotype, and start epochal evolutions from this subset.    
+
+Run with:  
+xps with nprocs() = 9
+psample_size = 50000
+num_evolves=200
+max_steps = 300000
+rph = UInt32[0x51091e20]  # Chosen based on data/4_22_22/geno_complexity4_22_22C.csv.  Chosen for high number of steps.
+p = Parameters(1, 4, 0.05, 0.0, 5, 1, 2, 24, 12)
+funcs
+4-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+pse = psample_evolve( p, funcs, rph, psample_size, num_evolves, max_steps ); 
+findall(x->x<max_steps,map(y->y[2],pse))
+30-element Vector{Int64}: 
+rlist = run_neutral_evol(p,funcs,rph,num_evolves,max_steps)
+findall(x->x<max_steps,map(y->y[2],rlist))
+21-element Vector{Int64}:
+
+Thus, psample_evolve() is better than run_neutral_evol(), but maybe not significantly.
+
+Test runs in data/6_13_22/

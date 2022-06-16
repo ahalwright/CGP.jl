@@ -1,7 +1,7 @@
 # Evolvability using a dictionary to keep track of the phenotypes that contribute to evolution evolvability.
 # Additional objectives are to simplify the logical structure form geno_complexity() and to
 #   use neutral_evolution() and lambda_evolution() instead of mut_evolve()
-export run_evo_dict, print_matrix
+export run_evo_dict, print_matrix, lambda_evolution
 
 # ncircuits is the number of circuits (chromosomes) per goal used to compute evolvability
 # ntries is the number of evolution attempts done in trying to evolve each chromosome
@@ -214,4 +214,46 @@ function matrix_to_dataframe( pheno_matrix::Array{Int64,2}, gli::Vector{MyInt}; 
   df
 end
   
-  
+function lambda_evolution( c::Chromosome, g::Goal, maxsteps::Integer, mutrate::Float64 )
+  p = c.params
+  p.mutrate = mutrate
+  funcs = default_funcs(p.numinputs)
+  poisson_lambda = p.mutrate*p.numinteriors
+  X = Poisson( poisson_lambda )
+  step = 0
+  ov = output_values( c)
+  current_distance = hamming_distance( ov, g, c.params.numinputs )
+  #print("ov: ",ov,"  cur_dist: ",current_distance,"  "); print_circuit(c)
+  while step < maxsteps && ov != g
+    chrome_list = Chromosome[]
+    dist_list = Float64[]
+    for i = 1:p.lambda
+      step += 1
+      num_mutations =  rand(X)
+      new_c = deepcopy(c) 
+      for m = 1:num_mutations
+        mutate_chromosome!( new_c, funcs )
+      end
+      new_ov = output_values( new_c)
+      new_dist = hamming_distance( new_ov, g, c.params.numinputs )
+      #print("new_ov: ",new_ov,"  new_dist: ",new_dist,"  "); print_circuit(new_c)
+      push!(chrome_list,new_c)
+      push!(dist_list,new_dist)
+    end  
+    (best_dist,ind) = findmin( dist_list )
+    if best_dist <= current_distance
+      c = chrome_list[ind]
+      ov = output_values( c )
+      current_distance = hamming_distance( ov, g, c.params.numinputs )
+      #print("ov: ",ov,"  cur_dist: ",current_distance,"  "); print_circuit(c)
+    end
+  end # while
+  if step == maxsteps
+    println("lambda evolution failed with ",step," steps for goal: ",g)
+    return (c, step)
+  else
+    println("lambda evolution succeeded at step ",step," for goal: ",g)
+    @assert output_values(c) == g
+    return (c, step)
+  end
+end

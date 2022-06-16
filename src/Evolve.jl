@@ -2,7 +2,7 @@ export components_matched, goals_matched_exact, goals_matched_hamming, next_chro
 export mut_reduce_numactive
 export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
 export evolve_function, mut_evolve_repeat, circuit_evolve, run_circuit_evolve
-export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, lambda_evolution
+export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, lambda_evolution, pheno_evolve
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -553,6 +553,31 @@ function random_neutral_walk( c::Chromosome, goallist::GoalList, funcs::Vector{F
   return (min_num_active,count_min_num_active,min_active_chromes_list)
 end
 
+# Evolve a circuit that maps to a given phenotype (Goal)
+# max_tries is the maximum number of attempts using neutral_evolution to find the circuit
+# max_steps is the maximum number of steps during a run of neutral_evolution()
+# if no genotype that maps to goal is found, returns (nothing,nothing)
+function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false )
+  steps = 0   # establish scope
+  nc = nothing # establish scope
+  for i = 1:max_tries
+    if use_lincircuit
+      c = rand_lcircuit( p, funcs )
+    else
+      c = random_chromosome( p, funcs )
+    end         
+    (nc,steps) = neutral_evolution( c, goal, max_steps )
+    if steps < max_steps
+      break
+    end
+  end
+  if steps == max_steps
+    println("pheno_evolve failed to evolve a circuit to goal: ",goal )
+    (nothing,nothing)
+  end
+  (nc,steps)
+end
+
 # Given a goal, for each iteraion of numiterations,
 #    evolve two chromosomes that map to it, and try to find a distance nondecreasing path from one to the other
 # TODO:  What happens when mut_evolve to find c1 or c2 fails?  Retry?  How many times?
@@ -1013,4 +1038,77 @@ function lambda_evolution( c::Chromosome, g::Goal, maxsteps::Integer, mutrate::F
     @assert output_values(c) == g
     return (c, step)
   end
+end
+# A simple no-frills pop_evolve().
+
+function random_population( p::Parameters, popsize::Int64, funcs::Vector{Func} )
+  pop = [ random_chromosome(p,funcs) for i = 1: popsize ]
+end
+
+function simple_pop_evolve( pop::Vector{Chromosome}, gl::GoalList, ngens::Int64, mutrate::Float64=1.0;
+    prdebug::Bool=false )
+  df = DataFrame()
+  df.gen = Int64[]
+  df.fract_optimal = Float64[]
+  df.avg_pop_entropy = Float64[]
+  df.mutual_inf = Float64[]
+  funcs = default_funcs( p.numinputs )
+  target = gl[1][1]
+  for gen = 1:ngens
+    fitness_vector = rescale_fitnesses([ pop[i].fitness for i = 1:popsize ])
+    prdebug ? println("fit_vect: ",fitness_vector) : nothing
+    prdebug ? println("gen: ",gen,"  max fit: ",maximum(fitness_vector)) : nothing
+    propsel!( pop, fitness_vector, maxfit=findmax(fitness_vector)[1] )
+    prdebug ? println("after propsel gen: ",gen) : nothing
+    for c in pop
+      #c.fitness = hamming_distance( gl, output_values(c), p.numinputs )
+      c.fitness = fitness_funct( p, c, gl )
+      prdebug ? print_circuit(c,include_fitness=true,include_robustness=false,include_pheno=true) : nothing
+    end       
+    #println("fract opt: ",@sprintf("%3.2f",fract_optimal_chromes( pop )),"  ave_ent: ",@sprintf("%3.2f",avg_pop_entropy( pop )))
+    push!(df,[gen,fract_optimal_chromes(pop),avg_pop_entropy(pop),mut_info(pop,target,funcs)])
+    sav_pop = deepcopy( pop )  
+    for i in 1:popsize
+      c = pop[i]
+      if rand() <= mutrate
+        pop[i] = c = mutate_chromosome!(deepcopy(c),funcs)[1]   
+      end
+    end
+  end
+  #pop
+  df
+end
+
+function print_pop( pop::Vector{Chromosome} )
+  for c in pop
+    print_circuit(c,include_fitness=true,include_robustness=false,include_pheno=true)
+  end
+end
+
+function fract_optimal_chromes( pop::Vector{Chromosome} )
+  count = 0
+  for c in pop
+    if c.fitness == 1.0
+      count += 1
+    end
+  end
+  count/length(pop)
+end
+
+# Copied from Pop_evolve.jl.  Remove
+function rescale_fitnesses( fit_vect::Vector{Float64} )
+  fit_min = minimum( fit_vect )
+  #fit_min = quantile( fit_vect, 0.20 )
+  fit_max = maximum( fit_vect )
+  frange = fit_max - fit_min
+  if frange > 0.0
+    return [ (f-fit_min)/frange for f in fit_vect ]
+  else
+    return fit_vect
+  end
+end        
+
+# Copied from Pop_evolve.jl.  Remove
+function fitness_funct( p::Parameters, c::Chromosome, gl::GoalList )
+  maximum( 1.0-hamming_distance( g, output_values(c), p.numinputs ) for g in gl )
 end
