@@ -1,0 +1,50 @@
+Plot of genotype evolvability vs complexity based on the file data/shape_space_counts6_17_22cntsF.csv.
+julia> using Plots; gr()
+julia> df = read_dataframe("../data/6_17_22/shape_space_counts6_17_22cntsF.csv")
+julia> scatter(df.complexity,df.g_evolvability,labels="genotype evolvability vs complexity",xlabel ="complexity", ylabel="genotype evolvability")
+julia> scatter!(legend=:topleft,title="Geno_evolvability vs Complexity 3x1 7ints4lb 4 gates")
+julia> savefig("../data/6_17_22/g_evolvability_vs_complexity_3x1_7ints4lb_4gates.png")
+
+Plot of log redundancy vs shape space covering based on the file data/shape_space_counts6_17_22cntsF.csv.
+julia> lg10(x::Int64) = x > 0 ? log10(x) : 0.0
+julia> df.logredund = map(x->lg10(x), df.redundancy )
+julia> scatter([df.pheno_count1,df.pheno_count3],df.logredund,labels=["shape space radius 1" "shape space radius 3"],legend=:bottomleft)
+julia> scatter!(xlabel="shape space count",ylabel="log redundancy",title="log redund vs shape space count 3x1_7ints4lb_4gates")
+julia> savefig("../data/6_17_22/log_redund_vs_shape_space_count_3x1_7ints4lb_4gates.png")
+
+
+Hi Cheyenne,
+
+Why does evolving circuits that map to a target phenotype give circuits of higher evolvability than samples of circuits that map to the 
+target phenotype?  Circuits with higher evolvability have more unique phenotypes in their mutational neighborhoods.  Turning this around 
+says that one can reach these circuits by a single mutation from more phenotypes.  Thus, they are easier to find.
+
+Restated:  Consider epochal evolution that ends with a given circuit.  Think about epochal evolution as moving through a sequence 
+of neutral networks corresponding to different phenotypes.  The last of these neutral networks is the neutral network of the 
+given circuit, and the next to last has to be a phenotype in the mutational neighborhood of the given circuit.  Thus, it is more 
+likely for epochal evolution to end with a circuit with many phenotype mutational neighbors.
+
+I am attaching a file of shape-space count results at "data/6_17_22/data/shape_space_counts6_17_22cntsF.xlsx".
+The column pheno_count1 is the number of unique phenotypes in the union of 
+the mutational neighborhoods of 4 starting circuits evolved to map to the specified phenotype.  Similarly, pheno_count2 and 
+pheno_count3 are the number of unique phenotypes in the union of the mutational neighborhoods of 16 and 32 respectively starting 
+circuits evolved to map to the specified phenotype.
+
+The counts column is the number of circuits that map to the specified phenotype in a sample of 10^9 random circuits.  I. e., it is 
+the redundancy of the specified phenotype.
+
+The number of unique phenotypes discovered by shape-space covering is very strongly negatively related to redundancy.  
+This is most definitively shown by looking the rows corresponding to phenotypes 0x0069 and 0x0096.  These have counts (redundancies) 
+of 14 and 16 and it is very hard to find circuits to evolve to these phenotypes by epochal evolution.  They are the phenotypes 
+associated with parity which is a recognized difficult problem for CGP.
+But all phenotypes are discovered by shape-space covering even starting with 16 instead of 32 circuits.
+
+On the other hand, the all-zeros 0x0000 and all-ones 0x00ff phenotypes have the highest redundancies and the lowest evolvabilities. 
+
+A plot would be good.
+
+So far my conjecture that that the shape-space covering count would increase with the number of starting circuits is not supported.  
+I am running 4 high-redundancy phenotypes with 160 starting circuits and it is taking a very long time.
+
+This is opposite to the Hu 2020 results where they found that evolvability correlated positively with redundancy.  This may be 
+because my results are based on starting with evolved circuits while their result are based on the phenotype network constructed by sampling.

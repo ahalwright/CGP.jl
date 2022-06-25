@@ -1,0 +1,13 @@
+Trying to show that approximations to Wagner (2008) evolvability are inaccurate.
+See more definitive results in 6/23/22.
+
+Another way to to show evovability of a high redundancy phenotype is to show that pheno set of neighbors
+of phenotypes of low redundancy includes the high redundancy phenotypes.
+
+So I am computing evolvability of low redundancy phenotypes by doing many random walks started from randomly
+evolved genotypes that map to the given phenotype and accumulating the set of phenotypes encountered in these
+random walks.
+
+low_redund_phenos = [[0x0049], [0x0061], [0x0069], [0x006d], [0x0079], [0x0086], [0x0092], [0x0096], [0x009e], [0x00b6]]  # The 10 phenos with redundancey less than 500.
+
+high_redund_phenos = [[0x0000], [0x0003], [0x0005], [0x0011], [0x0022], [0x0033], [0x003f], [0x0044], [0x0055], [0x005f], [0x0077], [0x0088], [0x00a0], [0x00aa], [0x00bb], [0x00c0], [0x00cc], [0x00dd], [0x00ee], [0x00fa], [0x00fc], [0x00ff]]

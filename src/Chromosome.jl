@@ -203,7 +203,7 @@ end
 
 # Mutates c in all possible ways. 
 # The result depends on the keyword arguments.
-# If !output_outputs && output_circuits returns list of the chromsomes produced by mutation   
+# If !output_outputs && output_circuits (default) returns list of the chromsomes produced by mutation   
 # If output_outputs && !output_circuits returns list of the outputs of chromsomes produced by mutation   
 # If output_outputs && output_circuits returns both the list of outputs and the list of chromosomes as a pair
 # If robustness_only==true returns the pair: (avg_robustness, evolvability)

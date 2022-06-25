@@ -1,8 +1,8 @@
 export write_df_to_csv
 # Writes a dataframe to a CSV file
 function write_df_to_csv( df::DataFrame, p::Parameters, funcs::Vector{Func}, csvfile::String;
-    mutrate::Float64=-1.0, ngens::Int64=-1, popsize::Int64=-1, nreps::Int64=-1, max_steps::Int64=-1,
-    numcircuits::Int64=-1, max_mutates::Int64=-1, nsamples::Int64, goal_list::Vector{Vector{MyInt}}=Vector{MyInt}[] )
+                mutrate::Float64=-1.0, ngens::Int64=-1, popsize::Int64=-1, nreps::Int64=-1, max_steps::Int64=-1,
+                numcircuits::Int64=-1, max_mutates::Int64=-1, nsamples::Int64=-1, goal_list::Vector{Vector{MyInt}}=Vector{MyInt}[] )
   open( csvfile, "w" ) do f
     hostname = chomp(open("/etc/hostname") do f read(f,String) end) 
     println(f,"# date and time: ",Dates.now())

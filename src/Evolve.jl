@@ -573,9 +573,41 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries
   end
   if steps == max_steps
     println("pheno_evolve failed to evolve a circuit to goal: ",goal )
-    (nothing,nothing)
+    return (nothing,nothing)
   end
   (nc,steps)
+end
+
+# Evolve num_circuits_per_goal circuits that map to a given phenotype (Goal) goal.
+# max_tries is the maximum number of attempts using neutral_evolution to find the circuit
+# max_steps is the maximum number of steps during a run of neutral_evolution()
+# if no genotype that maps to goal is found, returns (nothing,nothing)
+function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false )
+  steps = 0   # establish scope
+  nc = nothing # establish scope
+  circuits_steps_list = use_lincircuit ? Tuple{LinCircuit,Int64}[] : Tuple{Chromosome,Int64}[]
+  num_circuits_found = 0
+  tries = 1
+  while tries < max_tries && num_circuits_found < num_circuits_per_goal 
+    tries += 1
+    c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
+    (nc,steps) = neutral_evolution( c, goal, max_steps )
+    if steps < max_steps
+      push!(circuits_steps_list, (nc,steps))
+      num_circuits_found += 1
+    end
+  end
+  if tries == max_tries 
+    if num_circuits_found == 0
+      println("pheno_evolve failed to evolve any circuits that map to goal: ",goal )
+      return (nothing,nothing)
+    elseif num_circuits_found < num_circuits_per_goal
+      println("pheno_evolved ",num_circuits_found," circuits that map to goal: ",goal )
+      println("WARNING: less than num_circuits_per_goal[end] which is ",num_circuits_per_goal[end])
+      error("Set max_tries to be larger when calling shape_space_multiple_genos()")
+    end
+  end
+  circuits_steps_list
 end
 
 # Given a goal, for each iteraion of numiterations,

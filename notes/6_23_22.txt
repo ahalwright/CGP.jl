@@ -1,0 +1,50 @@
+Showing definitively that sampling approximations to Wagner's 2008 definition of phenotype evolvability are inaccurate.
+
+Procedures used to generate results for evotech/complexity/cce/'Wagner definition of phenotype evolvability 6_23_22.docx':
+
+findall(x->x.<=200,pdf.redundancy)    # rare_indices
+pdf[findall(x->x.<=200,pdf.redundancy),:pheno_list]  # rare list
+pdf[findall(x->x.>=12000000,pdf.redundancy),:pheno_list]  # common list
+B = pheno_vects_to_boolean_matrix( pdf.pheno_vects ) 
+B[common_indices,rare_indices]   # All zeros
+B[rare_indices,common_indices]   # Mostly ones
+
+src/evolvable_evolvability.jl contains new code to compute evolvability and occurence vectors using evolved samples of circuits.
+
+evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64 )
+computes a dataframe with columns :pheno_list, :evolvability, and :pheno_vects.  The value of :pheno_vects for a target phenotype 
+is a vector of the number of occurences of the other possible phenotypes in the evolvability list.  In data/6_23_22/ I have
+runs (described below) for all 3x1 7 gates 4 lb CGP phenotypes.  The parameter ncircuits is the number of circuits evolved
+to each target phenotype.  max_tries is the number of attempts at epochal evolution when evolving a circuit to a target
+phenotype, and the parameter max_stesp is the maximum number of epochal evolution steps.
+
+The most significant run is data/6_23_22/run_evolvable_evolability_allP.jl with output evolvable_evolability6_23_22P.csv.
+This run has ncircuits=2000, and took about 3 hours to run with much of that time evolving circuits for 0x0069 and 0x0096.
+I added redundancy from data/6_17_22/counts_CGP_6_17_22C.csv and complexity from data/6_17_22/shape_space_counts6_17_22cntsF.csv.
+
+pmat = pheno_vects_to_boolean_matrix( pdf.pheno_vects )
+rmat = pmat .⊻ pmat'   # ⊻ is xor symbol  # set of phenotypes where evolvability in the two directions disagrees
+amat = (rmat.==1).&(pmat.==1)    # Where there is evolvability in the "forward" direciton by not the "reverse" direction
+bmat = (rmat.==1).&(pmat'.==1)   # Where there is evolvability in the "reverse" direciton by not the "forward" direction
+cmat = amat .& bmat   # is zero as expected
+(sum(amat),sum(bmat))   # (9482, 9482)
+sum_lt = 0; for i = 1:256 for j = 1:256 if amat[i,j]==1 && pdf.redundancy[i] < pdf.redundancy[j] sum_lt += 1 end end end; sum_lt  # 9171 out of 9483
+sum_lt = 0; for i = 1:256 for j = 1:256 if bmat[i,j]==1 && pdf.redundancy[i] > pdf.redundancy[j] sum_lt += 1 end end end; sum_lt  # 9171 out of 9483
+
+
+common_list = [0x0000, 0x0005, 0x0011, 0x0022, 0x0033, 0x0044, 0x0055, 0x005f, 0x0077, 0x0088, 0x00a0, 0x00aa, 0x00bb, 0x00cc, 0x00dd, 0x00ee, 0x00fa, 0x00ff]
+common_list = ["0x0000", "0x0005", "0x0011", "0x0022", "0x0033", "0x0044", "0x0055", "0x005f", "0x0077", "0x0088", "0x00a0", "0x00aa", "0x00bb", "0x00cc", "0x00dd", "0x00ee", "0x00fa", "0x00ff"]
+common_list = ["0x00", "0x05", "0x11", "0x22", "0x33", "0x44", "0x55", "0x5f", "0x77", "0x88", "0xa0", "0xaa", "0xbb", "0xcc", "0xdd", "0xee", "0xfa", "0xff"]
+rare_list = ["0x0049", "0x0061", "0x0069", "0x006d", "0x0079", "0x0086", "0x0092", "0x0096", "0x009e", "0x00b6"]
+rare_list = ["0x49", "0x61", "0x69", "0x6d", "0x79", "0x86", "0x92", "0x96", "0x9e", "0xb6"]
+rare_list = [ 0x0049, 0x0061, 0x0069, 0x006d, 0x0079, 0x0086, 0x0092, 0x0096, 0x009e, 0x00b6 ]
+common_indices = findall(x->(x in common_list),pdf.pheno_list)
+  [ 1, 18, 35, 52, 69, 86, 103, 120, 137, 154, 171, 188, 205, 222, 239, 256 ]
+  [ 1, 6, 18, 35, 52, 69, 86, 96, 120, 137, 161, 171, 188, 205, 222, 239, 251, 256]
+rare_indices = findall(x->(x in rare_list),pdf.pheno_list),
+  [ 74, 98, 106, 110, 122, 135, 147, 151, 159, 183]
+common_list = [0x00, 0x05, 0x11, 0x22, 0x33, 0x44, 0x55, 0x5f, 0x77, 0x88, 0xa0, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xfa, 0xff]
+rare_list = [ 0x49, 0x61, 0x69, 0x6d, 0x79, 0x86, 0x92, 0x96, 0x9e, 0xb6 ]
+
+Pair("phenos",pdf.phenos_list)
+[ Pair(@sprintf("%04x",common_indices[i]),E[common_indices[i],rare_indices]) for i = 1:length(common_indices)]

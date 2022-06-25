@@ -14,12 +14,13 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   circuits_list = use_lincircuit ? LinCircuit[] : Chromosome[]
   for goal in goal_list
     (c,steps) = pheno_evolve( p, funcs, goal, max_tries, max_steps, use_lincircuit=use_lincircuit )
-    if (c,steps) != (nothing,nothing
+    if (c,steps) != (nothing,nothing)
       push!( circuits_list, c )
     end
   end
   shape_space_counts( p, funcs, num_mutates, circuits_list, use_lincircuit=use_lincircuit, csvfile=csvfile )
 end
+
 
 # This version returns the dataframe of results with one row for each of num_circuits random circuits.
 function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, num_circuits::Int64; use_lincircuit::Bool=false, csvfile::String="" )
@@ -62,11 +63,110 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   df
 end
 
+#=
+function pheno_evolve_to_goals( p::Parameters, funcs::Vector{Func}, goal_list::GoalList, num_circuits_per_goal::Int64, max_tries::Int64, max_steps::Int64;
+      use_lincircuit::Bool=false )
+  list_of_circuits_steps_lists = map( goal->pheno_evolve( p, funcs, goal, num_circuits_per_goal, max_tries, max_steps, use_lincircuit=use_lincircuit ), GoalList )
+end
+=#
+
+function pheno_evolve_to_goals( p::Parameters, funcs::Vector{Func}, goal_list::GoalList, num_circuits_per_goal::Int64, max_tries::Int64, max_steps::Int64;
+      use_lincircuit::Bool=false )
+  list_of_circuits_steps_lists = pmap( goal->pheno_evolve( p, funcs, goal, num_circuits_per_goal, max_tries, max_steps, use_lincircuit=use_lincircuit ), goal_list)
+end
+    
+# produces a dataframe with the lengths of the result of pheno_set_funct() for each of num_circuits random circuits.
+
+function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, goal_list::GoalList, circuits_per_goal_list::Vector{Int64}, 
+      max_tries::Int64, max_steps::Int64; increase_mutates::Bool=false, use_lincircuit::Bool=false, csvfile::String="" )
+  println("circuits_per_goal_list: ",circuits_per_goal_list,"  circuits_per_goal_list[end]: ",circuits_per_goal_list[end])
+  if circuits_per_goal_list[end] > max_tries
+    error("circuits_per_goal_list[end] < max_tries.  Increase max_tries in the call to shape_space_multiple_genos() ")
+  end
+  list_of_circuit_steps_lists = pheno_evolve_to_goals( p, funcs, goal_list, circuits_per_goal_list[end], max_tries, max_steps )
+  df = DataFrame()
+  df.phenos=String[] 
+  df.complexity=Float64[] 
+  df.evolvability=Float64[] 
+  num_pheno_cols = increase_mutates ? num_mutates : length(circuits_per_goal_list)-1
+  pheno_cols = [ Symbol("pheno_count$(i)") for i = 1: num_pheno_cols ]
+  for phc in pheno_cols
+    df[:,phc] = Float64[]
+  end
+  println("df: ",df,"  names(df): ",names(df))
+  # Each call to process_genotype() will generate one row of the dataframe
+  df_row_list = pmap( circuit_steps_list->process_genotype( p, funcs, num_mutates, goal_list, circuits_per_goal_list, circuit_steps_list, 
+      increase_mutates=increase_mutates, use_lincircuit=use_lincircuit ), list_of_circuit_steps_lists )
+  for df_row in df_row_list
+    push!(df,df_row)
+  end
+  if length(csvfile) > 0
+    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      #println(f,"# run time in minutes: ",(ptime+ntime)/60)
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# circuits_per_goal_list: ",circuits_per_goal_list)
+      println(f,"# increase_mutates: ",increase_mutates)
+      println(f,"# num_mutates: ",num_mutates)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      #println(f,"# length(circuits_list): ",length(circuits_list))
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+  
 function genotype_evolvability( c::Circuit, funcs::Vector{Func} )
   outputs_list = mutate_all( c, funcs, output_outputs=true, output_circuits=false )
   length(unique(outputs_list))
 end
 
+function process_genotype( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, goal_list::GoalList, circuits_per_goal_list::Vector{Int64},
+      circuit_steps_list::Union{Vector{Tuple{LinCircuit,Int64}},Vector{Tuple{Chromosome,Int64}}}; increase_mutates::Bool=false, use_lincircuit::Bool=false )
+  #circuits_list = map( cs->cs[1], circuits_steps_list )  # doesn't work for some reason
+  circuits_list = [ circuit_steps_list[i][1] for i = 1:length(circuit_steps_list) ]
+  #steps_list = map( cs->cs[2], circuits_steps_list )
+  steps_list = [ circuit_steps_list[i][2] for i = 1:length(circuit_steps_list) ] 
+  circuit_int_list = map(c->(use_lincircuit ? circuit_to_circuit_int(c,funcs) : chromosome_to_int(c)), circuits_list )
+  pheno = output_values(circuits_list[1])
+  println("pheno: ",pheno)
+  pheno_string = @sprintf("0x%04x",pheno[1])
+  println("pheno_string: ",pheno_string)
+  complexity_list = map( complexity5, circuits_list )
+  complexity = sum(complexity_list)/length(complexity_list)
+  evolvability_list = map( c->genotype_evolvability(c,funcs), circuits_list )
+  evolvability = sum(evolvability_list)/length(evolvability_list)
+  #current_pheno(ci,p,funcs) = output_values( use_lincircuit ? circuit_int_to_circuit(ci,p,funcs) : int_to_chromosome(ci,p,funcs) )
+  #new_pheno_set = map( ci->pheno_set_funct( p, funcs, [ci], num_mutates, Set([pheno]) ), circuit_int_list )
+  #new_pheno_set = pmap( ci->pheno_set_funct( p, funcs, [ci], num_mutates, Set([pheno]) ), circuit_int_list )
+  cumm_pheno_set = Set(Goal[])
+  pheno_counts = zeros(Int64,length(circuits_per_goal_list)-1)
+  if !increase_mutates
+    for j = 2:length(circuits_per_goal_list)
+      #println("j: ",j,"  [circuit_int_list[j-1:j]]: ",[circuit_int_list[circuits_per_goal_list[j-1]:circuits_per_goal_list[j]]][1])
+      new_pheno_set = pheno_set_funct( p, funcs, [circuit_int_list[circuits_per_goal_list[j-1]:circuits_per_goal_list[j]]][1],num_mutates, Set([pheno]) )
+      union!( cumm_pheno_set, new_pheno_set )
+      pheno_counts[j-1] = length( cumm_pheno_set )
+    end
+  else
+    for num_mutate = 1:num_mutates
+      #println("j: ",j,"  [circuit_int_list[j-1:j]]: ",[circuit_int_list[circuits_per_goal_list[j-1]:circuits_per_goal_list[j]]][1])
+      new_pheno_set = pheno_set_funct( p, funcs, [circuit_int_list[end]][1], num_mutate, Set([pheno]) )  # Doesn't work 6/22/22
+      union!( cumm_pheno_set, new_pheno_set )
+      pheno_counts[num_mutate-1] = length( cumm_pheno_set )
+    end
+  end
+  println("pheno_counts: ",pheno_counts)
+  df_row = vcat([ pheno_string, complexity, evolvability ], pheno_counts )
+  println("df_row: ",df_row)
+  return df_row 
+end
+
+# Recursively compute the set of phenotypes reached by all num_mutates mutations from all circuits in circuit_int_list
 function pheno_set_funct( p::Parameters, funcs::Vector{Func}, circuit_int_list::Vector{Int128}, num_mutates::Int64, pheno_set::Set;
     use_lincircuit::Bool=false )
   println("num_mutates: ",num_mutates,"  length(circuit_int_list): ",length(circuit_int_list),"  length(pheno_set): ",length(pheno_set))

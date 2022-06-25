@@ -1,7 +1,7 @@
 using JLD, HDF5, Tables, Base.Threads
 
 #  As of 2/20/22, julia -p 4 -L CGP.jl -L Fnc.jl -L num_active_lc.jl -L to_sublists.jl 
-#  Example:  if use_lincircuit==true, let p = Parameters(3,1,4,3)  else let p = Parameters(3,1,3,2) 
+#  Example:  if use_lincircuit==false, let p = Parameters(3,1,4,3)  else let p = Parameters(3,1,3,2) 
 #    For use_lincircuits==true, larger values of numinteriors=numinstructions and numlevelsback=numregisters exceed memory even on surt2
 #  phenotype = 0x0015   # count=6848 from data/12_26_21/pheno_counts_12_26_21_F.csv (Cartesian)
 #  funcs = default_funcs(p);  

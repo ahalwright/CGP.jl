@@ -54,7 +54,61 @@ function avg_random_neutral_walks( c::Chromosome, steps::Int64, maxsteps::Int64,
     #println("df_row_avg: ",df_row_avg)
   df_row_avg
 end 
-      
+
+#=
+Moved to pheno_rand_walk_evolvability.jl 
+# unions of the results of multiple walks
+function pheno_set_rand_neutral_walks( p::Parameters, funcs::Vector{Func}, ph::Goal, nwalks::Int64, walk_length::Int64,  max_tries::Int64, max_steps::Int64;
+    use_lincircuit::Bool=false )
+  common_list = [ 0x0000, 0x0011, 0x0022, 0x0033, 0x0044, 0x0055, 0x0066, 0x0077, 0x0088, 0x0099, 0x00aa, 0x00bb, 0x00cc, 0x00dd, 0x00ee, 0x00ff ]
+  pheno_sets = pmap( _->pheno_set_rand_neutral_walk( p, funcs, ph, walk_length, max_tries, max_steps, use_lincircuit=use_lincircuit ), collect(1:nwalks ) )
+  pheno_set = reduce( union, pheno_sets )
+end
+
+function pheno_set_rand_neutral_walk( p::Parameters, funcs::Vector{Func}, ph::Goal, walk_length::Int64,  max_tries::Int64, max_steps::Int64;
+    use_lincircuit::Bool=false )
+  (nc,steps) = pheno_evolve( p, funcs, ph::Goal, max_tries, max_steps; use_lincircuit=use_lincircuit ) 
+  if steps == max_steps
+    println("pheno_evolve failed to evolve a circuit to map to phenotype: ", ph )
+    return Set(MyInt[])
+  end
+  pheno_set_rand_neutral_walk( nc, funcs, walk_length, max_tries, max_steps )
+end
+
+function pheno_set_rand_neutral_walk( c::Circuit, funcs::Vector{Func}, walk_length::Int64,  max_tries::Int64, max_steps::Int64 )
+  use_lincircuit = typeof(c) == LinCircuit
+  println("use_lincircuit: ",use_lincircuit)
+  p = c.params
+  @assert p.numoutputs == 1
+  goal = output_values(c)[1]
+  pheno_set = Set(MyInt[])  # Assumes 1 output
+  for i = 1:walk_length
+    j = 1
+    while j <= max_steps   # also terminated by a break statement
+      sav_c = deepcopy(c)
+      use_lincircuit ? mutate_circuit!( c, funcs ) : mutate_chromosome!( c, funcs )
+      #println("c: ",c)
+      output = output_values(c)[1]
+      if output == goal
+        #println("successful step for i= ",i,"  outputs: ",outputs)
+        all_neighbor_phenos = mutate_all( c, funcs )   # polymorphic call
+        #println("j: ",j,"  all_neighbor_phenos: ",all_neighbor_phenos)
+        pheno_list = map( x->x[1], all_neighbor_phenos )
+        #println("j: ",j,"  pheno_list: ",pheno_list)
+        union!(pheno_set, Set(pheno_list) )
+        break
+      end
+      c = sav_c
+      j += 1
+    end
+    if step == max_steps
+      error("Failed to find neutral mutation")
+    end
+  end
+  pheno_set
+end
+=#
+
 # Returns an evolvable_count or a dataframe row depending on whether evo_count_only is true or false
 # Does NOT use mut_evolve().  Instead implements basic version of neutral walk algorithm.
 function random_neutral_walk( c::Chromosome, steps::Int64, maxsteps::Int64; evo_count_only::Bool=false )
@@ -78,7 +132,7 @@ function random_neutral_walk( c::Chromosome, steps::Int64, maxsteps::Int64; evo_
     j = 1
     while j <= maxsteps   # terminated by a break statement
       sav_c = deepcopy(c)
-      (c,active) = mutate_chromosome!( c, funcs )
+      (c,active) = mutate_chromosome!( c, funcs )   # funcs is neither defined nor an argument
       outputs = output_values(c)
       if outputs == goal
         #println("successful step for i= ",i,"  outputs: ",outputs)
@@ -131,6 +185,7 @@ function binned_circuit_complexities( p::Parameters, n_circuits::Int64, max_bin_
   complexity_bins
 end
 
+#=
 # Seems to be superceded by later versions of the same function.
 function run_random_neutral_walk( p::Parameters, ngoals::Int64, steps::Int64, maxsteps::Int64 )
   df = DataFrame()
@@ -156,6 +211,7 @@ end
 
 # Starts with a goal.  Then evolves a circuit to map to that goal
 # See diary10_13.txt for example runs
+# Appears to be outdated and replaced by other functions 6/21/22
 function run_random_neutral_walk( p::Parameters, g::Goal, steps::Int64, maxsteps::Int64, nreps::Int64=1; skip_steps::Int64=1 )
   funcs = default_funcs(p.numinputs)
   ev_count = 0
@@ -172,4 +228,4 @@ function run_random_neutral_walk( p::Parameters, g::Goal, steps::Int64, maxsteps
   end
   ev_count/nreps
 end
-
+=#

@@ -1,0 +1,24 @@
+julia> @time include("../data/6_17_22/run_shape_spaceF.jl")
+  shape_space_multiple_genos()
+  surt2 28 processes, 3x1, all phenos, 4 gates, 7 ints 4 lb, 28022 seconds.  
+  circuits_per_goal_list = [1,4,16,32]
+  julia> spearman_cor(df,:complexity,:pheno_count3) (0.7433932716257254, 1.4445642576393031e-46)
+  julia> spearman_cor(df,:evolvability,:pheno_count3) (0.8381497798895318, 4.0531328469969426e-69)
+  Conclusion: The most rare and most complex phenotypes have the highest shape space covering.
+  The phenotypes 0x0069 and 0x0096 (parity) are hard to evolve and have the highest complexity
+  julia> df[df.phenos.=="0x0069".||df.phenos.=="0x0096",:]
+  2×6 DataFrame
+    Row │ phenos  complexity  evolvability  pheno_count1  pheno_count2  pheno_count3
+        │ String  Float64     Float64       Float64       Float64       Float64
+   ─────┼────────────────────────────────────────────────────────────────────────────
+      1 │ 0x0069     4.51422       32.2188         240.0         256.0         256.0
+      2 │ 0x0096     4.51422       32.3438         250.0         256.0         256.0
+   julia> mean(df.complexity) 2.9137648811367827
+@time include("../data/6_17_22/run_count_outputsC.jl")
+  nsamples = 10^9
+  surt2 28 processes, 3x1, 4 gates, 7 ints 4 lb, 860 seconds.  
+
+julia> cdf = read_dataframe("../data/6_17_22/counts_CGP_6_17_22C.csv") 
+julia> ssdf = read_dataframe("../data/6_17_22/shape_space_counts6_17_22F.csv")
+julia> ssdf.counts = cdf.counts 
+

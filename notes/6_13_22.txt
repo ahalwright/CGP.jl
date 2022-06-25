@@ -1,5 +1,6 @@
-New code in src/Psample.jl  src/ShapeSpace.jl
+New code in src/Presample.jl  src/ShapeSpace.jl
 See notes/6_14_22.txt for ShapeSpace.jl
+Comment:  Presample did not work because it was using random sampling instead of sampling by evolution. 
 
 # Goal for src/ShapeSpace.jl
 # Test the extent to which the shape space covering property is true for circuits.

@@ -1,0 +1,3 @@
+Writeup evotech/complexity/cce/Evolvability_and_shape_space_covering6_15_22.docx 
+Includes results of shape-space runs using src/ShapeSpace.jl.
+Received review of GPTP paper from Ting Hu.
