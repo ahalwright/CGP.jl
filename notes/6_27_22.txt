@@ -1,0 +1,14 @@
+Wrote add_complexities_to_df_file() and add_complexities_to_df() in RecordOutputs.jl
+Added complexities to files in data/6_25_22.  Example:
+p = Parameters(3,1,7,2)
+add_complexities_to_df_file( p, funcs, "../data/6_25_22/count_outputs_lc_4funcs_3inputs_7insts_2regs_C.csv","../data/6_25_22/count_outputs_lc_4funcs_3inputs_7insts_2regs_cmplxC.csv",use_lincircuit=true)
+
+Found list of max complexity (rare) and min complexity (common) phenotypes for LGP and added them to evolvable_evolvability.jl just before
+the definition of submatrix_to_dataframe().
+
+LGP
+edf = read_dataframe("../data/6_25_22/count_outputs_lc_4funcs_3inputs_7insts_2regs_cmplxC.csv")
+edf[edf.complexity.<=2.6,:goals]   # common goals
+edf[edf.complexity.>=3.6,:goals]   # rare goals
+
+CGP  original method based on redundancies seems good

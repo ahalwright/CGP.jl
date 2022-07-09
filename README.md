@@ -1,12 +1,10 @@
-# CGP
+CGP.jl is a library for using Cartesian Genetic Programming (CGP) and linear genetic programming (LGP) in Julia. 
+It was originally developed for GGP only by George Lesica and Alden Wright.  It is now (as of June 2022)
+under further development by Alden Wright to support research on evolution by Alden Wright (alden.wright@umontana.edu) 
+and Cheyenne Laue.  It is no longer being developed as a general CGP libary and includes many functions relative only
+to this research.
 
-[![Build Status](https://travis-ci.org/glesica/CGP.jl.svg?branch=master)](https://travis-ci.org/glesica/CGP.jl)
-
-CGP.jl is a library for using
-[Cartesian Genetic Programming](http://www.cartesiangp.co.uk/) in
-Julia. It is being developed at the University of Montana in Missoula,
-MT for use in simulating the evolution of technology, though there is
-nothing specific to that application in the library so it is (will be)
-perfectly suitable for other applications as well.      
-
-2020:  Currently being maintained and updated by Alden Wright   alden.wright@umontana.edu
+The premise of this research is that the digital logic gate circuit genotype-phenotype map is an excellent testbed
+for understanding the role of genotype-phenotype maps in evolution.  For more explanation, see
+Wright, A. H., & Laue, C. L. (2021). Evolvability and complexity properties of the digital circuit genotype-phenotype map.
+In Proceedings of the Genetic and Evolutionary Computation Conference, (pp. 840–848). DOI: 10.1145/3449639.3459393

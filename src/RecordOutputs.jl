@@ -34,6 +34,7 @@ using CSV
 export count_outputs, count_outputs_parallel, write_to_file, read_file, show_outputs_list, read_counts_files
 export add_counts_to_dataframe, write_to_dataframe_file, circuit_complexities, run_circuit_complexities
 export create_lincircuits_list, create_chromosome_ints_list, increment_circuit_ints_list! 
+export count_phenotypes_parallel  # copied from test_count_outputs.jl on 6/25/22
 
 MyFunc = Main.CGP.MyFunc
 # Return an output list of the number of times that an output was produced by randomly generating chromosomes with these parameters
@@ -47,15 +48,14 @@ function count_outputs_parallel( nreps::Int64, p::Parameters, numcircuits::Int64
     csvfile=csvfile, use_lincircuit=use_lincircuit, output_complex=output_complex )
 end
 
+# Returns the pair (outlist,circ_ints_list) where both are indexed by phenotypes.  
+# outlist[ph+1] is the number of occurences of phenotype ph discovered.
+# circ_ints_list is a list of circuit ints of circuits that map to phenotype ph.
+# The number of circuit ints in circ_ints_list is numcircuits*(nprocs()-1)
+# The function TODO
 # Not used by construct_pheno_net() in PhenotypeNetwork.jl since nesting calls to pmap() doesn't work (stack overflow error)
 function count_outputs_parallel( nreps::Int64, numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64, numcircuits::Int64, 
     funcs::Vector{Func}=Func[]; csvfile::String="", use_lincircuit::Bool=:false, output_complex::Bool=false ) 
-  #=
-  if use_lincircuit && output_complex
-    println("Warning: output_complex reset to false when use_lincircuit==true")
-    output_complex=false
-  end
-  =#
   p = Parameters( numinputs, numoutputs, numinteriors, numlevelsback )
   if length(funcs) == 0
     funcs = use_lincircuit ? lin_funcs(numinputs) : default_funcs(numinputs)
@@ -149,6 +149,97 @@ function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numin
   (outlist,circuit_ints_list)
 end
 
+# Simple replication of count_outputs() in RecordOutputs.jl
+function count_phenotypes_parallel( p::Parameters, funcs::Vector{Func}, nsamples::Int64; use_lincircuit::Bool=false, complexity::Bool=false, csvfile::String="" )
+  numinputs = p.numinputs
+  nsamples_iter = nprocs() > 1 ? Int64(ceil(nsamples/(nprocs()-1))) : nsamples
+  println("nsamples_iter: ",nsamples_iter)
+  iters_range = (nprocs()>1) ? (1:(nprocs()-1)) : (1:1)
+  if complexity
+    ph_cmplx_list = pmap( x->count_phenos( p, funcs, nsamples_iter, use_lincircuit=use_lincircuit, complexity=complexity ), iters_range )
+    #pairs_list = map( x->count_phenos( p, funcs, nsamples_iter, use_lincircuit=use_lincircuit, complexity=complexity ), iters_range )
+    phenos_list = map( x->x[1], ph_cmplx_list )
+    complexities_list = map( x->x[2], ph_cmplx_list )
+    phenos = reduce(+,phenos_list)
+    cmblist = map(i->phenos_list[i].*complexities_list[i], 1:length(phenos_list))
+    complexities = reduce(+,cmblist) ./ reduce(+,phenos_list)
+    complexities = map(x-> isnan(x) ? 0 : x, complexities )
+  else
+    phenos_list = pmap( x->count_phenos( p, funcs, nsamples_iter, use_lincircuit=use_lincircuit ), iters_range )
+    #phenos_list = map( x->count_phenos( p, funcs, nsamples_iter, use_lincircuit=use_lincircuit ), iters_range )
+    phenos = reduce(+,phenos_list)
+  end
+  println("pmap reduce finished")
+  df = DataFrame()
+  goals = map(MyInt, 0:(2^2^numinputs-1) )
+  df.goal = map(x->@sprintf("0x%04x",x),goals)
+  df.counts = phenos
+  if complexity
+    df.complexity = complexities
+  end
+  println("size(df): ",size(df))
+  if length(csvfile) > 0
+    write_df_to_csv( df, p, funcs, csvfile, nsamples=nsamples )
+  end
+  df
+end
+
+function weighted_average_complexity( phcount1::Int64, cmplex1::Float64, phcount2::Int64, cmplex2::Float64 )
+  (cmplex1*phcount1 + cmplex2*phcount2)/(phcount1+phcount2)
+end
+
+function accum_phenos_complexities( phenos_list::Vector{Vector{Int64}}, complexities_list::Vector{Vector{Float64}} )
+  phenos = reduce(+,phlist)
+  cmblist = map(i->phlist[i].*cplist[i], 1:length(phlist))
+  complexities = reduce(+,cmblist) ./ reduce(+,phlist)
+end
+
+function count_phenotypes(  p::Parameters, funcs::Vector{Func}, nsamples::Int64; use_lincircuit::Bool=false, complexity::Bool=false, csvfile::String="" )
+  numinputs = p.numinputs
+  if complexity
+    (phenos,complexities) = count_phenos( p, funcs, nsamples, use_lincircuit=use_lincircuit, complexity=complexity ) 
+  else
+    phenos = count_phenos( p, funcs, nsamples, use_lincircuit=use_lincircuit )
+  end
+  df = DataFrame()
+  goals = map(MyInt, 0:(2^2^numinputs-1) )
+  df.goal = map(x->@sprintf("0x%04x",x),goals)
+  df.counts = phenos
+  if complexity
+    df.complexity = complexities
+  end
+  if length(csvfile) > 0
+    write_df_to_csv( df, p, funcs, csvfile, ngens=nsamples )
+  end
+  df
+end
+
+function count_phenos(  p::Parameters, funcs::Vector{Func}, nsamples::Int64; use_lincircuit::Bool=false, complexity::Bool=false )
+  #Random.seed!(1)   # use to test the equivalence of count_phenotypes() and count_phenotypes_parallel()
+  numinputs = p.numinputs
+  phenos = zeros(Int64,2^2^numinputs)
+  avg_complexity = zeros(Float64,2^2^numinputs)
+  for i = 1:nsamples
+    if use_lincircuit
+      c = rand_lcircuit( p, funcs )
+    else
+      c = random_chromosome( p, funcs )
+    end
+    ph = output_values( c )[1]
+    phenos[ph+1] += 1
+    if complexity
+      cmplx = use_lincircuit ? lincomplexity(c,funcs) : complexity5(c)
+      ph_count = phenos[ph+1]
+      avg_complexity[ph+1] = ((ph_count-1)*avg_complexity[ph+1] + cmplx)/ph_count
+    end
+  end
+  if complexity
+    return (phenos,avg_complexity)
+  else
+    return phenos
+  end
+end
+
 import Base.:+
 # Define + on outlist tuples
 function +(t1::Tuple{Int64,Float64},t2::Tuple{Int64,Float64})
@@ -226,7 +317,8 @@ function vcat_arrays!( lst1::Vector{Vector{Int128}}, lst2::Vector{Vector{Int128}
   end
   lst1
 end
-#=
+
+#=  The next two functions are replaced by write_df_to_csv() in Utilities.jl
 function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
@@ -516,6 +608,42 @@ function run_circuit_complexities( p::Parameters, num_circuits::Int64; use_linci
     end
   end
   df
+end
+
+# Adds a complexities column to a dataframe with a "circuits_list" column of circuit ints.  
+# Note that the use_lincircuit and paramters settings must agree with the settings of the circuits in the "circuits_list" column.
+function add_complexities_to_df_file( p::Parameters, funcs::Vector{Func}, edf_file::String, csvfile::String=""; use_lincircuit::Bool=false )
+  df = read_dataframe( edf_file )
+  edf = add_complexities_to_df( p::Parameters, funcs::Vector{Func}, df::DataFrame, use_lincircuit=use_lincircuit )
+  write_dataframe_with_comments( edf, edf_file, csvfile )
+end
+
+# Adds a complexities column to a dataframe with a "circuits_list" column of circuit ints.  
+# Note that the use_lincircuit and paramters settings must agree with the settings of the circuits in the "circuits_list" column.
+function add_complexities_to_df( p::Parameters, funcs::Vector{Func}, edf::DataFrame; use_lincircuit::Bool=false, csvfile::String="" )
+  @assert "circuits_list" in names(edf)
+  complexity_avg_list = Float64[]
+  ph = MyInt(0)
+  for circ_list in edf.circuits_list
+    #println("length(circ_list): ",length(circ_list))
+    ci_list = typeof(circ_list)==String ? eval(Meta.parse(circ_list)) : circ_list
+    complexity_sum = 0.0
+    for ci in ci_list
+      circ = use_lincircuit ? circuit_int_to_circuit( ci, p, funcs) : int_to_chromosome( ci, p, funcs )
+      #println("output values(circ): ",output_values(circ))
+      #println("ph: ",ph,"  ",output_values(circ)[1])
+      if  ph != output_values(circ)[1]
+        println("ph: ",ph,"  output_values(circ)[1]: ",output_values(circ)[1])
+        error("Converted circuit has the woring phenotype.  Check that use_lincircuit is set correctly and that parameters are set correctly.")
+      end
+      #println("complexity5(circ): ",complexity5(circ))
+      complexity_sum += use_lincircuit ? lincomplexity(circ,funcs) :  complexity5(circ)
+    end
+    push!(complexity_avg_list,complexity_sum/length(ci_list))
+    ph = ph + MyInt(1)
+  end
+  insertcols!(edf,3,:complexity=>complexity_avg_list)
+  edf
 end
 
 #=

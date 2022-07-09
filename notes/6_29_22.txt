@@ -1,0 +1,16 @@
+Idea: Binary constraint satisfaction and other similar prolbems are examples of G-P maps with the "universal" proprties.
+
+One alternative:
+Phenetype:  Instance of the problem in a suitable representation language.
+Genotype:  A solution to an instance of the problem.
+Advantage:  Finding a genotype that maps to the phenotype is solving the the problem.
+Problem:  What is the G-P map?  Given a genotype (a problem solution), how do we find all phenotypes (problems)
+   that have that genotype as a solution?  This is not a single-valued function.
+
+
+Another alternative:
+Genetype:  Instance of the problem in a suitable representation language.
+Phenotype:  
+  1.  A solution to an instance of the problem.    How do we choose which solution?
+  2.  The set of all solutions to instance.   What is the significance if sets differe slightly?
+

@@ -1,0 +1,11 @@
+Rewrote README.md for CGP.jl---very out of date.
+
+Improved comments for Func.jl.
+
+Ran data/6_25_22/run_count_outputs_lincirc{B,C}.jl with CSV file:
+count_outputs_lc_4funcs_3inputs_6insts_2regs_{B,C}.csv 
+Lincircuit 3x1 4 gate types 10^{10} samples, under 1 hour running time
+B:  7 instructions 2 registers:  Minimum count 4
+C:  6 instructions 2 registers:  Minimum count 0  for 4 phenotypes
+
+Could be used for a start genotypes for random walk evolvability.

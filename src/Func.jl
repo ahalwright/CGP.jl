@@ -1,3 +1,7 @@
+# Defines the bitwise functions computed by logic gates.
+# In current research as of 6/25/22, all gate functions used are arity 2.  Thus, NOT, IN1, IN2, ONE, and ZERO are not used as gate functions.
+# VERY IMPORTANT:  Ones is set up as a global variable when default_funcs() or lin_funcs() is called.
+# Common situation:  MyInt is UInt16 and numinputs = 3.  Then Ones=0x00ff is used as a mask in the computation of Nand() and Nor().
 export Func, default_funcs, eval_func, lin_funcs
 export Ones, AND, OR, XOR, Nand, NAND, Nor, NOR, NOT, Not, Zero, ZERO, One, ONE, In1, IN1, In2, IN2
 export func_names, setup_funcs
@@ -13,15 +17,13 @@ Func(f::Function, a::Integer) = Func(f, a, string(f))
 
 #println("Func: p: ",p)
 #println("Func: p: ",Main.CGP.p)
-#numinputs = Main.CGP.numinputs
-#Ones = Main.CGP.construct_ones(numinputs)[numinputs]
 #println("Func:  Ones: ",Ones)
 const AND = Func(&, 2, "AND")
 const OR = Func(|, 2, "OR")
 const XOR = Func(⊻, 2, "XOR")
-Nand(x,y) = ~(x & y) & Main.Ones
+Nand(x,y) = ~(x & y) & Ones   # Note that Ones is a global variable assigned when defaut_funcs() or lin_funcs() is called
 const NAND = Func(Nand, 2, "NAND")
-Nor(x,y) = ~(x | y) & Ones
+Nor(x,y) = ~(x | y) & Ones    # Note that Ones is a global variable assigned when defaut_funcs() or lin_funcs() is called  
 const NOR = Func(Nor, 2, "NOR")
 Not(x) = (~x) & Ones
 const NOT = Func(Not, 1, "NOT")

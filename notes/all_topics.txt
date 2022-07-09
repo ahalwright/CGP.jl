@@ -51,7 +51,7 @@ Note that all of these files are in the subfolder diary and have a "diary" prefi
       Plot of both genotype and phenotype evolvability vs. robustness.
 11_22: Attempted to determine connectivity of neutral net of a goal g by finding a distance reducing path from chromosome c1.  
       Not very successful.
-11_27:  Includes plot of evo_count for 3 goals and many steps.  Shows that evolvability of common goals eventually catches up with
+11_27:  Includes plot of evo_count for 3 goals and many steps for 3x1.  Shows that evolvability of common goals eventually catches up with
            evolvability of rare goals.
 11_28:  sampling.jl  tests my hypothesis on sampling black, white, blue balls.
 11_29:  tests whether increasing gates will effect evolvability vs robustness relationship.
@@ -59,7 +59,7 @@ Note that all of these files are in the subfolder diary and have a "diary" prefi
 12_4:   Generated 10 plots for all combinations of evo_count, robustness, complexity, frequency, difficulty of evolution  
         See 10_27 for these new plots.
         Rerunnng determining evolvability by repeated sampling for a large number of goals including new goal [0x6b18]
-12_6:
+12_6:  Plots of evo_count and log_evo_count vs sample size for 4x1
 12_7:  Evolvability count plot for three 3x1 goals and large number of samples
 12_9:  Connected components.  neutral_walk_connectivity. run_neutral_walk().
 12_15: Worked on paper.  Shape space covering property, Kashtan.

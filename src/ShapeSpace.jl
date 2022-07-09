@@ -21,14 +21,13 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   shape_space_counts( p, funcs, num_mutates, circuits_list, use_lincircuit=use_lincircuit, csvfile=csvfile )
 end
 
-
 # This version returns the dataframe of results with one row for each of num_circuits random circuits.
 function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, num_circuits::Int64; use_lincircuit::Bool=false, csvfile::String="" )
   circuits_list = use_lincircuit ? [ rand_lcircuit( p, funcs ) for _ = 1:num_circuits ] : [ random_chromosome( p, funcs ) for _ = 1:num_circuits ] 
   shape_space_counts( p, funcs, num_mutates, circuits_list, use_lincircuit=use_lincircuit, csvfile=csvfile )
 end    
 
-# produces a dataframe with the lengths of the result of pheno_set_funct() for each of num_circuits random circuits.
+# produces a dataframe with the lengths of the result of pheno_set_funct() for each the circuits in circuits_list.
 function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, circuits_list::Union{ Vector{LinCircuit}, Vector{Chromosome} }; 
     use_lincircuit::Bool=false, csvfile::String="" )
   #circuits_list = use_lincircuit ? [ rand_lcircuit( p, funcs ) for _ = 1:num_circuits ] : [ random_chromosome( p, funcs ) for _ = 1:num_circuits ] 
