@@ -10,7 +10,7 @@ using Statistics
 using Distributed
 using Printf
 import Random.seed!
-export MyInt, DIST_TYPE, Population, PopVect, IPopulation, IntRange, Circuit
+export MyInt, DIST_TYPE, Population, PopVect, IntRange, Circuit
 
 if !@isdefined(MyInt)  # MyInt should be defined in CGP.jl
   const MyInt = UInt16

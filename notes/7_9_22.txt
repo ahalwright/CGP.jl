@@ -1,0 +1,32 @@
+Ran "data/7_8_22/run_evolvable_evolvability_allP.jl" on surt2 28 procs.
+copied to xps
+pdf = read_dataframe("../data/7_8_22/evolvable_evolability_3x1_7_4chP.csv")
+cdf = read_dataframe("../data/6_25_22/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv")
+insertcols!(pdf,4,:ints7_4=>cdf.ints7_4)
+insertcols!(pdf,4,:scomplexity=>cdf.complexity)
+write_dataframe_with_comments(pdf,"../data/7_8_22/evolvable_evolability_3x1_7_4chP.csv","../data/7_8_22/evolvable_evolability_3x1_7_4ch_scmplxP.csv")
+# Based on notes/6_26_22.txt
+E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
+rare =  [[0x0049], [0x0061], [0x0069], [0x006d], [0x0079], [0x0086], [0x0092], [0x0096], [0x009e], [0x00b6]];
+common = [[0x0000], [0x0003], [0x0005], [0x0011], [0x0022], [0x0033], [0x003f], [0x0044], [0x0055], [0x005f], [0x0077], [0x0088], [0x00a0], [0x00aa], [0x00bb], [0x00c0], [0x00cc], [0x00dd], [0x00ee], [0x00fa], [0x00fc], [0x00ff]];
+rare_str = map(x->@sprintf("0x%04x",x[1]),rare)
+common_str = map(x->@sprintf("0x%04x",x[1]),common)
+df = submatrix_to_dataframe( p, funcs, E, pdf, source="common", dest="rare" )
+write_dataframe(df,"../data/7_8_22/common_to_rare_CGP_evoP.csv")
+df = submatrix_to_dataframe( p, funcs, E, pdf, source="rare", dest="common" )
+write_dataframe(df,"../data/7_8_22/rare_to_common_CGP_evoP.csv")
+df = submatrix_to_dataframe( p, funcs, E, pdf, source="rare", dest="rare" )
+write_dataframe(df,"../data/7_8_22/rare_to_rare_CGP_evoP.csv")
+
+# Relationship to complexity based on notes/7_8_22.txt but using evolved complexity.
+rare_b = map(i->pdf.pheno_list[i] in rare_str, 1:256);
+common_b = map(i->pdf.pheno_list[i] in common_str, 1:256);
+rpdf = pdf[rare_b,:]   # pdf restricted to rare goals
+cpdf = pdf[common_b,:]   # pdf restricted to common goals 
+nrpdf = pdf[map(~,rare_b),:]   # pdf restricted to non-rare goals
+ncpdf = pdf[map(~,common_b),:]   # pdf restricted to non-common goals
+findmin(rpdf.complexity)
+(3.4434076747784435, 1)
+findmax(nrpdf.complexity)
+(3.515573496094335, 172)
+

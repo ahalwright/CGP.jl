@@ -154,9 +154,9 @@ function write_dataframe_with_comments( df::DataFrame, comments_filename::String
       line = readline(infile)
       while line[1] == '#'
         #println("line: ",line)
-        if line[1:6] != "# cor("
-          write(outfile,string(line,"\n"))
-        end
+        #if line[1:6] != "# cor("
+        #  write(outfile,string(line,"\n"))
+        #end
         line = readline(infile)
       end
     end

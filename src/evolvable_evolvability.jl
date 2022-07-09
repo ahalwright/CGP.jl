@@ -131,8 +131,9 @@ end
  LGP_common_list_str=["0x0000","0x0001","0x0002","0x0004","0x0010","0x0011","0x003f","0x007f","0x0080","0x00df","0x00ef","0x00f7","0x00fb","0x00fc","0x00fe","0x00ff"] # complexities <= 2.6
 #  E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
 #  Possible problem if the evdf dataframe is directly generated rather than read from a CSV file.
-function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{Int64}, evdf::DataFrame, common_list::Union{Vector{MyInt},Vector{String}}=common_list_str, 
-    rare_list::Union{Vector{MyInt},Vector{String}}=rare_list_str; source::String="rare", dest::String="common" )
+# Note that default values are from common_str and rare_str.
+function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{Int64}, evdf::DataFrame, common_list::Union{Vector{MyInt},Vector{String}}=common_str, 
+    rare_list::Union{Vector{MyInt},Vector{String}}=rare_str; source::String="rare", dest::String="common" )
   println("source: ",source,"  dest: ",dest)
   to_string(x::MyInt) = MyInt==UInt16 ? @sprintf("0x%02x",x) : @sprintf("0x%04x",x)
   common_list_str = typeof(common_list)==Vector{String} ? common_list : map(x->to_string(x), common_list )
