@@ -166,3 +166,25 @@ function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{I
   end
   edf
 end
+
+function total_evolvability( pdf::DataFrame )
+  to_binary(x::Bool) = x ? 1 : 0
+  to_bool(x::Int64) = x != 0 ? true : false
+  E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
+  n = length(pdf.pheno_list)
+  total_evo = Int64[]
+  for k = 1:n
+    bool_vect = map( v->to_bool(v), E[k,:]+E[:,k] )
+    evo_vect = map( v->to_binary(v), bool_vect )
+    evo_vect[k] = 0
+    push!(total_evo,sum(evo_vect))
+  end
+  total_evo
+end
+
+function total_evol( pdf::DataFrame )
+  to_binary(x::Bool) = x ? 1 : 0
+  to_bool(x::Int64) = x != 0 ? true : false
+  B = map( to_bool, pheno_vects_to_evolvable_matrix( pdf.pheno_vects ))  # Boolean evolvability matrix
+  map( x->sum( B[x,:] .|| B[:,x] ) - to_binary( B[x,x] ), 1:length(pdf.pheno_vects ) )
+end

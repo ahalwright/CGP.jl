@@ -1,0 +1,24 @@
+Plan:  Redo the common_to_rare, rare_to_common, rare_to_rare, common_to_common results in data/7_8_22
+based on K (Kolmogorov) complexity rather than on redundancy.
+
+K complexity values for all 3x1 phenotypes are in k_complexity7_11_22C.csv and k_complexity7_11_22D.csv
+where the D file just increased max_goal_tries from 10 to 20 and max_ev_steps from 50000 to 100000.  The 
+K complexity values are the same suggesting that they are the "true" values.
+
+We discovered that there are 18 high K complexity (K complexity = 6) phenotypes and 18 low K complexity
+(K complexity 1) phenotypes.
+
+So the objective is to define "rare" and "common" phenotypes based on K complexity rather than redundancy.
+These could be renamed as "high cmplx" and "low complx".
+Rare phenotypes will be those with K complexity 6.  Common phenotypes will be those with K complexity 1 or 2---
+we should try both.  The problem with using 2 is that there will be too many common phenotypes to display 
+in matrices.
+
+Follow the procedure given in notes/7_9_22.txt. You will also want to insert a "kcomplexity" columm 
+from the dataframe ../data/7_11/22/k_complexity7_11_22D.csv.
+
+We want to recompute the results in data/7_8_22.  Note that the evolvability results in
+../data/7_8_22/evolvable_evolability_3x1_7_4chP.csv do not have to be recomputed.
+
+
+New results should go in data/7_12_22.

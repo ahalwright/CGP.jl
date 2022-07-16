@@ -1,9 +1,11 @@
 Ran "data/7_8_22/run_evolvable_evolvability_allP.jl" on surt2 28 procs.
 copied to xps
+p = Parameters(3,1,7,4)
+funcs = default_funcs(p)   # Should come out with 4 funcs rather than 5
 pdf = read_dataframe("../data/7_8_22/evolvable_evolability_3x1_7_4chP.csv")
 cdf = read_dataframe("../data/6_25_22/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv")
-insertcols!(pdf,4,:ints7_4=>cdf.ints7_4)
-insertcols!(pdf,4,:scomplexity=>cdf.complexity)
+insertcols!(pdf,4,:ints7_4=>cdf.ints7_4)   # ints7_4 is redundancy (frequency) from the cdf dataframe
+insertcols!(pdf,4,:scomplexity=>cdf.complexity)  # scomplexity is sampling complexity
 write_dataframe_with_comments(pdf,"../data/7_8_22/evolvable_evolability_3x1_7_4chP.csv","../data/7_8_22/evolvable_evolability_3x1_7_4ch_scmplxP.csv")
 # Based on notes/6_26_22.txt
 E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
@@ -30,3 +32,82 @@ findmin(rpdf.complexity)
 findmax(nrpdf.complexity)
 (3.515573496094335, 172)
 
+
+Redo the complexity density plot copied from diary/diary12_18.txt
+Redo 11 gts 8 lb on 7/9/22 for GPTP paper
+Moved files from OneDrive to Dropbox CGP.jl/data/2020/12_20/.
+Assume cwd is Dropbox\\evotech\CGP.jl\\src
+using StatsPlots
+using Measures
+gr()
+scdb = read_dataframe("..\\data\\2020\\12_20\\circuit_complexities12_20DR.csv")
+gpdf = read_dataframe("..\\data\\2020\\12_20\\geno_pheno12_20D.csv")
+p1=density([scdb.complexities,gpdf.complex],labels=["Tononi complexities of random circuits" "Tononi complexities of random phenotypes"])
+plot!(p1,size=(1024,512),tickfontsize=14,guidefontsize=14,legendfontsize=14)
+plot!(p1,bottom_margin=Measures.Length(:mm,4),left_margin=Measures.Length(:mm,4))
+plot!(p1,ylims=[0.0,0.34])
+plot!(p1,ylabel="Tononi complexity")
+savefig("../data/7_9_22/density_of_complexities_circuit_space_11gts_8lb.png")   
+
+Redo again on 7_9_22: to add Tononi to x and y labels.
+Code:  neighbor_complexity.jl
+Edited and parallelized
+@time include("../data/1_30/run_neighbor_complexityD.jl")  # 1512 seconds
+scdf = read_dataframe("../data/1_30/neighbor_complexity1_30D.csv")
+Pkg.add("Measures")
+using Measures
+scatter( scdf.circuit_complexity,scdf.neighbor_complexity,size=(1024,512))
+scatter!(ylabel="neighbor Tononi complexity",xlabel="Tononi circuit complexity",legend=:none,tickfontsize=14,guidefontsize=14)
+scatter!(bottom_margin=Measures.Length(:mm,5),left_margin=Measures.Length(:mm,5)
+savefig("../data/7_9_22/neighbor_complexity_11gts8lb.png")
+
+================================================================================
+
+Redoing GPTP plots to change "complexity" labels to "Tononi complexity.
+
+Copied from data/5_25_22/README.txt:
+
+using Plots, DataFrames, CSV
+gr()
+#Converting the raw csv into dataframes
+edf = DataFrame(CSV.File("../geno_complexity_cartGP_5_25_22E.csv"))#CartGP
+ddf = DataFrame(CSV.File("../geno_complexity_linGP_5_25_22D.csv"))#linGP
+
+#redundancy log for ddf
+length(ddf.ints10_2)
+lg10(x) = x>0 ? log10(x) : 0.0 # defines the function lg10 which is the log10 function with 0 mapped to 0 instead of NaN
+ddf.ints10_2log = [lg10(ddf.ints10_2[i]) for i = 1:length(ddf.ints10_2)]
+ddf.ints10_2log = map(lg10, ddf.ints10_2)
+
+#redundancy log for edf
+length(edf.ints11_8)
+lg10(x) = x>0 ? log10(x) : 0.0 # defines the function lg10 which is the log10 function with 0 mapped to 0 instead of NaN
+edf.ints11_8log = [lg10(edf.ints11_8[i]) for i = 1:length(edf.ints11_8)]
+edf.ints11_8log = map(lg10, edf.ints11_8)
+
+#Setting guide font size
+gfont = 8
+
+#Creating and saving overlay plot for robustness on evolvability
+scatter([edf.robustness, ddf.robustness],[edf.evo_count, ddf.evo_count], labels=["CGP 11 gates 2 levelsback" "LGP 10 gates 2 registers"], framestyle=:box, guidefontsize = gfont, xlabel = "robustness", ylabel = "evolvability")
+savefig("C:/Users/coope/Desktop/JuliaTest/overlaygraphs/evolvability_on_robustness_CGP_and_LGP_overlay.png")
+
+#Creating and saving overlay plot for evolvability on log redundancy
+scatter([edf.ints11_8log, ddf.ints10_2log],[edf.evo_count, ddf.evo_count], labels=["CGP 11 gates 2 levelsback" "LGP 10 gates 2 registers"], framestyle=:box, guidefontsize = gfont, xlabel = "log redundancy", ylabel = "evolvability")
+savefig("C:/Users/coope/Desktop/JuliaTest/overlaygraphs/evolvability_on_logredundancy_CGP_and_LGP_overlay.png")
+
+#Creating and saving overlay plot for evolvability on complexity
+scatter([edf.complexity, ddf.complexity],[edf.evo_count, ddf.evo_count], labels=["CGP 11 gates 2 levelsback" "LGP 10 gates 2 registers"], framestyle=:box, guidefontsize = gfont, xlabel = "complexity", ylabel = "evolvability")
+savefig("C:/Users/coope/Desktop/JuliaTest/overlaygraphs/evolvability_on_complexity_CGP_and_LGP_overlay.png")
+
+#Creating and saving overlay plot for robustness on complexity
+scatter([edf.complexity, ddf.complexity],[edf.robustness, ddf.robustness], labels=["CGP 11 gates 2 levelsback" "LGP 10 gates 2 registers"], framestyle=:box, guidefontsize = gfont, xlabel = "complexity", ylabel = "robustness")
+savefig("C:/Users/coope/Desktop/JuliaTest/overlaygraphs/robustness_on_complexity_CGP_and_LGP_overlay.png")
+
+#Creating and saving overlay plot for log redundancy  on complexity
+scatter([edf.complexity, ddf.complexity],[edf.ints11_8log, ddf.ints10_2log], labels=["CGP 11 gates 2 levelsback" "LGP 10 gates 2 registers"], framestyle=:box, guidefontsize = gfont, xlabel = "complexity", ylabel = "log redundancy")
+savefig("C:/Users/coope/Desktop/JuliaTest/overlaygraphs/redundancy_on_complexity_CGP_and_LGP_overlay.png")
+
+#Creating and saving overlay plot for robustness  on redundancy
+scatter([edf.ints11_8log, ddf.ints10_2log],[edf.robustness, ddf.robustness], labels=["CGP 11 gates 2 levelsback" "LGP 10 gates 2 registers"], framestyle=:box, guidefontsize = gfont, xlabel = "log redundancy", ylabel = "robustness")
+savefig("C:/Users/coope/Desktop/JuliaTest/overlaygraphs/robustness_on_log_redundancy_CGP_and_LGP_overlay.png")

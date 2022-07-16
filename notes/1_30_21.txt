@@ -6,3 +6,15 @@ scdf = read_dataframe("1_30/neighbor_complexity1_30D.csv")
 Pkg.add("Measures")
 using Measures
 scatter( scdf.circuit_complexity,scdf.neighbor_complexity,size=(1024,512),ylabel="neighbor complexity",xlabel="circuit_complexity",legend=:none,tickfontsize=14,guidefontsize=14,bottom_margin=Measures.Length(:mm,1))  
+
+Redo again on 7_9_22: to add Tononi to x and y labels.
+Code:  neighbor_complexity.jl
+Edited and parallelized
+@time include("../data/1_30/run_neighbor_complexityD.jl")  # 1512 seconds
+scdf = read_dataframe("../data/1_30/neighbor_complexity1_30D.csv")
+Pkg.add("Measures")
+using Measures
+scatter( scdf.circuit_complexity,scdf.neighbor_complexity,size=(1024,512))
+scatter!(ylabel="neighbor Tononi complexity",xlabel="Tononi circuit complexity",legend=:none,tickfontsize=14,guidefontsize=14)
+scatter!(bottom_margin=Measures.Length(:mm,5),left_margin=Measures.Length(:mm,5)
+savefig("../data/7_9_22/neighbor_complexity_11gts8lb.png")

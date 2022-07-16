@@ -1,0 +1,18 @@
+Idea:  Define total evolvability which is the combination of evolvability in both directions.
+See the function total_evolvability() in evolvable_evolvability.jl which is a 2-line definition.
+
+plot([sort(df.t_evolvability),sort(df.e_evolvability),sort(df.s_evolvability)],labels=["total evolvability" "evolution evolvability" "samplingevolvability"])
+plot!(ylabel="Evolvability", xlabel="rank", title="Sorted total, evolution, sampling evolvabilities")
+plot!(legend=:topleft)
+savefig("../data/7_8_22/total_evolution_sampling_evolvabilities_3x1_7gt4lb.png")
+
+
+scatter(pdf.t_evolvability,pdf.complexity,labels=:none)
+scatter!(xlabel="total evolvability", ylabel="Tononi complexity", title="Tononi complexity vs total evolvability 3x1 7gts4lb")
+savefig("../data/7_8_22/total_evol_vs_complexity_3x1_7_4.png")
+
+scatter(pdf.t_evolvability,map(lg10,pdf.ints7_4),labels=:none)
+scatter!(xlabel="total evolvability", ylabel="log redundancy",title="log redundancy vs total evolvability 3x1 7gts4lb")
+savefig("../data/7_8_22/total_evol_vs_log_redundancy_3x1_7_4.png")
+
+

@@ -263,7 +263,15 @@ These files now have suffix  _21.txt
 6_23:  Showing definitively that sampling approximations to Wagner's 2008 definition of phenotype evolvability are inaccurate.
         evotech/complexity/cce/'Wagner definition of phenotype evolvability 6_23_22.docx'
 6_24:  Reviewing recent results
-
+6_25:  Revised comments for Func.jl
+6_26:  Rare and common
+6_27:  Rare and common, minor changes
+6_29:  Very preliminary ideas on the relationship to computational complexity
+7_8:   Rare and common, fixed bug in evolvable_evolvability.jl
+7_9:   Rare and common, changing plot labels from "complexity" to "Tononi complexity"
+7_12:  Rare and commov vs K complexity
+7_15:  Evolution and sampling evolvability vs rank---separately sorted
+7_16:  Total evolvability
 
 
 All plots:
