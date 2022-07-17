@@ -269,7 +269,7 @@ These files now have suffix  _21.txt
 6_29:  Very preliminary ideas on the relationship to computational complexity
 7_8:   Rare and common, fixed bug in evolvable_evolvability.jl
 7_9:   Rare and common, changing plot labels from "complexity" to "Tononi complexity"
-7_12:  Rare and commov vs K complexity
+7_12:  Rare and common vs K complexity
 7_15:  Evolution and sampling evolvability vs rank---separately sorted
 7_16:  Total evolvability
 

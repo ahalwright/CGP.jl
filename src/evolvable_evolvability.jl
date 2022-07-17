@@ -29,6 +29,7 @@ function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalLi
       print_parameters(f,p,comment=true)
       println(f,"# funcs: ", Main.CGP.default_funcs(p))
       println(f,"# ncircuits: ",ncircuits)
+      println(f,"# length(ph_list): ",length(ph_list))
       println(f,"# length(circ_int_lists): ",length(circ_int_lists))
       println(f,"# max_tries: ",max_tries)
       println(f,"# max_steps: ",max_steps)
