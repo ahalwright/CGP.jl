@@ -11,8 +11,34 @@ scatter(pdf.t_evolvability,pdf.complexity,labels=:none)
 scatter!(xlabel="total evolvability", ylabel="Tononi complexity", title="Tononi complexity vs total evolvability 3x1 7gts4lb")
 savefig("../data/7_8_22/total_evol_vs_complexity_3x1_7_4.png")
 
+# Total evolvability vs log redundancy
 scatter(pdf.t_evolvability,map(lg10,pdf.ints7_4),labels=:none)
 scatter!(xlabel="total evolvability", ylabel="log redundancy",title="log redundancy vs total evolvability 3x1 7gts4lb")
 savefig("../data/7_8_22/total_evol_vs_log_redundancy_3x1_7_4.png")
 
+# Total and evolution evolvability vs log redundancy
 
+Shaps space coverage:  ShapeSpace.jl
+
+data/7_16_22/run_common_coverageD.jl
+pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
+circuits_per_goal_list = [1,1]   # start from a single circuit
+goal_list = map( x->[MyInt(x)], 0:255 )
+num_mutates = 3   # 3-neighborhood of circuit 
+quant = 0.8    # Quantile to define common circuits
+# Results
+findall(x->x==1.0,cdf.fract_covered)
+    184-element Vector{Int64}:   # For 184 of 256 starting phenotypes the 3-neighborhood of one circiut contains all of the common phenotypes defined with quantile = 0.8
+mean(cdf.fract_covered)
+    0.9867
+
+data/7_16_22/run_common_coverageE.jl
+circuits_per_goal_list = [1,4,8]
+goal_list = map( x->[MyInt(x)], 0:255 )
+num_mutates = 2
+quant = 0.8    # Quantile to define phenos_to_cover
+# Results
+findall(x->x==1.0,cdf.fract_covered)
+    155-element Vector{Int64}:   # For 155 of 256 starting phenotypes the 2-neighborhood of 8 circuits contains all of the common phenotypes defined with quantile = 0.8
+mean(cdf.fract_covered)
+    0.9873

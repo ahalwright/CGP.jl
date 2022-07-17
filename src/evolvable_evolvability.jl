@@ -116,7 +116,7 @@ function pheno_vects_to_evolvable_matrix( pheno_vects::Vector{Vector{Int64}} )
   result_matrix
 end
 
-# Calls the previous version when pheno_vects is a vector strings
+# Calls the previous version when pheno_vects is a vector of strings
 function pheno_vects_to_evolvable_matrix( pheno_vects::Vector{String} )
   ph_vects =map(i->eval(Meta.parse(pheno_vects[i])), 1:length(pheno_vects))  # convert strings to Int64s 
   pheno_vects_to_evolvable_matrix( ph_vects )
@@ -167,6 +167,17 @@ function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{I
   edf
 end
 
+# For the 3x1 7gts 4lb case, pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
+#  E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
+#  B is the Boolean verson of matrix E
+function total_evol( pdf::DataFrame )
+  to_binary(x::Bool) = x ? 1 : 0
+  to_bool(x::Int64) = x != 0 ? true : false
+  B = map( to_bool, pheno_vects_to_evolvable_matrix( pdf.pheno_vects ))  # Boolean evolvability matrix
+  map( x->sum( B[x,:] .|| B[:,x] ) - to_binary( B[x,x] ), 1:length(pdf.pheno_vects ) )
+end
+
+# less elegant version
 function total_evolvability( pdf::DataFrame )
   to_binary(x::Bool) = x ? 1 : 0
   to_bool(x::Int64) = x != 0 ? true : false
@@ -180,11 +191,4 @@ function total_evolvability( pdf::DataFrame )
     push!(total_evo,sum(evo_vect))
   end
   total_evo
-end
-
-function total_evol( pdf::DataFrame )
-  to_binary(x::Bool) = x ? 1 : 0
-  to_bool(x::Int64) = x != 0 ? true : false
-  B = map( to_bool, pheno_vects_to_evolvable_matrix( pdf.pheno_vects ))  # Boolean evolvability matrix
-  map( x->sum( B[x,:] .|| B[:,x] ) - to_binary( B[x,x] ), 1:length(pdf.pheno_vects ) )
 end

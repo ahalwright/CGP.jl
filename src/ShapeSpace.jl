@@ -1,24 +1,36 @@
 # Test the shape-space property
+# Shape-space-covering A GP map has the shape space covering property if, given a phenotype, only a
+#  small radius around a sequence encoding that phenotype needs to be explored in order to find the most
+#  common phenotypes [Schuster, p, Fontana, Stadler.
+#  "From sequences to shapes and back: a case study in RNA secondary structures. Proc R Soc Lond B 1994;255:279–84"].
 
 # Runs shape_space_multiple_genos() and returns the fraction of the phenos in phenos_to_cover that are in the output phenotypes of shape_space_multiple_genos().
+# If output_phenos==true, then for each 
 function fraction_coverage( p::Parameters, funcs::Vector{Func}, phenos_to_cover::Vector{MyInt},  num_mutates::Int64, goal_list::GoalList, circuits_per_goal_list::Vector{Int64},  
       max_tries::Int64, max_steps::Int64; increase_mutates::Bool=false, use_lincircuit::Bool=false, output_phenos::Bool=false, csvfile::String="" )
   df = shape_space_multiple_genos( p, funcs, num_mutates, goal_list, circuits_per_goal_list, max_tries, max_steps, output_phenos=true )
+  fraction_coverage( df, phenos_to_cover )
+end
+
+# df is the dataframe produced by shape_space_multiple_genos() with output_phenos==true
+function fraction_coverage( df::DataFrame, phenos_to_cover::Vector{MyInt}; csvfile::String="" )
   n = length(phenos_to_cover)
   fract_covered = zeros(Float64,size(df)[1])
   for i = 1:size(df)[1]
     fract_covered[i] = length( intersect( phenos_to_cover, df.phenos[i] ))/n
   end
-  insertcols!(df, size(df)[1]-1, :fract_covered=>fract_covered )
-  df
+  cdf = insertcols!(deepcopy(df), size(df)[2]-1, :fract_covered=>fract_covered )
+  cdf
 end
 
-# Shape-space-covering A GP map has the shape space covering property if, given a phenotype, only a
-#  small radius around a sequence encoding that phenotype needs to be explored in order to find the most
-#  common phenotypes [Schuster, p, Fontana, Stadler.
-#  "From sequences to shapes and back: a case study in RNA secondary structures. Proc R Soc Lond B 1994;255:279–84"].
+# phenotypes that ShapeSpace is trying to cover.  I. e., the "common" phenotypes in the statement of the Shape Space covering hypothesis
+# pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv") 
+function phenos_to_cover( pdf::DataFrame, quant::Float64 )
+  map(x->eval(Meta.parse(x)),pdf[ pdf.ints7_4 .>= quantile(pdf.ints7_4,quant),1])  # Assumes that the first column is the string representation of goals
+end
+  
 # For each phenotype in goal_list, uses function pheno_evolve_to_goals() to evolve circuits that map to the phenotype.
-# For each phenotype, computes the phenotypes in the unions of the k-neighborhoods of these circuits for each k in circuits_per_goal_list[2:end].
+# For each phenotype, computes the phenotypes in the unions of the k-neighborhoods of these circuits for each k in circuits_per_goal_list[2:end].  k==num_mutates.
 # For each phenotype, there is a row of the output dataframe which includes size of these neighborhoods for each k, 
 #   and if output_phenos==true, the list of phenos for the maximum k value.
 function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, goal_list::GoalList, circuits_per_goal_list::Vector{Int64}, 
