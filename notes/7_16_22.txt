@@ -17,7 +17,12 @@ scatter!(xlabel="total evolvability", ylabel="log redundancy",title="log redunda
 savefig("../data/7_8_22/total_evol_vs_log_redundancy_3x1_7_4.png")
 
 # Total and evolution evolvability vs log redundancy
+scatter([pdf.t_evolvability,pdf.evolvability],map(lg10,pdf.ints7_4),labels=["total evolvability" "evolution evolvabilty"])
+scatter!(xlabel="evolvability", ylabel="log redundancy",title="log redundancy vs evolvability 3x1 7gts4lb")
+scatter!(legend=:bottomright)
+savefig("../data/7_8_22/total_evolution_evol_vs_log_redundancy_3x1_7_4.png")
 
+============================================================================================
 Shaps space coverage:  ShapeSpace.jl
 
 data/7_16_22/run_common_coverageD.jl

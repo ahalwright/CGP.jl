@@ -553,6 +553,10 @@ function random_neutral_walk( c::Chromosome, goallist::GoalList, funcs::Vector{F
   return (min_num_active,count_min_num_active,min_active_chromes_list)
 end
 
+# Run pheno_evolve() to evolve multiple circuits that map to phenotype goal, and 
+function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false ) 
+end
+
 # Evolve a circuit that maps to a given phenotype (Goal)
 # max_tries is the maximum number of attempts using neutral_evolution to find the circuit
 # max_steps is the maximum number of steps during a run of neutral_evolution()
