@@ -63,5 +63,6 @@ end
 
 function run_neutral_evol( p::Parameters, funcs::Vector{Func}, target_pheno::Goal, num_evolves::Int64, max_steps::Int64;
     use_lincircuit::Bool=false )
-  result_list = pmap( i->neutral_evolution( (use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs ) ), target_pheno, max_steps, funcs=funcs ), 1:num_evolves )
+  result_list = pmap( i->neutral_evolution( (use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs ) ), funcs, target_pheno, max_steps ), 1:num_evolves )
+  #result_list = map( i->neutral_evolution( (use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs ) ), funcs, target_pheno, max_steps ), 1:num_evolves )
 end

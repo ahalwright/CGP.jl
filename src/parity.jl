@@ -63,6 +63,7 @@ function MyInt_to_binary_list( x::MyInt, size::Int64 )
 end
 
 function shift_extend( p::Parameters, maxsteps::Int64; parity::Bool=:true, extend::Int64=3 )
+  funcs = default_funcs(p)
   c = random_chromosome(p)
   if parity
     goal = [even_parity(p.numinputs)]
@@ -70,7 +71,7 @@ function shift_extend( p::Parameters, maxsteps::Int64; parity::Bool=:true, exten
     goal= [rand_shift_extend(extend,p.numinputs)]
   end
   #println("goal: ",goal)
-  (nc,steps)=neutral_evolution(c,goal,maxsteps)
+  (nc,steps)=neutral_evolution(c,funcs,goal,maxsteps)
   ssteps =  steps < maxsteps ? steps : 0
   failure = ssteps == 0 ? 1 : 0
   (parity,p.numinputs,p.numinteriors,p.numlevelsback,ssteps,failure)

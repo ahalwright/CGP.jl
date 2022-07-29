@@ -561,7 +561,7 @@ end
 # max_tries is the maximum number of attempts using neutral_evolution to find the circuit
 # max_steps is the maximum number of steps during a run of neutral_evolution()
 # if no genotype that maps to goal is found, returns (nothing,nothing)
-function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false )
+function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, use_mut_evolve::Bool=false )
   steps = 0   # establish scope
   nc = nothing # establish scope
   for i = 1:max_tries
@@ -569,8 +569,13 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries
       c = rand_lcircuit( p, funcs )
     else
       c = random_chromosome( p, funcs )
+      #print_circuit(c)
     end         
-    (nc,steps) = neutral_evolution( c, goal, max_steps )
+    if !use_mut_evolve
+      (nc,steps) = neutral_evolution( c, funcs, goal, max_steps )
+    else
+      (nc,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [goal], funcs, max_steps ) 
+    end
     if steps < max_steps
       break
     end
@@ -586,7 +591,7 @@ end
 # max_tries is the maximum number of attempts using neutral_evolution to find the circuit
 # max_steps is the maximum number of steps during a run of neutral_evolution()
 # if no genotype that maps to goal is found, returns (nothing,nothing)
-function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false )
+function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, use_mut_evolve::Bool=false )
   steps = 0   # establish scope
   nc = nothing # establish scope
   circuits_steps_list = use_lincircuit ? Tuple{LinCircuit,Int64}[] : Tuple{Chromosome,Int64}[]
@@ -595,7 +600,13 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circu
   while tries < max_tries && num_circuits_found < num_circuits_per_goal 
     tries += 1
     c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
-    (nc,steps) = neutral_evolution( c, goal, max_steps )
+    #print_circuit(c)
+    #(nc,steps) = neutral_evolution( c, funcs, goal, max_steps )
+    if !use_mut_evolve
+      (nc,steps) = neutral_evolution( c, funcs, goal, max_steps )
+    else
+      (nc,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [goal], funcs, max_steps ) 
+    end
     if steps < max_steps
       push!(circuits_steps_list, (nc,steps))
       num_circuits_found += 1
@@ -823,10 +834,9 @@ end
 # insert_gate_prob is the probability of inserting a gate on a mutation of a chromosome.
 # delete_gate_prob is similar for deleting a gate.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
-function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps::Bool=false,
+function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false,
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
-      save_acomplexities::Bool=false, # Save acomplexity, evolvability, robustness of phenos produced by mutate_all on every step
-      funcs::Vector{Func}=typeof(c) == LinCircuit ? lin_funcs( c.params.numinputs ) : default_funcs(c.params.numinputs) )
+      save_acomplexities::Bool=false ) # Save acomplexity, evolvability, robustness of phenos produced by mutate_all on every step
   p = c.params
   LinCirc = typeof(c) == LinCircuit ? :true : :false
   step_list = Int64[] # Only used if save_acomplexities==true
@@ -839,6 +849,7 @@ function neutral_evolution( c::Circuit, g::Goal, max_steps::Integer; print_steps
   #println("numgates: ",c.params.numinteriors)
   step = 0
   ov = output_values( c )
+  #println("ov: ",ov,"  g: ",g)
   current_distance = hamming_distance( ov, g, c.params.numinputs )
   while step < max_steps && ov != g
     step += 1
@@ -933,7 +944,7 @@ function geno_circuits( g::Goal, p::Parameters, num_circuits::Integer, max_steps
   nc = nothing
   while attempt < max_attempts && n_circuits < num_circuits
     attempt += 1
-    (nc,steps) = neutral_evolution( c, g, max_steps )
+    (nc,steps) = neutral_evolution( c, funcs, g, max_steps )
     sum_steps += steps
     if nc != nothing
       n_circuits += 1
@@ -959,7 +970,7 @@ function geno_circuits( g::Goal, p::Parameters, num_circuits::Integer, max_steps
   nc = nothing
   while attempt < max_attempts && n_circuits < num_circuits
     attempt += 1
-    (nc,steps) = neutral_evolution( c, g, max_steps )
+    (nc,steps) = neutral_evolution( c, funcs, g, max_steps )
     sum_steps += steps
     if nc != nothing
       n_circuits += 1

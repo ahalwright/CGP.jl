@@ -94,7 +94,7 @@ function pheno_vects_to_boolean_matrix( pheno_vects::Vector{Vector{Int64}} )
   result_matrix = zeros(Bool,length(pheno_vects[1]),length(pheno_vects[1]))
   for i = 1:length(pheno_vects)
     for j = 1:length(pheno_vects[i])
-      result_matrix[i,j] = pheno_vects[i][j] != 0 ? true : false
+      result_matrix[i,j] = pheno_vects[i][j] != 0 ? 1 : 0
     end
   end
   result_matrix
@@ -136,9 +136,9 @@ end
 function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{Int64}, evdf::DataFrame, common_list::Union{Vector{MyInt},Vector{String}}=common_str, 
     rare_list::Union{Vector{MyInt},Vector{String}}=rare_str; source::String="rare", dest::String="common" )
   println("source: ",source,"  dest: ",dest)
-  to_string(x::MyInt) = MyInt==UInt16 ? @sprintf("0x%02x",x) : @sprintf("0x%04x",x)
-  common_list_str = typeof(common_list)==Vector{String} ? common_list : map(x->to_string(x), common_list )
-  rare_list_str = typeof(rare_list)==Vector{String} ? rare_list : map(x->to_string(x), rare_list )
+  tostring(x::MyInt) = MyInt==UInt16 ? @sprintf("0x%02x",x) : @sprintf("0x%04x",x)
+  common_list_str = typeof(common_list)==Vector{String} ? common_list : map(x->tostring(x), common_list )
+  rare_list_str = typeof(rare_list)==Vector{String} ? rare_list : map(x->tostring(x), rare_list )
   common_indices = findall(x->(x in common_list_str),evdf.pheno_list)
   rare_indices = findall(x->(x in rare_list_str),evdf.pheno_list)
   println("rare_indices: ",rare_indices)
@@ -165,6 +165,65 @@ function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{I
   else
     insertcols!(edf,1,"pheno"=>evdf.pheno_list[common_indices])
   end
+  edf
+end
+
+# Returns a DataFrame representing a submatrix of the evolvability matrix correcponding to phdf.pheno_vects. 
+# The matrix has rows corresponding to source which must be "rare" or "common", and columns corresponding to dest which also must be "rare" or "common"
+# The rare and common strings can be defined either on the basis of redundancy or on the basis of k_complexity.  
+# In the former case, redund_symbol should be name of the redundancy column of phdf (such as :ints7_4), and in the former case this :k_complexity.
+# If 0<common_q<1 and 0<rare_q<1 these are interpreted as redundancy quantiles
+# If common_q and rare_q are Int64's, these are interpreted as Kolomogorov complexity cutoffs
+# test setup: p = Parameters(3,1,8,5); funcs=default_funcs(p); redund_symbol=:ints8_5; rare_q=0.06; common_q=0.96; source="common"; dest="rare"
+# test setup: p = Parameters(3,1,8,5); funcs=default_funcs(p); redund_symbol=:k_complexity; rare_q=6; common_q=1; source="common"; dest="rare"
+#   phdf = read_dataframe("../data/7_17_22/evolvable_evolabilityCGP_3x1_8_5_7_17_22cmplxA.csv")
+function phenodf_to_submatrix_dataframe( p::Parameters, funcs::Vector{Func}, phdf::DataFrame, redund_symbol::Symbol, rare_q::Number, common_q::Number, source::String, dest::String;
+      Bool_output::Bool=false )  # Output matrix is Boolean, i. e, 0/1
+  println("source: ",source,"  dest: ",dest)
+  if !( source in ["rare","common"]) || !(dest in ["rare","common"])
+    error("Error in function phenodf_to_submatrix_dataframe():  both rare and common must be one of the strings 'rare' or 'common'.")
+  end
+  tostring(x::MyInt) = @sprintf("0x%04x",x)
+  #tostring(x::MyInt) = @sprintf("0x%02x",x) 
+  E = Bool_output ? pheno_vects_to_boolean_matrix( phdf.pheno_vects ) : pheno_vects_to_evolvable_matrix( phdf.pheno_vects )
+  if 0.0 < common_q < 1.0 && 0.0 < rare_q < 1.0   # Use common_q and rare_q as redundancy quantiles
+    common = phdf[phdf[:,redund_symbol].>=quantile(phdf[:,redund_symbol],common_q),:pheno_list]
+    println("common: ",common)
+    rare = phdf[phdf[:,redund_symbol].<=quantile(phdf[:,redund_symbol],rare_q),:pheno_list]
+  elseif typeof(common_q) == Int64 && typeof(rare_q) == Int64  # Use common_q and rare_q as Kolmogorov complexity cutoffs
+    common = phdf[phdf[:,redund_symbol].<=common_q,:pheno_list]
+    println("common: ",common)
+    rare = phdf[phdf[:,redund_symbol].>=rare_q,:pheno_list]
+  #else
+  end
+  common_indices = findall(x->(x in common),phdf.pheno_list)
+  rare_indices = findall(x->(x in rare),phdf.pheno_list)  
+  common_list_str = typeof(common)==Vector{MyInt} ? map(x->tostring(x), common ) : common
+  rare_list_str = typeof(rare)==Vector{MyInt} ? map(x->tostring(x), rare ) : rare
+  common_indices = findall(x->(x in common_list_str),phdf.pheno_list)
+  rare_indices = findall(x->(x in rare_list_str),phdf.pheno_list)
+  common_list_str = map(s-> occursin("0x00",s) ? string("0x",s[5:end]) : s, common )  # E.g.: Convert "0x0078" to "0x78"
+  rare_list_str = map(s-> occursin("0x00",s) ? string("0x",s[5:end]) : s, rare )  # E.g.: Convert "0x006a" to "0x6a"
+  println("rare_list_str: ",rare_list_str)
+  println("rare_indices: ",rare_indices)
+  println("common_indices: ",common_indices)
+  edf = DataFrame( :goals=>source=="rare" ? rare_list_str : common_list_str )
+  for i = 1:(dest=="rare" ? length(rare_indices) : length(common_indices))
+    #println("i: ",i)
+    if source=="rare"
+      if dest=="rare"
+        insertcols!(edf,i+1,Pair(@sprintf("0x%02x",rare_indices[i]-1),E[rare_indices,rare_indices[i]]))
+      else
+        insertcols!(edf,i+1,Pair(@sprintf("0x%02x",common_indices[i]-1),E[rare_indices,common_indices[i]]))
+      end
+    else
+      if dest=="rare"
+        insertcols!(edf,i+1,Pair(@sprintf("0x%02x",rare_indices[i]-1),E[common_indices,rare_indices[i]]))
+      else
+        insertcols!(edf,i+1,Pair(@sprintf("0x%02x",common_indices[i]-1),E[common_indices,common_indices[i]]))
+      end
+    end
+  end 
   edf
 end
 

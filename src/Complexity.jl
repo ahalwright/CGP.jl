@@ -281,7 +281,7 @@ end
 #  2×3 Array{Float64,2}:
 #   0.25  0.125  0.125
 #   0.0   0.375  0.125
-function pops_to_tbl( P::Vector{FPopulation} )
+function pops_to_tbl( P::Vector{CGP.FPopulation} )
   lengths = map(length,P)
   @assert( all(lengths .==  lengths[1]))   # Check that esch population has the same length
   sums = map(sum,P)
@@ -486,7 +486,7 @@ end
 # If a chromosome with a smaller number of active gates is found in these further evolutions,
 #    then num_gates is reset and the further evaluations of complexity, robustness, evolvability are restarted
 # max_ev_steps is the maximum number of steps while doing mut_evolve()
-function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, max_ev_steps::Int64 )
+function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, max_ev_steps::Int64; use_mut_evolve::Bool=true )
   num_tries_multiplier = 3   # used in second outer while loop
   println("goal: ",g)
   num_gates_exceptions = 0
@@ -501,7 +501,7 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
   goal_found = true
   while num_gates > 1 && goal_found  # terminates when no goal is found for this value of num_gates
     num_gates -= 1
-    #println("num_gates: ",num_gates)
+    println("num_gates: ",num_gates)
     p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
     goal_found = false
     tries = 0
@@ -509,8 +509,11 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
       tries += 1
       #println("inner while tries: ",tries)
       c = random_chromosome( p_current, funcs )
-      (c,step,worse,same,better,output,matched_goals,matched_goals_list) =
-          mut_evolve( c, [g], funcs, max_ev_steps, print_steps=false ) 
+      if use_mut_evolve
+        (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [g], funcs, max_ev_steps, print_steps=false ) 
+      else
+        (c,step) = neutral_evolution( c, funcs, g, max_steps )
+      end
       if step < max_ev_steps
         outputs = output_values( c )
         if sort(outputs) != sort(g)
@@ -544,8 +547,11 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
   while iter < num_tries_multiplier*max_goal_tries && tries < max_goal_tries
     c = random_chromosome( p_current, funcs )
     #println("mut_evolve for goal ",g,"  with numints : ",c.params.numinteriors)
-    (c,step,worse,same,better,output,matched_goals,matched_goals_list) =
-        mut_evolve( c, [g], funcs, max_ev_steps, print_steps=true ) 
+    if use_mut_evolve
+      (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [g], funcs, max_ev_steps, print_steps=true ) 
+    else
+      (c,step) = neutral_evolution( c, funcs, g, max_steps )
+    end
     if step < max_ev_steps
       outputs = output_values( c )
       #println("outputs: ",outputs,"  goal: ",g)
@@ -582,3 +588,56 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
   avg_evolvability = sum(evol_list)/length(evol_list)
   (g,num_gates,number_active_gates(found_c),avg_complexity,tries,avg_robustness,avg_evolvability,num_gates_exceptions)
 end
+
+# Assumes 1 output
+function tononi_complexity_multiple_params( numinputs::Int64, numlevelsback::Int64, numinteriors::UnitRange, numcircuits::Int64, goallist::GoalList, max_tries::Int64, max_steps::Int64;
+      csvfile::String="" )
+  df = DataFrame()
+  df.goal = Vector{MyInt}[]
+  df.numcircs = Int64[]
+  for i in numinteriors
+    #println("i: ",i,"  sym: ",Symbol("mean_cmplx_$(i)_ints"))
+    insertcols!(df,Symbol("meancmplx$(i)ints")=>Float64[])
+  end
+  for i in numinteriors
+    insertcols!(df,Symbol("stdcmplx$(i)_ints")=>Float64[])
+  end
+  for ph in goallist
+    println("ph: ",ph)
+    mean_complexities = zeros(Float64,length(numinteriors))
+    std_complexities = zeros(Float64,length(numinteriors))
+    i=1
+    for numints in numinteriors
+      p = Parameters( numinputs, 1, numints, numlevelsback )
+      funcs = default_funcs( numinputs )
+      circuit_steps_list = pheno_evolve( p, funcs, ph, numcircuits, max_tries, max_steps )
+      circuits_list = map(x->x[1],circuit_steps_list)
+      steps_list = map(x->x[2],circuit_steps_list)
+      complexity_list = map(c->complexity5(c), circuits_list )
+      println("numints: ",numints, "  complexity_list: ",complexity_list)
+      mean_complexities[i] = mean(complexity_list)
+      std_complexities[i] = std(complexity_list)
+      i += 1
+    end
+    df_row = vcat([ ph, numcircuits], mean_complexities, std_complexities )
+    println("size(df): ",size(df),"  length(df_row): ",length(df_row))
+    push!( df, df_row )
+  end
+  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(numinputs))
+      println(f,"# numinputs: ",numinputs)
+      println(f,"# numlevelsback: ",numlevelsback)
+      println(f,"# numinteriors: ",numinteriors)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+      
+

@@ -15,9 +15,10 @@ function test_degen( numinputs::Int64, numoutputs::Int64, numints_rng::IntRange,
     sum_degen = 0.0
     for t = 1:numtrials
       p = Parameters( numinputs, numoutputs, numints, levsback )
+      funcs = default_funcs( p )
       c = random_chromosome(p)
       g = randgoal(numinputs,numoutputs)
-      new_c = neutral_evolution( c, g, maxsteps )
+      new_c = neutral_evolution( c, funcs, g, maxsteps )
       sum_degen += degeneracy( c )
     end
     row = (numinputs,numoutputs,numints,levsback,sum_degen/numtrials)
@@ -29,9 +30,10 @@ end
 # Helper function for test_degen()
 function run_test_degen(numinputs::Int64, numoutputs::Int64, numints::Int64, maxsteps::Int64 )
   p = Parameters( numinputs, numoutputs, numints, levsback )
+  funcs = default_funcs( p )
   c = random_chromosome(p)
   g = randgoal(numinputs,numoutputs)
-  new_c = neutral_evolution( c, g, maxsteps )
+  new_c = neutral_evolution( c, funcs, g, maxsteps )
   sum_degen += degeneracy( c )
 end
 
@@ -48,11 +50,11 @@ function recover_phenotype( c::Chromosome, maxsteps::Int64, maxtrials::Int64, ma
   sumtries = 0
   for t = 1:maxtrials
     (mc,active) = mutate_chromosome!(deepcopy(c),funcs)
-    (nc,steps) = neutral_evolution( mc, g, maxsteps )
+    (nc,steps) = neutral_evolution( mc, funcs, g, maxsteps )
     sumsteps += steps
     tries = 1
     while tries < maxtries && steps == maxsteps
-      (nc,steps) = neutral_evolution( mc, g, maxsteps )
+      (nc,steps) = neutral_evolution( mc, funcs, g, maxsteps )
       sumsteps += steps
       tries += 1
     end 
@@ -129,7 +131,7 @@ function compare_lambda_neutral( p::Parameters, g::Goal, trials::Int64, maxsteps
   df.lamda3_steps = Int64[]
   for t = 1:numtrials
     c = random_chromosome(p)
-    (neut_c,neut_steps) = neutral_evolution( deepcopy(c), g, maxsteps )
+    (neut_c,neut_steps) = neutral_evolution( deepcopy(c), funcs, g, maxsteps )
     mr = collect(mutrate_range)
     (lambda_c1,lambda_steps1) = lambda_evolution( deepcopy(c), g, maxsteps, mr[1] )
     (lambda_c2,lambda_steps2) = lambda_evolution( deepcopy(c), g, maxsteps, mr[2] )

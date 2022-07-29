@@ -52,7 +52,7 @@ function mutational_evolvability( g::Goal, p::Parameters, num_mutations::Integer
     while attempt < max_attempts && steps == max_steps
       c = random_chromosome(p,default_funcs(p.numinputs))
       attempt += 1
-      (nc,steps) = neutral_evolution( c, g, max_steps )
+      (nc,steps) = neutral_evolution( c, funcs, g, max_steps )
       println("after neutral evolution: steps: ",steps)
     end
     if steps == max_steps

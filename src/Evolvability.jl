@@ -803,7 +803,7 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
     #print_circuit(c,funcs)
     c_output = output_values(c)
     #(c,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [goal], funcs, maxsteps )
-    (c,steps) = neutral_evolution( c, goal, maxsteps )
+    (c,steps) = neutral_evolution( c, funcs, goal, maxsteps )
     if steps == maxsteps
       #println("mut evolve failed for goal: ",goal)
       #println("neutral evolution failed for goal: ",goal)

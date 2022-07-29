@@ -137,7 +137,7 @@ function evo_dict( p::Parameters, g::Goal, ncircuits::Int64, numtries::Int64, ma
       c = rand_lcircuit(p,funcs)  
     end
     if mutrate <= 0.0
-      (new_c,steps) = neutral_evolution( c, g, maxsteps )
+      (new_c,steps) = neutral_evolution( c, funcs, g, maxsteps )
     else
       (new_c,steps) = lambda_evolution( c, g, maxsteps, mutrate )
     end

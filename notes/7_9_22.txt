@@ -3,6 +3,8 @@ copied to xps
 p = Parameters(3,1,7,4)
 funcs = default_funcs(p)   # Should come out with 4 funcs rather than 5
 pdf = read_dataframe("../data/7_8_22/evolvable_evolability_3x1_7_4chP.csv")
+pdf = read_dataframe("../data/7_8_22/evolvable_evolability_3x1_7_4ch_scmplxP.csv")
+evolvable_evolvability_3x1_7_4ch_scmplxP.csv
 cdf = read_dataframe("../data/6_25_22/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv")
 insertcols!(pdf,4,:ints7_4=>cdf.ints7_4)   # ints7_4 is redundancy (frequency) from the cdf dataframe
 insertcols!(pdf,4,:scomplexity=>cdf.complexity)  # scomplexity is sampling complexity

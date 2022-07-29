@@ -1,0 +1,88 @@
+Looking for examples of high and low Tononi complexity.
+
+Candidates from data/counts/k_complexity7_2_21C.csv which has the k_complexity (num_gates) and T complexity (complexity) of all 3x1 phenotypes.
+
+goal            num_gates  num_active_gates  complexity  tries  avg_robustness  avg_evolvability
+UInt16[0x005d]          3                 3    0.32257      10       0.072              0.616   
+UInt16[0x008d]          3                 3    0.917895     10       0.0418605          0.815163
+UInt16[0x0012]          4                 4    0.966822     10       0.0                0.535294 
+UInt16[0x00e2]          4                 4    1.30427      10       0.0901505          0.644665
+
+@time include("../data/7_27_22/run_k_complexityC.jl")   # Run with AND, OR, NAND, NOR funcs, 4 levelsback, confirmed the above.
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 4)
+
+julia> print_circuit(c5d)
+circuit((1,2,3), ((4,NAND,2,2), (5,OR,4,1), (6,OR,2,5), (7,NAND,5,3)))
+number_active(c5d) # 3
+
+julia> cmplx6(c5d)
+X: UInt16[0x0033, 0x00f3, 0x0000, 0x005d]
+B: [0 0 1 1 0 0 1 1; 1 1 1 1 0 0 1 1; 0 0 0 0 0 0 0 0; 0 1 0 1 1 1 0 1]
+k: 1  mutints: [0.3112781244591325, 0.4669171866886992, 0.0, 0.20443400292496516]
+k: 1  sum mutual informaiton: 0.24565732851819921
+k: 2  mutints: [0.20443400292496516, 0.3112781244591325, 0.4669171866886992, 0.4669171866886992, 0.3112781244591325, 0.20443400292496516]
+k: 2  sum mutual informaiton: 0.3275431046909323
+0.40942888086366536
+
+ B= [0 0 1 1 0 0 1 1; 1 1 1 1 0 0 1 1; 0 0 0 0 0 0 0 0; 0 1 0 1 1 1 0 1]
+4×8 Matrix{Int64}:
+ 0  0  1  1  0  0  1  1
+ 1  1  1  1  0  0  1  1
+ 0  0  0  0  0  0  0  0
+ 0  1  0  1  1  1  0  1
+
+julia> (c8d,steps) = pheno_evolve( p, funcs, [0x008d], 10, 100000 ); cmplx6(c8d)
+neutral evolution succeeded at step 93 for goal: UInt16[0x008d]
+X: UInt16[0x0005, 0x0088, 0x0088, 0x008d]
+B: [0 0 0 0 0 1 0 1; 1 0 0 0 1 0 0 0; 1 0 0 0 1 0 0 0; 1 0 0 0 1 1 0 1]
+k: 1  mutints: [0.8112781244591329, 0.8112781244591329, 0.8112781244591329, 1.0]
+k: 1  sum mutual informaiton: 0.8584585933443497
+k: 2  mutints: [1.5, 1.5, 0.8112781244591329, 0.8112781244591329, 1.5, 1.5]
+k: 2  sum mutual informaiton: 1.2704260414863777
+1.4936716140875386
+
+julia> print_circuit(c8d)
+circuit((1,2,3), ((4,NOR,3,1), (5,AND,3,2), (6,AND,5,2), (7,OR,6,4)))
+number_active(c8d)  # 4
+
+=============================================================
+p= Parameters(3,1,3,4); funcs=default_funcs(p)
+4-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(|, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+
+(c5d,steps) = pheno_evolve( p, funcs, [0x005d], 10, 100000 ); cmplx6(c5d)
+neutral evolution succeeded at step 519 for goal: UInt16[0x005d]
+X: UInt16[0x000f, 0x00f3, 0x005d]
+B: [0 0 0 0 1 1 1 1; 1 1 1 1 0 0 1 1; 0 1 0 1 1 1 0 1]
+subsets: [[1], [2], [3]]
+k: 1  mutints: [0.3112781244591325, 0.4669171866886992, 0.20443400292496516]
+k: 1  sum mutual informaiton: 0.3275431046909323
+0.3275431046909323
+B= [0 0 0 0 1 1 1 1; 1 1 1 1 0 0 1 1; 0 1 0 1 1 1 0 1]
+3×8 Matrix{Int64}:
+ 0  0  0  0  1  1  1  1
+ 1  1  1  1  0  0  1  1
+ 0  1  0  1  1  1  0  1
+
+print_circuit(c5d)
+circuit((1,2,3), ((4,NAND,2,3), (5,OR,1,4), (6,NAND,5,3)))
+
+(c8d,steps) = pheno_evolve( p, funcs, [0x008d], 10, 100000 ); cmplx6(c8d)
+neutral evolution succeeded at step 915 for goal: UInt16[0x008d]
+X: UInt16[0x0005, 0x0088, 0x008d]
+B: [0 0 0 0 0 1 0 1; 1 0 0 0 1 0 0 0; 1 0 0 0 1 1 0 1]
+subsets: [[1], [2], [3]]  
+k: 1  mutints: [0.8112781244591329, 0.8112781244591329, 1.0]
+k: 1  sum mutual informaiton: 0.8741854163060886
+0.8741854163060886
+B= [0 0 0 0 0 1 0 1; 1 0 0 0 1 0 0 0; 1 0 0 0 1 1 0 1]
+3×8 Matrix{Int64}:
+ 0  0  0  0  0  1  0  1
+ 1  0  0  0  1  0  0  0
+ 1  0  0  0  1  1  0  1
+
+ print_circuit(c8d)
+circuit((1,2,3), ((4,NOR,1,3), (5,AND,2,3), (6,OR,5,4)))

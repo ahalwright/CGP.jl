@@ -1,0 +1,40 @@
+Many simultaneous projects
+
+Runnig run_evolvable_evolvability_4x1_14_9_chH.jl on surt2 with 4x1 14 gates, 9 lb.
+Experimentation found that 5 gate types and more gates in the circuit were needed.
+Running with 4 gate types approximately tripled the runtime.
+
+Comparing runtimes 
+evolvable_evolabilityCGP_4x1_14_9_7_17_22D.csv  (fluda)  1396 seconds  12 processes
+evolvable_evolabilityCGP_4x1_14_9_7_17_22E.csv: (fluda)  1237 seconds  24 processes
+evolvable_evolabilityCGP_4x1_14_9_7_17_22F.csv  (surt2)  1009 seconds  28 processes
+
+Trying to get counts for 14gts9lb by running run_count_outputs_chromeC.jl with 10^8 samples on fluda.
+6568 seconds on fluda with 24 processes.  
+julia> findall(x->x==0,cdf.ints14_9) #  2667-element Vector{Int64}:  # Better than random_walk.  
+#  But doing 10^10 samples would take nearly 200 hours on fluda
+@time include("../data/7_17_22/run_count_outputs_chromeD.jl")   58844 seconds (16 hours) 10^9 samples fluda 24 processes
+julia> findall(x->x==0,outlist)
+7-element Vector{Int64}:
+  9620
+ 19358
+ 27417
+ 37549
+ 43379
+ 50618
+ 58490     
+ findall(x->x<=10,,outlist)
+2753-element Vector{Int64}: 
+
+@time include("../data/7_17_22/run_count_outputs_chromeE.jl")  second run same params
+ddf = read_dataframe("../data/7_17_22/count_outputs_ch_5funcs_4inputs_14gates_9lb_D.csv")   # Read from dataframe. Problem: circuits_list is a list of strings
+clist = map(x->eval(Meta.parse(x)),ddf[:,:circuits_list])   # takes 10? minutes to run
+circuits_list = map(i->vcat(clist[i],edf.circuits_list[i]),1:2^2^4)
+eddf.circuits_list = circuits_list
+scp fluda:evotech/CGP.jl/data/7_17_22/count_outputs_ch_5funcs_4inputs_14gates_9lb_DE.csv .  # copy to xps
+scp fluda:evotech/CGP.jl/data/7_17_22/count_outputs_ch_5funcs_4inputs_14gates_9lb_E.csv .   # copy to xps
+
+Trying to get counts for 14gts9lb by running data/7_17_22/run_random_walksC.jl")
+Time:  42914.528873 seconds
+julia> findall(x->x==0,df.frequency) #  17837-element Vector{Int64}:  # So was worse than run_count_outputs
+

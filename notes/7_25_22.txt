@@ -1,0 +1,6 @@
+Programmed versions of complexity based on equations (5) and (6) of Tononi et al. (1994) in cmplx5.jl.
+These versions correspond closely to the corresponding equations, and so are very intuitive.
+But it turns out that they are much less efficient that complexity5() which is based on the get_bits() function.
+They are a good further test of correctness.
+TODO:  Revise test/test_degen_complexity.jl and test/test_exec_time_complexity.jl.
+TODO:  Revise integration funtions. 

@@ -3,7 +3,8 @@ using CSV
 import Base.getindex
 export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all, PredType
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
-export output_values, number_active, number_active_gates, hamming_distance, ihamming_distance, hamming, deactivate_chromosome!
+export output_values, number_active, number_active_gates, remove_inactive, deactivate_chromosome!
+export hamming_distance, ihamming_distance, hamming 
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code 
 export circuit, print_circuit
@@ -462,6 +463,7 @@ function output_values( c::Chromosome, funcs::Vector{Func} )
   output_values( c )
 end
 
+# Sets the active field of all input and interior nodes to be false
 function deactivate_chromosome!( c::Chromosome )
   for in in c.inputs
     in.active = false
@@ -1029,4 +1031,22 @@ function delete_gate!( c::Chromosome )
   inactive_interior_list = filter!(i->!c.interiors[i].active, collect(1:c.params.numinteriors))
   dg = rand(inactive_interior_list)
   return delete_gate!( c, dg )
+end
+
+# Combines two single-output chromosomes c1 and c2 into a 2-output chromosome whose outputs are the outputs of c1 and c2
+function combine_chromosomes( c1::Chromosome, c2::Chromosome )
+  @assert c1.params.numinputs == c2.params.numinputs
+  @assert c1.params.numoutputs == c2.params.numoutputs == 1
+  p = Parameters( c1.params.numinputs, 1, c1.params.numinteriors+c2.params.numinteriors, c1.params.numinteriors+c2.params.numinteriors+1 )
+  inputs = deepcopy(c1.inputs)
+  interiors = deepcopy(c1.interiors)
+  for i = 1:length(c2.interiors)
+    new_interior = deepcopy(c2.interiors[i])
+    new_interior.inputs = map(x->x+c1.params.numinteriors, new_interior.inputs )
+    push!(interiors,new_interior)
+  end
+  new_output = deepcopy(c2.outputs[1])
+  new_output.input = new_output.input+c1.params.numinteriors
+  outputs = [ deepcopy(c1.outputs[1]), new_output ] 
+  Chromosome( p, inputs, interiors, outputs, 0.0, 0.0 )
 end

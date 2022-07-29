@@ -66,7 +66,7 @@ function robust_evolution_neutral( p::Parameters, ph::Goal, nreps::Int64, max_st
   nc = c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
   while !done && tries < max_tries
     #println("ph: ",ph,"  c: ",c)
-    (nc,steps) = neutral_evolution( c, ph, max_steps )
+    (nc,steps) = neutral_evolution( c, funcs, ph, max_steps )
     tries += 1
     if steps < max_steps
       done = true
@@ -113,6 +113,7 @@ end
 # This version evolves many genotypes that map to the given phenotype ph and thus is not an example of doing a random phenotype-preserving walk starting at a given genotype
 # returns a (circuit,rbst) pair where rbst is the robustness() of the circuit.
 function robust_evolution( p::Parameters, ph::Goal, nreps::Int64, max_steps::Integer, max_mutates::Int64, max_tries::Int64, funcs::Vector{Func}; use_lincircuit::Bool=false )
+  funcs = default_funcs(p)
   circ_rbst_list = Tuple{Circuit,Float64}[]
   sum_start_rbst = 0.0
   for rep = 1:nreps
@@ -121,7 +122,7 @@ function robust_evolution( p::Parameters, ph::Goal, nreps::Int64, max_steps::Int
     done = false
     nc = c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
     while !done && tries < max_tries
-      (nc,steps) = neutral_evolution( c, ph, max_steps )
+      (nc,steps) = neutral_evolution( c, funcs, ph, max_steps )
       tries += 1
       if steps < max_steps
         done = true

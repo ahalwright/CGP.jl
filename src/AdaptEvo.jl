@@ -92,9 +92,9 @@ function run_compare_evolvabilities( p::Parameters, src::Goal, number_targets::I
   sum_steps = 0
   for target in target_list
     ch = random_chromosome( p )
-    (src_ch,steps) = neutral_evolution(ch, src, max_steps )
+    (src_ch,steps) = neutral_evolution(ch, funcs, src, max_steps )
     while iteration < iteration_limit && steps == max_steps
-      (src_ch,steps) = neutral_evolution(ch, src, max_steps )
+      (src_ch,steps) = neutral_evolution(ch, funcs, src, max_steps )
       iteration += 1
     end
     if iteration == iteration_limit
@@ -102,7 +102,7 @@ function run_compare_evolvabilities( p::Parameters, src::Goal, number_targets::I
     end
     @assert  steps < max_steps
     for run = 1:number_runs
-      (target_ch,steps) = neutral_evolution(src_ch, target, step_limit )        
+      (target_ch,steps) = neutral_evolution(src_ch, funcs, target, step_limit )        
       successes += steps < step_limit ? 1 : 0
       sum_steps += steps < step_limit ? steps : 0
     end

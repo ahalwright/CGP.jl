@@ -127,6 +127,16 @@ function to_binary( X::Vector{MyInt}, numbits::Int64 )
   result
 end
 
+function to_hex( V::Vector{Int64}, len::Int64 )
+  result = MyInt(0)
+  for i = len:-1:1
+    v = V[i]
+    result <<= 1
+    result += MyInt(v)
+  end
+  result
+end
+
 # get_bits for a single MyInt
 function get_bits1( x::Main.CGP.MyInt, numinputs::Int64 )
   numbits = 2^numinputs
