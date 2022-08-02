@@ -1,0 +1,13 @@
+Automating the production of the submatrices of the cce/Evolvability_and_complexity7_20_22.docx.
+
+Kolmogorov complexity of 3x1 phenotypes at data/7_11_22/k_complexity7_11_22D.csv
+
+df = read_dataframe("../data/7_17_22/evolvable_evolabilityCGP_3x1_8_5_7_17_22cmplxA.csv")
+redund_symbol = :ints8_5
+B = pheno_vects_to_boolean_matrix( df.pheno_vects )
+E = pheno_vects_to_evolvable_matrix( df.pheno_vects )
+common = df[df[:,redund_symbol].>=quantile(df[:,redund_symbol],common_q),:pheno_list]
+rare = df[df[:,redund_symbol].>=quantile(df[:,redund_symbol],rare_q),:pheno_list]
+rare = df[df.ints8_5.<=quantile(df.ints8_5,0.1),:pheno_list]
+common_indices = findall(x->(x in common),df.pheno_list)
+rare_indices = findall(x->(x in rare),df.pheno_list)

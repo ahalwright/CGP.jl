@@ -512,7 +512,7 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
       if use_mut_evolve
         (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [g], funcs, max_ev_steps, print_steps=false ) 
       else
-        (c,step) = neutral_evolution( c, funcs, g, max_steps )
+        (c,step) = neutral_evolution( c, funcs, g, max_ev_steps )
       end
       if step < max_ev_steps
         outputs = output_values( c )
@@ -528,7 +528,7 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
         found_c = deepcopy(c)
         num_gates = number_active_gates(found_c)
         p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
-        println("circuit found for goal ",g," with num_gates = ",num_gates)
+        println("circuit found for goal ",g," with num_gates = ",num_gates,"  output values: ",output_values(found_c))
       end
     end
   end
@@ -550,7 +550,7 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
     if use_mut_evolve
       (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [g], funcs, max_ev_steps, print_steps=true ) 
     else
-      (c,step) = neutral_evolution( c, funcs, g, max_steps )
+      (c,step) = neutral_evolution( c, funcs, g, max_ev_steps )
     end
     if step < max_ev_steps
       outputs = output_values( c )
@@ -589,9 +589,15 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
   (g,num_gates,number_active_gates(found_c),avg_complexity,tries,avg_robustness,avg_evolvability,num_gates_exceptions)
 end
 
+# For each phenotypes in goallist and for each numints in the range numinteriors, 
+#    computes the mean and standard deviation of the Tononi complexity of numcircuits chromosomes evolved to map to the phenotype.
+# Purpose:  try to understand how Tononi complexity scales as numinteriors.
+# If normalize==true, then divides the computed Tononi complexity by numints-1 to test for linear scaling.  Does not show linear scaling.
+# Tests:  data/7_26_22/
 # Assumes 1 output
-function tononi_complexity_multiple_params( numinputs::Int64, numlevelsback::Int64, numinteriors::UnitRange, numcircuits::Int64, goallist::GoalList, max_tries::Int64, max_steps::Int64;
-      csvfile::String="" )
+function tononi_complexity_multiple_params( numinputs::Int64, numlevelsback::Int64, numinteriors::AbstractRange, numcircuits::Int64, goallist::GoalList, max_tries::Int64, max_steps::Int64;
+      normalize::Bool=false, csvfile::String="" )
+  println("normalize: ",normalize)
   df = DataFrame()
   df.goal = Vector{MyInt}[]
   df.numcircs = Int64[]
@@ -615,6 +621,10 @@ function tononi_complexity_multiple_params( numinputs::Int64, numlevelsback::Int
       steps_list = map(x->x[2],circuit_steps_list)
       complexity_list = map(c->complexity5(c), circuits_list )
       println("numints: ",numints, "  complexity_list: ",complexity_list)
+      if normalize
+        complexity_list ./= (numints-1)
+      end
+      println("numints: ",numints, "  complexity_list: ",complexity_list)
       mean_complexities[i] = mean(complexity_list)
       std_complexities[i] = std(complexity_list)
       i += 1
@@ -632,6 +642,7 @@ function tononi_complexity_multiple_params( numinputs::Int64, numlevelsback::Int
       println(f,"# numinputs: ",numinputs)
       println(f,"# numlevelsback: ",numlevelsback)
       println(f,"# numinteriors: ",numinteriors)
+      println(f,"# normalize: ",normalize)
       println(f,"# max_tries: ",max_tries)
       println(f,"# max_steps: ",max_steps)
       CSV.write( f, df, append=true, writeheader=true )

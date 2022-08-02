@@ -1,0 +1,46 @@
+Found a mistake in my description of the computation of the mutual information between sets of rows of the matrix B which is used to compute Tononi complexity.
+Revised description in current version of GPTP paper on 8/2/22
+
+cc = circuit((1,2,3),((4,OR,1,2),(5,AND,2,3),(6,XOR,4,5))); output_values(cc)  # [0x0074]
+(IN, X, O) = node_values( cc )
+B = to_binary_matrix( X, numinputs )
+F = map(Float64,B)/sum(B)
+3×8 Matrix{Float64}:
+ 0.0833333  0.0833333  0.0833333  0.0833333  0.0833333  0.0833333  0.0  0.0
+ 0.0833333  0.0        0.0        0.0        0.0833333  0.0        0.0  0.0
+ 0.0        0.0833333  0.0833333  0.0833333  0.0        0.0833333  0.0  0.0
+row_sums = map(x->sum(F[x,:]),1:size(F)[1])
+3-element Vector{Float64}:
+ 0.49999999999999994
+ 0.16666666666666666
+ 0.3333333333333333
+col_sums = map(x->sum(F[:,x]),1:size(F)[2])
+8-element Vector{Float64}:
+ 0.16666666666666666
+ 0.16666666666666666
+ 0.16666666666666666
+ 0.16666666666666666
+ 0.16666666666666666
+ 0.16666666666666666
+ 0.0
+ 0.0
+
+# Using the definitions of entropy, joint_entropy, and mutual_information from the file Entropy.jl which are based on the standard 
+# definitions from Cover and Thomas.
+mutual_information(F) # 0.4591479170272449
+CGP.entropy(row_sums),CGP.entropy(col_sums),CGP.joint_entropy(F) # (1.4591479170272446, 2.584962500721156, 3.584962500721156)
+CGP.entropy(row_sums)+CGP.entropy(col_sums)-CGP.joint_entropy(F) # 0.459147917027245 # consistent with equation 2.45 of Cover and Thomas
+
+Does not fit with my GPTP defintions because the entropy of col_sums does not distinguish between the row patterns of the columm while 
+my definition converts the columns of B into bit vectors and takes the entropy of this collection of bit vectors.
+
+Let X be a binary matrix with rows corresponding to gates and columns correspond to input contexts.  Each row of X is the state of X
+when the circuit is executed.  Since 
+Thus, each column corresponds to 
+a bit vector.  We defined the entropy of X as the entropy of this collection of bit vectors with the probability of a bit vector
+corresponding to the number of times that it occurs as a column of X.  Each subset of gates corresponds to the submatrix of X
+corresponding to the rows of X corresponding to the gates in the subset.  The entropy of a subset of gates is the entropy of
+the collection of column bit vectors of this submatrix.
+
+
+

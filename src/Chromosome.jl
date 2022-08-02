@@ -9,8 +9,7 @@ export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code 
 export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits_ch
-export code_to_circuit   # outdate 9/13/21
-export insert_gate!, delete_gate!
+export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
 
 PredType = Int64
@@ -1032,21 +1031,72 @@ function delete_gate!( c::Chromosome )
   dg = rand(inactive_interior_list)
   return delete_gate!( c, dg )
 end
+# References the function combine_chromosomes( c1::Chromosome, c2::Chromosome ) in Chromosome.jl.
+# Given a pair of phenotypes ph1 and ph2, test whether combining chromosomes c1 and c2 evolved separately to output ph1 and ph2 has
+#   greater Tononi complexity than a chromosome c0 evolved to output the phenotype [ph1[1],ph2[1]].
+function test_combine_complexity( p::Parameters, funcs::Vector{Func}, ph_pairs_list::Vector{Tuple{Goal,Goal}}, nreps::Int64, max_tries::Int64, max_steps::Int64; csvfile::String="" )
+  df = DataFrame( :ph1=>Goal[], :ph2=>Goal[], :tcmplx_c1=>Float64[], :tkcmplx_c1=>Float64[], :kcmplx_c1=>Int64[], :tcmplx_c2=>Float64[], :tkcmplx_c2=>Float64[], :kcmplx_c2=>Int64[], 
+      :cmplx_cmb=>Float64[], :cmplx_cc=>Float64[], :kcmplx=>Int64[], :tkcmplx=>Float64[] )
+  p0 = Parameters( p.numinputs, 2*p.numoutputs, 2*p.numinteriors, p.numlevelsback )
+  print_parameters(p0)
+  for ph_pair in ph_pairs_list
+    ph1 = ph_pair[1]
+    result = kolmogorov_complexity( p, ph1, max_tries, max_steps, use_mut_evolve=false )
+    kcmplx1 = result[2]  # Kolmogorov complexity
+    tcmplx1 = result[4]  # Tononi complexity of minimal gate circuit
+    ph2 = ph_pair[2]
+    result = kolmogorov_complexity( p, ph2, max_tries, max_steps, use_mut_evolve=false )
+    kcmplx2 = result[2]  # Kolmogorov complexity
+    tcmplx2 = result[4]  # Tononi complexity of minimal gate circuit
+    result = kolmogorov_complexity( p0, [ph1[1],ph2[1]], max_tries, max_steps, use_mut_evolve=false )
+    kcmplx0 = result[2]  # Kolmogorov complexity
+    tcmplx0 = result[4]  # Tononi complexity of minimal gate circuit
+    for i = 1:nreps
+      (cc,steps) = pheno_evolve( p0, funcs, [ph1[1],ph2[1]], 2*max_tries, max_steps )
+      (c1,steps) = pheno_evolve( p, funcs, ph1, 2*max_tries, max_steps ) 
+      (c2,steps) = pheno_evolve( p, funcs, ph2, 2*max_tries, max_steps ) 
+      cmb = combine_chromosomes( c1, c2 )
+      push!(df,(ph1,ph2,complexity5(c1),tcmplx1,kcmplx1,complexity5(c2),tcmplx2,kcmplx2,complexity5(cmb),complexity5(cc),kcmplx0,tcmplx0))
+    end
+  end
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      println(f,"# Results test_combine_complxity() ")
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ",funcs)
+      println(f,"# parameters p: ")
+      print_parameters(f,p,comment=true)
+      println(f,"# combined parameters p0: ")
+      print_parameters(f,p0,comment=true)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end                  
+  df
+end
 
-# Combines two single-output chromosomes c1 and c2 into a 2-output chromosome whose outputs are the outputs of c1 and c2
+# Combines two chromosomes c1 and c2 into a chromosome whose outputs are the combined outputs of c2 and c1
 function combine_chromosomes( c1::Chromosome, c2::Chromosome )
   @assert c1.params.numinputs == c2.params.numinputs
-  @assert c1.params.numoutputs == c2.params.numoutputs == 1
-  p = Parameters( c1.params.numinputs, 1, c1.params.numinteriors+c2.params.numinteriors, c1.params.numinteriors+c2.params.numinteriors+1 )
+  p = Parameters( c1.params.numinputs, c1.params.numoutputs+c2.params.numoutputs, c1.params.numinteriors+c2.params.numinteriors, c1.params.numinteriors+c2.params.numinteriors+1 )
   inputs = deepcopy(c1.inputs)
   interiors = deepcopy(c1.interiors)
   for i = 1:length(c2.interiors)
     new_interior = deepcopy(c2.interiors[i])
-    new_interior.inputs = map(x->x+c1.params.numinteriors, new_interior.inputs )
+    new_interior.active = false
+    for j = 1:length(new_interior.inputs)
+      inc = new_interior.inputs[j] > p.numinputs ? c1.params.numinteriors : 0  # increment inputs that don't point to input nodes
+      new_interior.inputs[j] += inc
+    end
     push!(interiors,new_interior)
   end
-  new_output = deepcopy(c2.outputs[1])
-  new_output.input = new_output.input+c1.params.numinteriors
-  outputs = [ deepcopy(c1.outputs[1]), new_output ] 
-  Chromosome( p, inputs, interiors, outputs, 0.0, 0.0 )
+  new_output2 = deepcopy(c2.outputs)
+  for newout in new_output2
+    newout.input = newout.input+c1.params.numinteriors
+  end
+  new_outputs = vcat(new_output2,deepcopy(c1.outputs))
+  Chromosome( p, inputs, interiors, new_outputs, 0.0, 0.0 )
 end

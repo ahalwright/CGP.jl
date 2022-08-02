@@ -1,0 +1,18 @@
+Finished editing GPTP paper and sent version to Cheyenne.  Switched from MikTex to overleaf, and bibliography works.
+
+Setting up results to verify that epochal evolution works for 5, 6, 7 inputs.  Note that 7 inputs uses MyInt=UInt128.
+
+Wrote run_pheno_evolve() in Evolve.jl.
+
+Try to duplicate circut to compute 4-even parity from Redundancy and Computational Efficiency in Cartesian Genetic Programming Julian F. Miller and Stephen L. Smith 2006
+circuit((1,2,3,4), ((5,AND,1,2), (6,NOR,1,2), (7,AND,3,4), (8,NOR,3,4), (9,OR,5,6), (10,OR,7,8), (11,AND,9,10), (12,AND,10,11), (13,NOR,10,11), (14,OR,12,13)))
+Doesn't quite work.
+
+p = Parameters(4,1,10,6) # 4 funcs
+(oc,steps) = pheno_evolve(p,funcs,[odd_parity(4)],4,40000)
+neutral evolution failed with 40000 steps for goal: UInt16[0x9669]
+neutral evolution succeeded at step 7219 for goal: UInt16[0x9669]
+julia> print_circuit(oc)
+circuit((1,2,3,4), ((5,NAND,2,1), (6,OR,3,4), (7,OR,1,2), (8,NAND,3,4), (9,NAND,6,8), (10,AND,5,7), (11,AND,6,9), (12,NOR,9,10), (13,AND,9,10), (14,NOR,12,13)))
+julia> print_circuit(ec)
+circuit((1,2,3,4), ((5,AND,2,1), (6,NOR,1,2), (7,AND,4,3), (8,NOR,3,4), (9,OR,8,7), (10,OR,6,5), (11,OR,10,8), (12,NAND,9,10), (13,OR,11,7), (14,AND,13,12)))

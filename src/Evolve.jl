@@ -2,7 +2,7 @@ export components_matched, goals_matched_exact, goals_matched_hamming, next_chro
 export mut_reduce_numactive
 export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
 export evolve_function, mut_evolve_repeat, circuit_evolve, run_circuit_evolve
-export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, lambda_evolution, pheno_evolve
+export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, lambda_evolution, pheno_evolve, run_pheno_evolve
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -553,8 +553,42 @@ function random_neutral_walk( c::Chromosome, goallist::GoalList, funcs::Vector{F
   return (min_num_active,count_min_num_active,min_active_chromes_list)
 end
 
-# Run pheno_evolve() to evolve multiple circuits that map to phenotype goal, and 
-function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false ) 
+# Run pheno_evolve() to evolve circuits that map to the phenotypes in phlist.
+# Does max_tries attempts to evolve a chromosome that maps to each phenotype in phlist
+# Not currently tested for LGP.
+function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64; 
+    use_lincircuit::Bool=false, use_mut_evolve::Bool=false, csvfile::String="" ) 
+  function ph_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, use_mut_evolve::Bool=false ) 
+    (c,steps) = pheno_evolve( p, funcs, goal, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve )
+    return c != nothing ? (c,steps,number_active(c)) : (nothing,nothing,nothing)
+  end
+  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :numlevelsback=>Int64[], :fail_fract=>Float64[], 
+      :mean_steps=>Float64[], :median_steps=>Float64[], :std_steps=>Float64[], :mean_nactive=>Float64[] )
+  result_list = filter(x->x[1]!=nothing, pmap( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve ), phlist ) )
+  #result_list = filter(x->x[1]!=nothing, map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve ), phlist ) )
+  fail_fract = (length(phlist)-length(result_list))/length(phlist)
+  steps_list = map(x->x[2], result_list)
+  mean_steps = mean(steps_list)
+  median_steps = median(steps_list)
+  std_steps = std(steps_list)
+  numactive_list = map(x->x[3], result_list)
+  mean_numactive = mean(numactive_list)
+  df_row = [ p.numinputs, p.numinteriors, p.numlevelsback, fail_fract, mean_steps, median_steps, std_steps, mean_numactive ]
+  push!(df,df_row)
+  if length(csvfile) > 0
+    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# MyInt: ",MyInt)
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
 end
 
 # Evolve a circuit that maps to a given phenotype (Goal)
@@ -563,6 +597,7 @@ end
 # if no genotype that maps to goal is found, returns (nothing,nothing)
 function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, use_mut_evolve::Bool=false )
   steps = 0   # establish scope
+  total_steps = 0   # establish scope
   nc = nothing # establish scope
   for i = 1:max_tries
     if use_lincircuit
@@ -576,6 +611,7 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries
     else
       (nc,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [goal], funcs, max_steps ) 
     end
+    total_steps += steps
     if steps < max_steps
       break
     end
@@ -584,7 +620,7 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries
     println("pheno_evolve failed to evolve a circuit to goal: ",goal )
     return (nothing,nothing)
   end
-  (nc,steps)
+  (nc,total_steps)
 end
 
 # Evolve num_circuits_per_goal circuits that map to a given phenotype (Goal) goal.
@@ -837,6 +873,10 @@ end
 function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false,
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
       save_acomplexities::Bool=false ) # Save acomplexity, evolvability, robustness of phenos produced by mutate_all on every step
+  #if typeof(c) == Chromosome
+  #  println("neutral evolution: ")
+  #  print_circuit(c)
+  #end
   p = c.params
   LinCirc = typeof(c) == LinCircuit ? :true : :false
   step_list = Int64[] # Only used if save_acomplexities==true
@@ -845,7 +885,7 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   evolvability_list = Int64[]  # Only used if save_acomplexities==true
   robust_list = Float64[]   # Only used if save_acomplexities==true
   intersect_list = Int64[]  # Only used if save_acomplexities==true 
-  #println("LinCirc: ",LinCirc,"  Ones: ",Ones,"  CGP.Ones: ",CGP.Ones)
+  #println("LinCirc: ",LinCirc,"  Ones: ",@sprintf("0x%08x",Ones),"  CGP.Ones: ",@sprintf("0x%08x",CGP.Ones))
   #println("numgates: ",c.params.numinteriors)
   step = 0
   ov = output_values( c )

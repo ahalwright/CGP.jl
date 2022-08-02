@@ -167,13 +167,14 @@ function run_horizontal_chromosome( numinputsrange::UnitRange, nreps::Int64; fun
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ",funcs)
+      println(f,"# MyInt: ",MyInt)
       CSV.write( f, df, append=true, writeheader=true )
     end
   end
   df
 end
     
-# constructs chromosome where every interior node corresponds to an output
+# constructs a multi-output chromosome where every interior node corresponds to an output
 function horizontal_chromosome( numinputs::Int64; funcs::Vector{Func}=default_funcs(numinputs) )
   p = Parameters( numinputs, numinputs, numinputs, numinputs )
   nfuncs = length(funcs)

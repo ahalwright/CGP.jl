@@ -1,0 +1,16 @@
+Trying to investigate how Tononi complexity scales with numints.
+Code:  function tononi_complexity_multiple_params() in Complexity.jl
+Data:  data/7_26_22
+Computes mean and standard deviation of a collection of ciruits evolved to the phenotypes in goallist.
+Results:  T complexity grows with numints.
+Starting with suffix F, introduced "normalize" keyword option which divides computed T complexity by numints-1.
+Results:  normalizing T complexity did not reduce T complexity to a constant because the average value of 
+  mutual information kept increasing (separate experiments with cmplx6() from cmplx5.jl).
+  This suggests the conjecture that T complexity will level out when numints gets large enough.
+  Mutual information is limited when numinputs is fixed.
+  The run with suffix H at least somewhat confirms this hypothesis with the values of T complexity
+  increasing only slightly from numints=18 to numints=20.
+
+plot(collect(6:2:20),map(i->Vector(df[i,3:10]),1:5),labels=reshape(map(i->@sprintf("0x%04x",df[i,1][1]),1:5),(1,5)))
+plot!(legend=:bottomright,xticks = collect(6:2:20) )
+

@@ -4,8 +4,11 @@ using DataFrames
 export dist_check, pop_to_dist, pops_to_dist, pops_to_tbl, pop_counts_to_tbl, table_row_to_dist
 export entropy, relative_entropy, conditional_entropy, joint_entropy, mutual_information
 export sherwin_mutual_information, row_marginal, column_marginal
-include("../src/aliases.jl")
-
+#include("../src/aliases.jl")
+const IPopulation = Array{Int64,1}
+const MIPopulation = Array{MyInt,1}
+const SPopulation = Array{String,1}
+const FPopulation = Array{Float64,1} 
 
 function dist_check( p::DIST_TYPE )
   sum = 0.0

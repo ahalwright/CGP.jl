@@ -1,0 +1,35 @@
+Combining chromosomes:  Combine two single-output chromosomes into a double-output chromosome.   
+Code:  combine_chromosomes() in Chromosome.jl.
+Data:  data/7_28_22.
+See data/7_28_22/combine_complexity7_28_22C.csv
+Conclusions:  Reference:  "../data/7_28_22/run_combine_chromosomesC.jl"
+tcmplx_c1 and tcmplx_c2 are T complexities of evolved circuits for ph1 and ph2
+tkcmplx_c1 and tkcmplx_c2 are T complexities of minimal circuits discovered in running k_complexity 
+kcmplx_c1 and kcmplx_c2 are K complexities of phenotypes ph1 and ph2
+cmplx_cmb is the T complexity of the combination of 2 circuits evolved for ph1 and circuit evolved for ph2
+cmplx_cc is the T complexity of the circuit evolved to the 2-output phenotype [ph1,ph2].
+kcmplx is the K complexity  of the 2-output phenotype [ph1,ph2]
+tkcmplx is the T complexity of the minimal circuit evolve for [ph1,ph2]
+
+Sometimes for c1, c2, tcmpx is substantially greater than tkcmplx, but not always.
+cmplx_cmb and cmplx_cc are large, but maybe mostly due to large increase in number of gates
+cmplx_cmb seems to be fairly consistently greater than cmplx_cc
+
+Counter-intuitive that combining circuits gives such a large increase in T complexity.
+It would have seemed like the two subcircuits with be fairly independent, but this doesn't seem to be the case.
+
+
+Note:  For phenotype ph1=[0x0034], Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 4), Tononi complexity is always: 
+(c1,steps) = pheno_evolve( p, funcs, ph1, 2*max_tries, max_steps ); print_circuit(c1); complexity5(c1)
+neutral evolution succeeded at step 4951 for goal: UInt16[0x0034]
+circuit((1,2,3), ((4,OR,1,3), (5,NOR,1,2), (6,AND,4,2), (7,NOR,6,5)))  # circuit varies
+1.2470975378899787   # Every run
+# Different results when numinteriors is increased.
+
+
+
+Horizontal chromosome:  code in cmplx5.jl
+Question:  How does increasing numinputs and numinteriors simulataneously increase Tononi complexity.
+Constructs multi-output chromosomes where every interior node corresponds to an output and returns mean Tononi complexity of these chromosomes.
+Result:  mean Tononi complexity increases approximately linearly:  See suffix C..
+
