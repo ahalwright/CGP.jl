@@ -9,7 +9,7 @@ using Combinatorics
 export get_probs, get_bits, degeneracy, degeneracy1 
 #include("../../information_theory/src/entropy.jl")
 export degeneracy, degeneracy1, complexity4, complexity5, complexity6, complexity7, redundancy, integration
-export mutinf1, mutinf2, test_MyInt, MyIntBits, to_binary
+export mutinf1, mutinf2, test_MyInt, MyIntBits, to_binary, to_binary_matrix
 export fmutual_information, fmi_chrome, gb_complexity, gb_complexity_chrome, gb_degeneracy_chrome
 export gb_mutinf
 
@@ -127,6 +127,7 @@ function to_binary( X::Vector{MyInt}, numbits::Int64 )
   result
 end
 
+# Converts an Int64 vector to a vector of MyIntsj
 function to_hex( V::Vector{Int64}, len::Int64 )
   result = MyInt(0)
   for i = len:-1:1
@@ -135,6 +136,11 @@ function to_hex( V::Vector{Int64}, len::Int64 )
     result += MyInt(v)
   end
   result
+end
+
+# row_list is a list of MyInts where each component represents a row of the binary matrix
+function to_binary_matrix( row_list::Vector{MyInt}, numinputs::Int64 )
+  vcat( map(rl->to_binary( rl, 2^numinputs )', row_list )... )
 end
 
 # get_bits for a single MyInt
@@ -176,6 +182,19 @@ end
 mutinf1(X,Y;base=Float64=2.0 ) = mutual_information(X,Y,base=base)    # Standard definition
 mutinf2(X,Y;base=Float64=2.0 ) = mutual_information([X,Y],base=base)  # Sherwin definition
 
+function entropy( B::Matrix, rows::Vector{Int64}=collect(1:size(B)[1]) )
+  myvect = map(i->to_hex(B[rows,i],length(rows)),1:size(B)[2])
+  CGP.entropy(myvect)
+end
+
+function entropy( B::Matrix, rows::Vector{MyInt}=collect(MyInt(1):MyInt(size(B)[1])) )
+  myvect = map(i->to_hex(B[rows,i],length(rows)),1:size(B)[2])
+  CGP.entropy(myvect)
+end     
+
+function mutinf_complement( B::Matrix, rows::Vector{Int64}=collect(1:size(B)[1]) )
+  CGP:entropy(B,rows) + my_entropy(B,setdiff(collect(1:size(B)[1]),rows)) - CGPentropy(B)
+end
 
 # degeneracy according to equation 2.4 of Macia and Sole
 # On April 13 replaced Macia Z with Tononi n as the number of interacting units

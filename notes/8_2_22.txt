@@ -16,3 +16,19 @@ julia> print_circuit(oc)
 circuit((1,2,3,4), ((5,NAND,2,1), (6,OR,3,4), (7,OR,1,2), (8,NAND,3,4), (9,NAND,6,8), (10,AND,5,7), (11,AND,6,9), (12,NOR,9,10), (13,AND,9,10), (14,NOR,12,13)))
 julia> print_circuit(ec)
 circuit((1,2,3,4), ((5,AND,2,1), (6,NOR,1,2), (7,AND,4,3), (8,NOR,3,4), (9,OR,8,7), (10,OR,6,5), (11,OR,10,8), (12,NAND,9,10), (13,OR,11,7), (14,AND,13,12)))
+
+Running with 1 process on xps:
+julia> steps_count = 50
+50
+julia> steps_sum = 0
+0 
+# Rand the following twice
+julia> for i = 1:steps_count
+                (c6,steps) = pheno_evolve(p6,funcs, randgoal(p6), 10, 800000); steps_sum += steps; number_active(c6)
+              end 
+julia> steps_sum/steps_count/2
+564464.48
+
+
+Created run_pheno_evolve() in Evolve.jl which I try running in parallel on fluda and surt2.
+Results are MUCH WORSE and very inconsistent.

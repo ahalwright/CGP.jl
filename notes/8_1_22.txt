@@ -1,5 +1,4 @@
 Found a mistake in my description of the computation of the mutual information between sets of rows of the matrix B which is used to compute Tononi complexity.
-Revised description in current version of GPTP paper on 8/2/22
 
 cc = circuit((1,2,3),((4,OR,1,2),(5,AND,2,3),(6,XOR,4,5))); output_values(cc)  # [0x0074]
 (IN, X, O) = node_values( cc )

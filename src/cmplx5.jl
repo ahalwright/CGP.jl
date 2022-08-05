@@ -10,32 +10,6 @@ function cmplx5( c::Chromosome; base=Float64=2.0 )
   (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
   cmplx5( X, numinputs; base=Float64=2.0 )
 end
-#=
-function cmplx5( X::Vector{MyInt}, numinputs::Int64; base=Float64=2.0 )
-  n = length(X)
-  #println("X:    ",X)
-  println(to_binary_matrix( X, numinputs ))
-  gbX = get_bits( X, numinputs )
-  println("gbX: ",gbX)  
-  println(to_binary_matrix( gbX, numinputs ))
-  ent_X = CGP.entropy(gbX,base=base)
-  println("ent_X: ",ent_X)
-  ents = [map(x->myent(x),map(y->get_bits(y,numinputs),[s for s in combinations(X,k)])) for k = 1:(length(X))]
-  println("ents: ",ents)
-  ents_avg = map(x->sum(x)/length(x), ents )
-  println("ents_avg: ",ents_avg)
-  summand = [ents_avg[k] - k/n*ent_X for k = 1:n]
-  println("summand: ",summand)
-  for k = 1:length(X)
-    for y in [s for s in combinations(X,k)]
-      gb = get_bits(y,numinputs)
-      print("k: ",k,"  s: ",y,"  get_bits: ",gb)
-      myent(gb)
-    end
-  end
-  sum(summand)
-end
-=#
 
 # A version of Tononi complexity for the vector of node outputs which is based on equation 5 of the 1994 paper by Tononi et al.
 # This version closely follows equation 5 but turns out to be considerably less efficient than the previous get_bits() version
@@ -57,12 +31,7 @@ function cmplx5( X::Vector{MyInt}, numinputs::Int64; base=Float64=2.0 )
   cmplx_sum
 end
 
-function myent(x)
-  entx=CGP.entropy(x)
-  println("ent x: ",x,"  ent(x): ",entx)
-  entx
-end
-
+#= in InfTheory.jl
 # Note:  to_binary() is defined in InfTheory.jl
 function to_binary_matrix( row_list::Vector{MyInt}, numinputs::Int64 )
   vcat( map(rl->to_binary( rl, 2^numinputs )', row_list )... )
@@ -93,6 +62,7 @@ function my_entropy( B::Matrix, rows::Vector{MyInt}=collect(MyInt(1):MyInt(size(
   myvect = map(i->to_hex(B[rows,i],length(rows)),1:size(B)[2])
   CGP.entropy(myvect)
 end
+=#
 
 function mutinf_complement( B::Matrix, rows::Vector{Int64}=collect(1:size(B)[1]) )
   my_entropy(B,rows) + my_entropy(B,setdiff(collect(1:size(B)[1]),rows)) - my_entropy(B)
@@ -102,8 +72,6 @@ function cmplx6( c::Chromosome; mutinf::Function=mutinf1, base=Float64=2.0 )
   # Macia & Sole:  Z = n = number of "interacting units".  See comments in file macia_circuit.jl.
   #n = c.params.numinteriors 
   numinputs = c.params.numinputs
-  if number_active( c ) == 0   # Make sure chromosome has been executed
-    execute_chromosome( c, construct_context(numinputs ) )
   end
   (IN, X, O) = node_values( c )  # lists of cached values of nodes, note letter O vs digit 0
   cmplx6( X, numinputs, base=Float64=2.0 )

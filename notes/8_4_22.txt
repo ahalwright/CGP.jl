@@ -1,0 +1,33 @@
+Went through a long hard debugging process to fix a bug in neutral_evolution() in Evolve.jl and neutral_evol() in neutral_evol.jl.
+Fix in neutral_evolution.jl:
+Old:
+    if typeof(c) == Chromosome
+      (new_c,active) = mutate_chromosome!( deepcopy(c), funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
+    elseif typeof(c) == LinCircuit
+      new_c = mutate_circuit!( deepcopy(c), funcs )
+    end         
+New
+    new_c = deepcopy(c)
+    if typeof(c) == Chromosome
+      (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
+    elseif typeof(c) == LinCircuit
+      new_c = mutate_circuit!( new_c, funcs )
+    end           
+
+Random.seed!(3) 
+neutral_evol( c, fncs, [0x0049], 4500, print_steps=false ) 
+Random.seed!(3) 
+neutral_evolution( c, fncs, [0x0049], 4500, print_steps=false )
+
+step: 9  ov: UInt16[0x0000]  new_ov: UInt16[0x0000]  cur dis: 0.375  new_dis: 0.375  circuit((1,2,3), ((4,OR,3,2), (5,OR,4,2), (6,NOR,3,5), (7,OR,6,6), (8,NOR,7,6), (9,OR,6,6), (10,AND,6,8)))
+step: 9  ov: UInt16[0x0000]  new_ov: UInt16[0x0000]  cur dis: 0.375  new_dis: 0.375  circuit((1,2,3), ((4,OR,3,2), (5,OR,4,2), (6,NOR,3,5), (7,OR,6,6), (8,NOR,7,6), (9,OR,6,6), (10,AND,6,8)))
+
+step: 10  ov: UInt16[0x0000]  new_ov: UInt16[0x00ff]  cur dis: 0.375  new_dis: 0.625  circuit((1,2,3), ((4,OR,3,2), (5,OR,4,2), (6,NOR,3,5), (7,OR,6,6), (8,NOR,7,6), (9,OR,6,6), (10,NAND,6,8)))
+step: 10  ov: UInt16[0x0000]  new_ov: UInt16[0x00ff]  cur dis: 0.375  new_dis: 0.625  circuit((1,2,3), ((4,OR,3,2), (5,OR,4,2), (6,NOR,3,5), (7,OR,6,6), (8,NOR,7,6), (9,OR,6,6), (10,NAND,6,8)))
+
+step: 11  ov: UInt16[0x0000]  new_ov: UInt16[0x00ff]  cur dis: 0.375  new_dis: 0.625  circuit((1,2,3), ((4,OR,3,2), (5,OR,4,2), (6,NOR,3,5), (7,OR,6,3), (8,NOR,7,6), (9,OR,6,6), (10,NAND,6,8)))
+step: 11  ov: UInt16[0x0000]  new_ov: UInt16[0x0000]  cur dis: 0.375  new_dis: 0.375  circuit((1,2,3), ((4,OR,3,2), (5,OR,4,2), (6,NOR,3,5), (7,OR,6,3), (8,NOR,7,6), (9,OR,6,6), (10,AND,6,8)))
+
+num_mutate_locations: 21  mutate_location: 14
+step: 11  ov: UInt16[0x0000]  new_ov: UInt16[0x0000]  cur dis: 0.375  new_dis: 0.375  circuit((1,2,3), ((4,OR,3,2), (5,OR,4,2), (6,NOR,3,5), (7,OR,6,3), (8,NOR,7,6), (9,OR,6,6), (10,AND,6,8)))
+num_mutate_locations: 21  mutate_location: 

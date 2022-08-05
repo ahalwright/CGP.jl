@@ -30,7 +30,7 @@
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
-function neutral_evol( c::Chromosome, g::Goal, max_steps::Integer, funcs::Vector{Func}; print_steps::Bool=false )
+function neutral_evol( c::Chromosome, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false )
   #funcs = default_funcs( c.params.numinputs )
   step = 0
   ov = output_values( c) 
@@ -38,34 +38,48 @@ function neutral_evol( c::Chromosome, g::Goal, max_steps::Integer, funcs::Vector
   new_c = deepcopy(c)
   while step < max_steps && ov != g
     step += 1
-    (new_c,active) = mutate_chromosome!( new_c, funcs )
+    new_c = deepcopy(c)
+    (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=0.0, delete_gate_prob=0.0 )
     new_ov = output_values( new_c )
     new_distance = hamming_distance( new_ov, g, c.params.numinputs )
-    #println("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance )
+    #=
+    if step < 20
+      print("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance,"  " )
+      print_circuit(new_c)
+    end
+    =#
     if new_ov == ov 
       c = new_c
       if print_steps
-        println("step: ",step," is neutral.")
+        print("step: ",step," is pheno neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance,"  ")
+        print_circuit(new_c)
       end
+    elseif new_distance == current_distance
+      c = new_c
+      if print_steps
+        print("step: ",step," is fitness neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance,"  ")
+        print_circuit(new_c)
+      end      
     elseif new_distance < current_distance
       if print_steps
         println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
+        print_circuit(new_c)
       end
       c = new_c
       ov = new_ov
       current_distance = new_distance
     else
-      if print_steps
+      if print_steps && step <= 20
         print("step: ",step,"  new_output: ",new_ov,"  new circuit: ")
         print_circuit( new_c )
       end 
     end
   end
   if step == max_steps
-    println("neutral evolution failed with ",step," steps for goal: ",g)
+    println("neutral evol failed with ",step," steps for goal: ",g)
     return (nothing, step)
   else
-    println("neutral evolution succeeded at step ",step," for goal: ",g)
+    println("neutral evol succeeded at step ",step," for goal: ",g)
     @assert output_values(c) == g
     return (c, step)
   end
@@ -110,7 +124,6 @@ function pheno_fitness( g::Goal, output_value::Goal, numinputs::Int64; random_fi
   end
 end
 
-function find_path_between_phenotypes( ph1:Goal, c1::Circuit,  ph2:Goal, c2::Circuit, numinputs::Int64 )
-end
+#function find_path_between_phenotypes( ph1::Goal, c1::Circuit,  ph2:Goal, c2::Circuit, numinputs::Int64 ) end
 
 

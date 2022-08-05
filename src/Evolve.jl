@@ -557,15 +557,21 @@ end
 # Does max_tries attempts to evolve a chromosome that maps to each phenotype in phlist
 # Not currently tested for LGP.
 function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64; 
-    use_lincircuit::Bool=false, use_mut_evolve::Bool=false, csvfile::String="" ) 
-  function ph_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, use_mut_evolve::Bool=false ) 
-    (c,steps) = pheno_evolve( p, funcs, goal, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve )
+    use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" ) 
+  function ph_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; 
+      use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false ) 
+    (c,steps) = pheno_evolve( p, funcs, goal, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps )
     return c != nothing ? (c,steps,number_active(c)) : (nothing,nothing,nothing)
   end
+  println("length(funcs): ",length(funcs))
   df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :numlevelsback=>Int64[], :fail_fract=>Float64[], 
       :mean_steps=>Float64[], :median_steps=>Float64[], :std_steps=>Float64[], :mean_nactive=>Float64[] )
-  result_list = filter(x->x[1]!=nothing, pmap( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve ), phlist ) )
-  #result_list = filter(x->x[1]!=nothing, map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve ), phlist ) )
+  result_list = filter(x->x[1]!=nothing, pmap( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
+  #result_list = filter(x->x[1]!=nothing, map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
+  if length(result_list) == 0
+    println("no results")
+    return nothing
+  end
   fail_fract = (length(phlist)-length(result_list))/length(phlist)
   steps_list = map(x->x[2], result_list)
   mean_steps = mean(steps_list)
@@ -582,6 +588,7 @@ function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# MyInt: ",MyInt)
       print_parameters(f,p,comment=true)
+      println(f,"# length(phlist): ",length(phlist))
       println(f,"# funcs: ", Main.CGP.default_funcs(p))
       println(f,"# max_tries: ",max_tries)
       println(f,"# max_steps: ",max_steps)
@@ -595,7 +602,10 @@ end
 # max_tries is the maximum number of attempts using neutral_evolution to find the circuit
 # max_steps is the maximum number of steps during a run of neutral_evolution()
 # if no genotype that maps to goal is found, returns (nothing,nothing)
-function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, use_mut_evolve::Bool=false )
+function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; 
+    use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
+  Random.seed!(2)
+  println("length(funcs): ",length(funcs))
   steps = 0   # establish scope
   total_steps = 0   # establish scope
   nc = nothing # establish scope
@@ -607,7 +617,8 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries
       #print_circuit(c)
     end         
     if !use_mut_evolve
-      (nc,steps) = neutral_evolution( c, funcs, goal, max_steps )
+      (nc,steps) = neutral_evolution( c, funcs, goal, max_steps, print_steps=print_steps )
+      #(nc,steps) = neutral_evol( c, funcs, goal, max_steps, print_steps=print_steps );  println("neutral_evol")
     else
       (nc,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [goal], funcs, max_steps ) 
     end
@@ -628,6 +639,7 @@ end
 # max_steps is the maximum number of steps during a run of neutral_evolution()
 # if no genotype that maps to goal is found, returns (nothing,nothing)
 function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal, max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, use_mut_evolve::Bool=false )
+  println("length(funcs): ",length(funcs))
   steps = 0   # establish scope
   nc = nothing # establish scope
   circuits_steps_list = use_lincircuit ? Tuple{LinCircuit,Int64}[] : Tuple{Chromosome,Int64}[]
@@ -637,9 +649,8 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circu
     tries += 1
     c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
     #print_circuit(c)
-    #(nc,steps) = neutral_evolution( c, funcs, goal, max_steps )
     if !use_mut_evolve
-      (nc,steps) = neutral_evolution( c, funcs, goal, max_steps )
+      (nc,steps) = neutral_evolution( c, funcs, goal, max_steps, print_steps=print_steps )
     else
       (nc,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [goal], funcs, max_steps ) 
     end
@@ -894,15 +905,21 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   while step < max_steps && ov != g
     step += 1
     #println("A step: ",step," current_distance: ",current_distance)
+    new_c = deepcopy(c)
     if typeof(c) == Chromosome
-      (new_c,active) = mutate_chromosome!( deepcopy(c), funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
+      (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
     elseif typeof(c) == LinCircuit
       #println("c: ",c)
-      new_c = mutate_circuit!( deepcopy(c), funcs )
+      new_c = mutate_circuit!( new_c, funcs )
     end
     new_ov = output_values( new_c )
     new_distance = hamming_distance( new_ov, g, c.params.numinputs )
-    #println("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance )
+    #=
+    if step < 20
+      print("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance,"  " )
+      print_circuit(new_c)
+    end
+    =#
     #print("new_c: ")
     #print_circuit(new_c)
     #print("    c: ")
@@ -912,20 +929,23 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
       if save_acomplexities
         save_acomplexity( new_c, c, new_ov[1], g, step, "neutral", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
       end
-      if print_steps
-        println("step: ",step," is pheno neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance)
+      if print_steps && step < 500
+        print("step: ",step," is pheno neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance,"  ")
+        print_circuit(new_c)
       end
     elseif new_distance == current_distance
       c = new_c
       if save_acomplexities
         save_acomplexity( new_c, c, new_ov[1], g, step, "neutral", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
       end
-      if print_steps
-        println("step: ",step," is fitness neutral.")
+      if print_steps && step < 500
+        print("step: ",step," is fitness neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance,"  ")
+        print_circuit(new_c)
       end
     elseif new_distance < current_distance   # improvement
       if print_steps
         println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
+        print_circuit(new_c)
       end
       if save_acomplexities
         save_acomplexity( new_c, c, new_ov[1], g, step, "improve", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
@@ -935,9 +955,9 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
       current_distance = new_distance
       #println("B step: ",step," current_distance: ",current_distance)
     else
-      if print_steps
-        #print("worse step: ",step,"  new_output: ",new_ov,"  new circuit: ")
-        println("step: ",step,"  new_output: ",new_ov," current distance: ",current_distance," new: ",new_distance)
+      if print_steps && step <= 20
+        print("step: ",step,"  new_output: ",new_ov," current distance: ",current_distance," new: ",new_distance,"  ")
+        print_circuit(new_c)
       end 
     end
   end
