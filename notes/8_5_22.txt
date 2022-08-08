@@ -1,0 +1,82 @@
+Running tests of run_pheno_evolve() in Evolve.jl after bug fix.
+
+data/8_5_22/run_pheno_evolveB.jl with 5 gates  5 inputs
+One failed phenotype:  UInt32[0x0281477f]
+
+Introduction by paragraph:
+1.  Research question is increasing complexity
+2.  Arrow of complexity hypothesis (possibly combine with paragraph 1)
+3.  Definition of complexity
+4.  Motivation for G-P maps
+5.  Structural properties of G-P maps
+6.  Universal properties of G-P maps
+7.  Redundancy, robustness, neutral networks
+8.  How does complexity evolve
+9.  Summary of results
+
+Creating Kolmogorov density plot:
+kdf = read_dataframe("../data/counts/k_complexity11_11F.csv")
+julia> pl = density(kdf.num_gates)
+julia> pl = density(kdf.num_gates,labels="density of Kolmogorov complexity",xlabel="Kolmogorov complexity",ylabel="density")
+julia> pl = density!(legend=:topleft)
+julia> savefig("../data/8_5_22/k_complexity_density_11gts_8lb.png")  # only by phenotype
+
+Looking up k_complexity of a phenotype
+rename!(kdf, :goal=>:sgoal )
+#kdf.goal = map(x->eval(Meta.parse(x)),kdf.sgoal)
+dict = Dict{String,Int64}()
+for ph in kdf.sgoal
+  dict[ph] = kdf[kdf.sgoal.==ph,:num_gates][1]
+end
+# test
+dict["UInt16[0xfff4]"] # 4
+
+# bash: bunzip2 circuit_complexities12_20DR.csv.bz2
+# Updated version:  8_7_22.txt
+ckdf = read_dataframe("../data/2020/12_20/circuit_complexities12_20DR.csv")
+ckdf.kcomplexity = map(x->dict[x], ckdf.goals) # 28000000-element Vector{Int64}:
+cl = density([cdf.kcomp,ckdf.kcomplexity],labels=["density for random phenotypes" "density for random genotypes"],xlabel="Kolmogorov complexity",ylabel="density")
+savefig("../data/8_5_22/k_complexity_density_11gates_8lb.png")  # both by phenotype and by genotype
+
+
+signal (11): Segmentation fault
+in expression starting at /home/evotech/evotech/CGP.jl/data/8_5_22/run_pheno_evolveR.jl:29
+jl_idtable_rehash at /buildworker/worker/package_linux64/build/src/iddict.c:23
+jl_table_assign_bp at /buildworker/worker/package_linux64/build/src/iddict.c:102 [inlined]
+jl_eqtable_put at /buildworker/worker/package_linux64/build/src/iddict.c:147
+setindex! at ./iddict.jl:96
+deepcopy_internal at ./deepcopy.jl:61
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+_deepcopy_array_t at ./deepcopy.jl:105
+deepcopy_internal at ./deepcopy.jl:92
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+deepcopy_internal at ./deepcopy.jl:65
+deepcopy at ./deepcopy.jl:26 [inlined]
+#neutral_evolution#247 at /home/evotech/evotech/CGP.jl/src/Evolve.jl:908
+neutral_evolution##kw at /home/evotech/evotech/CGP.jl/src/Evolve.jl:891 [inlined]
+#pheno_evolve#231 at /home/evotech/evotech/CGP.jl/src/Evolve.jl:620
+pheno_evolve##kw at /home/evotech/evotech/CGP.jl/src/Evolve.jl:607 [inlined]
+ph_evolve#216 at /home/evotech/evotech/CGP.jl/src/Evolve.jl:563
+ph_evolve#223##kw at /home/evotech/evotech/CGP.jl/src/Evolve.jl:563
+unknown function (ip: 0x7f139637533a)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+#218 at /home/evotech/evotech/CGP.jl/src/Evolve.jl:569
+#882 at ./asyncmap.jl:100
+unknown function (ip: 0x7f1396355d34)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+jl_apply at /buildworker/worker/package_linux64/build/src/julia.h:1788 [inlined]
+do_apply at /buildworker/worker/package_linux64/build/src/builtins.c:713
+macro expansion at ./asyncmap.jl:234 [inlined]
+#898 at ./task.jl:423
+unknown function (ip: 0x7f13963542ef)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+jl_apply at /buildworker/worker/package_linux64/build/src/julia.h:1788 [inlined]
+start_task at /buildworker/worker/package_linux64/build/src/task.c:877
+Allocations: 7905333151 (Pool: 7878229450; Big: 27103701); GC: 11968
+Segmentation fault (core dumped)
+

@@ -926,7 +926,8 @@ end
 function count_circuits_ch( p::Parameters; nfuncs::Int64=0 )
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
-  multiplier = Int128(1)
+  #multiplier = Int128(1)
+  multiplier = BigInt(1)
   mij = 0
   for i = 1:p.numinteriors
     mf = nfuncs

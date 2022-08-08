@@ -35,6 +35,7 @@ findmax(nrpdf.complexity)
 (3.515573496094335, 172)
 
 
+Note:  Redone again on 8/7/22:  See notes/8_7_22.txt
 Redo the complexity density plot copied from diary/diary12_18.txt
 Redo 11 gts 8 lb on 7/9/22 for GPTP paper
 Moved files from OneDrive to Dropbox CGP.jl/data/2020/12_20/.

@@ -560,14 +560,15 @@ function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
     use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" ) 
   function ph_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; 
       use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false ) 
-    (c,steps) = pheno_evolve( p, funcs, goal, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps )
-    return c != nothing ? (c,steps,number_active(c)) : (nothing,nothing,nothing)
+    (c,steps,total_failures) = pheno_evolve( p, funcs, goal, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps )
+    return c != nothing ? (c,steps,number_active(c),total_failures) : (nothing,nothing,nothing,nothing)
   end
   println("length(funcs): ",length(funcs))
   df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :numlevelsback=>Int64[], :fail_fract=>Float64[], 
-      :mean_steps=>Float64[], :median_steps=>Float64[], :std_steps=>Float64[], :mean_nactive=>Float64[] )
-  result_list = filter(x->x[1]!=nothing, pmap( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
-  #result_list = filter(x->x[1]!=nothing, map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
+      :mean_steps=>Float64[], :median_steps=>Float64[], :std_steps=>Float64[], :mean_nactive=>Float64[], :first_fail=>Int64[], :subseqent_fail=>Int64[] )
+  #result_list = filter(x->x[1]!=nothing, Folds.map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
+  #result_list = filter(x->x[1]!=nothing, pmap( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
+  result_list = filter(x->x[1]!=nothing, map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
   if length(result_list) == 0
     println("no results")
     return nothing
@@ -577,9 +578,12 @@ function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
   mean_steps = mean(steps_list)
   median_steps = median(steps_list)
   std_steps = std(steps_list)
-  numactive_list = map(x->x[3], result_list)
+  numactive_list = map(x->x[3], result_list )
   mean_numactive = mean(numactive_list)
-  df_row = [ p.numinputs, p.numinteriors, p.numlevelsback, fail_fract, mean_steps, median_steps, std_steps, mean_numactive ]
+  total_failures_list = map(x->x[4], result_list )
+  first_fail = sum( total_failures_list[i][1] for i = 1:length(total_failures_list ))
+  subsequent_fail = sum( sum( total_failures_list[i][2:end] ) for i = 1:length(total_failures_list ))
+  df_row = [ p.numinputs, p.numinteriors, p.numlevelsback, fail_fract, mean_steps, median_steps, std_steps, mean_numactive, first_fail, subsequent_fail ]
   push!(df,df_row)
   if length(csvfile) > 0
     hostname = chomp(open("/etc/hostname") do f read(f,String) end)
@@ -604,10 +608,11 @@ end
 # if no genotype that maps to goal is found, returns (nothing,nothing)
 function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; 
     use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
-  Random.seed!(2)
-  println("length(funcs): ",length(funcs))
+  #Random.seed!(2)
+  #println("length(funcs): ",length(funcs))
   steps = 0   # establish scope
   total_steps = 0   # establish scope
+  total_failures = zeros(Int64,max_tries)
   nc = nothing # establish scope
   for i = 1:max_tries
     if use_lincircuit
@@ -626,12 +631,13 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries
     if steps < max_steps
       break
     end
+    total_failures[i] += 1
   end
   if steps == max_steps
     println("pheno_evolve failed to evolve a circuit to goal: ",goal )
-    return (nothing,nothing)
+    return (nothing,nothing,nothing)
   end
-  (nc,total_steps)
+  (nc,total_steps,total_failures)
 end
 
 # Evolve num_circuits_per_goal circuits that map to a given phenotype (Goal) goal.
@@ -644,6 +650,7 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circu
   nc = nothing # establish scope
   circuits_steps_list = use_lincircuit ? Tuple{LinCircuit,Int64}[] : Tuple{Chromosome,Int64}[]
   num_circuits_found = 0
+  total_failures = zeros(Int64,max_tries)  # total_failures is not part of the return value of this function
   tries = 1
   while tries < max_tries && num_circuits_found < num_circuits_per_goal 
     tries += 1
@@ -657,6 +664,8 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circu
     if steps < max_steps
       push!(circuits_steps_list, (nc,steps))
       num_circuits_found += 1
+    else
+      total_failures[tries] += 1
     end
   end
   if tries == max_tries 
