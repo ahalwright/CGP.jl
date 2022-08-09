@@ -15,3 +15,7 @@ rev_diff = map(abs, rev_diff)
 findmax(rev_diff) # (2, 1714)
 findall(x->x==2,rev_diff) # 146-element Vector{Int64}: 
 findall(x->x==1,rev_diff) # 9800-element Vector{Int64}:  Far from perfect
+
+Running run_kolmogorov_complexity() for 20 and 500 random 4x1 goals on surt2 with max_tries=5 and max_steps=200000
+    on surt2 using Folds.  Time for 20 goals:  about 10 minutes.  Two runs with 20 goals: perfect agreement on K complexity.
+

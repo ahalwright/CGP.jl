@@ -438,8 +438,8 @@ end
 
 # Run kolmogorov_complexity() for all goals in goal list gl (in parallel).
 # Write dataframe to csvfile is that is given (keyword argument)
-function run_kolmogorov_complexity( p::Parameters, gl::GoalList, max_goal_tries::Int64, max_ev_steps::Int64;
-      csvfile::String="" ) 
+function run_kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, gl::GoalList, max_goal_tries::Int64, max_ev_steps::Int64;
+      use_mut_evolve::Bool=false, csvfile::String="" ) 
   ngoals = length(gl)
   df = DataFrame()
   df.goal = Goal[]
@@ -450,9 +450,9 @@ function run_kolmogorov_complexity( p::Parameters, gl::GoalList, max_goal_tries:
   df.avg_robustness = Float64[]
   df.avg_evolvability = Float64[]
   df.num_gates_exc = Int64[]
-  result_list = Folds.map( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
-  #result_list = pmap( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
-  #result_list = map( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
+  result_list = Folds.map( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_mut_evolve=use_mut_evolve ), gl )
+  #result_list = pmap( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_mut_evolve=use_mut_evolve ), gl )
+  #result_list = map( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_mut_evolve=use_mut_evolve ), gl )
   for r in result_list
     push!(df, r )
   end
@@ -487,11 +487,11 @@ end
 # If a chromosome with a smaller number of active gates is found in these further evolutions,
 #    then num_gates is reset and the further evaluations of complexity, robustness, evolvability are restarted
 # max_ev_steps is the maximum number of steps while doing mut_evolve()
-function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, max_ev_steps::Int64; use_mut_evolve::Bool=true )
+function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, max_goal_tries::Int64, max_ev_steps::Int64; use_mut_evolve::Bool=true )
   num_tries_multiplier = 3   # used in second outer while loop
   println("goal: ",g)
   num_gates_exceptions = 0
-  funcs = default_funcs(p.numinputs)
+  #funcs = default_funcs(p.numinputs)
   complexities_list = Float64[]
   #robust_evol_list = Tuple{Float64,Float64}[]
   robust_list = Float64[]
