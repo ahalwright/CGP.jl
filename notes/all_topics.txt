@@ -270,8 +270,12 @@ These files now have suffix  _21.txt
 7_8:   Rare and common, fixed bug in evolvable_evolvability.jl
 7_9:   Rare and common, changing plot labels from "complexity" to "Tononi complexity"
 7_12:  Rare and common vs K complexity
-7_15:  Evolution and sampling evolvability vs rank---separately sorted
+7_15:  Collaboration initiative, log redund vs k-complexity plot
 7_16:  Total evolvability
+7_18:  Assignment for Cooper
+7_21:  Wrote phenodf_to_submatrix_dataframe() in evolvable_evolvability.jl, average_tcomplexity() in analyze_complexity.jl
+7_22:  Removed funcs keyword argument from neutral_evolution and added funcs as an argument to all calls to neutral_evolution(). 
+       Trying to understand Tononi complexity.  Examples.  Function to_binary_matrix.
 
 
 All plots:

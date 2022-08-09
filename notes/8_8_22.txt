@@ -1,0 +1,34 @@
+Topics for further research.
+
+From complexity/cce/Evolvability_and_complexity8_8_22.docx
+  Wagner evolvability is severely underestimated for high-redundancy phenotypes.  
+    Currently based on CGP evolution evolvability simulations with one parameter set:  3x1 7 gts 4 lb 4 gate types.  
+      Extend to LGP, sampling evolvability, and other parameter settings.
+  Evolvability vs. complexity  
+  Total evolvability:  An extension to the above.  I already have results on this
+  Reason why evoluton evolvability is larger than sampling evolvability:  set up a direct simulation to verify this.
+  Shape space covering:  Setup is done.  Just additional simulations and plots needed.
+
+  Verify that Dingle results apply to digital circuits.  This may involve computation of K complexity for 5 input goals. 
+  Look into digital adders as a practical application.  Problem:  this is just one class of application.
+  Test for simplicity bias of Johnston 2022
+    
+
+Looking into the Folds package.  https://juliafolds.github.io/data-parallelism/tutorials/quick-introduction/
+pmap() can be converted from process parallelism to thread parallelism by converting pmap() to Folds.map().    
+However, this fails on surt2 for my applications.
+function try_folds( p, funcs, ngoals, max_tries, max_steps )
+  Folds.map(_->pheno_evolve(p,funcs, randgoal(p), max_tries, max_steps), 1:ngoals )
+end
+try_folds(p,funcs,2,max_tries,max_steps)  # succeeded on surt2
+
+ 
+Testing computation of K complexity for 5-input phenotypes.
+Removed the call to complexity5() since it was taking too much time.
+3 computations of the K complexity of UInt64[0x000000007709e544] which gave results of 15, 18, 22.
+Run times of about 1/2 hour.
+
+
+
+
+

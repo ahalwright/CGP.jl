@@ -1,5 +1,13 @@
 Renamed src/evo_dict.jl to Evo_dict.jl, and added it to CGP.jl.
 
+Created plot log redund vs K complexity
+using Plots; gr()
+lg10(x) = x > 0 ? log10(x) : 0
+kdf = read_dataframe("../data/7_11_22/k_complexity7_11_22redundD.csv")
+scatter(kdf.num_gates,map(lg10,kdf.ints7_4),labels="log redundancy vs Kolmororov complexity")
+plot!(ylabel="log redundancy", xlabel="Kolmogorov complexity",title="log redundancy vs K complexity 3x1 7gts4lb")
+savefig("../data/7_11_22/log_redund_vs_K_complexity3x1_7gts4lb.png")
+
 Note that Evo_dict uses an evolutionary approximation of 
 evolvability.
 

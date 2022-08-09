@@ -1,4 +1,4 @@
-Removed funcs keyword argument from neutral_evolution and added funcs as an argument to all calls to neutal_evolution().
+Removed funcs keyword argument from neutral_evolution and added funcs as an argument to all calls to neutral_evolution().
 
 Trying to understand the computation of Tononi complexity.
 Created a temporary version of the complexity5() function renamed to cmplx5() in cmplx5.jl.

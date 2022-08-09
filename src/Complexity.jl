@@ -450,7 +450,8 @@ function run_kolmogorov_complexity( p::Parameters, gl::GoalList, max_goal_tries:
   df.avg_robustness = Float64[]
   df.avg_evolvability = Float64[]
   df.num_gates_exc = Int64[]
-  result_list = pmap( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
+  result_list = Folds.map( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
+  #result_list = pmap( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
   #result_list = map( g->kolmogorov_complexity( p, g, max_goal_tries, max_ev_steps ), gl )
   for r in result_list
     push!(df, r )
@@ -536,7 +537,9 @@ function kolmogorov_complexity( p::Parameters, g::Goal, max_goal_tries::Int64, m
     println("no goal found for goal ",g," for num_gates: ",num_gates)
     num_gates += 1  # now set to the minimum number of gates for successful circuit
   end  
-  push!(complexities_list, complexity5(found_c))
+  if p_current.numinteriors <= 18  # Too time consuming for a large number of gates
+    push!(complexities_list, complexity5(found_c))
+  end
   #push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
   (rlist,elist) = mutate_all( found_c, funcs,robustness_only=true)
   push!(robust_list, rlist )

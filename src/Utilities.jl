@@ -1,4 +1,38 @@
-export write_df_to_csv
+# Contains functions that are useful in many contexts
+export write_df_to_csv, MyInt_to_string, string_to_MyInt
+
+# Converts a MyInt unsigned integer to a string
+# Example:  MyInt_to_string( MyInt(1) ) returns "0x00000001" if MyInt==UInt32
+function MyInt_to_string( x::MyInt )
+  if MyInt == UInt8
+    @sprintf("0x%02x",x)
+  elseif MyInt == UInt16
+    @sprintf("0x%04x",x)
+  elseif MyInt == UInt32
+    @sprintf("0x%08x",x)
+  elseif MyInt == UInt64
+    @sprintf("0x%016x",x)
+  elseif MyInt == UInt128
+    @sprintf("0x%032x",x)
+  else
+    error("Illegal type ",MyInt,"  for MyInt in function MyInt_to_string()")
+  end
+end
+
+# Converts a string representing an MyInt to a MyInt.
+# The string should start with "0x" and be a legitimate Julia representation of a MyInt.
+# Example:  string_to_MyInt( "0x004" )  returns 0x00000004 if MyInt==UInt32
+function string_to_MyInt( x::AbstractString )
+  value = eval(Meta.parse(x))
+  if typeof(value) <: Number
+    MyInt(value)
+  elseif typeof(value) <: Array
+    [MyInt(value[1])]
+  else
+    error("Illegal argument ",x," to function string_to_MyInt()" )
+  end
+end
+
 # Writes a dataframe to a CSV file
 function write_df_to_csv( df::DataFrame, p::Parameters, funcs::Vector{Func}, csvfile::String;
                 mutrate::Float64=-1.0, ngens::Int64=-1, popsize::Int64=-1, nreps::Int64=-1, max_steps::Int64=-1,

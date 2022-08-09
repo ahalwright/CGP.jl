@@ -1,0 +1,17 @@
+Resolving the why Folds.map() doesn't work on surt2.
+Added "using Folds" to Complexity.jl, and now seems to work.
+
+Checking the accuracy of the computation of K complexity for all 3x1 and 4x1 goals.
+
+kdf = read_dataframe("../data/counts/k_complexity_all3x1phenos.csv")
+rev_num_gates = reverse(kdf.num_gates)
+rev_diff = kdf.num_gates - rev_num_gates
+sum(rev_diff) #  0  # perfect
+
+kdf = read_dataframe("../data/counts/k_complexity_all4x1phenos.csv")
+rev_num_gates = reverse(kdf.num_gates)
+rev_diff = kdf.num_gates - rev_num_gates 
+rev_diff = map(abs, rev_diff)
+findmax(rev_diff) # (2, 1714)
+findall(x->x==2,rev_diff) # 146-element Vector{Int64}: 
+findall(x->x==1,rev_diff) # 9800-element Vector{Int64}:  Far from perfect

@@ -22,7 +22,8 @@ Pkg.add("JLD")
 Pkg.add("Colors"      )
 Pkg.add("Test")
 Pkg.add("Permutations")
-Pkg.add("Plots")   # only used in Windows
+Pkg.add("Plots")   
+Pkg.add("Folds")
 #Pkg.add("Revise")
 using Distributed
 using DataFrames
