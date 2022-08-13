@@ -19,15 +19,16 @@ function MyInt_to_string( x::MyInt )
   end
 end
 
-# Converts a string representing an MyInt to a MyInt.
-# The string should start with "0x" and be a legitimate Julia representation of a MyInt.
+# Converts a string representing an MyInt or a string representing a Vector containing a MyInt to a MyInt.
+# Example:  string_to_MyInt("0x23")  returns the unsigned integer  0x0023 if MyInt==UInt16
+# Example:  string_to_MyInt("UInt16[0x0023]") returns the unsigned integer 0x0023 if MyInt==UInt16
 # Example:  string_to_MyInt( "0x004" )  returns 0x00000004 if MyInt==UInt32
 function string_to_MyInt( x::AbstractString )
   value = eval(Meta.parse(x))
   if typeof(value) <: Number
     MyInt(value)
   elseif typeof(value) <: Array
-    [MyInt(value[1])]
+    MyInt(value[1])
   else
     error("Illegal argument ",x," to function string_to_MyInt()" )
   end

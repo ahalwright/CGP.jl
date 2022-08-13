@@ -19,3 +19,38 @@ findall(x->x==1,rev_diff) # 9800-element Vector{Int64}:  Far from perfect
 Running run_kolmogorov_complexity() for 20 and 500 random 4x1 goals on surt2 with max_tries=5 and max_steps=200000
     on surt2 using Folds.  Time for 20 goals:  about 10 minutes.  Two runs with 20 goals: perfect agreement on K complexity.
 
+Note:  B and C both use Random.seed!(2) so that goals are the same.
+Compare runtimes for B and C on surt2.
+C:  Folcs) 599 seconds
+B:  Folds  622 seconds
+Compared runtimes for B and C on fluda.
+C:  pmap() 233 seconds
+B:  Folds  495 seconds
+Conclusion:  pmap() is faster
+Three mismatches between B and C
+
+8/11/22:
+Finished running data/8_9_22/run_k_complexity4x1G.jl on fluda and data/8_9_22/run_k_complexity4x1F.jl on surt2.
+Procedure for combining into one dataframe and then deepcopy, reversing all columns, negating the goal column,
+  and appending to the combined dataframe.
+
+Appended the F and G csv files by combining files.  Result is k_complexityFG.csv.  Could have done using append!() function.
+
+Needed to make sure that p.numinputs==4 and funcs=default_funcs(p) was run so that Ones==0xffff.
+Otherwise CGP.Not does not work correctly.
+
+fgdf = read_dataframe("../data/8_9_22/k_complexity8_9_22FG.csv")
+gfdf = deepcopy(fgdf);
+for i = 1:8   # Reverse all columns
+  gfdf[:,i] = reverse(fgdf[:,i])
+end
+# Negate the goal column by converting to MyInt, negate using CGP.Not, convert back to string,
+#   and prepend "UInt16[" and append "]" using the string() function.
+gfdf.goal = map(x->string("UInt16[",MyInt_to_string(CGP.Not(string_to_MyInt(x))),"]"), gfdf.goal )
+gffgdf = deepcopy(fgdf); size(gffgdf) #  (32768, 8)  # Prepare to append!()
+DataFrames.append!(gffgdf,gfdf)
+size(gfffdf)   # (65536, 8)
+write_dataframe_with_comments(gffgdf,"../data/8_9_22/k_complexity8_9_22FG.csv","../data/8_9_22/k_complexity8_9_22FGGF.csv")
+#   IOStream(<file ../data/8_9_22/k_complexity8_9_22FGGF.csv>)
+
+

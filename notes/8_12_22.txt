@@ -1,0 +1,29 @@
+Objective:  produce statistics for the probability of one-step mutation from phenotypes of one k-complexity to another.
+
+New type RebasedVector:
+mutable struct RebasedVector
+  center::Int64
+  vect::Vector{Int64}
+end
+# Allows indexing of vect with negative indexes.
+
+function Base.getindex( rb::RebasedVector, i::Integer )
+  try  # if bounds error return 0
+    rb.vect[i+rb.center]
+  catch
+    0
+  end
+end   
+
+function Base.setindex!( rb::RebasedVector, v::Int64, i::Integer )
+  try  # if bounds error do nothing
+    rb.vect[i+rb.center] = v
+  catch
+  end
+end  
+
+function run_k_complexity_mutate_all( ) returns a dataframe with 2 columns, :goal and :rebased_vect with one row for each given phenotype.
+function k_complexity_mutate_all()  
+
+k_comp_rebased = run_k_complexity_mutate_all(p,funcs,randgoallist(2,p),numcircuits,max_tries,max_steps)
+ksummary = kcomp_summary_dataframe( k_comp_rebased )

@@ -55,7 +55,8 @@ function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mut
   end
   #println("df: ",df,"  names(df): ",names(df))
   # Each call to process_genotype() will generate one row of the dataframe
-  df_row_list = pmap( circuit_steps_list->process_genotype( p, funcs, num_mutates, goal_list, circuits_per_goal_list, circuit_steps_list, 
+  #df_row_list = pmap( circuit_steps_list->process_genotype( p, funcs, num_mutates, goal_list, circuits_per_goal_list, circuit_steps_list, 
+  df_row_list = map( circuit_steps_list->process_genotype( p, funcs, num_mutates, goal_list, circuits_per_goal_list, circuit_steps_list, 
       increase_mutates=increase_mutates, use_lincircuit=use_lincircuit, output_phenos=output_phenos ), list_of_circuit_steps_lists )
   for df_row in df_row_list
     #println("length(df_row): ",length(df_row))
@@ -161,8 +162,8 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   complexity_list = map( complexity5, circuits_list )
   evolvability_list = map( c->genotype_evolvability(c,funcs), circuits_list )
   current_pheno(ci,p,funcs) = output_values( use_lincircuit ? circuit_int_to_circuit(ci,p,funcs) : int_to_chromosome(ci,p,funcs) )
-  #result_list = map( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
-  result_list = pmap( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
+  result_list = map( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
+  #result_list = pmap( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
   df = DataFrame()
   df.phenos = pheno_strings_list
   df.complexity = complexity_list
@@ -194,6 +195,7 @@ end
 function pheno_evolve_to_goals( p::Parameters, funcs::Vector{Func}, goal_list::GoalList, num_circuits_per_goal::Int64, max_tries::Int64, max_steps::Int64;
       use_lincircuit::Bool=false )
   list_of_circuits_steps_lists = pmap( goal->pheno_evolve( p, funcs, goal, num_circuits_per_goal, max_tries, max_steps, use_lincircuit=use_lincircuit ), goal_list)
+  #list_of_circuits_steps_lists = map( goal->pheno_evolve( p, funcs, goal, num_circuits_per_goal, max_tries, max_steps, use_lincircuit=use_lincircuit ), goal_list)
 end
 
 function genotype_evolvability( c::Circuit, funcs::Vector{Func} )
