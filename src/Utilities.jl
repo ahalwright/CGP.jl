@@ -75,3 +75,10 @@ function write_df_to_csv( df::DataFrame, p::Parameters, funcs::Vector{Func}, csv
   end
   df
 end
+
+function assign_to_dataframe_row!( df::DataFrame, index::Int64, row::Vector )
+  @assert size(df)[2] == length(row)
+  for j = 1:size(df)[2]
+    df[index,j] = row[j]
+  end
+end

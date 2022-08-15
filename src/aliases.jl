@@ -1,5 +1,5 @@
 export Population, Chromosome, imChromosome, Parameters, indiv_result_type, pop_result_type, elt_type
-export CompositionalCircuit, CompGate, CompCircuit, Need, CC, Cc, Cg, Need
+export CompositionalCircuit, CompGate, CompCircuit, Need, CC, Cc, Cg, Need, RebasedVector
 
 using Distributions
 using DataFrames
@@ -299,3 +299,8 @@ mutable struct Need
   circuit_key::String   # If not "", the key of the all_circuits dictionary that meets the need
   best_fitness::Float64
 end       
+
+mutable struct RebasedVector
+  center::Int64
+  vect::Vector{Int64}
+end

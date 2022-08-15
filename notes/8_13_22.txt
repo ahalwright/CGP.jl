@@ -1,0 +1,41 @@
+Two fluda runs of K complexity for 5 input phenotypes:
+max_tries=10; max_steps=400_000
+Parameters 5,1,20,8 and 5,1,22,8
+phenotypes
+0x38e2656f  K comp 13   2510 seconds
+0xb14000d4  K comp 10   2318 seconds
+
+max_tries=4; max_steps=200_000 
+0x38e2656f  K comp 14   1235 seconds K comp 13 1918
+0xb14000d4  K comp 11   941 seconds  K comp 11 1057 seconds
+0x25fedf1a  K comp 10   546 seconds  K comp 11 501
+
+fluda k_complexity_mutate8_13_22Dfluda.csv  1928 seconds
+mac   k_complexity_mutate8_13_22F.csv  3097 seconds 
+mac 8 run_k_complexity_mutateH.jl      2746 seconds
+
+df1 = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22H.csv")
+df2 = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22D.csv")
+df0 = deepcopy(df1);
+df = DataFrame[]
+push!(df,df2)
+df3 = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22DD.csv")
+push!(df,df3)
+df4 = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22F.csv")
+for dd in df
+         for i = 2:size(df0)[2]
+           df0[:,i] += dd[:,i]
+         end
+       end
+write_dataframe_with_comments(df0,"../data/8_13_22/k_complexity_mutate8_13_22H.csv","../data/8_13_22/k_complexity_mutate8_13_22DFH.csv")
+dfpct = deepcopy(df0);
+#  Convert columns to Float64
+for i = 2:size(dfpct)[2] dfpct[!,names(dfpct)[i]]=map(Float64,dfpct[!,names(dfpct)[i]]) end
+dfp = deepcopy(dfpct); 
+for i = 1:size(dfpct)[1]
+      # Change all but first column to fractions, convert to vector, prepend first column
+      vv = vcat([i],Vector(dfpct[i,2:end])/sum(dfpct[i,2:end]))  
+      assign_to_dataframe_row!(dfp,i,vv)  # assign_to_dataframe_row is in Utilities.jl
+    end
+write_dataframe_with_comments(dfp,"../data/8_13_22/k_complexity_mutate8_13_22DFH.csv","../data/8_13_22/k_complexity_mutate8_13_22DFHfract.csv")  
+
