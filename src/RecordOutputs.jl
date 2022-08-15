@@ -115,8 +115,8 @@ function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numin
   if output_complex
     outlist = fill( (0,0.0), numoutputs*2^2^numinputs )
   else
-    #outlist = fill( Int64(0), numoutputs*2^2^numinputs )
-    outlist = fill( UInt128(0), numoutputs*2^2^numinputs )
+    outlist = fill( Int64(0), numoutputs*2^2^numinputs )
+    #outlist = fill( UInt128(0), numoutputs*2^2^numinputs )
   end
    circuit_ints_list = [ Int128[] for _ = 1:p.numoutputs*2^2^p.numinputs ]
   for _ = 1:nreps
@@ -319,14 +319,14 @@ function vcat_arrays!( lst1::Vector{Vector{Int128}}, lst2::Vector{Vector{Int128}
 end
 
 #=  The next two functions are replaced by write_df_to_csv() in Utilities.jl
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Union{Vector{UInt128},Vector{Int64}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
   #println("len goals: ",length(df.:goals))
   sym = Symbol("ints","$(p.numinteriors)","_","$(p.numlevelsback)") 
   df[!,sym] = outputs_list
   open( csvfile, "w" ) do f
-    hostname = chomp(open("/etc/hostname") do f read(f,String) end) 
+    hostname = readchomp(`hostname`)
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )     
     print_parameters(f,p,comment=true)
@@ -343,7 +343,7 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
 end
 
 #function write_to_dataframe_file( p::Parameters, outputs_list::Vector{Int64}, funcs::Vector{Func}; csvfile::String="" )
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
+function write_to_dataframe_file( p::Parameters, outputs_list::Union{Vector{UInt128},Vector{Int64}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
   df.:igoals = [ @sprintf("%d",g) for g = 0:(2^2^p.numinputs-1) ]
@@ -368,7 +368,7 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
 end
 =#
 
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0;
+function write_to_dataframe_file( p::Parameters, outputs_list::Union{Vector{UInt128},Vector{Int64}}, circuits_list::Vector{Vector{Vector{Int64}}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0;
      csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
@@ -384,7 +384,7 @@ function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, 
   df 
 end
 
-function write_to_dataframe_file( p::Parameters, outputs_list::Vector{UInt128}, circuits_list::Vector{Vector{Int128}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; 
+function write_to_dataframe_file( p::Parameters, outputs_list::Union{Vector{UInt128},Vector{Int64}}, circuits_list::Vector{Vector{Int128}}, funcs::Vector{Func}, numcircuits::Int64=0, nreps::Int64=0; 
     csvfile::String="" )
   df = DataFrame()
   df.:goals = [ @sprintf("0x%04x",g) for g = 0:(2^2^p.numinputs-1) ]
@@ -597,7 +597,7 @@ function run_circuit_complexities( p::Parameters, num_circuits::Int64; use_linci
   df.complexities = complexities
   if length(csvfile) > 0
     open( csvfile, "w" ) do f 
-      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
