@@ -1,0 +1,11 @@
+Combining fluda and surt2 runs for sampling 4x1 10 gates 5 lb chromosomes.
+
+edf = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_E.csv")
+gdf = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_G.csv")
+# The next command took a long time to run.
+egdf.circuits_list = map(i->vcat(eval(Meta.parse(edf.circuits_list[i])),eval(Meta.parse(gdf.circuits_list[i]))), 1:2^2^4 )
+p = Parameters(4,1,10,5); funcs=default_funcs(p)
+# verify that the next command returns a list of 0x0004.
+map(i->output_values(int_to_chromosome(egdf.circuts_list[5][i],p,funcs))[1], 1:length(egdf.circuts_list[5]))  
+ write_dataframe_with_comments(egdf,"../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_E.csv", "../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv")
+IOStream(<file ../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv>)
