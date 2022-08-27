@@ -1,0 +1,25 @@
+
+
+
+Rerunning examples in 6_23_22/ in 8_28_22/
+
+
+Using sed to convert chomp() to readchome():
+
+cp ../OneDrive/evotech/CGP.jl/data/8_26_22/run_evolvable_evolvability_allM.jl r.jl
+sed -i'.bak' 's/evolab/evolvab/g' r.jl
+cp ../OneDrive/evotech/CGP.jl/src/RecordOutputs.jl RR.jl
+sed -i'.bak' 's@chomp(open("/etc/hostname") do f read(f,String) end)@readchomp(`hostname`)@' RR.jl
+diff RR.jl.bak RR.jl
+354c354
+<     hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+---
+>     hostname = readchomp(`hostname`)
+419c419
+<     hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+---
+>     hostname = readchomp(`hostname`) 
+
+chomp.sh:
+  sed -i'.bak' 's@chomp(open("/etc/hostname") do f read(f,String) end)@readchomp(`hostname`)@' $1
+

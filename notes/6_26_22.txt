@@ -1,5 +1,10 @@
+See notes/8_26_22.txt for updates and corrections
 Results for invitation to collaborate to Ting and Wolfgang:
 
+Added 8/26/22:
+# Suffix R has length(funcs) == 4, other suffixes with length(funcs) == 5
+@time include("../data/8_26_22/run_evolvable_evolvability_allR.jl")  # returned dataframe df 
+pdf = deepcopy(df)
 B = pheno_vects_to_boolean_matrix( pdf.pheno_vects ) 
 BB = map(x->(x ? 1 : 0), B )   # conver from boolean matrix to 0/1 matrix
 df = submatrix_to_dataframe( p, funcs, BB, pdf, source="common", dest="rare" ) 

@@ -926,8 +926,9 @@ end
 function count_circuits_ch( p::Parameters; nfuncs::Int64=0 )
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
-  #multiplier = Int128(1)
-  multiplier = BigInt(1)
+  #multiplier = UInt128(1)
+  multiplier = Float64(1)
+  #multiplier = BigInt(1)  # May not work
   mij = 0
   for i = 1:p.numinteriors
     mf = nfuncs
@@ -936,7 +937,8 @@ function count_circuits_ch( p::Parameters; nfuncs::Int64=0 )
       mij = min(p.numlevelsback,i-1+p.numinputs)
       multiplier *= mij
     end
-    #print("i: ",i,"  mf: ",mf,"  mij: ",mij,"  log multiplier: ",log10(multiplier))
+    println("i: ",i,"  mf: ",mf,"  mij: ",mij,"  multiplier: ",multiplier)
+    println("i: ",i,"  mf: ",mf,"  mij: ",mij,"  log multiplier: ",log10(multiplier))
     exp = trunc(log10(multiplier))
     fract = 10^(log10(multiplier)-exp)
     #=
@@ -949,6 +951,7 @@ function count_circuits_ch( p::Parameters; nfuncs::Int64=0 )
     end
     =#
   end
+  #UInt128(multiplier^p.numoutputs)
   multiplier^p.numoutputs
 end
 
@@ -1101,3 +1104,13 @@ function combine_chromosomes( c1::Chromosome, c2::Chromosome )
   new_outputs = vcat(new_output2,deepcopy(c1.outputs))
   Chromosome( p, inputs, interiors, new_outputs, 0.0, 0.0 )
 end
+
+function robustness( c::Circuit, funcs::Vector{Func} )
+  #print("robustness: c:  ")
+  #print_circuit(c,funcs)
+  c_output = output_values(c,funcs)
+  outputs = mutate_all( c, funcs, output_outputs=true )
+  #println("outputs[1]: ",outputs[1])
+  robust_outputs = filter( x->x==c_output, outputs )
+  return length(robust_outputs)/length(outputs)
+end   

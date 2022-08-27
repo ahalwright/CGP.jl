@@ -21,7 +21,7 @@ function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalLi
   df.complexity = map( k->sum(result_cmplx_dict[k])/length(result_cmplx_dict[k]), cmplx_key_list )
   df.pheno_vects = map( k->result_ph_dict[k], ph_key_list )
   if length(csvfile) > 0
-    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    hostname = readchomp(`hostname`) 
     open( csvfile, "w" ) do f
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
@@ -41,6 +41,7 @@ end
 
 function evolvable_pheno_dict( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64; 
     circ_int_lists::Vector{Vector{Int128}}, use_lincircuit::Bool=false )
+  default_funcs(p)
   ph_vect_dict = Dict{Goal,Vector{Int64}}()
   ph_cmplx_dict = Dict{Goal,Vector{Float64}}()
   for i = 1:length( ph_list )
@@ -83,7 +84,7 @@ function evolvable_pheno_count!( pheno_count_vect::Vector{Int64}, circuit_list::
   for circ in circuit_list
     (outputs_list,circ_list) = mutate_all( circ, funcs, output_outputs=true, output_circuits=true )
     for pheno in outputs_list
-      #println("pheno: ",pheno)
+      # println("pheno: ",pheno,"  Ones: ",Ones)
       pheno_count_vect[pheno[1]+1] += 1
     end
   end

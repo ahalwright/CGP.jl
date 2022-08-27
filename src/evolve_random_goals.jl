@@ -48,7 +48,7 @@ function run_evolve_to_random_goals( p::Parameters, dest_df::DataFrame, src_df::
     #println("size(df): ",size(df),"  length(row_tuple): ",length(row_tuple))
     push!(df,row_tuple)
   end
-  hostname = chomp(open("/etc/hostname") do f read(f,String) end) 
+  hostname = readchomp(`hostname`) 
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
       println(f,"# date and time: ",Dates.now())

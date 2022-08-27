@@ -258,6 +258,7 @@ function mutate_circuit!( c::Circuit, funcs::Vector{Func} )
 end
 =#    
 
+#= moved to Chromosome.jl
 function robustness( c::Circuit, funcs::Vector{Func} )
   #print("robustness: c:  ")
   #print_circuit(c,funcs)
@@ -267,3 +268,4 @@ function robustness( c::Circuit, funcs::Vector{Func} )
   robust_outputs = filter( x->x==c_output, outputs )
   return length(robust_outputs)/length(outputs)
 end     
+=#    

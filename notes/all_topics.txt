@@ -262,7 +262,6 @@ These files now have suffix  _21.txt
 6_21:  Trying to show that approximations to Wagner (2008) evolvability are inaccurate.  See more definitive results in 6/23/22.
 6_23:  Showing definitively that sampling approximations to Wagner's 2008 definition of phenotype evolvability are inaccurate.
         evotech/complexity/cce/'Wagner definition of phenotype evolvability 6_23_22.docx'
-6_24:  Reviewing recent results
 6_25:  Revised comments for Func.jl
 6_26:  Rare and common
 6_27:  Rare and common, minor changes

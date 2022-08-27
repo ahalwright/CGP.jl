@@ -3,8 +3,8 @@ See below for redoing neighbor complexity plot.
 
 First, put evolution and sampling evolvability vs robustness as subplots of a plot.
 
-edf = read_dataframe("10_27/geno_complexity10_27FMNccons.csv")
-sdf = read_dataframe("1_3/robust_evo_by_walks1_3B.csv")
+edf = read_dataframe("../data/2020/10_27/geno_complexity10_27FMNccons.csv")
+sdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3B.csv")
 
 gr()    # GR backend
 pe = scatter(edf.robustness,edf.evo_count,framestyle=:box,xlabel="robustness",ylabel="evolution evolvability",ylim=[900,6900],smooth=:true, ann=(0.2, 6800,text("a")))

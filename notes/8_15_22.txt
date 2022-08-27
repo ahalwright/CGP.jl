@@ -9,3 +9,78 @@ p = Parameters(4,1,10,5); funcs=default_funcs(p)
 map(i->output_values(int_to_chromosome(egdf.circuts_list[5][i],p,funcs))[1], 1:length(egdf.circuts_list[5]))  
  write_dataframe_with_comments(egdf,"../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_E.csv", "../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv")
 IOStream(<file ../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv>)
+
+8/20/22:  Redundancy density plots:
+c84df = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_3inputs_8gts_4lb_M.csv")
+c88df = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_3inputs_8gates_8lb_Ns.csv")
+p1=density([map(lg10,c84df.ints8_4),map(lg10,c88df.ints8_8)],labels=["log redundancy 3x1 8 gts 4 lb" "log redundancy 3x1 8 gts 8 lb"])
+plot!(p1,xlabel="log redundancy",ylabel="density",title="Density of 8 gates 4lb vs 8 gates 8lb 3x1")
+savefig("../data/8_15_22/log_redundancy_density_3x1_8gts_4lb_vs_8lb.png")
+
+c74df = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_3inputs_7gates_4lb_P.csv") 
+c78df = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_3inputs_7gates_8lb_Q.csv")
+p1=density([map(lg10,c74df.ints7_4),map(lg10,c78df.ints7_8)],labels=["log redundancy 3x1 7 gts 4 lb" "log redundancy 3x1 7 gts 8 lb"])  
+plot!(p1,xlabel="log redundancy",ylabel="density",title="Density of 7 gates 4lb vs 7 gates 8lb 3x1")
+savefig("../data/8_15_22/log_redundancy_density_3x1_7gts_4lb_vs_8lb.png")
+
+# Plot log redund density for 10 gates 4 levelsback
+cdf = read_dataframe("../data/8_15_22/count_outputs_ch_4funcs_3inputs_10gates_5lb_T.csv") 
+p1=density(map(lg10,cdf.ints10_5))
+plot!(p1,xlabel="log redundancy",ylabel="density",title="Density of log redundancy for 10 gates 5lb 4funcs 3x1")
+plot!(p1,legend=:none)
+savefig("../data/8_15_22/log_redundancy_density_3x1_4funcs_10gts_5lb.png")
+
+c74df = read_dataframe("../data/8_15_22/count_outputs_ch_4funcs_3inputs_7gates_4lb_R.csv")
+c78df = read_dataframe("../data/8_15_22/count_outputs_ch_4funcs_3inputs_7gates_8lb_S.csv")
+
+redund_vs_k_complexity_plot( p, funcs[1:4], map(x->[x], 0x0000:0x00ff), csvfile="../data/8_15_22/count_outputs_ch_4funcs_3inputs_7gates_4lb_R.csv",plotfile="../data/8_15_22/log_redund_vs_kcomp_ch_4funcs_3inputs_7gates_4lb_R.png")
+#  size(df): (256, 3)
+#  ttitle: K complexity vs log redundancy 3x1 7gts 4lb 4funcs
+
+redund_vs_k_complexity_plot( p, funcs, map(x->[x], 0x0000:0x00ff), csvfile="../data/8_15_22/count_outputs_ch_5funcs_3inputs_7gates_8lb_Q.csv",plotfile="../data/8_15_22/log_redund_vs_kcomp_ch_5funcs_3inputs_7gates_8lb_Q.png")
+# size(df): (256, 3)
+# ttitle: K complexity vs log redundancy 3x1 7gts 4lb 5funcs
+
+redund_vs_k_complexity_plot( p, funcs, map(x->[x], 0x0000:0xffff),plotfile="../data/8_15_22/log_redund_vs_kcomp_ch_5funcs_4inputs_10gates_5lb.png")
+#  size(df): (65536, 3)
+#  ttitle: K complexity vs log redundancy 4x1 10gts 5lb 5funcs
+
+
+# Compare K comp vs log redund 8gts 4lb and 8gts 8lb
+p1 = Parameters(3,1,8,4); funcs=default_funcs(p1) 
+p2 = Parameters(3,1,8,8);
+k_dict = kolmogorov_complexity_dict( p1 ) 
+r_dict1 = redundancy_dict( p1, "../data/8_15_22/count_outputs_ch_5funcs_3inputs_8gates_4lb_M.csv") 
+r_dict2 = redundancy_dict( p2, "../data/8_15_22/count_outputs_ch_5funcs_3inputs_8gates_8lb_Ns.csv") 
+phlist = map(x->[x],0x0000:0x00ff) 
+goals = map(x->x[1],phlist) 
+kcomp = map(x->k_dict[x],goals)
+log_redund1 = map(x->lg10(r_dict1[x]),goals) 
+log_redund2 = map(x->lg10(r_dict2[x]),goals)
+pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund1=>log_redund1, :log_redund2=>log_redund2 )
+#   256×4 DataFrame
+#    Row │ goal    kcomp  log_redund1  log_redund2
+#        │ String  Int64  Float64      Float64
+#   ─────┼─────────────────────────────────────────
+#      1 │ 0x0000      2      7.41448      7.15928 
+title="K complexity vs log redundancy "
+ttitle = string(title,"$(p.numinputs)x1 $(p.numinteriors)gts $(p1.numlevelsback) vs $(p2.numlevelsback)lb $(length(funcs))funcs")
+#   "K complexity vs log redundancy 4x1 10gts 4 vs 8lb 5funcs"
+plt = scatter(pdf.kcomp,[pdf.log_redund1,pdf.log_redund2],labels=["8 gates 4 lb" "8 gates 8 lb"],xlabel="Kolmogorov complexity",ylabel="log redundancy",title=ttitle)
+savefig("../data/8_15_22/$(ttitle).png")
+#The following reverses the order of the plots but isn't very useful because the orange vs blue is not consistent
+ttitle = string(title,"$(p.numinputs)x1 $(p.numinteriors)gts $(p2.numlevelsback) vs $(p1.numlevelsback)lb $(length(funcs))funcs")
+plt = scatter(pdf.kcomp,[pdf.log_redund2,pdf.log_redund1],labels=["8 gates 8 lb" "8 gates 4 lb"],xlabel="Kolmogorov complexity",ylabel="log redundancy",title=ttitle)
+savefig("../data/8_15_22/$(ttitle).png")
+
+# Setting up pdf dataframe so that Cooper can do heat map scatter plot:
+p=Parameters(4,1,10,5);funcs=default_funcs(p)
+#  5-element Vector{Func}:
+k_dict = kolmogorov_complexity_dict( p ) 
+r_dict = redundancy_dict( p, "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv" ) 
+phlist = map(x->[x],0x0000:0xffff)
+goals = map(x->x[1],phlist)
+kcomp = map(x->k_dict[x],goals)
+log_redund = map(x->lg10(r_dict[x]),goals)  
+pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund=>log_redund )
+  

@@ -6,7 +6,7 @@ export average_dataframes, extend_list_by_dups, goal_complexity_frequency_datafr
 export filter_goallist_by_complexity, complexity_freq_scatter_plot
 export bin_value, bin_data, bin_counts
 export kolmogorov_complexity, run_kolmogorov_complexity, redund_vs_k_complexity_plot
-export run_k_complexity_mutate_all, kcomp_summary_dataframe
+export run_k_complexity_mutate_all, kcomp_summary_dataframe, redundancy_dict, kolmogorov_complexity_dict, redundancy_dict
 export gti, gti!
 # Distribution of complexities for circuits evolving into a given goal
 # Results in data/10_31
@@ -655,19 +655,19 @@ function tononi_complexity_multiple_params( numinputs::Int64, numlevelsback::Int
   df
 end
 
-function redund_vs_k_complexity_plot( p::Parameters, phlist::GoalList, title::String="K complexity vs log redundancy ";
-      plotfile::String="" )
+function redund_vs_k_complexity_plot( p::Parameters, funcs::Vector{Func}, phlist::GoalList, title::String="K complexity vs log redundancy ";
+      csvfile::String="", plotfile::String="" )
   lg10(x::Number) = x > 0 ? log10(x) : 0
   k_dict = kolmogorov_complexity_dict( p )
-  r_dict = redundancy_dict( p )
-  ttitle = string(title,"$(p.numinputs)x1 $(p.numinteriors) gates $(p.numlevelsback) lb")
+  r_dict = redundancy_dict( p, csvfile )
+  ttitle = string(title,"$(p.numinputs)x1 $(p.numinteriors)gts $(p.numlevelsback)lb $(length(funcs))funcs")
   println("ttitle: ",ttitle)
   goals = map(x->x[1],phlist)
   kcomp = map(x->k_dict[x],goals)
   log_redund = map(x->lg10(r_dict[x]),goals)
   pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund=>log_redund )
   gr()
-  scatter(pdf.kcomp,pdf.log_redund,labels=:none,xlabel="Kolmogorov complexity",ylabel="log redundancy",title=ttitle)
+  plt = scatter(pdf.kcomp,pdf.log_redund,labels=:none,xlabel="Kolmogorov complexity",ylabel="log redundancy",title=ttitle)
   if plotfile != ""
     savefig(plotfile)
   end
@@ -694,14 +694,16 @@ function kolmogorov_complexity_dict( p::Parameters )
 end
 
 # Does not read the counts file that corresponds to parameters p.
-function redundancy_dict( p::Parameters )
-  if p.numinputs == 3
-    csvfile = "../data/counts/count_outputs_3x1_8gts5lb_4funcs.csv"
-  elseif p.numinputs == 4
-    #csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
-    csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv"
-  else
-    error("only 3 and 4 inputs are supported at this time")
+function redundancy_dict( p::Parameters, csvfile::String="" )
+  if length(csvfile) == 0
+    if p.numinputs == 3
+      csvfile = "../data/counts/count_outputs_3x1_8gts5lb_4funcs.csv"
+    elseif p.numinputs == 4
+      #csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
+      csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv"
+    else
+      error("only 3 and 4 inputs are supported at this time")
+    end
   end
   df = read_dataframe( csvfile )
   dict = Dict{ MyInt, Int64 }()

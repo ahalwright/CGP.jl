@@ -1,0 +1,22 @@
+Revisiting enumerate_circuits_ch( p,funcs ) and count_circuits_ch( p, nfuncs=4 ) both in Chromosome.jl.
+Results were inconsistent, perhaps because I tried to use BigInts in count_circuits_ch().
+The problem is fixed now.
+A successful run on surt2 (due to memory):  
+p = Parameters(3,1,6,3);
+count_circuits_ch( p, nfuncs=3 )   #  387420489
+@time ecl=enumerate_circuits_ch( p,funcs ); length(ecl)
+#   436.418399 seconds (3.46 G allocations: 223.478 GiB, 39.06% gc time)
+#   387420489
+count_circuits_ch( p, nfuncs=4 ) # 2176782336
+funcs=default_funcs(p) #  4-element Vector{Func}:
+@time ecl=enumerate_circuits_ch( p,funcs ); length(ecl)
+# Ran out of memory after about 25 minutes of execution time.
+
+The code could clearly be optimized by saving chromosomes as chromosome_ints instead of full chromosomes.
+However, the recursive design of enumerate_circuits_ch() makes this complicated.
+
+
+Writing pheno_network/'Definitions of evolvability and shape space covering.tex'
+Have a multiset definition of phenotype evolvability that corresponds to approximations.
+Need to related it to the phenotype network.
+

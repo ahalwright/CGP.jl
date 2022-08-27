@@ -1,0 +1,42 @@
+Redoing robustness vs log redundancy from GECCO data.
+
+L10(x) = x > 0.0 ? log10(x) : 0.0
+edf = read_dataframe("../data/2020/10_27/geno_complexity10_27FMNccons.csv")
+edf.log_redund = map(L10,edf.ints11_8)
+#  600-element Vector{Float64}:
+pe = scatter(edf.log_redund,edf.robustness,smooth=true)
+scatter!(pe,xlabel="log_redundancy",ylabel="robustness",legend=:none)
+
+Cooper assignment:
+
+Part1:  Given a phenotype, I am interested in determining the relationship between the 
+average number of epochal evolution steps to evolve a circuit to map to the phenotype 
+and the redundancy (frequency) of the phenotype.  Functions neutral_evolution() and
+mut_evolve() in Evolve.jl implement epochal evolution.
+
+I have decided that the default parameters for the current paper will be 8 gates, 4 levelsback
+for 3-input circuits and 10 gates 5 levelsback for 4 input circuits.
+
+A dataframe containing the redundancies of 3-input phenotypes for 8 gates, 4 levelsback is at:
+c3df = read_dataframe("../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_M.csv")
+A dataframe containing the redundancies of 4-input phenotypes for 10 gates, 5 levelsback is at:
+c4df = read_dataframe("../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv")
+
+There is a function redundancy_dict( p::Parameters ) in Complexity.jl that returns a Dict
+that maps MyInts to redundancies.  Example:
+  julia> p = Parameters(3,1,8,4)
+  julia> rd = redundancy_dict(p)
+  julia> julia> rd[0x0044]
+  11306444
+
+The functions run_pheno_evolve() and pheno_evolve() (2 versions) in Evolve.jl are useful for evolving
+genotypes to map to phenotypes, but do not do exactly what is needed.  A test program that shows how 
+these are used is in CGP.jl/test/test_pheno_evolve.jl.
+
+Part 2:  I need scatter plots of robustness vs. log redundancy for the default parameter settings
+listed above.  These could use the heat density scatter plots that you are working on.  
+There is a function robustness() in the file Chromosome.jl.  I am attaching earlier versions of
+this plot from the GECCO paper,
+
+I expect that you will have some problems getting set up to do this assignment.  A zoom or
+in-person meeting would probably be a good idea.
