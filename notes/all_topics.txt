@@ -163,7 +163,8 @@ These files now have suffix  _21.txt
 7_14: Biological innovations never come about during biological great transitions (Shubin)
 7_23: Evolvability of a population.  Hypothesis:  Population evovability increases in a varying environment.
       Reference to a paper with results on this approach.
-7_24: Hypothesis:  Population evovability increases in a varying environment. 
+7_24: Testing the hypothesis that evolution under a varying environment increases evolvability.  Function run_run_pop_evolvability(). 
+      Population evolution.
 7_25: Hypothesis:  Population evovability increases in a varying environment. 
 7_26: Hypothesis:  Population evovability increases in a varying environment. 
 8_2:  Revisited the Arthur/Polak 2006 paper on the Evolution of Technology using circuit symbiosis.
@@ -275,6 +276,33 @@ These files now have suffix  _21.txt
 7_21:  Wrote phenodf_to_submatrix_dataframe() in evolvable_evolvability.jl, average_tcomplexity() in analyze_complexity.jl
 7_22:  Removed funcs keyword argument from neutral_evolution and added funcs as an argument to all calls to neutral_evolution(). 
        Trying to understand Tononi complexity.  Examples.  Function to_binary_matrix.
+7_23: Reducing number of gates increases T complexity.  Results seem to be inconclusive, but see 9_4_22.txt
+7_25: Version of T complexity that is very intuitive but less efficient.
+7_26: Trying to investigate how Tononi complexity scales with numints.
+7_27: Looking for examples of high and low Tononi complexity.
+7_28: Combining chromosomes:  Combine two single-output chromosomes into a double-output chromosome.
+      Sometimes for c1, c2, tcmpx is substantially greater than tkcmplx, but not always.
+8_2:  Finished editing GPTP paper.  Problems with run_pheno_evolve() in Evolve.jl
+8_4:  Fix a bug in neutral_evolution().  Problem was in the use of deepcopy().
+8_5:  Running tests of run_pheno_evolve() in Evolve.jl after bug fix. Includeing 5 inputs.  Introduction to paper by paragraph.
+8_7:  Redo the complexity density plot copied from diary/diary12_18.txt
+8_8:  Topics for further research.  
+8_9:  Trying Folds.  Checking accuracy of K complexity computations.
+8_12: Statistics for one-step mutation between K complexity levels.  RebasedVector.
+8_13: Two fluda runs of K complexity for 5 input phenotypes.  Used k_complexity_mutate().
+8_15: Redundancy density plots.  K complexity vs log redund.  Setup for heat density plot.
+8_22: Redoing robustness vs log redundancy from GECCO data.   Cooper assignment version 1.
+8_24: Revisiting enumerate_circuits_ch( p,funcs ) and count_circuits_ch( p, nfuncs=4 ) both in Chromosome.jl.
+8_26: CGP and LGP rare common by sampling
+8_27: Multiset evolvability.
+8_28: Multiset and temporal evolvability.
+8_29: Ideas
+8_30: Running evolvable_pheno_df() from evolvable_evolability.jl using circ_int_lists, i. e., using sampling instead of evolution.  
+8_31: Computing redundancies and K complexities.    Examples of submatrix_to_dataframe(): Outdated.
+9_1:  Draft Evolvabilty topics: 
+9_2:  k_complexity_mutate_all() in Complexity.jl:  See comments on function. 
+9_3:  Testing the hypothesis that mutation from common to rare is unusual (sampling).  
+9_4:   Assignment for Cooper
 
 
 All plots:

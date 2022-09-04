@@ -3,6 +3,8 @@ MI Hypothesis:  When the number of gates in a circuit is close to the K complexi
   the mutual information between subsets of gates will be high, and T complexity of circuit will be high.  When the number of 
   gates in a circuit is substantially below the K complexity,  gates will not be very interdependent, and the complexity of the 
   circuit will be relatively low.
+Added 9/4/22.  Results show that K and T complexity is reduced with 3x1 8gts 4lb by reduncing from 5 gate types to 4 gate types.
+See notes/9_4_22.txt.
 
 Should be a similar integration hypothesis.
 

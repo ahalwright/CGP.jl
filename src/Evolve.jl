@@ -647,11 +647,12 @@ end
 # max_steps is the maximum number of steps during a run of neutral_evolution()
 # Returns a list of 2-tuples (circuit,steps).  If no circuits are found, returns empty list
 # if no genotype (circuit) that maps to goal is found, returns (nothing,nothing)
-function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal, max_tries::Int64, max_steps::Int64; 
+function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal::Int64, max_tries::Int64, max_steps::Int64; 
       use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
   default_funcs(p)
   #println("length(funcs): ",length(funcs))
   steps = 0   # establish scope
+  steps_per_circuit = 0  # The total number of evolution steps to evolve the current circuit
   nc = nothing # establish scope
   circuits_steps_list = use_lincircuit ? Tuple{LinCircuit,Int64}[] : Tuple{Chromosome,Int64}[]
   num_circuits_found = 0
@@ -666,8 +667,10 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circu
     else
       (nc,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [goal], funcs, max_steps ) 
     end
+    steps_per_circuit += steps
     if steps < max_steps
-      push!(circuits_steps_list, (nc,steps))
+      push!(circuits_steps_list, (nc,steps_per_circuit))
+      steps_per_circuit = 0   # reset for next circuit
       num_circuits_found += 1
     else
       total_failures[tries] += 1
@@ -679,7 +682,7 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circu
       return circuit_steps_list
     elseif num_circuits_found < num_circuits_per_goal
       println("pheno_evolved ",num_circuits_found," circuits that map to goal: ",goal )
-      println("WARNING: less than num_circuits_per_goal[end] which is ",num_circuits_per_goal[end])
+      println("WARNING: less than num_circuits_per_goal which is ",num_circuits_per_goal)
     end
   end
   circuits_steps_list

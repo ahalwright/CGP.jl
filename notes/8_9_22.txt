@@ -2,6 +2,7 @@ Resolving the why Folds.map() doesn't work on surt2.
 Added "using Folds" to Complexity.jl, and now seems to work.
 
 Checking the accuracy of the computation of K complexity for all 3x1 and 4x1 goals.
+Added:  9/4/22:  See function K_complexity_negation_check() in Complexity.jl
 
 kdf = read_dataframe("../data/counts/k_complexity_all3x1phenos.csv")
 rev_num_gates = reverse(kdf.num_gates)

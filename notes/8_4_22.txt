@@ -1,4 +1,5 @@
 Went through a long hard debugging process to fix a bug in neutral_evolution() in Evolve.jl and neutral_evol() in neutral_evol.jl.
+
 Fix in neutral_evolution.jl:
 Old:
     if typeof(c) == Chromosome
@@ -13,6 +14,7 @@ New
     elseif typeof(c) == LinCircuit
       new_c = mutate_circuit!( new_c, funcs )
     end           
+Problem was in the use of deepcopy()
 
 Random.seed!(3) 
 neutral_evol( c, fncs, [0x0049], 4500, print_steps=false ) 
