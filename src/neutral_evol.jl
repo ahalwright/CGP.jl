@@ -31,7 +31,7 @@
 # If evolution hasn't succeeeded in max_steps, return nothing.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
 function neutral_evol( c::Chromosome, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false )
-  #funcs = default_funcs( c.params.numinputs )
+  default_funcs( c.params.numinputs )
   step = 0
   ov = output_values( c) 
   current_distance = hamming_distance( ov, g, c.params.numinputs )

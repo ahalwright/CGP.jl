@@ -1,0 +1,27 @@
+Two ideas:
+
+1.  Nearly neutral and based on Greenbury Navigable Fitness Landscapes 2021:
+
+  Assign every phenotype a random fitness with the target phenotype having the highest fitness.  Our epochal evolution depends only on the order of fitnesses, so it will be interesting to see how well epochal evolution works in this situation.  The first modification to make this similar to nearly neutral would be to have a probability of accepting phenotypes with slightly lower fitness and rejecting phenotypes with slightly higher fitness.  This modification now depends on the magnitude of the difference between fitnesses.  The definition of "slightly" can emulate the effects of population size.
+
+2.  Relating entropy evolvability to another notion of evolvability. Somewhat based on Adami complexity.
+
+  One definition of evolvability is based evolution learning the temporal variation in phenotype fitness.  In other words, based on past experience, what phenotypes are likely to become advantageous when the environment next changes?  This defintion of evolvability would say that mutations to move to those phenotypes would be higher probability.  Tentatively, I will call this temporal evolvability.  My definition of multiset evolvability is a description of the cloud of phenotypes that are possible through a single mutation from the given phenotype.  Phenotypes that have become adaptive in the past could define another cloud of phenotypes.  Then maybe mutual information between these two clouds might b* Evolution is a form of natural learning, but on a longer time scale than we usually associate with learning.
+
+* What is a genotype-phenotype map?  A couple examples.
+
+* The logic gate GP map.
+
+* Evolving K complexity.e a measure of the temporal evolvability of the given phenotype.
+
+Ideas for welcome back session at 6 pm Wed. Sept 7.
+
+* Evolution is a form of natural learning, but on a longer time scale than we usually associate with learning.
+
+* What is a genotype-phenotype map?  A couple examples.
+
+* The logic gate GP map.  
+
+* Evolving complexity.
+
+

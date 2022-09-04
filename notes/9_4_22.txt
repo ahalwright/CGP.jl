@@ -1,0 +1,72 @@
+Cooper assignment:
+
+I want a dataframe that shows the relationship between the K complexity of phenotypes
+and the number of neutral evolution steps to evolve a circuit to phenotypes of that K complexity.
+
+Example result dataframe:
+
+Row  │ K complexity  numphenos  numcircuits   nreps     mean_steps   median_steps  std_steps     fail_fract   first_fail  subseqent_fail
+     │ Float64        Int64    Float64     Float64          Float64       Float64      Float64    Float64       Float64   Float64
+─────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │         1        21           4          10         5919.0          1028.6       649.12      0.0            0.32    0.05
+   2 │         2        54           4          10         8478.0          931.6       1213.14      0.62           0.25    0.00
+etc.
+
+In this dataframe, row 1 summarizes results for all phenotypes with K complexity 1, 
+row 2 summarizes results for all phenotypes with K complexity 2, etc.
+
+You can generate a list of all 3x1 phenotypes with:
+phlist = map(x->[x], 0x0000:0x00ff )   # return the list of [x] for every UInt16 x from 0x0000 to 0x00ff 
+An example phenotype is [0x0049].
+
+In this dataset, there were 21 phenotypes with K complexity 1, 54 with K complexity 2, etc.  
+Data values are made up.
+
+For each phenotype, neutral_evolution() was called nreps==10 times.
+
+There is a function kolmogorov_complexity_dict( p::Parameters ) in Complexity.jl that returns a Dict
+that maps MyInts to K complexities  Example:
+  julia> p = Parameters(3,1,8,4)
+     Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 8, 4)
+
+  julia> funcs = default_funcs(p)
+     5-element Vector{Func}:
+     Func(&, 2, "AND")
+     Func(|, 2, "OR")
+     Func(Main.CGP.Nand, 2, "NAND")
+     Func(Main.CGP.Nor, 2, "NOR")
+     Func(xor, 2, "XOR")
+    
+  julia> kdict = kolmogorov_complexity_dict(p,funcs)
+     k_csvfile: ../data/counts/k_complexity_3x1_5funcs7_11_22F.csv
+     Dict{UInt16, Int64} with 256 entries:
+       0x0038 => 3
+       0x0023 => 3
+       ...
+    
+  julia> kdict[0x0049]   # 0x0049 is a UInt16 integer, where type MyInt == UInt16.   See src/CGP.jl
+     4
+
+Your function can call the second version of pheno_evolve() to do the evolutions.
+See  test/test_pheno_evolve.jl
+
+Your function can be derived from run_pheno_evolve() in Complexity.jl.
+
+I care much more about a reasonably quick reply than I do about achieving good results.
+I expect that you will have problems with the fail_fract, first_fail, and subsequent_fail columns, 
+so just return zeros in these columns for the initial iteration.
+
+If you get stuck or don't know what to do, contact me.
+
+
+The functions run_pheno_evolve() and pheno_evolve() (2 versions) in Evolve.jl are useful for evolving
+genotypes to map to phenotypes, but do not do exactly what is needed.  A test program that shows how 
+these are used is in CGP.jl/test/test_pheno_evolve.jl.
+
+Part 2:  I need scatter plots of robustness vs. log redundancy for the default parameter settings
+listed above.  These could use the heat density scatter plots that you are working on.  
+There is a function robustness() in the file Chromosome.jl.  I am attaching earlier versions of
+this plot from the GECCO paper,
+
+I expect that you will have some problems getting set up to do this assignment.  A zoom or
+in-person meeting would probably be a good idea.

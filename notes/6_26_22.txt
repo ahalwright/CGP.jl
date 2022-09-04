@@ -6,7 +6,7 @@ Added 8/26/22:
 @time include("../data/8_26_22/run_evolvable_evolvability_allR.jl")  # returned dataframe df 
 pdf = deepcopy(df)
 B = pheno_vects_to_boolean_matrix( pdf.pheno_vects ) 
-BB = map(x->(x ? 1 : 0), B )   # conver from boolean matrix to 0/1 matrix
+BB = map(x->(x ? 1 : 0), B )   # convert from boolean matrix to 0/1 matrix
 df = submatrix_to_dataframe( p, funcs, BB, pdf, source="common", dest="rare" ) 
 write_dataframe(df,"../data/6_25_22/common_to_rare_bool.csv") 
 df =submatrix_to_dataframe( p, funcs, BB, pdf, source="rare", dest="common" ) 

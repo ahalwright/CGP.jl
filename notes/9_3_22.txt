@@ -1,0 +1,13 @@
+Result:  Testing the hypothesis that mutation from common to rare is unusual (sampling).
+
+8 gates
+data/9_3_22/mutation_evolvability8gts_4lb_4funcs_9_3_22A.csv
+Result:  matrix nonzeros = 12
+
+7 gates
+data/9_3_22/mutation_evolvability8gts_4lb_4funcs_9_3_22B.csv
+Result:  matrix nonzeros = 19
+
+Same number of dest (rare) goals, 1 more source (common) goal for 8 gates.
+
+Conclusion:  Using 7 gates gave no better results than using 8 gates.

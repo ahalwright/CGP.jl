@@ -1,0 +1,13 @@
+Evolvabilty topics:
+
+* K complexity
+  > relationship to redundancy
+  > relationship Tononi complexith
+* Problems with Wagner 2008, evolvability in both directions
+* Total evolvability:  see definition in evolvable_evolvability.jl
+* Relationship to K complexity
+* Evolution vs. sampling evolvability
+* Mathematical definition of evolvavility, entropy evolvability
+
+Fixed kolmogorov_complexity_dict() and redundancy_dict()
+

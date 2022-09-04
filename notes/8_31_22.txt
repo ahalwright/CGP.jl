@@ -1,0 +1,31 @@
+
+udf = read_dataframe("../data/8_31_22/sampling_evolvability8_31_22B.csv")
+E = pheno_vects_to_evolvable_matrix( udf.pheno_vects )
+rare =  [[0x0049], [0x0061], [0x0069], [0x006d], [0x0079], [0x0086], [0x0092], [0x0096], [0x009e], [0x00b6]];
+common = [[0x0000], [0x0003], [0x0005], [0x0011], [0x0022], [0x0033], [0x003f], [0x0044], [0x0055], [0x005f], [0x0077], [0x0088], [0x00a0], [0x00aa], [0x00bb], [0x00c0], [0x00cc], [0x00dd], [0x00ee], [0x00fa], [0x00fc], [0x00ff]];
+rare_str = map(x->@sprintf("0x%04x",x[1]),rare)
+common_str = map(x->@sprintf("0x%04x",x[1]),common)
+crdf = submatrix_to_dataframe( p, funcs, E, udf, source="common", dest="rare" )
+write_dataframe(crdf,"../data/8_31_22/common_to_rare_CGP_smplU.csv")
+rcdf = submatrix_to_dataframe( p, funcs, E, udf, source="rare", dest="common" )
+write_dataframe(rcdf,"../data/8_31_22/rare_to_common_CGP_smplU.csv")
+rrdf = submatrix_to_dataframe( p, funcs, E, udf, source="rare", dest="rare" )
+write_dataframe(rrdf,"../data/8_31_22/rare_to_rare_CGP_smplU.csv")
+@time include("../data/7_11_22/run_k_complexityF.jl") 
+
+#  Doing redundancy for 3x1 8gts 4lb
+@time include("../data/8_15_22/run_count_outputs_ch_V.jl")  # 771 seconds
+df = ©read_dataframe("../data/8_15_22/count_outputs_ch_4funcs_3inputs_8insts_4regs_V.csv")
+findmin(df.ints8_4) # (6, 151)
+
+#  Doing redundancy for 4x1 12gts 6lb on surt2
+@time include("../data/8_15_22/run_count_outputs_ch_X.jl")  # on surt2 206263 seconds copied to counts
+ 
+Redoing K complexity 3x1 4 and 5 gates.
+@time include("../data/7_11_22/run_k_complexityE.jl")   # 4 gates
+df[df.num_gates.>=6,:] # 18×8 DataFrame
+# only 0x69 and 0x96 have Tononi complexity greater than 3.  These have tries==3 and tries==4 respectively
+@time include("../data/7_11_22/run_k_complexityF.jl")   # 5 gates
+df[df.num_gates.>=4,:] # 36×8 DataFrame does not include 0x69 and 0x96
+df[0x6a,:num_gates] #  3
+df[0x97,:num_gates] #  2

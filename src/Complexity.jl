@@ -674,16 +674,21 @@ function redund_vs_k_complexity_plot( p::Parameters, funcs::Vector{Func}, phlist
   #pdf
 end
 
-function kolmogorov_complexity_dict( p::Parameters )
+function kolmogorov_complexity_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), csvfile::String="" )
   if p.numinputs == 3
-    csvfile = "../data/counts/k_complexity_all3x1phenos.csv"
+    if length(funcs) == 4
+      k_csvfile = "../data/counts/k_complexity_3x1_4funcs7_11_22E.csv"
+    elseif length(funcs) == 5
+      k_csvfile = "../data/counts/k_complexity_3x1_5funcs7_11_22F.csv"
+    end
   elseif p.numinputs == 4
-    #csvfile = "../data/counts/k_complexity_all4x1phenos.csv"
-    csvfile = "../data/8_9_22/k_complexity8_9_22FGGF.csv"
+    #k_csvfile = "../data/counts/k_complexity_all4x1phenos.csv"
+    k_csvfile = "../data/8_9_22/k_complexity8_9_22FGGF.csv"
   else
-    error("only 3 and 4 inputs are supported at this time")
+    error("no csv file")
   end
-  df = read_dataframe( csvfile )
+  println("k_csvfile: ",k_csvfile)
+  df = read_dataframe( k_csvfile )
   dict = Dict{ MyInt, Int64 }()
   pheno_name = Symbol(names(df)[1])
   #println("size(df): ",size(df))
@@ -693,11 +698,26 @@ function kolmogorov_complexity_dict( p::Parameters )
   dict
 end
 
-# Does not read the counts file that corresponds to parameters p.
-function redundancy_dict( p::Parameters, csvfile::String="" )
+function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), csvfile::String="" )
   if length(csvfile) == 0
     if p.numinputs == 3
-      csvfile = "../data/counts/count_outputs_3x1_8gts5lb_4funcs.csv"
+      if p.numinteriors == 8 && p.numlevelsback == 4
+        if length(funcs) == 4
+          csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv"
+        elseif length(funcs) == 5
+          csvfile = "../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv"
+        else
+          error("no csv file")
+        end
+      elseif p.numinteriors == 8 && p.numlevelsback == 5
+        if length(funcs) == 4
+          csvfile = "../data/counts/count_outputs_3x1_8gts5lb_4funcs.csv"
+        else
+          error("no csv file")
+        end
+      else
+        error("no csv file")
+      end
     elseif p.numinputs == 4
       #csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
       csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv"
@@ -705,6 +725,7 @@ function redundancy_dict( p::Parameters, csvfile::String="" )
       error("only 3 and 4 inputs are supported at this time")
     end
   end
+  println("csvfile: ",csvfile)
   df = read_dataframe( csvfile )
   dict = Dict{ MyInt, Int64 }()
   pheno_name = Symbol(names(df)[1])
@@ -715,6 +736,48 @@ function redundancy_dict( p::Parameters, csvfile::String="" )
     dict[string_to_MyInt(df[i,pheno_name])] = df[i,counts_name]
   end
   dict
+end
+
+function randunique( lst::Vector, numelements::Int64, numtries::Int64 )
+  if length(lst) <= numelements
+    return lst
+  else
+    return_list = type[]
+    successes = 0
+    iter = 1
+    while iter < numtries && successes < numelements
+      elt = rand(lst)
+      #println("iter: ",iter,"  elt: ",elt, "  return_list: ",return_list)
+      iter += 1
+      if !(elt in return_list)
+        push!(return_list,elt)
+        successes += 1
+      end
+    end
+    if successes == numelements
+      return return_list
+    else
+      error("function randunique() failed.  You can try increasing the numtries parameter.")
+    end
+  end
+end
+
+# Prints the phenotypes where the K complexity of every phenotype is not equal to the K complexity of its ones complement
+# If the second argument is true, then sets entries where there is a disagreement to the smaller value
+function K_complexity_negation_check( Kcmplx::Vector{Int64}, correct::Bool=false )
+  m_one = MyInt(1)
+  for i = MyInt(0):MyInt(div( length(Kcmplx), 2 ) -1 )
+    #println("i+1: ",i+m_one,"  CGP.Not(i)+m_one: ",CGP.Not(i)+m_one,"   ")
+    if Kcmplx[i+m_one] != Kcmplx[ CGP.Not(i)+m_one ]
+      @printf("0x%04x   0x%04x:  ", i+m_one, CGP.Not(i) )
+      println(Kcmplx[i+m_one],"  ",Kcmplx[ CGP.Not(i)+m_one ])
+      if correct
+        knew = min(Kcmplx[i+m_one],Kcmplx[ CGP.Not(i)+m_one ])
+        Kcmplx[i+m_one] = knew
+        Kcmplx[ CGP.Not(i)+m_one ] = knew
+      end
+    end
+  end
 end
 
 function run_K_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, circuit_ints_df::DataFrame=DataFrame(); 
@@ -832,4 +895,70 @@ function Base.setindex!( rb::RebasedVector, v::Int64, i::Integer )
     rb.vect[i+rb.center] = v
   catch
   end
+end
+
+# Computes the mutation evolvability matrix of the results of mutate_all() to all of the circuits given in the circuits_list
+#   column of the cnt_csvfile dataframe which is determined at the start of the function.
+# E[s+1,d+1]  is the number of mutations from phenotype s that give phenotype d.
+# The arguments source and dest specify K complexity values for rows and columns respectively.
+# Then phenotypes selected by the ranges source and dest to produce a submatrix of E corresponding to rows in source
+#   and columns in dest.
+# Returns a dataframe corresponding to this submatrix.
+# Objective:  Show that mutations from low complexity phenotypes to high complexity phenotypes decrease exponentially with the difference in complexity.
+function K_complexity_mutation( p::Parameters, funcs::Vector{Func}, source::UnitRange, dest::UnitRange; csvfile::String="" ) 
+  # Assumes MyInt == UInt16
+  if p.numinputs == 2
+    phlist = map(x->[x],0x0000:0x000f)
+  elseif p.numinputs == 3
+    phlist = map(x->[x],0x0000:0x00ff)
+    if length(funcs) == 4
+      if p.numinteriors == 7
+        cnt_csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv"
+      elseif p.numinteriors == 8
+        cnt_csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv"
+      else
+        error("no csv file")
+      end
+    elseif length(funcs) == 5
+      cnt_csvfile = "../data/couunts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv"
+    end
+  elseif p.numinputs == 4
+    phlist = map(x->[x],0x0000:0xffff)
+    error("no csv file")
+  else
+    error("no csv file")
+  end
+  println("cnt_csvfile: ",cnt_csvfile)
+  wdf = read_dataframe( cnt_csvfile )
+  kdict = kolmogorov_complexity_dict(p,funcs)
+  wsdf = evolvable_pheno_df( p, funcs, phlist, wdf.circuits_list )
+  insertcols!(wsdf,:k_complexity=>map(x->kdict[x[1]],phlist))
+  println("size(wsdf): ",size(wsdf))
+  E = pheno_vects_to_evolvable_matrix( wsdf.pheno_vects )
+  source_bv = BitVector(map( i->wsdf.k_complexity[i] in collect(source),1:256))
+  source_str = wsdf[source_bv,:pheno_list]
+  source_list = map(x->eval(Meta.parse(x)),wsdf[source_bv,:pheno_list])
+  dest_bv = BitVector(map( i->wsdf.k_complexity[i] in collect(dest),1:256))
+  dest_str = wsdf[dest_bv,:pheno_list]
+  dest_list = map(x->eval(Meta.parse(x)),wsdf[dest_bv,:pheno_list])
+  sddf = submatrix_to_dataframe( p, funcs, E, wsdf, source_list, dest_list )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", funcs )
+      println(f,"# source: ",source)
+      println(f,"# dest: ",dest)
+      println(f,"# matrix nonzeros: ",matrix_dataframe_count_nonzeros(sddf))
+      CSV.write( f, sddf, append=true, writeheader=true )
+    end
+  end
+end
+
+# Counts the number of nonzeros in the matrix corresponding to the dataframe df.
+# The first column of df should be the phenotypes, and the remaining should be matrix entries
+function matrix_dataframe_count_nonzeros( df::DataFrame )
+  reduce(+,map( i->sum(df[:,i]), 2:size(df)[2] ))
 end

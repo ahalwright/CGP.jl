@@ -23,3 +23,61 @@ diff RR.jl.bak RR.jl
 chomp.sh:
   sed -i'.bak' 's@chomp(open("/etc/hostname") do f read(f,String) end)@readchomp(`hostname`)@' $1
 
+See notes/8_26_22.txt for updates and corrections
+Results for invitation to collaborate to Ting and Wolfgang:
+
+Added 8/26/22:
+# Suffix R and S have length(funcs) == 4, other suffixes with length(funcs) == 5
+@time include("../data/8_26_22/run_evolvable_evolvability_allS.jl")  # returned dataframe df 
+pdf = deepcopy(df)
+B = pheno_vects_to_boolean_matrix( pdf.pheno_vects ) 
+BB = map(x->(x ? 1 : 0), B )   # convert from boolean matrix to 0/1 matrix
+df = submatrix_to_dataframe( p, funcs, BB, pdf, source="common", dest="rare" ) 
+write_dataframe(df,"../data/8_26_22/common_to_rare_bool.csv") 
+df =submatrix_to_dataframe( p, funcs, BB, pdf, source="rare", dest="common" ) 
+write_dataframe(df,"../data/8_26_22/rare_to_common_bool.csv")
+"../data/8_26_22/rare_to_common_bool.csv"
+df =submatrix_to_dataframe( p, funcs, BB, pdf, source="rare", dest="rare" )
+write_dataframe(df,"../data/8_26_22/rare_to_rare_bool.csv")
+df =submatrix_to_dataframe( p, funcs, BB, pdf, source="common", dest="common" )
+write_dataframe(df,"../data/8_26_22/common_to_common.csv")
+Added comment lines from ../data/8_26_22/run_evolvable_evolvability_allS.jl to the 4 above files.
+
+# From run with 2 inputs submatrix_to_dataframe( p, funcs, BB, pdf, source="rare", dest="common" ) 
+ci_list = Vector{Int128}[[605168, 139867, 1198495, 707768], [1054132, 1043892, 2032223, 586187], [1531716, 2099323, 1234679, 1694896], [377765, 580205, 1536189, 1220415], [918376, 1792975, 629967, 701275], [1967047, 1750322, 485059, 1955731], [1671259, 1229303, 1578076, 1496740], [1534911, 1386921, 367022, 1220498], [1484758, 2314336, 569383, 1789229], [1530906, 1049509, 907930, 1673829], [1693501, 2169920, 2348662, 1814477], [699580, 494629, 580869, 1880869], [1047599, 744360, 429787, 34868], [1606022, 1872078, 604130, 322850], [21585, 538593, 1694349, 1056854], [784565, 2175174, 1468126, 206382]]     
+
+evolvable_pheno_df( p, funcs, [[0x0003],[0x0005]], 10, max_tries, max_steps, circ_int_lists=ci_list )
+2×3 DataFrame
+ Row │ pheno_list  evolvability  pheno_vects
+     │ String      Int64         Array…
+─────┼─────────────────────────────────────────────────────────────
+   1 │ 0x0003                37  [76, 3, 1, 0, 22, 2, 0, 0, 5, 0 …
+   2 │ 0x0005                42  [11, 1, 5, 0, 0, 6, 0, 0, 1, 0  …
+
+# CGP all phenotypes by sampling:  results similar to evolution
+@time include("../data/6_25_22/run_count_outputs_chromeC.jl")  # surt2 28 procs
+ph_list = map(x->[x], collect(0x000:0x00ff)) 
+epdf = evolvable_pheno_df( p, funcs, ph_list, 10, max_tries, max_steps, circ_int_lists=circ_ints_list )  # surt2 with 28 procs 
+E = pheno_vects_to_evolvable_matrix( epdf.pheno_vects )
+df = submatrix_to_dataframe( p, funcs, E, epdf, source="common", dest="rare" )   # all zeros
+write_dataframe(df,"../data/6_25_22/common_to_rare_CGP_sample.csv")
+df = submatrix_to_dataframe( p, funcs, E, epdf, source="rare", dest="common" )  
+write_dataframe(df,"../data/6_25_22/rare_to_common_CGP_sample.csv")
+df = submatrix_to_dataframe( p, funcs, E, epdf, source="rare", dest="rare" )
+write_dataframe(df,"../data/6_25_22/rare_to_rare_CGP_sample.csv")
+df = submatrix_to_dataframe( p, funcs, E, epdf, source="common", dest="common" )
+write_dataframe(df,"../data/6_25_22/common_to_common_CGP_sample.csv")
+
+# LGP all phenotypes by sampling:  results similar to evolution
+df = read_dataframe("../data/6_25_22/count_outputs_lc_4funcs_3inputs_7insts_2regs_cmplxC.csv")
+ph_list = map(x->[x], collect(0x0000:0x00ff) )
+circ_list = map(i->eval(Meta.parse(df.circuits_list[i])),1:256)
+@time epdf = evolvable_pheno_df( p, funcs, ph_list, 1000, max_tries, max_steps, circ_int_lists=circ_list, use_lincircuit=true )   # 23 seconds # Not working correctly 6_28_22
+E = pheno_vects_to_evolvable_matrix( epdf.pheno_vects )
+df = submatrix_to_dataframe( p, funcs, E, epdf, source="common", dest="rare" )   # all zeros
+write_dataframe(df,"../data/6_25_22/common_to_rare_LGP_sample.csv")
+df = submatrix_to_dataframe( p, funcs, E, epdf, source="rare", dest="common" )
+write_dataframe(df,"../data/6_25_22/rare_to_common_LGP_sample.csv")
+df = submatrix_to_dataframe( p, funcs, E, epdf, source="rare", dest="rare" ) 
+write_dataframe(df,"../data/6_25_22/rare_to_rare_LGP_sample.csv")
+df = submatrix_to_dataframe( p, funcs, E, epdf, source="common", dest="common" )

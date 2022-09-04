@@ -209,6 +209,7 @@ function mut_evolve( c::Chromosome, goallist::GoalList, funcs::Vector{Func}, max
       avgfitness::Bool=false, perm_heuristic=false, fault_tol::Bool=false, ftf_param::Float64=0.95, 
       fit_limit::Float64=Float64(c.params.numoutputs), 
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0 )
+  default_funcs(c.params)   # Set the global variable Ones when running on multiple processes.
   #println("mut_evolve fit limit: ",fit_limit)
   #println("mut evolve avgfitness: ",avgfitness,"  fault_tol: ",fault_tol,"  ftf_param: ",ftf_param)
   #print_build_chromosome(c)
@@ -608,6 +609,7 @@ end
 # if no genotype that maps to goal is found, returns (nothing,nothing)
 function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; 
     use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
+  default_funcs(p)
   #Random.seed!(2)
   #println("length(funcs): ",length(funcs))
   steps = 0   # establish scope
@@ -647,7 +649,8 @@ end
 # if no genotype (circuit) that maps to goal is found, returns (nothing,nothing)
 function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal, max_tries::Int64, max_steps::Int64; 
       use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
-  println("length(funcs): ",length(funcs))
+  default_funcs(p)
+  #println("length(funcs): ",length(funcs))
   steps = 0   # establish scope
   nc = nothing # establish scope
   circuits_steps_list = use_lincircuit ? Tuple{LinCircuit,Int64}[] : Tuple{Chromosome,Int64}[]
@@ -898,6 +901,7 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   #  println("neutral evolution: ")
   #  print_circuit(c)
   #end
+  default_funcs(c.params)
   p = c.params
   LinCirc = typeof(c) == LinCircuit ? :true : :false
   step_list = Int64[] # Only used if save_acomplexities==true

@@ -1,11 +1,12 @@
 # Compute phenotype evolvability for a phenotype ph in ph_list by either evolving ncircuits circuits that map to ph,
 #  or by converting circ_int_list to circuits.  Tnen mutate_all() is applied to these circuits, and a count vector of phenotype counts is returned..
 # Produce a dataframe with phenotypes in ph_list as rows and phenotypes mapped to by mutational neighbors of the circuits.
-function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64; circ_int_lists::Vector{Vector{Int128}}=Vector{Int128}[], use_lincircuit::Bool=false, csvfile::String="" )
+# Evolution version
+function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64;  use_lincircuit::Bool=false, csvfile::String="" )
   nrepeats = nprocs()==1 ? 1 : nprocs()-1
   ncircuits_iter = Int(ceil(ncircuits/nrepeats))   # ncircuits/nrepeats rounded up to the next integer.
-  dict_pairs = pmap( i->evolvable_pheno_dict( p, funcs, ph_list, ncircuits_iter, max_tries, max_steps, circ_int_lists=circ_int_lists, use_lincircuit=use_lincircuit ), 1:nrepeats )
-  #dict_pairs = map( i->evolvable_pheno_dict( p, funcs, ph_list, ncircuits_iter, max_tries, max_steps, circ_int_lists=circ_int_lists, use_lincircuit=use_lincircuit ), 1:nrepeats )
+  dict_pairs = pmap( i->evolvable_pheno_dict( p, funcs, ph_list, ncircuits_iter, max_tries, max_steps, use_lincircuit=use_lincircuit ), 1:nrepeats )
+  #dict_pairs = map( i->evolvable_pheno_dict( p, funcs, ph_list, ncircuits_iter, max_tries, max_steps, use_lincircuit=use_lincircuit ), 1:nrepeats )
   ph_dicts = map(x->x[1],dict_pairs)
   cmplx_dicts = map(x->x[2],dict_pairs)
   result_ph_dict = ph_vect_dict = Dict{Goal,Vector{Int64}}()
@@ -39,8 +40,43 @@ function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalLi
   df
 end
 
+# Sampling version
+function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, phlist::Vector, circ_int_lists::Vector; use_lincircuit::Bool=false, csvfile::String="" )
+  if typeof(phlist[1]) <: AbstractString
+    phlist = map(x->[eval(Meta.parse(x))], phlist )
+  end
+  if typeof(circ_int_lists[1]) <: AbstractString
+    circ_int_lists = map(x->eval(Meta.parse(x)), circ_int_lists )
+  end
+  (result_ph_dict,result_cmplx_dict) = evolvable_pheno_dict( p, funcs, phlist, 0, 0, 0, circ_int_lists=circ_int_lists, use_lincircuit=use_lincircuit )
+  ph_key_list = sort([k for k in keys(result_ph_dict)])
+  cmplx_key_list = sort([k for k in keys(result_cmplx_dict)])
+  df = DataFrame()
+  df.pheno_list =  map( k->@sprintf("0x%04x",k[1]), ph_key_list)
+  df.evolvability = map( k->length(findall(x->x.!=0,result_ph_dict[k])), ph_key_list )
+  df.complexity = map( k->sum(result_cmplx_dict[k])/length(result_cmplx_dict[k]), cmplx_key_list )
+  df.pheno_vects = map( k->result_ph_dict[k], ph_key_list )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`) 
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      #println(f,"# run time in minutes: ",(ptime+ntime)/60)
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      #println(f,"# ncircuits: ",ncircuits)
+      #println(f,"# length(ph_list): ",length(ph_list))
+      println(f,"# length(circ_int_lists): ",length(circ_int_lists))
+      #println(f,"# max_tries: ",max_tries)
+      #println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
 function evolvable_pheno_dict( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64; 
-    circ_int_lists::Vector{Vector{Int128}}, use_lincircuit::Bool=false )
+    circ_int_lists::Vector{Vector{Int128}}=Vector{Int128}[], use_lincircuit::Bool=false )
   default_funcs(p)
   ph_vect_dict = Dict{Goal,Vector{Int64}}()
   ph_cmplx_dict = Dict{Goal,Vector{Float64}}()
@@ -48,11 +84,17 @@ function evolvable_pheno_dict( p::Parameters, funcs::Vector{Func}, ph_list::Goal
     pheno_count_vect = zeros(Int64,2^2^p.numinputs)   # zero vector over all phenotypes
     ph = ph_list[i]
     if length(circ_int_lists) > 0
-      circuit_list = compute_circuit_list( p, funcs, ph, ncircuits, max_tries, max_steps, circ_int_list=circ_int_lists[i], use_lincircuit=use_lincircuit )
+      circuit_list = compute_circuit_list( p, funcs, ph, 0, 0, 0, circ_int_list=circ_int_lists[i], use_lincircuit=use_lincircuit )
       evolvable_pheno_count!( pheno_count_vect, circuit_list, funcs, circ_int_list=circ_int_lists[i], use_lincircuit=use_lincircuit ) 
     else
       circuit_list = compute_circuit_list( p, funcs, ph, ncircuits, max_tries, max_steps, circ_int_list=Int128[], use_lincircuit=use_lincircuit )
       evolvable_pheno_count!( pheno_count_vect, circuit_list, funcs, circ_int_list=Int128[], use_lincircuit=use_lincircuit ) 
+    end
+    for circ in circuit_list
+      ov = output_values(circ)
+      if ov != ph
+        println("i: ",i,"  ph: ",ph," ov: ",ov)
+      end
     end
     complexity_list = use_lincircuit ? map(c->lincomplexity(c,funcs), circuit_list)  : map(c->complexity5(c), circuit_list)
     #println("complexity_list: ",complexity_list)
@@ -101,7 +143,7 @@ function pheno_vects_to_boolean_matrix( pheno_vects::Vector{Vector{Int64}} )
   result_matrix
 end
 
-# Calls the previous version when pheno_vects is a vector strings
+# Calls the previous version when pheno_vects is a vector of strings
 function pheno_vects_to_boolean_matrix( pheno_vects::Vector{String} )
   ph_vects =map(i->eval(Meta.parse(pheno_vects[i])), 1:length(pheno_vects))  # convert strings to Int64s
   pheno_vects_to_boolean_matrix( ph_vects )
@@ -134,38 +176,23 @@ end
 #  E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
 #  Possible problem if the evdf dataframe is directly generated rather than read from a CSV file.
 # Note that default values are from common_str and rare_str.
-function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{Int64}, evdf::DataFrame, common_list::Union{Vector{MyInt},Vector{String}}=common_str, 
-    rare_list::Union{Vector{MyInt},Vector{String}}=rare_str; source::String="rare", dest::String="common" )
-  println("source: ",source,"  dest: ",dest)
-  tostring(x::MyInt) = MyInt==UInt16 ? @sprintf("0x%02x",x) : @sprintf("0x%04x",x)
-  common_list_str = typeof(common_list)==Vector{String} ? common_list : map(x->tostring(x), common_list )
-  rare_list_str = typeof(rare_list)==Vector{String} ? rare_list : map(x->tostring(x), rare_list )
-  common_indices = findall(x->(x in common_list_str),evdf.pheno_list)
-  rare_indices = findall(x->(x in rare_list_str),evdf.pheno_list)
-  println("rare_indices: ",rare_indices)
-  println("common_indices: ",common_indices)
+function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{Int64}, evdf::DataFrame, source_list::Union{Vector{MyInt},Vector{String}}, 
+    dest_list::Union{Vector{MyInt},Vector{String}}  )
+  tostring(x::MyInt) = MyInt==UInt16 ? @sprintf("0x%04x",x) : @sprintf("0x%04x",x)
+  source_list_str = typeof(source_list)==Vector{String} ? source_list : map(x->tostring(x), source_list )
+  dest_list_str = typeof(dest_list)==Vector{String} ? dest_list : map(x->tostring(x), dest_list )
+  #println("dest_list_str: ",dest_list_str)
+  source_indices = findall(x->(x in source_list_str),evdf.pheno_list)
+  dest_indices = findall(x->(x in dest_list_str),evdf.pheno_list)
+  #println("dest_indices: ",dest_indices)
+  #println("source_indices: ",source_indices)
+  println("sum E submatrix: ",sum(E[source_indices,dest_indices]))
   edf = DataFrame()
-  for i = 1:(dest=="rare" ? length(rare_list_str) : length(common_list_str))
+  for i = 1:length(dest_list) 
     #println("i: ",i)
-    if source=="rare"
-      if dest=="rare"
-        insertcols!(edf,i,Pair(@sprintf("0x%02x",rare_indices[i]-1),E[rare_indices,rare_indices[i]]))
-      else
-        insertcols!(edf,i,Pair(@sprintf("0x%02x",common_indices[i]-1),E[rare_indices,common_indices[i]]))
-      end
-    else
-      if dest=="rare"
-        insertcols!(edf,i,Pair(@sprintf("0x%02x",rare_indices[i]-1),E[common_indices,rare_indices[i]]))
-      else
-        insertcols!(edf,i,Pair(@sprintf("0x%02x",common_indices[i]-1),E[common_indices,common_indices[i]]))
-      end
-    end
+    insertcols!(edf,i,@sprintf("0x%02x",source_indices[i]-1)=>E[source_indices,dest_indices[i]]) 
   end 
-  if source=="rare"
-    insertcols!(edf,1,"pheno"=>evdf.pheno_list[rare_indices])
-  else
-    insertcols!(edf,1,"pheno"=>evdf.pheno_list[common_indices])
-  end
+  insertcols!(edf,1,"pheno"=>evdf.pheno_list[source_indices])
   edf
 end
 

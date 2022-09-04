@@ -1,0 +1,49 @@
+Bug when evolution worked with map() but not pmap().  Problems was that Ones was not being set
+on pmap() processes.  I added calls to default_funcs(p) to pheno_evolve()
+
+Working on pheno_net/'Definitions of Evolvability.pdf' in overleaf.
+There is a definition of entropy_evolvability in this document.
+See pheno_net/entropy_evolvability8_28_22.tex and pheno_net/pheno_network_paper8_28_22.tex.
+
+df = read_dataframe("../data/8_28_22/entropy_evolvability8_28_22B.csv") 
+p0 = scatter(df.entropy,df.log_redundancy,labels="log redundancy vs entropy evolvability",smooth=true,xlabel="entropy evolvability",ylabel="log redundancy")
+plot!(p0,title="All 3x1 phenotypes with 8 gates 4 lb 5 funcs")
+savefig("../data/8_28_22/lg_redund_vs_entropy_evolvability3x1_8gts_4lb_5funcs.png")
+
+p0 = scatter(df.entropy,df.K_complexity,labels="log redundancy vs entropy evolvability",smooth=true,xlabel="entropy evolvability",ylabel="K complexity")
+plot!(p0,title="All 3x1 phenotypes with 8 gates 4 lb 5 funcs")
+savefig("../data/8_28_22/k_complexity_vs_entropy_evolvability3x1_8gts_4lb_5funcs.png")
+
+
+edf = read_dataframe("../data/2020/10_27/geno_complexity10_27FMNccons.csv") 
+phlist = map(x->eval(Meta.parse(x)),edf.goal)   # 600 phenotypes used in GECCO paper
+
+Running run_multiset_evolvability() in p_evolve.jl in data/8_28_22.
+
+
+
+On fluda 4 inputs:  12 gates 6 lb 5 funcs
+8_28_22/entropy_evolvability8_28_22E.csv   # nreps = 200 identical config 
+8_28_22/entropy_evolvability8_28_22F.csv  # nreps = 200  identical config
+8_28_22/entropy_evolvability8_28_22G.csv   # nreps = 100
+
+julia> mean(fdf.entropy-gdf.entropy)
+0.08256772424799871
+julia> mean(edf.entropy-gdf.entropy)
+0.08548767209949887                     
+julia> findmax(fdf.entropy-gdf.entropy)
+(0.553264836860393, 170)
+julia> findmax(edf.entropy-gdf.entropy)
+(0.5159854295050161, 170)       
+julia> findmin(fdf.entropy-gdf.entropy)
+(-0.3214625770762707, 166)                  
+julia> findmin(edf.entropy-gdf.entropy)
+(-0.4417078791289546, 309)
+julia> mean(map(i->abs(edf.entropy[i]-fdf.entropy[i]), 1:length(edf.entropy)))
+0.09395971077291022
+julia> mean(map(i->abs(edf.entropy[i]-gdf.entropy[i]), 1:length(edf.entropy)))
+0.12717464917338528
+julia> mean(map(i->abs(fdf.entropy[i]-gdf.entropy[i]), 1:length(edf.entropy)))
+0.1324392709454834   
+# Conclusion:  100 reps is pretty accurate.
+

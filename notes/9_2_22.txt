@@ -1,0 +1,8 @@
+Wrote functions:
+
+k_complexity_mutate_all() in Complexity.jl:  See comments on function.  All based on sampling rather than evolution.
+matrix_dataframe_count_nonzeros() in Complexity.jl
+K_complexity_negation_check()  checks that the K complexity of a phenotype is equal to that of the one's complement of the phenotype
+
+Revised:
+submatrix_to_dataframe() in evolvable_evolvability.jl which is used in k_complexity_mutate_all().
