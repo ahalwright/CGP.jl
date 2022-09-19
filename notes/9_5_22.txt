@@ -1,0 +1,69 @@
+Comparing evolution vs sampling common to rare:
+Evolution:
+   notes/7_9_22.txt  has been updated to accomodate new version of submatrix_to_dataframe()
+Sampling:
+   notes/8_31_22.txt  describes sampling procedure for the same rare and common phenotypes
+
+Results: 
+Evolution:  
+  common to rare matrix is all zeros.
+Sampling:  
+  common to rare matrix:
+  matrix_dataframe_count_nonzeros( crdf ) #  150
+
+Additional info:
+kd = kolmogorov_complexity_dict(p,funcs)
+k_csvfile: ../data/counts/k_complexity_3x1_4funcs7_11_22E.csv
+rd = redundancy_dict(p,funcs)
+csvfile: ../data/counts/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv
+
+kdf = read_dataframe("../data/counts/k_complexity_3x1_4funcs7_11_22E.csv")
+rdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv")
+
+rrare = map(x->rd[x[1]],rare)   # max of 1903
+rcommon = map(x->rd[x[1]],common)  # minimum of 121062232
+
+Redoing evolvable for larger selection of "rare" and "common"
+
+pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
+E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
+
+Based on K complexity
+krare = map(x->eval(Meta.parse(x)),kdf[kdf.num_gates.>=6,:goal])   # length 18
+kcommon = map(x->eval(Meta.parse(x)),kdf[kdf.num_gates.<=2,:goal])  # length 72
+krare_str = map(x->@sprintf("0x%04x",x[1]),krare)
+kcommon_str = map(x->@sprintf("0x%04x",x[1]),kcommon)
+df = submatrix_to_dataframe( p, funcs, E, pdf, kcommon_str, krare_str ) # 50 nonzeros
+# Alternate
+kcommon = map(x->eval(Meta.parse(x)),kdf[kdf.num_gates.<=1,:goal])  # length 18
+kcommon_str = map(x->@sprintf("0x%04x",x[1]),kcommon)
+df = submatrix_to_dataframe( p, funcs, E, pdf, kcommon_str, krare_str )  # 2 nonzeros
+
+Based on redundancy
+rrare = map(x->eval(Meta.parse(x)),rdf[rdf.ints7_4.<=2000,:goals])
+rcommon = map(x->eval(Meta.parse(x)),rdf[rdf.ints7_4.>=,140000000,:goals])  # length 14
+rrare_str = map(x->@sprintf("0x%04x",x[1]),rrare)   # length 10
+rcommon_str = map(x->@sprintf("0x%04x",x[1]),rcommon)
+df = submatrix_to_dataframe( p, funcs, E, pdf, rcommon_str, rrare_str )  # 0 nonzeros
+
+# Copied from 7_9_22.txt
+p = Parameters(3,1,7,4)
+funcs = default_funcs(p)   # Should come out with 4 funcs rather than 5
+pdf = read_dataframe("../data/7_8_22/evolvable_evolability_3x1_7_4chP.csv")
+pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
+cdf = read_dataframe("../data/6_25_22/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv")
+insertcols!(pdf,4,:ints7_4=>cdf.ints7_4)   # ints7_4 is redundancy (frequency) from the cdf dataframe  # 9/4/22: already inserted
+insertcols!(pdf,4,:scomplexity=>cdf.complexity)  # scomplexity is sampling complexity   # 9/4/22: already inserted
+write_dataframe_with_comments(pdf,"../data/7_8_22/evolvable_evolability_3x1_7_4chP.csv","../data/7_8_22/evolvable_evolability_3x1_7_4ch_scmplxP.csv")
+# Based on notes/6_26_22.txt
+E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
+rare =  [[0x0049], [0x0061], [0x0069], [0x006d], [0x0079], [0x0086], [0x0092], [0x0096], [0x009e], [0x00b6]];
+common = [[0x0000], [0x0003], [0x0005], [0x0011], [0x0022], [0x0033], [0x003f], [0x0044], [0x0055], [0x005f], [0x0077], [0x0088], [0x00a0], [0x00aa], [0x00bb], [0x00c0], [0x00cc], [0x00dd], [0x00ee], [0x00fa], [0x00fc], [0x00ff]];
+rare_str = map(x->@sprintf("0x%04x",x[1]),rare)
+common_str = map(x->@sprintf("0x%04x",x[1]),common)
+df = submatrix_to_dataframe( p, funcs, E, pdf, common_str, rare_str )   # revised 9/4/22
+write_dataframe(df,"../data/7_8_22/common_to_rare_CGP_evoP.csv")
+df = submatrix_to_dataframe( p, funcs, E, pdf, rare_str, common_str )   # revised 9/4/22
+write_dataframe(df,"../data/7_8_22/rare_to_common_CGP_evoP.csv")
+df = submatrix_to_dataframe( p, funcs, E, pdf, rare_str, rare_str )   # revised 9/4/22
+write_dataframe(df,"../data/7_8_22/rare_to_rare_CGP_evoP.csv")

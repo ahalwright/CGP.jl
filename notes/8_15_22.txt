@@ -38,6 +38,7 @@ redund_vs_k_complexity_plot( p, funcs[1:4], map(x->[x], 0x0000:0x00ff), csvfile=
 #  ttitle: K complexity vs log redundancy 3x1 7gts 4lb 4funcs
 
 redund_vs_k_complexity_plot( p, funcs, map(x->[x], 0x0000:0x00ff), csvfile="../data/8_15_22/count_outputs_ch_5funcs_3inputs_7gates_8lb_Q.csv",plotfile="../data/8_15_22/log_redund_vs_kcomp_ch_5funcs_3inputs_7gates_8lb_Q.png")
+redund_vs_k_complexity_plot( p, funcs, map(x->[x], 0x0000:0x00ff), csvfile="../data/8_15_22/count_outputs_ch_5funcs_3inputs_7gates_8lb_Q.csv",plotfile="../data/8_15_22/log_redund_vs_kcomp_ch_5funcs_3inputs_7gates_8lb_R.png")
 # size(df): (256, 3)
 # ttitle: K complexity vs log redundancy 3x1 7gts 4lb 5funcs
 
@@ -76,11 +77,13 @@ savefig("../data/8_15_22/$(ttitle).png")
 # Setting up pdf dataframe so that Cooper can do heat map scatter plot:
 p=Parameters(4,1,10,5);funcs=default_funcs(p)
 #  5-element Vector{Func}:
-k_dict = kolmogorov_complexity_dict( p ) 
-r_dict = redundancy_dict( p, "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv" ) 
+k_dict = kolmogorov_complexity_dict( p, funcs ) 
+#r_dict = redundancy_dict( p, "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv" ) 
+r_dict = redundancy_dict( p, funcs )
 phlist = map(x->[x],0x0000:0xffff)
 goals = map(x->x[1],phlist)
 kcomp = map(x->k_dict[x],goals)
+lg10(x) = x==0 ? 0.0 : log10(x)
 log_redund = map(x->lg10(r_dict[x]),goals)  
 pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund=>log_redund )
   

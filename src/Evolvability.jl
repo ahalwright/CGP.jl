@@ -289,7 +289,7 @@ function run_evolvability( nreps::Int64, gl::GoalList, funcs::Vector{Func}, nchr
   #result = @timed run_evolvability( nreps, gl, funcs, nchromes,  maxsteps, numinputs, numinteriors, numlevelsback ) 
   (df,ttime) = @timed run_evolvability( nreps, gl, funcs, nchromes,  maxsteps, numinputs, numinteriors, numlevelsback,
       max_repeats, intermediate_gens=intermediate_gens ) 
-  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+  hostname = readchomp(`hostname`)
   println("size(df): ",size(df))
   println("# host: ",hostname," with ",nprocs()-1,"  processes: " )    
   println("# date and time: ",Dates.now())
@@ -403,7 +403,7 @@ function run_evolve_g_pairs( df::DataFrame, sample_size::Int64, nreps::Int64, nr
   println("run_evolve_g_pairs: csvfile: ",csvfile)
   p = Parameters( numinputs=df.numinputs[1], numoutputs=df.numoutputs[1], numinteriors=numints, numlevelsback=df.levsback[1] )
   (ndf,ttime) = @timed run_evolve_g_pairs( df, sample_size, nreps, nruns, numints, maxsteps )  
-  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+  hostname = readchomp(`hostname`)
   println("size(df): ",size(df))
   println("# host: ",hostname," with ",nprocs()-1,"  processes: " )    
   println("# date and time: ",Dates.now())
@@ -580,7 +580,7 @@ function run_geno_robustness( ngoals::Int64, maxreps::Int64, numinputs::Int64, n
   robust_evo_df.ntries = ntries_vec
   robust_evo_df.nrepeats = nrepeats_vec
   if length(csvfile) > 0
-    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )    
@@ -680,7 +680,8 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
   geno_complexity_df.unique_goals = GoalList[]
   geno_complexity_df.nactive = Float64[]
   geno_complexity_df.complexity = Float64[]
-  geno_complexity_df.degeneracy = Float64[]
+  #geno_complexity_df.degeneracy = Float64[]
+  geno_complexity_df.Kcomplexity = Float64[]
   geno_complexity_df.sumsteps = Float64[]
   geno_complexity_df.sumtries = Float64[]
   #geno_complexity_df.complexQ95 = Float64[]
@@ -740,7 +741,7 @@ function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::
     geno_complexity_df = consolidate_dataframe( geno_complexity_df )
   end
   if length(csvfile) > 0
-    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )    
@@ -774,13 +775,15 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
       maxsteps_recover::Int64, maxtrials_recover::Int64, maxtries_recover::Int64; use_lincircuit::Bool=false )
   #println("geno_complexity: goal: ",goal)
   funcs = default_funcs(p.numinputs)
+  kdict = kolmogorov_complexity_dict(p,funcs)
   #W = Walsh(2^p.numinputs)
   all_outputs_sum = 0
   robust_sum = 0
   all_unique_outputs = Goal[]
   nactive_list = Int64[]
   complexity_list = Float64[]
-  degeneracy_list = Float64[]
+  #degeneracy_list = Float64[]
+  K_complexity_list = Float64[]
   sumsteps_list = Int64[]
   sumtries_list = Int64[]
   #frenken_mi_list = Float64[]
@@ -823,7 +826,8 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
     push!( nactive_list, number_active( c ))
     complexity = use_lincircuit ? lincomplexity( c, funcs ) : complexity5(c)
     push!( complexity_list, complexity )
-    push!( degeneracy_list, degeneracy( c ))
+    #push!( degeneracy_list, degeneracy( c ))
+    push!(K_complexity_list, kdict[c_output[1]])
     (sumsteps,sumtries) = recover_phenotype( c, maxsteps_recover, maxtrials_recover, maxtries_recover )
     push!( sumsteps_list, sumsteps )
     push!( sumtries_list, sumtries )
@@ -858,7 +862,8 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
       all_unique_outputs,
       sum( nactive_list )/iter_maxreps,
       sum( complexity_list )/iter_maxreps,
-      sum( degeneracy_list )/iter_maxreps,
+      #sum( degeneracy_list )/iter_maxreps,
+      sum( K_complexity_list )/iter_maxreps,
       sum( sumsteps_list )/iter_maxreps,
       sum( sumtries_list )/iter_maxreps,
       #quantile(complexity_list,0.95),
@@ -888,7 +893,8 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
       Goal[],
       sum( nactive_list )/iter_maxreps,
       sum( complexity_list )/iter_maxreps,
-      0.0,  # degeneracy
+      #0.0,  # degeneracy
+      0.0,  # K complexity
       0.0,  #sumsteps_list
       0.0,  #sumtries_list
       #0.0,  # quantile(complexity_list,0.95)
@@ -975,7 +981,7 @@ function pheno_set_rand_neutral_walks( p::Parameters, funcs::Vector{Func}, ph::G
   df = DataFrame()
   df.pheno_list =  [ s for s in pheno_set ] 
   if length(csvfile) > 0
-  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+  hostname = readchomp(`hostname`)
   open( csvfile, "w" ) do f
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )

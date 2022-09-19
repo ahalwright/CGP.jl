@@ -1,0 +1,147 @@
+Writing up universal properties of GP maps.
+
+Ahnert 2017:
+These properties are ‘structural’ in the sense that they are properties
+of the distribution of phenotypes across the point-mutation network of
+genotypes. They include: a redundancy of genotypes, meaning that many
+genotypes map to the same phenotypes, a highly non-uniform distribution
+of the number of genotypes per phenotype, a high robustness of phenotypes
+and the ability to reach a large number of new phenotypes within a small
+number of mutational steps. A further important property is that the 
+robustness and evolvability of phenotypes are positively correlated. 
+
+Section 8. Structural properties of genotype–phenotype maps
+
+The first three of these, redundancy, bias and robustness, are illustrated 
+in figure 2.
+
+Redundancy means that many genotypes map to the same phenotype.
+
+Bias is the skewed distribution of the number of genotypes per phenotype.
+
+The robustness of a genotype is typically measured in terms of the fraction 
+of possilbe mutations that leave the phenotype unchanged.  The robustness
+of a phenotype is the average genotypic robustness of the genotypes that
+map to the phenotype.
+
+The universal property is that a phenotype's robustness scales as the
+logarithm of its frequency.
+
+Genotypes are far more correlated than one would explect based solely on GP
+map bias.
+
+Evolvability.
+
+Formally evolvability is often quantified in terms of the variety of 
+phenotypes that lie within a certain mutation distance of a genotype or 
+phenotype, such as Wagner’s definitions of genotypic and phenotypic evolvability.
+
+Comparisons of the genotypic robustness and evolvability therefore consistently 
+show a negative correlation between the two.
+
+Wagner [52] showed that phenotypic robustness and evolvability are positively 
+correlated in the RNA secondary structure GP map—a finding that has also been 
+reproduced in Polyominoes.
+
+Shape space covering
+
+In the RNA, HP and Polyomino GP maps the majority
+of phenotypes has been shown to lie in close proximity of any
+genotype [18,22,26]. This is because of the high-dimensional
+nature of GP maps.
+
+Manrubia 2021:
+
+Some of the commonalities documented are navigability, as reflected in the ubiquitous 
+existence of large neutral networks for common phenotypes that span the whole space of 
+genotypes, a negative correlation between genotypic evolvability and genotypic 
+robustness, a positive correlation between phenotypic evolvability and phenotypic 
+robustness, a linear growth of phenotypic robustness with the logarithm of the NSS, 
+or a near lognormal distribution of the latter. 
+
+Aguire 2019:
+
+Usually, navigability is believed to rely on the existence of sufficiently large neutral 
+networks (NNs) of genotypes [38] since these should permit the neutral drift of populations
+and a sustained exploration of alternative phenotypes without a detrimental decrease 
+in fitness.
+
+Nearly neutral mutations are common in finite populations [45], augmenting their 
+adaptive ability. 
+
+1. Most phenotypes are rare, and only a few of them are very
+common. Specifically, the probability of finding a phenotype 
+when sampling uniformly at random among all of
+them follows a lognormal distribution for a wide variety
+of models [50,55,74] and a power law for some special
+cases [49,54,55]. Therefore, a small fraction of the largest
+phenotypes contains most genotypes, such that in practice
+those are the only ones visible to natural selection [50,59,76];
+together with the asymmetry in the mutual accessibility of
+two phenotypes [58,77], that property causes a form of
+(entropic) trapping in genotype space [74,76,78,79]
+
+2. The degree of a node in an NN, defined as the number of
+one-mutant neighbours that belong to the same NN (aka
+its genotypic robustness), is a heterogeneous quantity,
+although its distribution is often unimodal [28,39,61].
+Additionally, the average degree of an NN is proportional
+to the logarithm of the size of the network [55,60,61,80].
+
+3. These NNs are assortative, at least for phenotypes defined
+through minimum-energy principles [61,81,82]. In an assortative 
+network, genotypes are connected to other genotypes
+of similar degree, and this correlation in genotypic
+robustness causes canalization [83], leads to phenotypic
+entrapment [79] and enhances evolvability [80].
+
+4. Neutral networks of common phenotypes percolate
+genotype space. In other words, we can find two genotypes expressing the same phenotype with a sequence
+similarity comparable to that of two randomly chosen
+genotypes [28,84].
+
+5. Most large phenotypes are one mutation away from each
+other, such that genotypes yielding every common
+phenotype can be found at the boundary of any large NN
+[28,53,65,84]. As a result, the search for new phenotypes
+among common ones is a fast process.
+
+Greenbury 2016:
+
+This idea that mutational neighbours differ from the random expectation is what we will 
+call genetic correlations.
+
+From these studies of model systems a number of basic principles have emerged, much of
+which has been reviewed in important books by Wagner [15, 16]. 
+
+Firstly, for neutral networks to exist, the GP map should exhibit redundancy, where 
+multiple genotypes map onto the same phenotype. 
+
+The second basic principle to emerge is that the number of genotypes per phenotype (the
+redundancy) can vary, leading to phenotype bias, 
+
+Thirdly, it is generally the case that the larger the redundancy, the greater the mean 
+mutational robustness of genotypes mapping to that phenotype.
+
+Fourthly, the larger the neutral network, the greater the variety of alternative 
+phenotypes within one (non-neutral) point mutation of the whole neutral network, 
+leading to robustness and measures of evolvability that count the number of different
+phenotypes that are potentially accessible being positively correlated 
+
+Finally, a key principle emphasised by Maynard Smith [1], but which has earlier roots in
+concepts such as the shifting balance theory of Sewall Wright [23], is that neutral mutations
+allow a population to access, over time, a wider variety of potential alternative phenotypes than
+would be available around a single genotype [4, 11, 16].
+
+Topics to include:
+
+Universal properties to include:
+
+1.  Redundancy
+2.  Bias
+3.  Robustness and redundancy
+4.  Negative correlation between phenotypic evolvability and robustness
+    See Aguire 3
+5.  Evolvability
+6.  Navigability
+    See Greenbury 5

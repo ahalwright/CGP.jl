@@ -23,7 +23,11 @@ Pkg.add("Colors"      )
 Pkg.add("Test")
 Pkg.add("Permutations")
 Pkg.add("Plots")   
+Pkg.add("Tables")   
 Pkg.add("Folds")
+Pkg.add("PyCall")
+Pkg.add("PyPlot")
+Pkg.add("SciPy")
 #Pkg.add("Revise")
 using Distributed
 using DataFrames

@@ -437,6 +437,7 @@ function bin_counts( values::Vector{Float64}, counts::Vector{Float64}, bin_fract
   [ vdict[key] for key in sort(collect(keys(vdict))) ]
 end
 
+#  Found rare bug on 9/4/22 
 # Run kolmogorov_complexity() for all goals in goal list gl (in parallel).
 # Write dataframe to csvfile is that is given (keyword argument)
 function run_kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, gl::GoalList, max_goal_tries::Int64, max_ev_steps::Int64;
@@ -480,6 +481,7 @@ function run_kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, gl::Goal
   df
 end
     
+#  Found rare bug on 9/4/22 
 # Try to find the minimum number of gates to evolve a goal which I call the Kolmogorov complexity.
 # Start with p.numinteriors and then deccrease the number of gates until the goal is found.
 # Do max_goal_tries evolutions with each number of gates.
@@ -682,8 +684,12 @@ function kolmogorov_complexity_dict( p::Parameters, funcs::Vector{Func}=default_
       k_csvfile = "../data/counts/k_complexity_3x1_5funcs7_11_22F.csv"
     end
   elseif p.numinputs == 4
-    #k_csvfile = "../data/counts/k_complexity_all4x1phenos.csv"
-    k_csvfile = "../data/8_9_22/k_complexity8_9_22FGGF.csv"
+    if length(funcs) == 4
+      #k_csvfile = "../data/counts/k_complexity_all4x1phenos.csv"
+      k_csvfile = "../data/counts/k_complexity8_9_22FGGF.csv"
+    else
+      error("no csv file")
+    end
   else
     error("no csv file")
   end
@@ -706,6 +712,12 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
           csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv"
         elseif length(funcs) == 5
           csvfile = "../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv"
+        else
+          error("no csv file")
+        end
+      elseif p.numinteriors == 7 && p.numlevelsback == 4
+        if length(funcs) == 4
+          csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv"
         else
           error("no csv file")
         end
@@ -764,20 +776,31 @@ end
 
 # Prints the phenotypes where the K complexity of every phenotype is not equal to the K complexity of its ones complement
 # If the second argument is true, then sets entries where there is a disagreement to the smaller value
+# Kcomplx must be a vector indexed over all phenotypes for some number of inputs
 function K_complexity_negation_check( Kcmplx::Vector{Int64}, correct::Bool=false )
+  count_errors = 0
   m_one = MyInt(1)
   for i = MyInt(0):MyInt(div( length(Kcmplx), 2 ) -1 )
     #println("i+1: ",i+m_one,"  CGP.Not(i)+m_one: ",CGP.Not(i)+m_one,"   ")
-    if Kcmplx[i+m_one] != Kcmplx[ CGP.Not(i)+m_one ]
-      @printf("0x%04x   0x%04x:  ", i+m_one, CGP.Not(i) )
-      println(Kcmplx[i+m_one],"  ",Kcmplx[ CGP.Not(i)+m_one ])
+    #println("i+1: ",i+1,"  CGP.Not(i)+1: ",CGP.Not(i)+1,"   ")
+    #if Kcmplx[i+m_one] != Kcmplx[ CGP.Not(i)+m_one ]
+    if Kcmplx[i+1] != Kcmplx[ CGP.Not(i)+1 ]
+      count_errors += 1
+      #@printf("0x%04x   0x%04x:  ", i+m_one, CGP.Not(i) )
+      @printf("0x%04x   0x%04x:  ", i, CGP.Not(i) )
+      #println(Kcmplx[i+m_one],"  ",Kcmplx[ CGP.Not(i)+m_one ])
+      println(Kcmplx[i+1],"  ",Kcmplx[ CGP.Not(i)+1 ])
       if correct
-        knew = min(Kcmplx[i+m_one],Kcmplx[ CGP.Not(i)+m_one ])
-        Kcmplx[i+m_one] = knew
-        Kcmplx[ CGP.Not(i)+m_one ] = knew
+        #knew = min(Kcmplx[i+m_one],Kcmplx[ CGP.Not(i)+m_one ])
+        knew = min(Kcmplx[i+1],Kcmplx[ CGP.Not(i)+1 ])
+        #Kcmplx[i+m_one] = knew
+        Kcmplx[i+1] = knew
+        #Kcmplx[ CGP.Not(i)+m_one ] = knew
+        Kcmplx[ CGP.Not(i)+1 ] = knew
       end
     end
   end
+  count_errors
 end
 
 function run_K_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, circuit_ints_df::DataFrame=DataFrame(); 
@@ -790,17 +813,23 @@ function run_k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, phlist
   k_dict = kolmogorov_complexity_dict( p )
   df = DataFrame( :goal=>Goal[], :rebased_vect=>RebasedVector[] )
   circuit_ints_list = Vector{Int128}[]   # establish scope
+  sampling = false
   if size(circuit_ints_df)[1] > 0
     circuit_ints_df.goal = map(x->[eval(Meta.parse(x))],circuit_ints_df.goals)
     circuit_ints_df.circuit_ints_list = pmap(x->eval(Meta.parse(x)),circuit_ints_df.circuits_list)
     phlist = circuit_ints_df.goal
     circuit_ints_list = circuit_ints_df.circuit_ints_list
+    sampling = true
   end
+  println("length(circuit_ints_list): ",length(circuit_ints_list))
   k_comp_rebased = RebasedVector[]
-  result_list = pmap( i->k_complexity_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, k_dict, circuit_ints_list=circuit_ints_list[i],
-        use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
-  #result_list = map( i->k_complexity_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, k_dict, circuit_ints_list=circuit_ints_list[i], 
-  #     use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
+  #cilist = length(circuit_ints_list)>0 ? 
+  #result_list = pmap( i->k_complexity_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, k_dict, 
+  #    circuit_ints_list=length(circuit_ints_list)>0 ? circuit_ints_list[i] : Int128[],
+  #    use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
+  result_list = map( i->k_complexity_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, k_dict, 
+      circuit_ints_list=length(circuit_ints_list)>0 ? circuit_ints_list[i] : Int128[],
+      use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
   for res in result_list
     push!(k_comp_rebased,RebasedVector(res[2],res[3]))
     push!(df,(res[1],RebasedVector(res[2],res[3])))
@@ -812,9 +841,11 @@ function run_k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, phlist
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
-      println(f,"# use_lincircuit: ",use_lincircuit)
+      println(f,"# ",(use_lincircuit ? "LGP" : "CGP"))
+      println(f,"# ",(sampling ? "sampling" : "evolution"), " evolvability")
       print_parameters(f,p,comment=true)
       println(f,"# numcircuits: ",numcircuits)
+      println(f,"# ngoals: ",length(phlist))
       println(f,"# max_tries: ",max_tries)
       println(f,"# max_steps: ",max_steps)
       CSV.write( f, sdf, append=true, writeheader=true )
@@ -829,6 +860,7 @@ end
 # The alternate case is that circuit_ints_list supplies a list of circuit ints of circuits that map to ph.
 function k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, ph::Goal, numcircuits::Int64, max_tries::Int64, max_steps::Int64, k_dict::Dict{MyInt,Int64}; 
      circuit_ints_list::Vector{Int128}=Int128[], use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
+  default_funcs(p)  # Set global variale Ones on this process
   k_complexity_counts = zeros(Int64,12)  # 12 is an upper bound for possible k_complexities
   k_comp_ph = k_dict[ph[1]]
   if length(circuit_ints_list) == 0
@@ -837,9 +869,10 @@ function k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, ph::Goal, 
     circuit_list = map( x->x[1], circuit_steps_list )
   else
     circuit_list = map( ci->int_to_chromosome(ci,p,funcs),circuit_ints_list)
+    println("ph: ",ph,"  length(circuit_list): ",length(circuit_list))
   end
   for c in circuit_list
-    (outputs_list,circ_list) = mutate_all( c, funcs, output_outputs=true, output_circuits=true )
+    outputs_list = mutate_all( c, funcs, output_outputs=true )
     k_comp_list = map( x->k_dict[x[1]], outputs_list )
     for k_comp in k_comp_list
       k_complexity_counts[k_comp] += 1

@@ -1,0 +1,60 @@
+Plotting density of K complexity of result of mutations
+
+df = read_dataframe("../data/9_5_22/k_complexity_mutate_all_8gates_4funcs_9_5_22E.csv")
+E = df_to_matrix(df,2)  # code for df_to_matrix in evolvable_evolvability
+nrows=6
+ll = Array{String}(undef,1,6)
+for i = 1:6 ll[1,i] = "Density of K complexity of result starting with K complexity $(i)" end
+#p1 = plot([-5:5],[E[i,4:14] for i = 1:6],labels=ll)
+p1 = plot([-(nrows-1):(nrows-1)],[E[i,4:14] for i = 1:nrows],labels=ll)
+plot!(p
+df = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22DFH.csv")
+E1,xlabel = "increase in K complexity",ylabel="density of result K complexities",title = "Change in K complexity of mutations")
+plot!(p1,ylims=(0,1.2E6))
+savefig("../data/9_5_22/Kcomp_density_sampling8gts3x1_4funcs.png"
+# Double peak for starting Komp 4.  Not impressive results
+# Also did 7 gates in F.  Same double peak.  Even less impressive results.
+
+df = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22H.csv")
+E = df_to_matrix(df,2)
+nrows=8
+ll = Array{String}(undef,1,nrows)
+for i = 1:nrows ll[1,i] = "Density of K complexity of result starting with K complexity $(i)" end
+p1 = plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
+plot!(p1,xlabel = "increase in K complexity",ylabel="density of result K complexities",title = "Change in K complexity of mutations")
+plot!(p1,ylims=(0,1.7*findmax(E)[1]))
+savefig("../data/9_6_22/Kcomp_density_evolution4lx1_5funcs.png")
+  
+df = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22DFH.csv");
+E = df_to_matrix(df,2);
+nrows=8
+ll = Array{String}(undef,1,nrows);
+for i = 1:nrows ll[1,i] = "starting K complexity = $(i)" end
+p1 = plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
+plot!(p1,xlabel = "increase in K complexity",ylabel="density of result K complexity",title = "Change in K complexity of mutations")
+#plot!(p1,legend=:topright,ylims=(0,1.4*findmax(E)[1]))  # Not needed
+savefig("../data/9_6_22/Kcomp_density_evolution4x1_5funcs8_13DFH.png")   # Nice plot
+
+df = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22DFHfract.csv");
+E = df_to_matrix(df,2);
+nrows=8
+ll = Array{String}(undef,1,nrows);
+for i = 1:nrows ll[1,i] = "starting K complexity = $(i)" end
+p1 = plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
+plot!(p1,xlabel = "increase in K complexity",ylabel="density of resulting fractional K complexities",title = "Change in fractional K complexity of mutations")
+#plot!(p1,legend=:topleft)
+savefig("../data/9_6_22/Kcomp_density_evolution4x1_5funcs8_13DFHfract.png")  # Equal weight on each starting phenotype.  
+
+Bug in run_kolmogorov_complexity:
+
+ [2] number_active
+    @ ~/Library/CloudStorage/OneDrive-Personal/evotech/CGP.jl/src/Chromosome.jl:425
+  [3] #complexity5#392
+    @ ~/Library/CloudStorage/OneDrive-Personal/evotech/CGP.jl/src/InfTheory.jl:290
+  [4] complexity5
+    @ ~/Library/CloudStorage/OneDrive-Personal/evotech/CGP.jl/src/InfTheory.jl:286 [inlined]
+  [5] #kolmogorov_complexity#710
+    @ ~/Library/CloudStorage/OneDrive-Personal/evotech/CGP.jl/src/Complexity.jl:544
+  [6] #706
+    @ ~/Library/CloudStorage/OneDrive-Personal/evotech/CGP.jl/src/Complexity.jl:456
+

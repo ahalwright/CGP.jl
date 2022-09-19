@@ -423,6 +423,7 @@ end
 # Counts number active nodes which includes inputs
 function number_active( c::Chromosome )
   if !c[c.outputs[1].input].active   # if chromosome has not been executed
+  #if length(c.outputs)==0 || !c[c.outputs[1].input].active   # if chromosome has not been executed # Possible fix for rare bug
     context = construct_context(c.params.numinputs)
     execute_chromosome(c,context)
   end

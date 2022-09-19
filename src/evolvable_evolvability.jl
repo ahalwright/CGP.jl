@@ -31,7 +31,7 @@ function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalLi
       println(f,"# funcs: ", Main.CGP.default_funcs(p))
       println(f,"# ncircuits: ",ncircuits)
       println(f,"# length(ph_list): ",length(ph_list))
-      println(f,"# length(circ_int_lists): ",length(circ_int_lists))
+      #println(f,"# length(circ_int_lists): ",length(circ_int_lists))
       println(f,"# max_tries: ",max_tries)
       println(f,"# max_steps: ",max_steps)
       CSV.write( f, df, append=true, writeheader=true )
@@ -75,6 +75,12 @@ function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, phlist::Vector,
   df
 end
 
+# Computes pheno vects for phenotypes in ph_list
+# if circ_int_lists is empty, use evolution to return pheno_vects
+# if circ_int_lists is nonempty, use it to return pheno_vects
+# returns a pair of Dicts:  
+#   ph_vect_dict maps phenotypes to pheno_vects
+#   ph_cmplx_dict maps phenotypes to Tononi complexities
 function evolvable_pheno_dict( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64; 
     circ_int_lists::Vector{Vector{Int128}}=Vector{Int128}[], use_lincircuit::Bool=false )
   default_funcs(p)
@@ -196,6 +202,19 @@ function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{I
   edf
 end
 
+function submatrix_count( p::Parameters, funcs::Vector{Func}, E::Matrix{Int64}, evdf::DataFrame, source_list::Union{Vector{MyInt},Vector{String}},
+    dest_list::Union{Vector{MyInt},Vector{String}}  )
+  tostring(x::MyInt) = MyInt==UInt16 ? @sprintf("0x%04x",x) : @sprintf("0x%04x",x)
+  source_list_str = typeof(source_list)==Vector{String} ? source_list : map(x->tostring(x), source_list )
+  dest_list_str = typeof(dest_list)==Vector{String} ? dest_list : map(x->tostring(x), dest_list )
+  #println("dest_list_str: ",dest_list_str)
+  source_indices = findall(x->(x in source_list_str),evdf.pheno_list)
+  dest_indices = findall(x->(x in dest_list_str),evdf.pheno_list)
+  #println("dest_indices: ",dest_indices)
+  #println("source_indices: ",source_indices)
+  sum(E[source_indices,dest_indices])
+end
+
 # Returns a DataFrame representing a submatrix of the evolvability matrix correcponding to phdf.pheno_vects. 
 # The matrix has rows corresponding to source which must be "rare" or "common", and columns corresponding to dest which also must be "rare" or "common"
 # The rare and common strings can be defined either on the basis of redundancy or on the basis of k_complexity.  
@@ -279,4 +298,15 @@ function total_evolvability( pdf::DataFrame )
     push!(total_evo,sum(evo_vect))
   end
   total_evo
+end
+
+function df_to_matrix( df::DataFrame, startcolumn::Int64; transpose::Bool=false )  
+  matrix = zeros(Float64,size(df)[1],size(df)[2]-startcolumn+1)
+  for i = 1:size(df)[1]
+    for j = startcolumn:size(df)[2]
+      #println("i,j: ",(i,j))
+      matrix[i,j-startcolumn+1] = df[i,j]
+    end
+  end
+  matrix
 end

@@ -354,7 +354,7 @@ end
 #    circuit (genotype) corresponding to chromosome_int i.
 function pheno_counts_ch( p::Parameters, funcs::Vector{Func}; csvfile::String="", output_vect::Bool=false )
   counts = zeros(Int64,2^2^p.numinputs)
-  eci = collect(0:count_circuits_ch( p, nfuncs=length(funcs) ) )
+  eci = collect(0:Int64(ceil(count_circuits_ch( p, nfuncs=length(funcs))) ) )
   if output_vect 
     P = fill(MyInt(0),length(eci))
   end
@@ -422,6 +422,21 @@ function pheno_counts_lc( p::Parameters, funcs::Vector{Func}; csvfile::String=""
   end
   return output_vect ?  (df,P) :  df
 end
+
+function pheno_network_matrix( p::Parameters, funcs::Vector{Func} )
+  nphenos = 2^(2^p.numinputs)
+  phnet_matrix = zeros( Int64, nphenos, nphenos )
+  (pdf, circ_to_phenotype) = pheno_counts_ch( p, funcs, output_vect=true )
+  for circint = 0:length(circ_to_phenotype)-1
+    circ = int_to_chromosome( circint, p, funcs )
+    from_ph = output_values( circ )[1]
+    mut_phenos = map(x->x[1], mutate_all( circ, funcs ) )
+    for to_ph in mut_phenos
+      phnet_matrix[ from_ph+MyInt(1), to_ph+MyInt(1) ] += 1
+    end
+  end
+  phnet_matrix
+end  
 
 # Never called
 function random_walk_repeats( ch::Chromosome, steps::Int64, maxsteps::Int64, funcs::Vector{Func})

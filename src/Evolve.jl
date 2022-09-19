@@ -568,8 +568,8 @@ function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
   df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :numlevelsback=>Int64[], :fail_fract=>Float64[], 
       :mean_steps=>Float64[], :median_steps=>Float64[], :std_steps=>Float64[], :mean_nactive=>Float64[], :first_fail=>Int64[], :subseqent_fail=>Int64[] )
   #result_list = filter(x->x[1]!=nothing, Folds.map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
-  #result_list = filter(x->x[1]!=nothing, pmap( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
-  result_list = filter(x->x[1]!=nothing, map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
+  result_list = filter(x->x[1]!=nothing, pmap( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
+  #result_list = filter(x->x[1]!=nothing, map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
   if length(result_list) == 0
     println("no results")
     return nothing
@@ -587,7 +587,7 @@ function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
   df_row = [ p.numinputs, p.numinteriors, p.numlevelsback, fail_fract, mean_steps, median_steps, std_steps, mean_numactive, first_fail, subsequent_fail ]
   push!(df,df_row)
   if length(csvfile) > 0
-    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
@@ -1105,7 +1105,7 @@ function geno_list_properties( gl::GoalList, p::Parameters, num_circuits::Intege
   end
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
-      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))

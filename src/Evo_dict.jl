@@ -200,6 +200,7 @@ end
 # Convert matrix to a dataframe with a goal column and with column names taken from gli.
 function matrix_to_dataframe( pheno_matrix::Array{Int64,2}, gli::Vector{MyInt}; hex::Bool=true)
   (rows,columns) = size(pheno_matrix)
+  println("matrix_to_dataframe: rows: ",rows,"  length(gli): ",length(gli))
   @assert rows==length(gli)
   df = DataFrame()
   if hex

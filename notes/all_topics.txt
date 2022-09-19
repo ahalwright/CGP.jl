@@ -231,6 +231,21 @@ These files now have suffix  _21.txt
 1_1:  Wrote rand_evo_walk() and rand_evo_walk_mutate_all() in Fnc.jl.  Renamed fnc.jl to Fnc.jl
 1_5:  Worked on Fnc.jl.  How to integrate random_walk() and random_walk_mutate_all() into the statistics about NCs.
 1_8:  Add the average of rand_evo_walk() runs to the output of component_properties() and find_neutral_components() in Fnc.jl.
+2_11: Function num_active_lc() in num_active_lc.jl works for varying numinstructions==numinteriors and numregisters==numlevelsback!!
+2_12: Assessing methods of estimating NC size.  Code is in Fnc.jl.
+2_18: Goal:  replicate Labar & Adami 2016.
+2_22: Hypotheses to test for LaBar/Adami (2016) simulation:
+2_24: Complexity is information.  History of evolution of complexity.
+2_26: Discussion of Adami complexity
+3_11: Message to Anna Prentiss
+3_12: Abandoned Labar Adami.  Plotting cumm_unique_phenotypes
+3_13: Complexity/information ideas:  Mutual information between goal and output of evolving circuit
+3_21: Idea for relating Adami complexity to digital circuits.
+3_23: Ideas on mutual information and populations
+3_25: Ideas:  Entropy decreases and complexity increases with learning as well as with evolution.
+        Multiple evolving populations should learn different information about the same environment.
+3_26: Found papers on information theory and evolution.  cce/Information_theory_complexity3_27_22.docx
+3_30: Problems with mutual information between a genotype space and a phenotype space,
 4_4:  Evolution of Adami complexity
 4_20: 5 input run_geno_complexity() results
 4_22: 5 input plots
@@ -284,7 +299,7 @@ These files now have suffix  _21.txt
       Sometimes for c1, c2, tcmpx is substantially greater than tkcmplx, but not always.
 8_2:  Finished editing GPTP paper.  Problems with run_pheno_evolve() in Evolve.jl
 8_4:  Fix a bug in neutral_evolution().  Problem was in the use of deepcopy().
-8_5:  Running tests of run_pheno_evolve() in Evolve.jl after bug fix. Includeing 5 inputs.  Introduction to paper by paragraph.
+8_5:  Running tests of run_pheno_evolve() in Evolve.jl after bug fix. Including 5 inputs.  Introduction to paper by paragraph.
 8_7:  Redo the complexity density plot copied from diary/diary12_18.txt
 8_8:  Topics for further research.  
 8_9:  Trying Folds.  Checking accuracy of K complexity computations.
@@ -296,7 +311,7 @@ These files now have suffix  _21.txt
 8_26: CGP and LGP rare common by sampling
 8_27: Multiset evolvability.
 8_28: Multiset and temporal evolvability.
-8_29: Ideas
+8_29: Ideas:  Nearly neutral, temporal evolvability.
 8_30: Running evolvable_pheno_df() from evolvable_evolability.jl using circ_int_lists, i. e., using sampling instead of evolution.  
 8_31: Computing redundancies and K complexities.    Examples of submatrix_to_dataframe(): Outdated.
 9_1:  Draft Evolvabilty topics: 
@@ -304,6 +319,7 @@ These files now have suffix  _21.txt
 9_3:  Testing the hypothesis that mutation from common to rare is unusual (sampling).  
 9_4:   Assignment for Cooper
 
+9_12:  Log redundancy vs rank and log rank
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

@@ -16,7 +16,7 @@ df[0x6a,:num_gates] #  3
 df[0x97,:num_gates] #  2
 
 
-Outdated:  might not all work.
+Runs:  based on evolution.   numcircuits = 2000
 
 udf = read_dataframe("../data/8_31_22/sampling_evolvability8_31_22B.csv")
 E = pheno_vects_to_evolvable_matrix( udf.pheno_vects )
@@ -24,11 +24,11 @@ rare =  [[0x0049], [0x0061], [0x0069], [0x006d], [0x0079], [0x0086], [0x0092], [
 common = [[0x0000], [0x0003], [0x0005], [0x0011], [0x0022], [0x0033], [0x003f], [0x0044], [0x0055], [0x005f], [0x0077], [0x0088], [0x00a0], [0x00aa], [0x00bb], [0x00c0], [0x00cc], [0x00dd], [0x00ee], [0x00fa], [0x00fc], [0x00ff]];
 rare_str = map(x->@sprintf("0x%04x",x[1]),rare)
 common_str = map(x->@sprintf("0x%04x",x[1]),common)
-crdf = submatrix_to_dataframe( p, funcs, E, udf, source="common", dest="rare" )
+crdf = submatrix_to_dataframe( p, funcs, E, udf, common_str, rare_str )
 write_dataframe(crdf,"../data/8_31_22/common_to_rare_CGP_smplU.csv")
-rcdf = submatrix_to_dataframe( p, funcs, E, udf, source="rare", dest="common" )
+rcdf = submatrix_to_dataframe( p, funcs, E, udf, rare_str, common_str )
 write_dataframe(rcdf,"../data/8_31_22/rare_to_common_CGP_smplU.csv")
-rrdf = submatrix_to_dataframe( p, funcs, E, udf, source="rare", dest="rare" )
+rrdf = submatrix_to_dataframe( p, funcs, E, udf, rare_str, rare_str )
 write_dataframe(rrdf,"../data/8_31_22/rare_to_rare_CGP_smplU.csv")
-@time include("../data/7_11_22/run_k_complexityF.jl") 
+#@time include("../data/7_11_22/run_k_complexityF.jl") 
 
