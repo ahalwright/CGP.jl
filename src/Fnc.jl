@@ -424,7 +424,7 @@ function pheno_counts_lc( p::Parameters, funcs::Vector{Func}; csvfile::String=""
 end
 
 # If normalize, divide each row of the matrix by the redundancy of the corresponding phenotype
-function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize::Bool=false )
+function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize::Bool=false, csvfile::String="" )
   nphenos = 2^(2^p.numinputs)
   phnet_matrix = zeros( Int64, nphenos, nphenos )
   (pdf, circ_to_phenotype) = pheno_counts_ch( p, funcs, output_vect=true )
@@ -446,13 +446,15 @@ function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize:
   else
     phdf = matrix_to_dataframe( phnet_matrix, goallist, hex=true, redund_column=pdf.counts )
   end
-  hostname = readchomp(`hostname`)
-  open( csvfile, "w" ) do f
-    println(f,"# date and time: ",Dates.now())
-    println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
-    print_parameters(f,p,comment=true)
-    println(f,"# funcs: ", Main.CGP.default_funcs(p))
-    CSV.write( f, phdf, append=true, writeheader=true )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      CSV.write( f, phdf, append=true, writeheader=true )
+    end
   end
   phdf
 end
