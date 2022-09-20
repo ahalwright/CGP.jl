@@ -446,6 +446,7 @@ function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize:
   else
     phdf = matrix_to_dataframe( phnet_matrix, goallist, hex=true, redund_column=pdf.counts )
   end
+  hostname = readchomp(`hostname`)
   open( csvfile, "w" ) do f
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
