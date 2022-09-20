@@ -22,7 +22,9 @@ Not parallelized---harder than first look.
 
 data/run_phnet_matrixB.jl computes exact pheno network but takes a long time.
 uses Parameters(3,1,4,3), length(funcs)=4.  Time:  1297 seconds
-Parameters(3,1,5,3) is infeasible without parallelization
+data/run_phnet_matrixB.jl uses Parameters(3,1,4,4), length(funcs)=4.  Time: 8679 seconds 9.4e6 circuits
+
+Parameters(3,1,5,3) 6.0466176e7 circuits.  Run on fluda starting 9/19/22.
 
 Potential results:  
   Simple example of evolvability definition.
@@ -33,5 +35,25 @@ Testing hypothesis that higher K complexity means more iterations of neutral_evo
 
 Uses run_geno_complexity() which is in Evolvability.jl
 
-A run:
+A run:  4x1 16 gates, 8 lb. length(funcs)==4
 @time include("../data/9_18_22/run_geno_complexityC.jl")   # 1852 seconds # 3 slow to finish goals
+@time include("../data/9_18_22/run_geno_complexityD.jl")   # 200 goals, 100 iter_maxreps # 4390 seconds 
+
+julia> spearman_cor(df,:complexity,:Kcomplexity)
+(0.6473202927118537, 1.948240417483736e-25)
+julia> spearman_cor(df,:avg_steps,:complexity)
+(0.8102077551938799, 4.045618886082068e-48)
+julia> spearman_cor(df,:avg_steps,:Kcomplexity)
+(0.6066334099233687, 8.633001800313796e-22)
+julia> spearman_cor(df,:log_avg_steps,:Kcomplexity)
+(0.6066334099233687, 8.633001800313796e-22)
+julia> spearman_cor(df,:nactive,:Kcomplexity)
+(0.641069495294823, 7.685318765824087e-25)
+julia> spearman_cor(df,:nactive,:complexity)
+(0.9484678287126581, 4.4684913030646607e-101)
+julia> spearman_cor(df,:evo_count,:complexity)
+(0.9090020655701382, 1.7256957934805382e-77)
+julia> spearman_cor(df,:evo_count,:Kcomplexity)
+(0.6430949719462836, 4.943619870644044e-25)
+
+Correlations of steps and Tcomplexity is higher that steps and Kcomplexity.

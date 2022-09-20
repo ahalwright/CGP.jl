@@ -198,7 +198,8 @@ function print_matrix( matrix::Array{Int64,2} )
 end
 
 # Convert matrix to a dataframe with a goal column and with column names taken from gli.
-function matrix_to_dataframe( pheno_matrix::Array{Int64,2}, gli::Vector{MyInt}; hex::Bool=true)
+# if hex==true, then row and column labels are hex, otherwise decimal
+function matrix_to_dataframe( pheno_matrix::Union{Array{Int64,2},Array{Float64,2}}, gli::Vector{MyInt}; hex::Bool=true, redund_column::Vector{Int64}=Int64[] )
   (rows,columns) = size(pheno_matrix)
   println("matrix_to_dataframe: rows: ",rows,"  length(gli): ",length(gli))
   @assert rows==length(gli)
@@ -209,6 +210,9 @@ function matrix_to_dataframe( pheno_matrix::Array{Int64,2}, gli::Vector{MyInt}; 
     rnames = map(x->@sprintf("%d",x), gli )
   end
   df.goal = rnames
+  if length(redund_column) == size(df)[1]
+    insertcols!(df,size(df)[2]+1,:redund=>redund_column)
+  end
   for c = 1:columns
     insertcols!(df,size(df)[2]+1,Symbol(rnames[c])=>pheno_matrix[:,c])
   end

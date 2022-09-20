@@ -1,0 +1,22 @@
+surt2
+Finished running data/8_9_22/run_k_complexity4x1N.jl to compute K complexity of 4x1 goals of 5 func goals for phenotypes 0x4000 to 0x7fff.
+The CSV file reported using 4 gates and clearly that is what was run.
+Comparing k_complexity8_9_22G.csv with k_complexity8_9_22N.csv
+diff = gdf.num_gates - ndf.num_gates
+findall(x->x!=0,diff)
+2003-element Vector{Int64}:
+findall(x->abs(x)>1,diff)
+9-element Vector{Int64}:
+
+Reset default_funcs() in Func.jl to 5 funcs.
+Currently running data/8_9_22/run_k_complexity4x1M.jl for goals 0x0000 to 0x3fff.
+
+
+Counts of some perhaps enumerable parameter settings:
+3x1 6 gates, 3 lb
+4 funcs:  
+julia> count_circuits_ch(pp,nfuncs=4)
+2.176782336e9
+5 funcs:  
+julia> count_circuits_ch(pp,nfuncs=5)
+8.303765625e9

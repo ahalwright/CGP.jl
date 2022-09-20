@@ -688,10 +688,10 @@ function kolmogorov_complexity_dict( p::Parameters, funcs::Vector{Func}=default_
       #k_csvfile = "../data/counts/k_complexity_all4x1phenos.csv"
       k_csvfile = "../data/counts/k_complexity8_9_22FGGF.csv"
     else
-      error("no csv file")
+      return "no csv file"
     end
   else
-    error("no csv file")
+    return "no csv file"
   end
   println("k_csvfile: ",k_csvfile)
   df = read_dataframe( k_csvfile )

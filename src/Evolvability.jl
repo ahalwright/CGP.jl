@@ -827,7 +827,9 @@ function geno_complexity( goal::Goal, iter_maxreps::Int64, p::Parameters,  maxst
     complexity = use_lincircuit ? lincomplexity( c, funcs ) : complexity5(c)
     push!( complexity_list, complexity )
     #push!( degeneracy_list, degeneracy( c ))
-    push!(K_complexity_list, kdict[c_output[1]])
+    if kdict != "no csv file"
+      push!(K_complexity_list, kdict[c_output[1]])
+    end
     (sumsteps,sumtries) = recover_phenotype( c, maxsteps_recover, maxtrials_recover, maxtries_recover )
     push!( sumsteps_list, sumsteps )
     push!( sumtries_list, sumtries )
