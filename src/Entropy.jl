@@ -277,7 +277,7 @@ end
 # entropy(get_probs( v, numinputs))  computes the entropy of a vector v
 #   where each v[i] is interpeted as a bit string of length 2^numinputs
 function entropy( p::Vector{Float64}; base::Float64=2.0 )
-  println("bit prob entropy")
+  #println("bit prob entropy")
   entf(x) = x > 0.0 ? -x*log(base,x) : 0.0
   reduce(+,map(entf,p))
 end

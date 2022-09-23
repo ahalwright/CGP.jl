@@ -302,7 +302,7 @@ These files now have suffix  _21.txt
 8_5:  Running tests of run_pheno_evolve() in Evolve.jl after bug fix. Including 5 inputs.  Introduction to paper by paragraph.
 8_7:  Redo the complexity density plot copied from diary/diary12_18.txt
 8_8:  Topics for further research.  
-8_9:  Trying Folds.  Checking accuracy of K complexity computations.
+8_9:  Trying Folds.  Checking accuracy of K complexity computations.  Creating the DataFrame for ones-complement and combining.
 8_12: Statistics for one-step mutation between K complexity levels.  RebasedVector.
 8_13: Two fluda runs of K complexity for 5 input phenotypes.  Used k_complexity_mutate().
 8_15: Redundancy density plots.  K complexity vs log redund.  Setup for heat density plot.
@@ -320,6 +320,7 @@ These files now have suffix  _21.txt
 9_4:   Assignment for Cooper
 
 9_12:  Log redundancy vs rank and log rank
+9_23: heat map density plot
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

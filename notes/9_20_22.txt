@@ -1,0 +1,66 @@
+# Properties of entropy evolvability in the cases where we know the exact phenotype map
+# Part 1:
+3x1 4gts 4 lb
+phdf = read_dataframe("../data/9_18_22/phnet_matrix9_18_22C.csv")
+phn = df_to_matrix( phdf, 2 )  # New function in Evo_dict.jl.  2 is the start column.
+# disparity is a new function in Fnc.jl based on the definition given in Hu (2020)
+rdf = DataFrame( 
+        :goal=>map(x->@sprintf("0x%04x",x),collect(0x0000:0x00ff)), 
+        :disp=>map( i->disparity(phn,i), 1:size(phn)[1] ), 
+        :ent=>map(i->-StatsBase.entropy(phn[i,:],2.0), 1:size(phn)[1]))
+bv=BitVector(map(x->!isnan(x),rdf.disp))
+spearman_cor(rdf[bv,:],:disp,:ent) #  (0.3264375568443436, 1.342738392921513e-6)  # No relationship
+
+# Trying out different definitions of evolvability for the 3x1 4gts 4lb case.
+# Objective:  Run geno_complexity for this case with only the phenotypes that we know exist from the phnet_matrix.
+# Contnue above construction of rdf and bv.
+ndf = rdf
+write_dataframe( ndf, "../data/9_18_22/ndf.csv" )
+# on a different session with phdf and phn defined
+
+ndf = read_dataframe("../data/9_18_22/ndf.csv")
+goallist = map(x->[eval(Meta.parse(x))],ndf.goal)
+# These are included in "../data/9_18_22/run_geno_complexityF.jl"
+@time include("../data/9_18_22/run_geno_complexityF.jl")  # 460 seconds
+# Produces dataframe df.
+insertcols!(df,8,:disparity=>ndf.disp)
+insertcols!(df,10,:entropy=>ndf.ent)
+julia> spearman_cor(df,:entropy,:evo_count)
+(0.7669284775356674, 6.4469253680796775e-40)
+julia> spearman_cor(df,:entropy,:nactive)
+(-0.9139355825679824, 5.425928970671098e-79)
+julia> spearman_cor(df,:entropy,:log_avg_steps)
+(-0.9688932248766177, 3.993652637379371e-121)   
+julia> cor(df.entropy,df.log_avg_steps)
+-0.972190133968005
+julia> write_dataframe_with_comments(df,"../data/9_18_22/geno_complexity9_18_22F.csv", "../data/9_18_22/geno_complexity9_18_22Fdist_ent.csv" )
+
+julia> scatter( df.entropy, df.log_avg_steps, smooth=true, xlabel="entropy",ylabel="log_avg_steps",title="log average evolution steps vs. entropy" )
+julia> scatter!(legend=:none)
+julia> savefig("../data/9_18_22/log_avg_steps_vs_entropy3x1_4gts_4lb.png")
+julia> scatter( df.entropy, df.evo_count, smooth=true, xlabel="entropy",ylabel="evo_count",title="evo_count vs. entropy", legend=:none )
+julia> savefig("../data/9_18_22/evo_count_vs_entropy3x1_4gts_4lb.png")
+julia> scatter( df.entropy, df.nactive, smooth=true, xlabel="entropy",ylabel="nactive",title="nactive vs. entropy", legend=:none )
+julia> savefig("../data/9_18_22/nactive_vs_entropy3x1_4gts_4lb.png")
+
+Part 2: 
+3x1 5gts 3lb
+phdf = read_dataframe("../data/9_18_22/phnet_matrix9_18_22D.csv")
+phn = df_to_matrix( phdf, 3, denormalize=true )  # New function in Evo_dict.jl.  3 is the start column.
+goallist = map(x->[MyInt(eval(Meta.parse(x)))],phdf[phdf.redund.!=0,:goal])   # Included in data/9_18_22/run_geno_complexityG.jl
+@time include("../data/9_18_22/run_geno_complexityG.jl")    # 442 seconds
+rdf = DataFrame(
+        :goal=>map(x->@sprintf("0x%04x",x),collect(0x0000:0x00ff)),
+        :disp=>map( i->disparity(phn,i), 1:size(phn)[1] ),
+        :ent=>map(i->-StatsBase.entropy(phn[i,:],2.0), 1:size(phn)[1]))
+bv=BitVector(map(x->!isnan(x),rdf.disp));
+insertcols!(df,8,:disparity=>rdf[bv,:disp]);
+insertcols!(df,10,:entropy=>rdf[bv,:ent]);  # Note that entropy for goals 0x0000 and 0x00ff is very negativejulia> spearman_cor(df,:entropy,:evo_count)
+julia> spearman_cor(df,:entropy,:evo_count)
+(0.5351698444401073, 5.508087788981956e-14)
+julia> spearman_cor(df,:entropy,:nactive)
+(-0.939722571359254, 1.2212831716374025e-78)
+julia> spearman_cor(df,:entropy,:log_avg_steps)
+(-0.9683002040868162, 5.114015748107521e-101)
+julia> cor(df.entropy,df.log_avg_steps)
+-0.5552786160108284

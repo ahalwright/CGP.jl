@@ -300,12 +300,23 @@ function total_evolvability( pdf::DataFrame )
   total_evo
 end
 
-function df_to_matrix( df::DataFrame, startcolumn::Int64; transpose::Bool=false )  
+function df_to_matrix( df::DataFrame, startcolumn::Int64; denormalize::Bool=false )  
   matrix = zeros(Float64,size(df)[1],size(df)[2]-startcolumn+1)
   for i = 1:size(df)[1]
     for j = startcolumn:size(df)[2]
       #println("i,j: ",(i,j))
       matrix[i,j-startcolumn+1] = df[i,j]
+    end
+  end
+  if denormalize
+    if !("redund" in names(phdf))
+      println("dataframe must include a column :redund in function df_to_matrix")
+    else
+      for i = 1:size(matrix)[1]
+        if !isnan(phdf.redund[i])
+          matrix[i,:] *= phdf.redund[i]
+        end
+      end
     end
   end
   matrix

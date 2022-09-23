@@ -218,6 +218,17 @@ function matrix_to_dataframe( pheno_matrix::Union{Array{Int64,2},Array{Float64,2
   end
   df
 end
+
+function df_to_matrix( df::DataFrame, start_column::Int64 )
+  mat = zeros( Float64, size(df)[1], size(df)[1] )
+  for df_col = start_column:size(df)[2]
+    mat_col = df_col - start_column + 1
+    for row = 1:size(df)[1]
+      mat[row,mat_col] = df[row,df_col]
+    end
+  end
+  mat
+end
   
 function lambda_evolution( c::Chromosome, g::Goal, maxsteps::Integer, mutrate::Float64 )
   p = c.params

@@ -540,7 +540,12 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
     println("no goal found for goal ",g," for num_gates: ",num_gates)
     num_gates += 1  # now set to the minimum number of gates for successful circuit
   end  
-  if p_current.numinteriors <= 18  # Too time consuming for a large number of gates
+  if p_current.numinteriors <= 20  # Too time consuming for a large number of gates
+    try
+      cmplx = complexity5(found_c))
+    catch x
+      cmplx = 0.0
+    end
     push!(complexities_list, complexity5(found_c))
   end
   #push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
@@ -684,11 +689,11 @@ function kolmogorov_complexity_dict( p::Parameters, funcs::Vector{Func}=default_
       k_csvfile = "../data/counts/k_complexity_3x1_5funcs7_11_22F.csv"
     end
   elseif p.numinputs == 4
-    if length(funcs) == 4
+    if length(funcs) == 5
       #k_csvfile = "../data/counts/k_complexity_all4x1phenos.csv"
       k_csvfile = "../data/counts/k_complexity8_9_22FGGF.csv"
     else
-      return "no csv file"
+      k_csvfile = "../data/counts/k_complexity8_9_22FGGF.csv"   # Incorrect 9/23/22 waiting for computation with 4 gate types
     end
   else
     return "no csv file"

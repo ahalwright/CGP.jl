@@ -28,6 +28,8 @@ Pkg.add("Folds")
 Pkg.add("PyCall")
 Pkg.add("PyPlot")
 Pkg.add("SciPy")
+Pkg.add("StatsPlots")
+Pkg.add("PlotlyJS")
 #Pkg.add("Revise")
 using Distributed
 using DataFrames

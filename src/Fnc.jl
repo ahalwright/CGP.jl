@@ -474,6 +474,14 @@ function pheno_network_matrix( p::Parameters, funcs::Vector{Func} )
   phnet_matrix
 end  
 
+# See Hu (2020) for definition of disparity
+# i is the row number
+# Example:  disparity( [1 3 5; 4 9 3], 2 ) # 0.414062
+function disparity( phn::Union{Matrix{Int64},Matrix{Float64}}, i::Int64 )
+  strength = sum( phn[i,j] for j = 1:size(phn)[2] )
+  sum( (phn[i,j]/strength)^2 for j = 1:size(phn)[2] )
+end
+
 # Never called
 function random_walk_repeats( ch::Chromosome, steps::Int64, maxsteps::Int64, funcs::Vector{Func})
   @assert ch.params.numoutputs == 1
@@ -482,8 +490,6 @@ function random_walk_repeats( ch::Chromosome, steps::Int64, maxsteps::Int64, fun
   println("goal: ",@sprintf("0x%04x",goal))
   mlist = mutate_all( ch, funcs )
   if length(mlist) == 0
-    println("chromosome ch in random_walk_repeats() has robustness 0")
-    return counts
   end
   total_steps = 0
   for i = 1:steps

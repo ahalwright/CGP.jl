@@ -25,7 +25,9 @@ savefig("../data/8_15_22/log_redundancy_density_3x1_7gts_4lb_vs_8lb.png")
 
 # Plot log redund density for 10 gates 4 levelsback
 cdf = read_dataframe("../data/8_15_22/count_outputs_ch_4funcs_3inputs_10gates_5lb_T.csv") 
-p1=density(map(lg10,cdf.ints10_5))
+using StatsPlots
+lg10(x) = x==0 ? 0.0 : log10(x)
+p1=StatsPlots.density(map(lg10,cdf.ints10_5))
 plot!(p1,xlabel="log redundancy",ylabel="density",title="Density of log redundancy for 10 gates 5lb 4funcs 3x1")
 plot!(p1,legend=:none)
 savefig("../data/8_15_22/log_redundancy_density_3x1_4funcs_10gts_5lb.png")
@@ -86,4 +88,3 @@ kcomp = map(x->k_dict[x],goals)
 lg10(x) = x==0 ? 0.0 : log10(x)
 log_redund = map(x->lg10(r_dict[x]),goals)  
 pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund=>log_redund )
-  

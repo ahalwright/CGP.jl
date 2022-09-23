@@ -1,0 +1,14 @@
+Evaluating the results of shape_space_counts() in ShapeSpace.jl as a method of evaluating other methods of computing evolvability,
+
+@time include("../data/9_22_22/run_shape_spaceB.jl")  # 104 seconds surt2 # 3x1 5gts 3lb enumerated circuit space
+julia> spearman_cor(df,:complexity,:results)
+(0.4042581941582844, 3.3043093898968356e-8)
+julia> spearman_cor(df,:evolvability,:results)
+(0.8431960885233695, 2.301292271306577e-46)
+
+@time include("../data/9_22_22/run_shape_spaceB.jl")  # 85 seconds surt2  # 3x1 4gts 4lb enumerated circuit space
+julia> spearman_cor(df,:complexity,:results)
+(0.471660607515853, 1.1584185921889886e-12)
+julia> spearman_cor(df,:evolvability,:results)
+(0.8288405194451977, 1.2626681208205553e-51)
+

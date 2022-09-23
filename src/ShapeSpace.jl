@@ -63,7 +63,7 @@ function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mut
     push!(df,df_row)
   end
   if length(csvfile) > 0
-    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
@@ -162,15 +162,15 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   complexity_list = map( complexity5, circuits_list )
   evolvability_list = map( c->genotype_evolvability(c,funcs), circuits_list )
   current_pheno(ci,p,funcs) = output_values( use_lincircuit ? circuit_int_to_circuit(ci,p,funcs) : int_to_chromosome(ci,p,funcs) )
-  result_list = map( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
-  #result_list = pmap( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
+  #result_list = map( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
+  result_list = pmap( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
   df = DataFrame()
   df.phenos = pheno_strings_list
   df.complexity = complexity_list
   df.evolvability = evolvability_list
   df.results = result_list
   if length(csvfile) > 0
-    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )

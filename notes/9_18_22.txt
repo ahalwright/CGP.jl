@@ -3,6 +3,7 @@ And also a plots of convergence of sample results to true evolvability.
 
 Discovered that my multiset definition is essentially strength as defined in Hu (2020) normalized to
 the redundancy of the phenotype.  So the normalization is what is different.
+9/20/22:  Now thinking that disparity is a better measure than strength.
 
 pheno_counts_ch() in Fnc.jl will create the entire GP map as a vector mapping circuit_ints to phenotypes.
 Example:
@@ -24,7 +25,7 @@ data/run_phnet_matrixB.jl computes exact pheno network but takes a long time.
 uses Parameters(3,1,4,3), length(funcs)=4.  Time:  1297 seconds
 data/run_phnet_matrixB.jl uses Parameters(3,1,4,4), length(funcs)=4.  Time: 8679 seconds 9.4e6 circuits
 
-Parameters(3,1,5,3) 6.0466176e7 circuits.  Run on fluda starting 9/19/22.
+Parameters(3,1,5,3) 6.0466176e7 circuits.  Run on fluda starting 9/19/22.  Failed because matrix_to_dataframe not defined.
 
 Potential results:  
   Simple example of evolvability definition.
