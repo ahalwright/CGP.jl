@@ -542,7 +542,7 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
   end  
   if p_current.numinteriors <= 20  # Too time consuming for a large number of gates
     try
-      cmplx = complexity5(found_c))
+      cmplx = complexity5(found_c)
     catch x
       cmplx = 0.0
     end
