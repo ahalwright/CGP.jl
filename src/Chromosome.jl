@@ -868,20 +868,24 @@ function inputsList( numinputs::Int64, minval::Int64, maxval::Int64 )
   new_result
 end     
 
-# Produces a list of all circuits corresponding the paramters p 
+# Produces a list of all circuits corresponding the paramters p and funcs
 function enumerate_circuits_ch( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
   enumerate_circuits_ch( p, p.numinteriors, funcs, maxarity=maxarity )
 end
 
 # Recursive helper function
 function enumerate_circuits_ch( p::Parameters, numints::Int64, funcs::Vector{Func}; maxarity::Int64=2 )
+  println("ec: numints: ",numints)
   if numints == 0
     result = [Chromosome( p, map(i->InputNode(i),collect(1:p.numinputs)), InteriorNode[], [OutputNode(p.numinputs)], 0.0, 0.0 )]
     return result
   end
   prev_result = enumerate_circuits_ch( p, numints-1, funcs ) 
+  println("typeof(prev_result): ",typeof(prev_result),"  length(prev_result): ",length(prev_result))
+  #println("prev_result: ",map(x->print_circuit(x),prev_result)
   result = Chromosome[]
   for prev_ch in prev_result
+    #println("numints: ",numints,"  length(prev_result): ",length(prev_result))
     for inputs in inputsList( maxarity, max(1,p.numinputs+numints-p.numlevelsback), p.numinputs+numints-1 )
       for func in funcs
         new_interiors = vcat(prev_ch.interiors,[InteriorNode(func,inputs)])

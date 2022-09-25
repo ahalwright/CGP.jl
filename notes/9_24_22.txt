@@ -1,0 +1,58 @@
+Parallelizing pheno_network_matrix_df() in Fnc.jl.
+There are two parts:  
+*  pheno_counts_ch()   # This ran out of memory on fluda with 5 gates.
+*  matrix computation
+
+Attempts to parallelize pheno_counts_ch() took lots of time and failed.
+One bug was including a helper function in the main function which also used the variable result.
+Changes to result in the helper function changed result in the main function.
+However, the more time consuming part is constructing the matrix.
+
+I came up with a multi-threading solution to parallelize the matrix computation. 
+I created phnet_matrix_atomic as a matrix of Atomic{Int64}(0).  Testing showed that:
+* Incrementing this matrix is just as fast as incrementing a matrix of Int64s.
+* This technique eliminates race conditions.
+
+Cooper assignnment:
+
+You should send me code and a brief report on your previous assignment.
+
+Your assignment is to explore the effectiveness of epochal (neutral) evolution for 4, 5, 6 input phenotypes.
+
+Starting with 4 inputs, what parameter settings are more effective for evolving random phenotypes, and how do
+the parameter setting affect the effectiveness (success rate)?  The parameters in question are: (see src/Parameters.jl)
+
+1.  Number of gates.  p.numinteriors
+2.  Levelsback.  p.numlevelsback
+3.  Logic gates used:  either AND,OR,NAND,NOR, or these 4 plus XOR.  See Func.jl for the setting of default_funcs()
+4.  maxsteps.  (A parameter of neutral_evolution().)
+5.  maxtries.  (A parameter of neutral_evolution().)
+
+There is Cartesian Genetic Programming (CGP) research that shows that a large number of inactive gates is good
+for evolvability.  A gate is active in a circuit if it contributes to the output of the circuit.  The Kolmogorov
+complexity of a phenotype is the minimum number of gates needed for a circuit to map to the phenotype.  Such
+a circuit must have no active gates because an equivalent circuit to a circuit with inactive gates can be constructed
+by eliminating the inactive gates.  Increasing the number of inactive gates increases robustness which helps to
+enable neutral or epochal evolution.
+
+It is not completely clear how to measure the success of neutral evolution when it sometimes fails.  Average steps
+is very inconsistent since when there is a failure on a run of neutral_evolution(), average steps gets a big boost.
+
+Some quantities that would be good to relate to the effectiveness of epochal evolution are:
+1.  Number inactive gates.  Look at function number_active_gates() in Chromosome.jl.
+2.  Tononi complexity.  However, as the number of gates and levelsback increases, this gets increasingly expensive
+to compute.  My standard function for computing Tononi complexity is complexity5().
+3.  Kolmogorov complexity:  Only possible for 3 and 4 inputs.  
+
+You will need to parallelize your code by using pmap() (or maybe Folds.pmap(), but this didn't work as well for me).
+There are many examples of the used of pmap() in my code.  A typical paradigm is that I will write a function
+which I will just call fnc() for now, and then a will write another function run_fnc() which calls fnc() using pmap().
+The run_fnc() function will collect and process the results and then write the results to a CSV file.  
+
+A specific example is the functions run_pheno_evolve() and one of the versions of pheno_evolve() which are in Evolve.jl.
+
+You can test parallelization on xps which has 4 cores and maybe on your Windows machine.  For "production" runs you will
+need to use either surt2.cs.umt.edu (28 cores) or fluda.cs.umt.edu (12 cores or 24 pseudo cores).  We will need to have
+an in-person or zoom session on moving files between Linux machines.
+
+
