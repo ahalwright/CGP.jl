@@ -1,5 +1,7 @@
 Procedures for generating data for cce/Evolvability_and_shape_space_covering7_7_22.docx
 
+See notes/7_16_22.txt for procedures for generating plots in data/7_8_22
+
 cdf = read_dataframe("../data/6_25_22/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv")
 rare =  [[0x0049], [0x0061], [0x0069], [0x006d], [0x0079], [0x0086], [0x0092], [0x0096], [0x009e], [0x00b6]];
 # rare =  0x49, 0x61, 0x69, 0x6d, 0x79, 0x86, 0x92, 0x96, 0x9e, 0xb6;

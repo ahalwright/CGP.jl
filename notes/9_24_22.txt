@@ -12,7 +12,39 @@ I came up with a multi-threading solution to parallelize the matrix computation.
 I created phnet_matrix_atomic as a matrix of Atomic{Int64}(0).  Testing showed that:
 * Incrementing this matrix is just as fast as incrementing a matrix of Int64s.
 * This technique eliminates race conditions.
+* puts a separate lock on each matrix entry
 
+data/9_24_22/phnet_matrix9_24_22M.csv
+5gts 3lb 5funcs 48543 seconds = 13.5 hours on surt2
+Results for M:
+sum(phdf.redund)  # 184_528_126
+phdf[phdf.redund.<=1600,[:goal,:redund]]
+4×2 DataFrame
+ Row │ goal     redund
+     │ String7  Int64
+─────┼─────────────────
+   1 │ 0x29        832
+   2 │ 0x49       1024
+   3 │ 0xb6       1024
+   4 │ 0xd6        832
+
+data/9_24_22/phnet_matrix9_24_22N.csv
+5gts 3lb 4funcs 14084 seconds = 3.9 hours on surt2
+Results for N:
+findall(x->x==0,phdf.redund) # 90-element Vector{Int64}:
+sum(phdf.redund)  # 60_466_177
+
+Can get exact degree, strength, and evolution evolvabilities.
+
+=================================================
+Computing K complexities for all 4x1 phenos
+
+8_9_22/run_k_complexity4x1S.jl  ran but turned out to have length(funcs)==5
+8_9_22/run_k_complexity4x1T.jl  started crashed.
+8_9_22/run_k_complexity4x1M.jl  
+
+9/26/22:  Commented out computation of complexity
+=================================================
 Cooper assignnment:
 
 You should send me code and a brief report on your previous assignment.

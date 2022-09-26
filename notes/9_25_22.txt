@@ -1,0 +1,57 @@
+Types of evolvability:
+
+1.  Wagner (degree) evolvability theoretical
+2.  Wagner (degree) evolvability evolution 3x1 and 4x1
+3.  Wagner (degree) sampling (random walk) 
+4.  Wagner (degree) exact hopefully 5gts3lb
+5.  Strength theoretical
+6.  Strength evolvability evolution
+7.  Strength exact
+8.  Shape space  
+9.  Disparity ???
+10.  Eigenvalue centrality
+11.  Page rank centrality
+
+For 3x1 7gts4lb and 8gts4lb
+For 4x1 10gts5lb GECCO phenotypes
+
+"Both node degree and disparity
+are found incapable of predicting such an ability given that they only provide the
+estimation of the direct neighborhood of a node, and fail to give long-term, multihop predictions [23]. Centralities, on the other hand, are computed based on the
+importance of a node that contributes to the global connectivity of the network, and
+provide a better long-term estimation of reaching other phenotypes."
+Hu Genetic Programming and Evolvable Machines (2020) 21:381–382
+
+@time include("../data/9_25_22/run_shape_spaceA.jl")
+@time include("../data/9_25_22/run_shape_spaceB.jl")  # 554 seconds
+# complexity and evolvability columns are genotype values since they are based on one circuit
+
+==================================================================
+Shape Space results:
+data/9_25_22/shape_space_counts9_25_22C.csv   # 4x1 10gts5lb 5funcs.  Includes genotype complexity and evolvability for GECCO phenotypes
+gcdf = read_dataframe("../data/9_25_22/geno_complexity10_27FMNccons.csv")  # which was copied from data/2020/10_27/
+ssdf = read_dataframe("../data/9_25_22/shape_space_counts9_25_22C.csv")
+insertcols!(gcdf,:ss_evol=>ssdf.results)
+kdict = kolmogorov_complexity_dict(p,funcs)   # k_csvfile: ../data/counts/k_complexity8_9_22FGGF.csv
+Kcomp = map(i->kdict[eval(Meta.parse(gcdf.goal[i]))[1]],1:600)
+insertcols!(gcdf,:Kcomp=>Kcomp)
+select!(gcdf,DataFrames.Not(:estimate))
+select!(gcdf,DataFrames.Not(:ratio))
+write_dataframe_with_comments(gcdf,"../data/9_25_22/geno_complexity10_27FMNccons.csv","../data/9_25_22/geno_complexity10_27FMNssevol_Kcomp.csv")
+IOStream(<file ../data/9_25_22/geno_complexity10_27FMNssevol_Kcomp.csv>)
+
+julia> spearman_cor(gcdf,:ss_evol,:nactive) (0.7214037468047519, 8.512979831474101e-98)
+julia> spearman_cor(gcdf,:ss_evol,:complexity) (0.7185709920423136, 1.0754681420346864e-96)
+julia> spearman_cor(gcdf,:ss_evol,:robustness) (-0.7263747975618995, 9.196769050210438e-100)
+julia> spearman_cor(gcdf.ss_evol,map(lg10,gcdf.ints11_8)) (-0.7093074371966763, 3.47382747138703e-93)
+julia> spearman_cor(gcdf.ss_evol,gcdf.evo_count) (0.7304249764166357, 2.1333756220194165e-101)
+julia> spearman_cor(gcdf,:ss_evol,:Kcomp) # (0.6203299918337517, 2.1504259419134647e-65)
+
+julia> scatter(gcdf.ss_evol/100,gcdf.evo_count,xlabel="(shape-space evolvability)/100",ylabel="degree evolvability",smooth=true,legend=:none)
+julia> scatter!(title="Degree evolvability vs SS evolvability 4x1 10gts5lb 5funcs")
+savefig("../data/9_25_22/Degree_evolvability_vs_SS_evolvability_4x1_10gts5lb_5funcs.png")
+
+julia> scatter(gcdf.ss_evol/100,gcdf.Kcomp,xlabel="(shape-space evolvability)/100",ylabel="Kolmogorov complexity",smooth=true,legend=:none)
+julia> scatter!(title="K complexity vs SS evolvability 4x1 10gts5lb 5funcs")
+julia> savefig("../data/9_25_22/K_complexity_vs_SS_evolvability_4x1_10gts5lb_5funcs.png")
+

@@ -540,6 +540,8 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
     println("no goal found for goal ",g," for num_gates: ",num_gates)
     num_gates += 1  # now set to the minimum number of gates for successful circuit
   end  
+  cmplx = 0.0
+  #= Commented out on 9/26/22 to fix rare bug for 4x1 4 funcs
   if p_current.numinteriors <= 20  # Too time consuming for a large number of gates
     try
       cmplx = complexity5(found_c)
@@ -548,6 +550,7 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
     end
     push!(complexities_list, complexity5(found_c))
   end
+  =#
   #push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
   (rlist,elist) = mutate_all( found_c, funcs,robustness_only=true)
   push!(robust_list, rlist )

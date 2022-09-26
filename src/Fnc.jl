@@ -423,11 +423,12 @@ function pheno_counts_lc( p::Parameters, funcs::Vector{Func}; csvfile::String=""
   return output_vect ?  (df,P) :  df
 end
 
-# Not used in multi-threading version
-#= TODO:  delete
-function pheno_network_helper( start::Int64, finish::Int64, circ_to_phenotype::Vector{MyInt}, phnet_matrix::Matrix )
-  finish = min(finish,length(circ_to_phenotype)-1)
-  for circint = start:finish
+# If normalize, divide each row of the matrix by the redundancy of the corresponding phenotype
+function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize::Bool=false, csvfile::String="" )
+  nphenos = 2^(2^p.numinputs)
+  phnet_matrix = zeros( Int64, nphenos, nphenos )
+  (pdf, circ_to_phenotype) = pheno_counts_ch( p, funcs, output_vect=true )
+  for circint = 0:length(circ_to_phenotype)-1
     circ = int_to_chromosome( circint, p, funcs )
     from_ph = output_values( circ )[1]
     mut_phenos = map(x->x[1], mutate_all( circ, funcs ) )
@@ -435,33 +436,6 @@ function pheno_network_helper( start::Int64, finish::Int64, circ_to_phenotype::V
       phnet_matrix[ from_ph+MyInt(1), to_ph+MyInt(1) ] += 1
     end
   end
-  phnet_matrix
-end
-=#
-
-# Produces a dataframe corresponding to the phnet matrix for these parameters.
-# The phnet matrix is based on an enumeration of all of the genotype for these parameters and funcs.
-# Multithreading implementation
-# If normalize, divide each row of the matrix by the redundancy of the corresponding phenotype
-function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize::Bool=false, csvfile::String="" )
-  nphenos = 2^(2^p.numinputs)
-  goallist = collect(MyInt(0):MyInt(nphenos-1))
-  phnet_matrix_atomic = Array{Atomic{Int64},2}( undef, nphenos, nphenos )
-  for i = 1:nphenos for j=1:nphenos phnet_matrix_atomic[i,j]= Atomic{Int64}(0) end end
-  (pdf, circ_to_phenotype) = pheno_counts_ch( p, funcs, output_vect=true )  # 
-  println("pheno_counts_ch() finished")
-  Threads.@threads for circint = 0:length(circ_to_phenotype)-1
-    circ = int_to_chromosome( circint, p, funcs )
-    from_ph = output_values( circ )[1]
-    mut_phenos = map(x->x[1], mutate_all( circ, funcs ) )
-    for to_ph in mut_phenos
-      #phnet_matrix_atomic[ from_ph+MyInt(1), to_ph+MyInt(1) ] += 1
-      Threads.atomic_add!( phnet_matrix_atomic[ from_ph+MyInt(1), to_ph+MyInt(1) ], 1 )
-    end
-  end
-  #phnet_matrix_atomic
-  phnet_matrix = Array{Int64,2}( undef, nphenos, nphenos )
-  for i = MyInt(1):MyInt(nphenos) for j=MyInt(1):MyInt(nphenos) phnet_matrix[i,j]= phnet_matrix_atomic[i,j][] end end
   if normalize 
     phnet_matrix_float = map(x->Float64(x),phnet_matrix)
     for i = 1:size(phnet_matrix_float)[1]
@@ -478,6 +452,7 @@ function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize:
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       print_parameters(f,p,comment=true)
+      prihtln(f,"not multithreaded")
       println(f,"# funcs: ", Main.CGP.default_funcs(p))
       CSV.write( f, phdf, append=true, writeheader=true )
     end

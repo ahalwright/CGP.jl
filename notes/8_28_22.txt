@@ -16,7 +16,7 @@ savefig("../data/8_28_22/k_complexity_vs_entropy_evolvability3x1_8gts_4lb_5funcs
 
 
 edf = read_dataframe("../data/2020/10_27/geno_complexity10_27FMNccons.csv") 
-phlist = map(x->eval(Meta.parse(x)),edf.goal)   # 600 phenotypes used in GECCO paper
+phlist = map(x->eval(Meta.parse(x)),convert(Vector{String},edf.goal))   # 600 phenotypes used in GECCO paper
 
 Running run_multiset_evolvability() in p_evolve.jl in data/8_28_22.
 
