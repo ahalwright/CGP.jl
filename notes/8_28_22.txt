@@ -6,21 +6,18 @@ There is a definition of entropy_evolvability in this document.
 See pheno_net/entropy_evolvability8_28_22.tex and pheno_net/pheno_network_paper8_28_22.tex.
 
 df = read_dataframe("../data/8_28_22/entropy_evolvability8_28_22B.csv") 
-p0 = scatter(df.entropy,df.log_redundancy,labels="log redundancy vs entropy evolvability",smooth=true,xlabel="entropy evolvability",ylabel="log redundancy")
+p0 = scatter(df.entropy,df.log_redundancy,labels="redundancy vs entropy evolvability",smooth=true,xlabel="entropy evolvability",ylabel="log redundancy")
 plot!(p0,title="All 3x1 phenotypes with 8 gates 4 lb 5 funcs")
 savefig("../data/8_28_22/lg_redund_vs_entropy_evolvability3x1_8gts_4lb_5funcs.png")
 
-p0 = scatter(df.entropy,df.K_complexity,labels="log redundancy vs entropy evolvability",smooth=true,xlabel="entropy evolvability",ylabel="K complexity")
-plot!(p0,title="All 3x1 phenotypes with 8 gates 4 lb 5 funcs")
+p0 = scatter(df.entropy,df.K_complexity,labels="K complexity vs entropy evolvability",smooth=true,xlabel="entropy evolvability",ylabel="K complexity")
+plot!(p0,title="All 3x1 phenotypes with 8 gates 4 lb 5 funcs",legend=:topleft)
 savefig("../data/8_28_22/k_complexity_vs_entropy_evolvability3x1_8gts_4lb_5funcs.png")
-
 
 edf = read_dataframe("../data/2020/10_27/geno_complexity10_27FMNccons.csv") 
 phlist = map(x->eval(Meta.parse(x)),convert(Vector{String},edf.goal))   # 600 phenotypes used in GECCO paper
 
 Running run_multiset_evolvability() in p_evolve.jl in data/8_28_22.
-
-
 
 On fluda 4 inputs:  12 gates 6 lb 5 funcs
 8_28_22/entropy_evolvability8_28_22E.csv   # nreps = 200 identical config 

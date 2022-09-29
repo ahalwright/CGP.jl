@@ -1,0 +1,54 @@
+Implemented computation of degree, strength, entropy, and shape-space evolvability based on phnet adjacency matrix.
+
+Code in Fnc_mt.jl.
+
+phdf4 = read_dataframe("../data/9_24_22/phnet_matrix9_24_22N.csv")
+phdf5 = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv")
+phn4 = df_to_matrix( phdf4, 3, denormalize=false )  # New function in Evo_dict.jl.  3 is the start column.  Values are floats
+phn5 = df_to_matrix( phdf5, 3, denormalize=false )
+phmatrix = phn4;
+strength_list = strength_evolvability( phmatrix, include_self_edges=true )
+rdf4 = DataFrame(
+               :goal=>map(x->@sprintf("0x%04x",x),collect(0x0000:0x00ff)),
+               :disp=>map( i->disparity(phn4,i), 1:size(phn4)[1] ),
+               :ent=>map(i->-StatsBase.entropy(phn4[i,:],2.0), 1:size(phn4)[1]))a
+evd = entropy_evolvability( phn4, include_self_edges=true )
+insertcols!(phdf4,:evd=>evd)
+bv=BitVector(map(x->!isnan(x),rdf4.disp));
+scatter(rdf5.ent,df4.evo_count)
+pdf = phdf4[bv,[:redund,:evd]]
+scatter(pdf.evd,map(lg10,pdf.redund))
+
+scatter(pdf.evd,map(lg10,pdf.redund),xlabel="entropy evolvability",ylabel="log redundancy",title="log redund vs entropy evol 3x1 5gts3lb_4funcs exact",legend=:none)
+savefig("../data/9_28_22/redund_vs_entropy_evol_3x1_5gts3lb_4funcs_exact.png")
+
+pdf = phdf4[bv,[:redund,:evd,:Kcomp]]
+scatter(pdf.evd,pdf.Kcomp,xlabel="entropy evolvability",smooth=true,ylabel="K complexity",title="Kcomplexity vs entropy evol 3x1 5gts3lb_4funcs exact",legend=:none)
+spearman_cor(pdf,:evd,:Kcomp) # (0.8894956660622553, 5.760522378720343e-58)
+savefig("../data/9_28_22/Kcomplexity vs entropy evol 3x1 5gts3lb_4funcs exact.png")
+
+Shape-space evolvability from phmatrix.
+Example for phn5
+i = 12
+bv = BitVector(map(x->!iszero(x),phn5[i,:]))
+bv = map(i->BitVector(map(x->!iszero(x),phn5[i,:])),1:256) #  256-element Vector{BitVector}:
+map(x->MyInt(eval(Meta.parse(x))),phdf5[bv,:goal])
+146-element Vector{UInt16}:
+phset = Set(map(x->MyInt(eval(Meta.parse(x))),phdf5[bv[i],:goal]))   # Evolvability set of phenotypes starting from phenotype i.
+
+phn = phn5
+ph = 0x00d7
+nphenos = size(phn)[1]
+ph_range_list = collect(MyInt(0):MyInt(nphenos-1)
+i = searchsortedfirst(ph_range_list,ph)
+bv = map(i->BitVector(map(x->!iszero(x),phn[i,:])),1:nphenos) #  256-element Vector{BitVector}:
+
+Shape-space based on phenotype matrix.  Phenotype shape-space evolvability works.
+Note that data/7_11_21 includes approximate computations of pheno matrices.
+phdfM = read_dataframe("../data/7_11_21/evo_dict7_11_21M_phmatrix_hex.csv") # 3x1 7gts4lb length(funcs)=4
+phnM = df_to_matrix( phdfM, 2, denormalize=false )
+ss1 = map(ph->length(shape_space_evolvability( ph, phnM, 1 )),0x0000:0x00ff);
+mean(ss1) 103.68359375
+ss2 = map(ph->length(shape_space_evolvability( ph, phnM, 2 )),0x0000:0x00ff);
+mean(ss2) 256.0   # every phenotype has shape-space evolvability 2 with 2 mutations
+phdfN = read_dataframe("../data/7_11_21/evo_dict7_11_21N_phmatrix_hex.csv") # 3x1 7gts4lb length(funcs)=4

@@ -536,12 +536,8 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
       end
     end
   end
-  if num_gates >= 1 && !goal_found
-    println("no goal found for goal ",g," for num_gates: ",num_gates)
-    num_gates += 1  # now set to the minimum number of gates for successful circuit
-  end  
-  cmplx = 0.0
-  #= Commented out on 9/26/22 to fix rare bug for 4x1 4 funcs
+  # cmplx = 0.0
+  # Commented out on 9/26/22 to fix rare bug for 4x1 4 funcs, uncommented on 9/27/22
   if p_current.numinteriors <= 20  # Too time consuming for a large number of gates
     try
       cmplx = complexity5(found_c)
@@ -550,7 +546,6 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
     end
     push!(complexities_list, complexity5(found_c))
   end
-  =#
   #push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
   (rlist,elist) = mutate_all( found_c, funcs,robustness_only=true)
   push!(robust_list, rlist )
@@ -822,9 +817,13 @@ function run_k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, phlist
   df = DataFrame( :goal=>Goal[], :rebased_vect=>RebasedVector[] )
   circuit_ints_list = Vector{Int128}[]   # establish scope
   sampling = false
+  println("size(circuit_ints_df)[1]: ",size(circuit_ints_df)[1])
   if size(circuit_ints_df)[1] > 0
+    println("length(circuit_ints_df.goals): ",length(circuit_ints_df.goal))
     circuit_ints_df.goal = map(x->[eval(Meta.parse(x))],circuit_ints_df.goals)
+    println("length(circuit_ints_df.goal): ",length(circuit_ints_df.goal))
     circuit_ints_df.circuit_ints_list = pmap(x->eval(Meta.parse(x)),circuit_ints_df.circuits_list)
+    println("length(circuit_ints_df.circuits_list): ",length(circuit_ints_df.circuits_list))
     phlist = circuit_ints_df.goal
     circuit_ints_list = circuit_ints_df.circuit_ints_list
     sampling = true
@@ -832,12 +831,12 @@ function run_k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, phlist
   println("length(circuit_ints_list): ",length(circuit_ints_list))
   k_comp_rebased = RebasedVector[]
   #cilist = length(circuit_ints_list)>0 ? 
-  #result_list = pmap( i->k_complexity_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, k_dict, 
-  #    circuit_ints_list=length(circuit_ints_list)>0 ? circuit_ints_list[i] : Int128[],
-  #    use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
-  result_list = map( i->k_complexity_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, k_dict, 
+  result_list = pmap( i->k_complexity_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, k_dict, 
       circuit_ints_list=length(circuit_ints_list)>0 ? circuit_ints_list[i] : Int128[],
       use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
+  #result_list = map( i->k_complexity_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, k_dict, 
+  #    circuit_ints_list=length(circuit_ints_list)>0 ? circuit_ints_list[i] : Int128[],
+  #    use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
   for res in result_list
     push!(k_comp_rebased,RebasedVector(res[2],res[3]))
     push!(df,(res[1],RebasedVector(res[2],res[3])))
@@ -868,7 +867,7 @@ end
 # The alternate case is that circuit_ints_list supplies a list of circuit ints of circuits that map to ph.
 function k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, ph::Goal, numcircuits::Int64, max_tries::Int64, max_steps::Int64, k_dict::Dict{MyInt,Int64}; 
      circuit_ints_list::Vector{Int128}=Int128[], use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
-  default_funcs(p)  # Set global variale Ones on this process
+  default_funcs(p)  # Set global variable Ones on this process
   k_complexity_counts = zeros(Int64,12)  # 12 is an upper bound for possible k_complexities
   k_comp_ph = k_dict[ph[1]]
   if length(circuit_ints_list) == 0

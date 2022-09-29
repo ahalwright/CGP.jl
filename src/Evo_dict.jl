@@ -8,7 +8,7 @@ export run_evo_dict, print_matrix, lambda_evolution
 # maxsteps is the maximum number of steps for each evolution
 # mutrate is the mutation rate if lambda_evolution is used.  
 # mutrate<=0 means use neutral_evolution
-# As of 7/3/21 does not work for cartesian==false because mutata_all() is not definined in LinCircuit.jl, and
+# As of 7/3/21 does not work for cartesian==false because mutate_all() is not definined in LinCircuit.jl, and
 # it looks like the definition of circuit_int() in LinCircuit.jl overrides the definition in Chromosome.jl 
 #   (so I turned off the export in LinCircuit.jl).
 function run_evo_dict( p::Parameters, gl::GoalList, ncircuits::Int64, numtries::Int64, maxsteps::Int64, mutrate::Float64=0.0;
@@ -32,6 +32,7 @@ function run_evo_dict( p::Parameters, gl::GoalList, ncircuits::Int64, numtries::
   df.evo_count = Int64[]
   #println("size(df): ",size(df))
   results = pmap( g->evo_dict( p, g, ncircuits, numtries, maxsteps, mutrate, cartesian=cartesian ), gl )
+  #results = map( g->evo_dict( p, g, ncircuits, numtries, maxsteps, mutrate, cartesian=cartesian ), gl )
   for res in results
     result_list = res[2:end]  # All results from evo_dict() except goal. Last element is evdict
     #println("result_list: ",result_list)
@@ -73,7 +74,7 @@ function run_evo_dict( p::Parameters, gl::GoalList, ncircuits::Int64, numtries::
   phdf_hex = matrix_to_dataframe( pheno_matrix, gli, hex=true )
   phdf_dec = matrix_to_dataframe( pheno_matrix, gli, hex=false )
   if length(csvfile) > 0
-    hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+    hostname = readchomp(`hostname`)
     open( csvfile[1:end-4]*"_phmatrix_hex.csv", "w" ) do f
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
@@ -143,10 +144,10 @@ function evo_dict( p::Parameters, g::Goal, ncircuits::Int64, numtries::Int64, ma
     end
     total_steps += steps
     if steps < maxsteps
-      if haskey(circuit_dict,circuit_int(new_c))
-        circuit_dict[circuit_int(new_c)] += 1
+      if haskey(circuit_dict,chromosome_to_int(new_c,funcs))
+        circuit_dict[chromosome_to_int(new_c,funcs)] += 1
       else
-        circuit_dict[circuit_int(new_c)] = 1
+        circuit_dict[chromosome_to_int(new_c,funcs)] = 1
       end
       successes += 1
       ov = output_values( new_c )   
@@ -219,6 +220,7 @@ function matrix_to_dataframe( pheno_matrix::Union{Array{Int64,2},Array{Float64,2
   df
 end
 
+#=  evolvable_evolvability.jl version is better
 function df_to_matrix( df::DataFrame, start_column::Int64 )
   mat = zeros( Float64, size(df)[1], size(df)[1] )
   for df_col = start_column:size(df)[2]
@@ -229,6 +231,7 @@ function df_to_matrix( df::DataFrame, start_column::Int64 )
   end
   mat
 end
+=#
   
 function lambda_evolution( c::Chromosome, g::Goal, maxsteps::Integer, mutrate::Float64 )
   p = c.params

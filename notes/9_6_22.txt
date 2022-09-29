@@ -1,5 +1,6 @@
 Plotting density of K complexity of result of mutations
 
+# Evolution:
 df = read_dataframe("../data/9_5_22/k_complexity_mutate_all_8gates_4funcs_9_5_22E.csv")
 E = df_to_matrix(df,2)  # code for df_to_matrix in evolvable_evolvability
 nrows=6
@@ -44,6 +45,18 @@ p1 = plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],lab
 plot!(p1,xlabel = "increase in K complexity",ylabel="density of resulting fractional K complexities",title = "Change in fractional K complexity of mutations")
 #plot!(p1,legend=:topleft)
 savefig("../data/9_6_22/Kcomp_density_evolution4x1_5funcs8_13DFHfract.png")  # Equal weight on each starting phenotype.  
+
+# Sampling:  done on 9/26/22
+# Problem:  when there were no genotypes for a phenotype, the program evolved such genotypes
+@time include("../data/9_26_22/run_k_complexity_mutateB.jl")  # saves result dataframe as sdf
+df = deepcopy(sdf)
+E = df_to_matrix(df,2);  # used version in evolvable_evolvability.jl
+nrows=8
+ll = Array{String}(undef,1,nrows);
+for i = 1:nrows ll[1,i] = "starting K complexity = $(i)" end
+p1 = plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
+plot!(p1,xlabel = "increase in K complexity",ylabel="density of result K complexity",title = "Change in K complexity of mutations (sampling)")
+savefig("../data/9_26_22/Change_in_K_complexity_of_mutations_(sampling)_10gts5lb_5funcs.png")
 
 Bug in run_kolmogorov_complexity:
 

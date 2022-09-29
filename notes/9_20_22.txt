@@ -43,19 +43,32 @@ julia> savefig("../data/9_18_22/evo_count_vs_entropy3x1_4gts_4lb.png")
 julia> scatter( df.entropy, df.nactive, smooth=true, xlabel="entropy",ylabel="nactive",title="nactive vs. entropy", legend=:none )
 julia> savefig("../data/9_18_22/nactive_vs_entropy3x1_4gts_4lb.png")
 
-Part 2: 
+Part 2:  #See 9_26_22.txt for multithreaded computation of exact evolvabilities
 3x1 5gts 3lb
-phdf = read_dataframe("../data/9_18_22/phnet_matrix9_18_22D.csv")
-phn = df_to_matrix( phdf, 3, denormalize=true )  # New function in Evo_dict.jl.  3 is the start column.
-goallist = map(x->[MyInt(eval(Meta.parse(x)))],phdf[phdf.redund.!=0,:goal])   # Included in data/9_18_22/run_geno_complexityG.jl
-@time include("../data/9_18_22/run_geno_complexityG.jl")    # 442 seconds
-rdf = DataFrame(
+#phdf = read_dataframe("../data/9_18_22/phnet_matrix9_18_22D.csv")  # exact normalized phnet matrix
+phdf5 = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv")  # exact normalized phnet matrix for 5 funcs
+phdf4 = read_dataframe("../data/9_24_22/phnet_matrix9_24_22N.csv")  # exact non-normalized phnet matrix for 4 funcs
+phn5 = df_to_matrix( phdf5, 3, denormalize=true )  # New function in Evo_dict.jl.  3 is the start column.  Values are floats
+phn4 = df_to_matrix( phdf4, 3, denormalize=false )  # New function in Evo_dict.jl.  3 is the start column.  Values are floats
+goallist5 = map(x->[MyInt(eval(Meta.parse(x)))],phdf5[phdf5.redund.!=0,:goal])   # 256-element Vector{Vector{UInt16}}
+goallist4 = map(x->[MyInt(eval(Meta.parse(x)))],phdf4[phdf4.redund.!=0,:goal])   # 166-element Vector{Vector{UInt16}}
+# @time include("../data/9_18_22/run_geno_complexityG.jl")    # 442 seconds
+# df4 = read_dataframe("../data/9_18_22/geno_complexity9_18_22H.csv")
+# write_dataframe_with_comments(df4,"../data/9_18_22/geno_complexity9_18_22G.csv", "../data/9_18_22/geno_complexity9_18_22H.csv")
+#  ERROR: BoundsError: attempt to access empty String at index [1]
+rdf5 = DataFrame(
         :goal=>map(x->@sprintf("0x%04x",x),collect(0x0000:0x00ff)),
-        :disp=>map( i->disparity(phn,i), 1:size(phn)[1] ),
-        :ent=>map(i->-StatsBase.entropy(phn[i,:],2.0), 1:size(phn)[1]))
-bv=BitVector(map(x->!isnan(x),rdf.disp));
+        :disp=>map( i->disparity(phn5,i), 1:size(phn5)[1] ),
+        :ent=>map(i->-StatsBase.entropy(phn5[i,:],2.0), 1:size(phn5)[1]))
+rdf4 = DataFrame(
+        :goal=>map(x->@sprintf("0x%04x",x),collect(0x0000:0x00ff)),
+        :disp=>map( i->disparity(phn4,i), 1:size(phn4)[1] ),
+        :ent=>map(i->-StatsBase.entropy(phn4[i,:],2.0), 1:size(phn4)[1]))
+bv=BitVector(map(x->!isnan(x),rdf4.disp));
+nphdf=phdf[bv,:]   # eliminate all-zeros rows
+166×258 DataFrame
 insertcols!(df,8,:disparity=>rdf[bv,:disp]);
-insertcols!(df,10,:entropy=>rdf[bv,:ent]);  # Note that entropy for goals 0x0000 and 0x00ff is very negativejulia> spearman_cor(df,:entropy,:evo_count)
+insertcols!(df,10,:entropy=>rdf[bv,:ent]);  
 julia> spearman_cor(df,:entropy,:evo_count)
 (0.5351698444401073, 5.508087788981956e-14)
 julia> spearman_cor(df,:entropy,:nactive)
