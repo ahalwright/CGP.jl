@@ -41,13 +41,15 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
     for gem in goal_edge_matrix_list
       goal_edge_matrix .+= gem
     end
+    #println("goal edge matrix")
     #println(goal_edge_matrix)
-    df = robust_evolvability( goal_edge_matrix, gl )
+    #df = robust_evolvability( goal_edge_matrix, gl )
+    df = matrix_to_dataframe( goal_edge_matrix, gl, hex=true )
   end
   if length(csvfile) > 0
     println("csvfile: ",csvfile)
     open( csvfile, "w" ) do f
-      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
@@ -301,7 +303,7 @@ function robust_evolvability_to_df( goal_pair_list::Array{Pair{Tuple{UInt16,UInt
   df = robust_evolvability( pairs_to_dict( goal_pair_list ), p )
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
-      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))

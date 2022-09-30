@@ -125,7 +125,7 @@ function evo_dict( p::Parameters, g::Goal, ncircuits::Int64, numtries::Int64, ma
   # evdict counts the number of occurences of the phenotypes that are mutationally adjacent to g
   evdict = Dict{MyInt, Int64 }()
   # circuit_dict is indexed by the integer representation of the circuit.
-  circuit_dict = cartesian ? Dict{Int64,Int64}() : Dict{Vector{Int64},Int64}()
+  circuit_dict = cartesian ? Dict{UInt128,Int64}() : Dict{Vector{Int64},Int64}()
   robust_sum = 0
   total_steps = 0
   successes = 0
