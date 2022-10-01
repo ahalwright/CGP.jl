@@ -1,3 +1,4 @@
+Exact computation of phenotype adjacency matrix
 Parallelizing pheno_network_matrix_df() in Fnc.jl.
 There are two parts:  
 *  pheno_counts_ch()   # This ran out of memory on fluda with 5 gates.

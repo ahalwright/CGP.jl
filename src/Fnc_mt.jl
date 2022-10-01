@@ -526,7 +526,7 @@ function strength_evolvability( phmatrix::Matrix; include_self_edges::Bool=false
   nphenos = size(phmatrix)[1]
   @assert nphenos == size(phmatrix)[2]
   evolvability_list = zeros(Int64,nphenos)
-  for i = 1:nphenos
+  Threads.@threads for i = 1:nphenos
     sum = 0
     for j = 1:nphenos
       if i != j || include_self_edges
@@ -555,9 +555,11 @@ end
 
 function shape_space_evolvability( ph::MyInt, phn::Matrix, num_mutates::Int64 )
   phset = evo_phset( ph, phn )
+  phset_list = pmap( s->evo_phset( s, phn ), [s for s in phset] )
   for i = 2:num_mutates
-    for s in phset
-      union!( phset, evo_phset( s, phn ) )
+    for phs in phset_list
+      # union!( phset, evo_phset( s, phn ) )
+      union!( phset, phs )
     end
   end
   phset

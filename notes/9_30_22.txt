@@ -1,0 +1,78 @@
+phdfI = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22I.csv");
+phnI = df_to_matrix( phdf, 2, denormalize=false );
+evdI = entropy_evolvability( phn, include_self_edges=true );
+ss1 = map(ph->length(shape_space_evolvability( ph, phn, 1 )),0x0000:0x00ff);
+findall(x->iszero(x),ss1)  # 2-element Vector{Int64}: 106 151
+ss2 = map(ph->length(shape_space_evolvability( ph, phn, 2 )),0x0000:0x00ff);
+mean(ss2) # 252.015625
+findall(x->iszero(x),ss2)  # 2-element Vector{Int64}: 106 151
+findall(x->(x>0.0 && x < 254.0),ss2) # Int64[]
+
+@time include("../data/9_29_22/run_random_walksJ.jl")  9 seconds 2000 walks 2000 steps nprocesses 8
+phdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22J.csv")
+phn = df_to_matrix( phdf, 2, denormalize=false )
+evd = entropy_evolvability( phn, include_self_edges=true )
+ss1 = map(ph->length(shape_space_evolvability( ph, phn, 1 )),0x0000:0x00ff);
+findall(x->iszero(x),ss1)  # 10-element Vector{Int64}: 23 74 98 106 108 110 135 147 151 183
+ss2 = map(ph->length(shape_space_evolvability( ph, phn, 2 )),0x0000:0x00ff);
+mean(ss2) # 236.3671875
+findall(x->iszero(x),ss2)  # 2-element Vector{Int64}: 106 151
+findall(x->(x>0.0 && x < 246.0),ss2) # 6-element Vector{Int64}: 105 140 141 150 210 239
+
+@time include("../data/9_29_22/run_random_walksK.jl")  2 seconds 1000 walks 1000 steps nprocesses 8
+phdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22K.csv");
+phn = df_to_matrix( phdf, 2, denormalize=false );
+evdK = entropy_evolvability( phn, include_self_edges=true );
+ss1 = map(ph->length(shape_space_evolvability( ph, phn, 1 )),0x0000:0x00ff);
+findall(x->iszero(x),ss1)  # 15-element Vector{Int64}: 42 58 74 76 98 105 106 108 110 122 135 147 151 183 215
+ss2 = map(ph->length(shape_space_evolvability( ph, phn, 2 )),0x0000:0x00ff);
+mean(ss2) # 225.94921875
+findall(x->iszero(x),ss2)  # 15-element Vector{Int64}: 42 58 74 76 98 105 106 108 110 122 135 147 151 183 215
+findmax(ss2) # (241, 210)
+findall(x->(x>0.0 && x < 241.0),ss2) # 238-element Vector{Int64}:
+findall(x->x==241.0,ss2) # 3-element Vector{Int64}: 210 220 222
+spearman_cor(evdK,ss2) # (0.33138655862500604, 2.8105307721577936e-8)
+bv = BitVector(map(i->!iszero(sum(phn[i,:])),1:256))
+spearman_cor(evdK[bv],ss2[bv]) #  (-0.07047294296818533, 0.1379222942814304)
+spearman_cor(evdK[bv],ss1[bv]) #  (0.22276354346810345, 0.0002468770787460846)
+
+===================================
+Plots:
+p = Parameters(3,1,7,4)
+phdfI = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22I.csv");
+phnI = df_to_matrix( phdfI, 2, denormalize=false );
+evdI = entropy_evolvability( phnI, include_self_edges=true);
+rdict = redundancy_dict(p,funcs);
+ kdict = kolmogorov_complexity_dict(p,funcs)
+#   k_csvfile: ../data/counts/k_complexity_3x1_4funcs7_11_22E.csv
+
+ppdf = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdI, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)))
+scatter(ppdf.ent_evol,ppdf.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="log redundancy vs entropy evolvabilty 3x1 7gts4lb 4 funcs",legend=:bottomright)
+savefig("../data/9_30_22/log_redundancy_vs_entropy_evolvabilty_3x1_7gts4lb_4_funcs.png")
+scatter(ppdf.ent_evol,ppdf.Kcomp,labels="K complxity vs entropy evolvability",xlabel="entropy evolvability",ylabel="K complexity",title="Kcompleixity vs entropy evolvabilty 3x1 7gts4lb 4 funcs",legend=:topright)
+savefig("../data/9_30_22/Kcompleixity_vs_entropy_evolvabilty_3x1_7gts4lb_4_funcs.png")
+ss1 = map(ph->length(shape_space_evolvability( ph, phnI, 1 )),collect(0x0000:0x00ff));
+ss2 = map(ph->length(shape_space_evolvability( ph, phnI, 2 )),collect(0x0000:0x00ff));
+
+
+Exact:
+phdfM = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv");
+phnM = df_to_matrix( phdf, 3, denormalize=false );
+bv = BitVector(map(i->!isnan(sum(phnM[i,:])),1:256))
+evdM = entropy_evolvability( phnM[bv,bv], include_self_edges=true )
+ppdf = DataFrame( :goal=>collect(0x0000:0x00ff)[bv], :ent_evol=>evdM, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)[bv]),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)[bv]))
+scatter(ppdf.ent_evol,ppdf.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="log redundancy vs entropy evolvabilty 3x1 7gts4lb 4 funcs",legend=:bottomright)
+ss1 = map(ph->length(shape_space_evolvability( ph, phnM, 1 )),collect(0x0000:0x00ff)[bv]);
+ss2 = map(ph->length(shape_space_evolvability( ph, phnM, 2 )),collect(0x0000:0x00ff)[bv]);
+
+4x1: Q   9_29_22
+@time phnQ = df_to_matrix_mt(rrw_df,2,denormalize=false)
+1891.818194 seconds (12.85 G allocations: 223.503 GiB, 30.19% gc time, 4.47% compilation time)
+65536×65536 Matrix{Float64}:
+bv = BitVector(map(i->!iszero(sum(phnQ[i,:])),1:2^16));
+@time ss1 = map(ph->length(shape_space_evolvability( ph, phnQ, 1 )),collect(0x0000:0xffff)[bv]);  # 22.812753 seconds
+julia> mean(ss1) # 28.255224035762552
+julia> findmax(ss1) # (3429, 9619)
+julia> findmin(ss1) # (1, 35)
+@time ss2 = map(ph->length(shape_space_evolvability( ph, phnQ, 1 )),collect(0x0000:0xffff)[bv]);  # 22.812753 seconds
+

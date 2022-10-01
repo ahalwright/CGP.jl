@@ -1,6 +1,6 @@
 # Used in GECCO paper
 using Statistics, Printf
-using DataFrames, CSV, Dates
+using DataFrames, CSV, Dates, Base.Threads
 # This file does not include the "export" declarations needed to be included in CGP.jl.
 # Thus, it should be directly included.  Sample runs in ../data/9_3_21/.
 
@@ -34,13 +34,16 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
     #return goal_pair_dict
     df = robust_evolvability( goal_pair_dict, gl, p, save_complex )  # The version of robust_evolvability() called depends on the type of goal_pair_dict
   else
-    goal_edge_matrix = zeros(Int64,ngoals,ngoals)
-    goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ), 
-        collect(1:nprocesses) )
+    #goal_edge_matrix = zeros(Int64,ngoals,ngoals)
+    #goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ), collect(1:nprocesses) )
+    #goal_edge_matrix_list = map( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ), collect(1:nprocesses) )
+    goal_edge_matrix = run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ) 
+    #=
     println("len: ",length(goal_edge_matrix_list),"  size: ",size(goal_edge_matrix_list[1]),"  type: ",typeof(goal_edge_matrix_list[1]))
     for gem in goal_edge_matrix_list
       goal_edge_matrix .+= gem
     end
+    =#
     #println("goal edge matrix")
     #println(goal_edge_matrix)
     #df = robust_evolvability( goal_edge_matrix, gl )
@@ -72,7 +75,7 @@ function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_linci
   @assert p.numoutputs == 1
   funcs = default_funcs(p.numinputs)
   addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
-  ngoals = 2^(2^p.numinputs)
+  nphenos = 2^(2^p.numinputs)
   if use_lincircuit
     c_list = [ rand_lcircuit(p,funcs) for _ = 1:nwalks ]
   else
@@ -81,23 +84,32 @@ function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_linci
   if output_dict
     goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
     for i = 1:nwalks
-      random_walk!( goal_pair_dict, c_list[i], steps )
+      random_walk_dict!( goal_pair_dict, c_list[i], steps )
     end
     return goal_pair_dict
   else
-    goal_edge_matrix = zeros(Int64,ngoals,ngoals)
-    for i = 1:nwalks
-      random_walk!( goal_edge_matrix, c_list[i], steps )
+    #goal_edge_matrix = zeros(Int64,nphenos,nphenos)
+    goal_edge_matrix = Array{Atomic{Int64},2}( undef, nphenos, nphenos )
+    println("goal_edge_matrix undef allocated")
+    Threads.@threads for i = 1:nphenos
+      for j=1:nphenos
+        goal_edge_matrix[i,j]= Atomic{Int64}(0)
+      end
+    end
+    println("goal_edge_matrix Atomic initialized")
+    Threads.@threads for i = 1:nwalks
+      random_walk_mat!( goal_edge_matrix, c_list[i], steps )
       #println(sum(goal_edge_matrix))
     end
-    return goal_edge_matrix 
+    println("goal_edge_matrix updated")
+    return map(x->x[], goal_edge_matrix )
   end
 end
 
-# Does one random walk starting at c
+ Thr# Does one random walk starting at c
 # Outputs a node-edge adjacency matrix unless output_dict==true, 
 #      in which case a dictionary indexed on goal pairs whose values the the count of the goal pair
-function random_walk!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, Dict{Tuple{MyInt,MyInt},Int64},Matrix{Int64}},
+function random_walk_dict!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, Dict{Tuple{MyInt,MyInt},Int64},Matrix{Int64}},
     c::Union{Chromosome,LinCircuit}, steps::Int64 )
   funcs = default_funcs(c.params.numinputs)
   ngoals = 2^(2^c.params.numinputs)
@@ -143,6 +155,7 @@ function random_walk!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float
         goal_pair_dict[(prev_goal,goal)] = value
       end
     else
+      error("function random_walk_dict!() output_dict is true")
       goal_edge_matrix[Int64(prev_goal)+1,Int64(goal)+1] += 1
     end
   end
@@ -150,9 +163,30 @@ function random_walk!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float
     #println("length(goal_pair_dict): ",length(goal_pair_dict))
     goal_pair_dict
   else
+    error("function random_walk_dict!() output_dict is true")
     goal_edge_matrix
   end
 end
+
+function random_walk_mat!( goal_edge_matrix::Array{Atomic{Int64},2}, c::Union{Chromosome,LinCircuit}, steps::Int64 )
+      #goal_edge_matrix[Int64(prev_goal)+1,Int64(goal)+1] += 1
+  funcs = default_funcs(c.params.numinputs)
+  goal = output_values(c)[1]
+  for i = 1:steps 
+    prev_goal = goal
+    #println("i: ",i,"  prev_goal: ",prev_goal,"  goal: ",goal)
+    if typeof(c) == Chromosome
+      mutate_chromosome!( c, funcs )
+      #print_circuit(c)
+    elseif typeof(c) == LinCircuit
+      mutate_circuit!( c, funcs )
+      #print_circuit(c, funcs )
+    end
+    goal = output_values(c)[1]
+    Threads.atomic_add!( goal_edge_matrix[ Int64(prev_goal)+1, Int64(goal)+1 ], 1 )
+  end
+end
+#[ from_ph+MyInt(1), to_ph+MyInt(1) ], 1 )
 
 function robust_evolvability( goal_pair_list::Array{Pair{Tuple{UInt16,UInt16},Int64},1}, p::Parameters)
   robust_evolvability( pairs_to_dict( goal_pair_list ), p )

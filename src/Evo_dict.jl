@@ -197,7 +197,7 @@ end
 function print_matrix( matrix::Array{Int64,2} )
   print_matrix( Base.stdout, matrix )
 end
-
+#=
 # Convert matrix to a dataframe with a goal column and with column names taken from gli.
 # if hex==true, then row and column labels are hex, otherwise decimal
 function matrix_to_dataframe( pheno_matrix::Union{Array{Int64,2},Array{Float64,2}}, gli::Vector{MyInt}; hex::Bool=true, redund_column::Vector{Int64}=Int64[] )
@@ -218,6 +218,23 @@ function matrix_to_dataframe( pheno_matrix::Union{Array{Int64,2},Array{Float64,2
     insertcols!(df,size(df)[2]+1,Symbol(rnames[c])=>pheno_matrix[:,c])
   end
   df
+end
+=#
+
+# Convert matrix to a dataframe with a goal column and with column names taken from gli.
+# if hex==true, then row and column labels are hex, otherwise decimal
+function matrix_to_dataframe0( pheno_matrix::Union{Array{Int64,2},Array{Float64,2}}, gli::Vector{MyInt}; hex::Bool=true, redund_column::Vector{Int64}=Int64[] )
+  (rows,columns) = size(pheno_matrix)
+  println("matrix_to_dataframe: rows: ",rows,"  length(gli): ",length(gli))
+  @assert rows==length(gli)
+  if hex
+    rnames = map(x->@sprintf("0x%x",x), gli )
+  else
+    rnames = map(x->@sprintf("%d",x), gli )
+  end
+  df = DataFrame( map( c->(Symbol(rnames[c])=>pheno_matrix[:,c]), 1:columns) )
+  insertcols!(df, 1, :goal=>rnames )
+  df 
 end
 
 #=  evolvable_evolvability.jl version is better
