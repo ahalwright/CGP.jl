@@ -1,0 +1,12 @@
+Revisions to phenotype network paper:
+
+Main points:
+1.  Non-biological genotype-phenotype network with universal properties
+2.  Complexity properties
+3.  Evolvability properties
+
+Phenotype network methods section
+
+Evolvability methods section
+
+

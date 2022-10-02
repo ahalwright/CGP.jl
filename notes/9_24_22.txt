@@ -18,8 +18,14 @@ I created phnet_matrix_atomic as a matrix of Atomic{Int64}(0).  Testing showed t
 data/9_24_22/phnet_matrix9_24_22M.csv
 5gts 3lb 5funcs 48543 seconds = 13.5 hours on surt2
 Results for M:
-sum(phdf.redund)  # 184_528_126
-phdf[phdf.redund.<=1600,[:goal,:redund]]
+phdfM = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv")
+phnM = df_to_matrix( phdfM, 3, denormalize=false );
+evdM = entropy_evolvability( phnM, include_self_edges=true);
+ppdfM = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdM, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)))
+scatter(ppdfM.ent_evol,ppdfM.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="exact lgredund vs entropy evolv 3x1 5gts3lb 5funcs",legend=:topright)
+savefig("../data/9_24_22/exact_lgredund_vs_entropy_evolv_3x1_5gts3lb_5funcs.png")
+sum(phdfM.redund)  # 184_528_126
+phdf[phdfM.redund.<=1600,[:goal,:redund]]
 4×2 DataFrame
  Row │ goal     redund
      │ String7  Int64
@@ -28,14 +34,29 @@ phdf[phdf.redund.<=1600,[:goal,:redund]]
    2 │ 0x49       1024
    3 │ 0xb6       1024
    4 │ 0xd6        832
+ss1M = map(ph->length(shape_space_evolvability( ph, phnM, 1 )),collect(0x0000:0x00ff));
+(mean(ss1M),findmin(ss1M),findmax(ss1M)) #  (173.0546875, (111, 59), (255, 1))
+ss2M = map(ph->length(shape_space_evolvability( ph, phnM, 2 )),collect(0x0000:0x00ff));
+(mean(ss2M),findmin(ss2M),findmax(ss2M)) #  (256.0, (256, 1), (256, 1))
 
-data/9_24_22/phnet_matrix9_24_22N.csv
-5gts 3lb 4funcs 14084 seconds = 3.9 hours on surt2
 Results for N:
-findall(x->x==0,phdf.redund) # 90-element Vector{Int64}:
-sum(phdf.redund)  # 60_466_177
+data/9_24_22/phnet_matrix9_24_22N.csv
+phdfN = read_dataframe("../data/9_24_22/phnet_matrix9_24_22N.csv")
+#  5gts 3lb 4funcs 14084 seconds = 3.9 hours on surt2
+phnN = df_to_matrix( phdfN, 3, denormalize=false );
+evdN = entropy_evolvability( phnN, include_self_edges=true);
+ppdfN = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdN, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)))
+scatter(ppdfN.ent_evol,ppdfN.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="exact lgredund vs entropy evolv 3x1 5gts3lb 4funcs",legend=:bottomright)
+savefig("../data/9_24_22/exact_lgredund_vs_entropy_evolv_3x1_5gts3lb_4funcs.png")
+ss1N = map(ph->length(shape_space_evolvability( ph, phnN, 1 )),collect(0x0000:0x00ff));
+(mean(ss1N),findmin(ss1N),findmax(ss1N)) #  (46.203125, (0, 7), (166, 1))
+ss2N = map(ph->length(shape_space_evolvability( ph, phnN, 2 )),collect(0x0000:0x00ff));
+(mean(ss2N),findmin(ss2N),findmax(ss2N)) #  (107.640625, (0, 7), (166, 1))
+findall(x->x==0,phdfN.redund) # 90-element Vector{Int64}:
+sum(phdfN.redund)  # 60_466_177
 
 Can get exact degree, strength, and evolution evolvabilities.
+
 
 =================================================
 Computing K complexities for all 4x1 phenos

@@ -106,7 +106,7 @@ function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_linci
   end
 end
 
- Thr# Does one random walk starting at c
+# Does one random walk starting at c
 # Outputs a node-edge adjacency matrix unless output_dict==true, 
 #      in which case a dictionary indexed on goal pairs whose values the the count of the goal pair
 function random_walk_dict!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, Dict{Tuple{MyInt,MyInt},Int64},Matrix{Int64}},

@@ -1,0 +1,45 @@
+# Modified run_random_walks_parallel() in random_walk.jl to return goal_edge_matrix without converting to a dataframe.
+@time include("../data/9_29_22/run_random_walksR.jl")   3577.562411 seconds   nwalks =20000 steps = 4000
+
+lg10(x) = iszero(x) ? 0.0 : log10(x)
+bv =[ Atomic{Int64}(0) for i= 1:2^2^4]
+Threads.@threads for i = 1:2^2^4 Threads.atomic_add!( bv[i], (iszero(sum(phnR[i,:])) ? 0 : 1 )) end
+bvv = BitVector(map( x->x[], bv ))
+sum(bvv) # Atomic{Int64}(0) for i= 1:2^2^4]Atomic{Int64}(0) for i= 1:2^2^4]
+phn = phnR[bvv,bvv]
+evd = entropy_evolvability( phn, include_self_edges=true);  # uses a multi-threaded function
+p = Parameters(4,1,10,5); funcs=default_funcs(p)
+kdict = kolmogorov_complexity_dict(p,funcs)  # incorrect for 4 funcs
+#  k_csvfile: ../data/counts/k_complexity8_9_22FGGF.csv
+rdict = redundancy_dict( p, funcs )
+#  csvfile: ../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv
+ppdf = DataFrame( :goal=>collect(0x0000:0xffff)[bvv], :ent_evol=>evd, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0xffff)[bvv]),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0xffff)[bvv]))
+#  13994×4 DataFrame
+scatter(convert(Vector{Float64},ppdfR.ent_evol),convert(Vector{Float64},ppdfR.lgredund))   # shows the same pattern as for 3x1
+csvfile = "../data/9_29_22/robust_evo_by_walks9_29_22RRR.csv"
+"../data/9_29_22/robust_evo_by_walks9_29_22RRR.csv"
+if length(csvfile) > 0
+           println("csvfile: ",csvfile)
+           open( csvfile, "w" ) do f
+             hostname = readchomp(`hostname`)
+             println(f,"# date and time: ",Dates.now())
+             println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+             println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+             print_parameters(f,p,comment=true)
+             println(f,"# nwalks: ",nwalks)
+             println(f,"# steps: ",steps)
+             println(f,"# nprocesses: ",nprocesses)
+             println(f,"# output_dict: ",output_dict)
+             println(f,"# use_lincircuit: ",use_lincircuit)
+             println(f,"# save_complex: ",save_complex)
+             CSV.write( f, df, append=true, writeheader=true )
+             println("csvfile written")
+           end
+         end
+csvfile: ../data/9_29_22/robust_evo_by_walks9_29_22RRR.csv
+csvfile written
+# Then moved robust_evo_by_walks9_29_22RRR.csv to robust_evo_by_walks9_29_22.csv
+
+# Rewrote run_shape_space_evolvability() in Fnc_mt.jl to correct some bugs
+@time ss2R = run_shape_space_evolvability( collect(0x0000:0xffff)[bvv], phn, 2 )  #  51.255628 seconds
+@time ss3R = run_shape_space_evolvability( collect(0x0000:0xffff)[bvv], phn,3 )   # Exact same results as 2.  Something is wrong

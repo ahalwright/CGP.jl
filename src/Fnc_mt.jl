@@ -543,36 +543,58 @@ end
 function entropy_evolvability( phmatrix::Matrix; include_self_edges::Bool=false )
   nphenos = size(phmatrix)[1]
   @assert nphenos == size(phmatrix)[2]
-  evolvability_list = zeros(Float64,nphenos)
+  evolvability_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
   strength_list = strength_evolvability( phmatrix, include_self_edges=include_self_edges )
-  for i = 1:nphenos
+  Threads.@threads for i = 1:nphenos
     row = strength_list[i] > 0.0 ? phmatrix[i,:]/strength_list[i] : zeros(Float64,nphenos)
     row[i] = 0.0
-    evolvability_list[i] = StatsBase.entropy( row )
+    Threads.atomic_add!( evolvability_list[i], StatsBase.entropy( row ) )
   end
-  evolvability_list
+  map( i->evolvability_list[i][], 1:nphenos )
 end
 
-function shape_space_evolvability( ph::MyInt, phn::Matrix, num_mutates::Int64 )
-  phset = evo_phset( ph, phn )
-  phset_list = pmap( s->evo_phset( s, phn ), [s for s in phset] )
+# Runs shape_space_evolvability for a list of phenotypes.
+function run_shape_space_evolvability( phlist::Vector{MyInt}, phn::Matrix, num_mutates::Int64 )
+  nphenos = length(phlist)
+  @assert nphenos == size(phn)[1]
+  @assert nphenos == size(phn)[2]
+  bv = BitVector([!iszero(sum(phn[i,:])) for i=1:size(phn)[1]])
+  nphenos = sum(bv)
+  phn_bv = phn[bv,bv]
+  phlist_bv = phlist[bv]
+  ss_list = [ Atomic{Int64}(0) for i= 1:nphenos]
+  Threads.@threads for i = 1:nphenos
+    #println("i: ",i,"  phlist_bv[i]: ",phlist_bv[i])
+    sse = shape_space_evolvability( phlist_bv[i], phlist_bv, phn_bv, num_mutates )
+    Threads.atomic_add!( ss_list[i], sse )
+  end
+  map( i->ss_list[i][], 1:nphenos )
+end  
+
+function shape_space_evolvability( ph::MyInt, phlist::Vector{MyInt}, phn::Matrix, num_mutates::Int64 )
+  @assert ph in phlist
+  phset = evo_phset( ph, phlist, phn )
+  phset_list = map( s->evo_phset( s, phlist, phn ), [s for s in phset] )
   for i = 2:num_mutates
     for phs in phset_list
-      # union!( phset, evo_phset( s, phn ) )
+      # union!( phset, evo_phset( s, phlist, phn ) )
       union!( phset, phs )
     end
   end
-  phset
+  length(phset)
 end
 
 # Find the evolvability set of phenotype ph based on pheno network matrix phn 
-function evo_phset( ph::MyInt, phn::Matrix )
+function evo_phset( ph::MyInt, phlist::Vector{MyInt}, phn::Matrix )
   nphenos = size(phn)[1]
-  ph_range_list = collect(MyInt(0):MyInt(nphenos-1))
-  i = searchsortedfirst(ph_range_list,ph)
-  #println("ph: ",@sprintf("0x%04x",ph),"  i: ",i)
+  #println("nphenos: ",nphenos)
+  #ph_range_list = collect(MyInt(0):MyInt(nphenos-1))
+  i = searchsortedfirst(phlist,ph)
+  if i > nphenos
+    println("ph: ",@sprintf("0x%04x",ph),"  i: ",i)
+  end
   bv = BitVector(map(x->!iszero(x),phn[i,:]))
-  phset = Set( ph_range_list[bv] )
+  phset = Set( phlist[bv] )
 end
 
 # See Hu (2020) for definition of disparity

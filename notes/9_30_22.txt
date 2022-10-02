@@ -9,9 +9,9 @@ findall(x->iszero(x),ss2)  # 2-element Vector{Int64}: 106 151
 findall(x->(x>0.0 && x < 254.0),ss2) # Int64[]
 
 @time include("../data/9_29_22/run_random_walksJ.jl")  9 seconds 2000 walks 2000 steps nprocesses 8
-phdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22J.csv")
-phn = df_to_matrix( phdf, 2, denormalize=false )
-evd = entropy_evolvability( phn, include_self_edges=true )
+phdfJ = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22J.csv")
+phnJ = df_to_matrix( phdfJ, 2, denormalize=false )
+evdJ = entropy_evolvability( phnJ, include_self_edges=true )
 ss1 = map(ph->length(shape_space_evolvability( ph, phn, 1 )),0x0000:0x00ff);
 findall(x->iszero(x),ss1)  # 10-element Vector{Int64}: 23 74 98 106 108 110 135 147 151 183
 ss2 = map(ph->length(shape_space_evolvability( ph, phn, 2 )),0x0000:0x00ff);
@@ -38,15 +38,65 @@ spearman_cor(evdK[bv],ss1[bv]) #  (0.22276354346810345, 0.0002468770787460846)
 
 ===================================
 Plots:
-p = Parameters(3,1,7,4)
+p = Parameters(3,1,7,4); funcs=default_funcs(p)
+Suffix I
+@time include("../data/9_29_22/run_random_walksI.jl") #  117 seconds
 phdfI = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22I.csv");
 phnI = df_to_matrix( phdfI, 2, denormalize=false );
 evdI = entropy_evolvability( phnI, include_self_edges=true);
 rdict = redundancy_dict(p,funcs);
- kdict = kolmogorov_complexity_dict(p,funcs)
+kdict = kolmogorov_complexity_dict(p,funcs);
 #   k_csvfile: ../data/counts/k_complexity_3x1_4funcs7_11_22E.csv
 
-ppdf = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdI, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)))
+Suffix J
+nwalks = 2000
+steps = 2000
+phdfJ = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22J.csv");
+phnJ = df_to_matrix( phdfJ, 2, denormalize=false );
+evdJ = entropy_evolvability( phnJ, include_self_edges=true);
+ppdfJ = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdJ, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff))) #256×4 DataFrame
+scatter(ppdfJ.ent_evol,ppdf.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="log redund vs entropy evol 3x1 7gts4lb 4 funcs J",legend=:bottomright)
+savefig("../data/9_30_22/log_redund_vs_entropy_evol_3x1_7gts4lb_4_funcs_J")
+scatter(ppdf.ent_evol,ppdfJ.Kcomp,labels="Kcomplex vs entropy evolv",xlabel="entropy evolvability",ylabel="K complexity",title="Kcomplexity vs entropy evol 3x1 7gts4lb 4 funcs J",legend=:bottomleft)
+savefig("../data/9_30_22/Kcomplexity_vs_entropy_evol_3x1_7gts4lb_4_funcs_J")
+ss1J = map(ph->length(shape_space_evolvability( ph, phnJ, 1 )),collect(0x0000:0x00ff));
+(mean(ss1J),findmin(ss1J),findmax(ss1J)) #  (60.93359375, (0, 23), (223, 256))
+ss2J = map(ph->length(shape_space_evolvability( ph, phnJ, 2 )),collect(0x0000:0x00ff));
+(mean(ss2J),findmin(ss2J),findmax(ss2J)) #  (223.73046875, (0, 23), (246, 1))
+
+Suffix I
+nwalks = 10_000
+steps = 5000
+phdfI = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22I.csv");
+phnI = df_to_matrix( phdfI, 2, denormalize=false );
+evdI = entropy_evolvability( phnI, include_self_edges=true);
+ppdfI = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdI, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff))) #256×4 DataFrame
+scatter(ppdfI.ent_evol,ppdf.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="log redund vs entropy evol 3x1 7gts4lb 4 funcs I",legend=:bottomright)
+savefig("../data/9_30_22/log_redund_vs_entropy_evol_3x1_7gts4lb_4_funcs_I")
+scatter(ppdf.ent_evol,ppdfI.Kcomp,labels="Kcomplex vs entropy evolv",xlabel="entropy evolvability",ylabel="K complexity",title="Kcomplexity vs entropy evol 3x1 7gts4lb 4 funcs I",legend=:bottomleft)
+savefig("../data/9_30_22/Kcomplexity_vs_entropy_evol_3x1_7gts4lb_4_funcs_I")
+ss1I = map(ph->length(shape_space_evolvability( ph, phnI, 1 )),collect(0x0000:0x00ff));
+(mean(ss1I),findmin(ss1I),findmax(ss1I)) #  (104.02734375, (0, 106), (246, 1))
+ss2I = map(ph->length(shape_space_evolvability( ph, phnI, 2 )),collect(0x0000:0x00ff));
+(mean(ss2I),findmin(ss2I),findmax(ss2I)) #  (251.3046875, (0, 106), (254, 1))
+
+Suffix G
+nwalks = 50_000
+steps = 5000
+@time include("../data/9_29_22/run_random_walksG.jl")  # 584 seconds
+phdfG = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22G.csv");
+phnG = df_to_matrix( phdfG, 2, denormalize=false );
+evdG = entropy_evolvability( phnG, include_self_edges=true);
+ppdfG = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdG, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff))) #256×4 DataFrame
+scatter(ppdfG.ent_evol,ppdf.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="log redund vs entropy evol 3x1 7gts4lb 4 funcs G",legend=:topright)
+savefig("../data/9_30_22/log_redund_vs_entropy_evol_3x1_7gts4lb_4_funcs_G")
+scatter(ppdf.ent_evol,ppdfG.Kcomp,labels="Kcomplex vs entropy evolv",xlabel="entropy evolvability",ylabel="K complexity",title="Kcomplexity vs entropy evol 3x1 7gts4lb 4 funcs G",legend=:bottomleft)
+savefig("../data/9_30_22/Kcomplexity_vs_entropy_evol_3x1_7gts4lb_4_funcs_G")
+ss1G = map(ph->length(shape_space_evolvability( ph, phnG, 1 )),collect(0x0000:0x00ff));
+(mean(ss1G),findmin(ss1G),findmax(ss1G)) #  (134.19140625, (4, 106), (253, 1))
+ss2G = map(ph->length(shape_space_evolvability( ph, phnG, 2 )),collect(0x0000:0x00ff));
+(mean(ss2G),findmin(ss2G),findmax(ss2G)) #  (255.7109375, (239, 106), (256, 1))
+
 scatter(ppdf.ent_evol,ppdf.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="log redundancy vs entropy evolvabilty 3x1 7gts4lb 4 funcs",legend=:bottomright)
 savefig("../data/9_30_22/log_redundancy_vs_entropy_evolvabilty_3x1_7gts4lb_4_funcs.png")
 scatter(ppdf.ent_evol,ppdf.Kcomp,labels="K complxity vs entropy evolvability",xlabel="entropy evolvability",ylabel="K complexity",title="Kcompleixity vs entropy evolvabilty 3x1 7gts4lb 4 funcs",legend=:topright)

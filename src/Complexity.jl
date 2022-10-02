@@ -437,7 +437,6 @@ function bin_counts( values::Vector{Float64}, counts::Vector{Float64}, bin_fract
   [ vdict[key] for key in sort(collect(keys(vdict))) ]
 end
 
-#  Found rare bug on 9/4/22 
 # Run kolmogorov_complexity() for all goals in goal list gl (in parallel).
 # Write dataframe to csvfile is that is given (keyword argument)
 function run_kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, gl::GoalList, max_goal_tries::Int64, max_ev_steps::Int64;
@@ -452,7 +451,6 @@ function run_kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, gl::Goal
   df.avg_robustness = Float64[]
   df.avg_evolvability = Float64[]
   df.num_gates_exc = Int64[]
-  #result_list = Folds.map( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_mut_evolve=use_mut_evolve ), gl )
   result_list = pmap( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_mut_evolve=use_mut_evolve ), gl )
   #result_list = map( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_mut_evolve=use_mut_evolve ), gl )
   for r in result_list
@@ -481,7 +479,6 @@ function run_kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, gl::Goal
   df
 end
     
-#  Found rare bug on 9/4/22 
 # Try to find the minimum number of gates to evolve a goal which I call the Kolmogorov complexity.
 # Start with p.numinteriors and then deccrease the number of gates until the goal is found.
 # Do max_goal_tries evolutions with each number of gates.
@@ -536,14 +533,11 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
       end
     end
   end
-  # cmplx = 0.0
-  # Commented out on 9/26/22 to fix rare bug for 4x1 4 funcs, uncommented on 9/27/22
-  if p_current.numinteriors <= 20  # Too time consuming for a large number of gates
-    try
-      cmplx = complexity5(found_c)
-    catch x
-      cmplx = 0.0
-    end
+  if num_gates >= 1 && !goal_found
+    println("no goal found for goal ",g," for num_gates: ",num_gates)
+    num_gates += 1  # now set to the minimum number of gates for successful circuit
+  end  
+  if p_current.numinteriors <= 18  # Too time consuming for a large number of gates
     push!(complexities_list, complexity5(found_c))
   end
   #push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
