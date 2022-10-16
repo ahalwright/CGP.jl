@@ -1,0 +1,45 @@
+Computing approximate phenotype network matrix by evolution, and computing entropy evolvability using this matrix.
+Wrote function phenonet_matrix_evol_approx() in evolvable_evolvability.jl
+Run in data/10_13_22/run_shape_spaceA.jl
+Wrote function phenonet_matrix_sampling_approx() in evolvable_evolvability.jl
+Run in data/10_13_22/run_shape_spaceB.jl
+
+Note plots saved in data/10_12_22
+
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")  # circuit_int sampling
+
+# Sampling
+# Uses run_random_walks_parallel() in random_walk.jl
+cedf = read_dataframe("../data/1_3/robust_evo_by_walks1_3C.csv"); # phnet matrix for samples   # 5000 walks 2000 steps
+dedf = read_dataframe("../data/1_3/robust_evo_by_walks1_3D.csv"); # phnet matrix for samples   # 10000 walks 5000 steps
+eedf = read_dataframe("../data/1_3/robust_evo_by_walks1_3E.csv"); # phnet matrix for many samples   # 50000 walks 5000 steps
+cphn = df_to_matrix_mt(cedf,5);
+dphn = df_to_matrix_mt(dedf,5);
+ephn = df_to_matrix_mt(eedf,5);
+cevo = entropy_evolvability(cphn,include_self_edges=false);
+devo = entropy_evolvability(dphn,include_self_edges=false);
+eevo = entropy_evolvability(ephn,include_self_edges=false);
+;
+scatter([cevo,eevo],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy",labels=["5000 walks 2000 steps" "50000 walks 5000 steps"],shape=[:star6 :rtriangle])
+scatter!(legend=:topleft,title="log redundancy vs. entropy evolvability 3x1 8gts4lb")
+savefig("../data/10_12_22/log_redundancy_vs_entropy_evolvability_3x1_8gts4lb.png")
+
+# Evolution
+# Uses evolvable_pheno_df() in evolvable_evolvability.jl:
+tdf = read_dataframe("../data/8_26_22/evolvable_evolvability8_26_22T.csv")
+E = pheno_vects_to_evolvable_matrix( tdf.pheno_vects)  # phenonet matrix
+t_entropy = entropy_evolvability(E,include_self_edges=true)  # code in Fnc_mt.jl
+scatter(t_entropy,map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy")
+udf = read_dataframe("../data/8_26_22/evolvable_evolvability8_26_22U.csv")
+E = pheno_vects_to_evolvable_matrix( udf.pheno_vects)  # phenonet matrix
+u_entropy = entropy_evolvability(E,include_self_edges=true)
+scatter([t_entropy,u_entropy],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy")  # plots are almost the same
+
+# Both
+#scatter([u_entropy,eevo],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy",labels=["evolution 1000 circuits" "rw sampling 50000 walks 5000 steps"],shape=[:star6 :rtriangle])
+scatter([u_entropy,devo],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy",labels=["evolution 1000 circuits" "rw sampling 10000 walks 5000 steps"],shape=[:star6 :rtriangle])
+# Shows that evol entropy is better for low redundancy phenotypes and rw sampling is better for high redundancy phenotypes
+scatter!(title="lgredund vs evo & rw sampling entropy evol 3x1 8gts4lb4funcs",legend=(0.11,0.32))
+savefig("../data/10_12_22/lgredund_vs_evo_and_rw_sampling_entropy_evol_3x1_8gts4lb4funcs.png")
+
+

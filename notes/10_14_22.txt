@@ -1,0 +1,81 @@
+Producing entropy evolvability plots
+
+Test: p = Parameters(2,1,2,2); funcs=default_funcs(p); funcs=funcs[1:4]
+df = include("../data/9_24_22/run_phnet_matrixD.jl")
+E = map(Int,df_to_matrix(df,2))
+entropy_evolvability(E,include_self_edges=true)
+16-element Vector{Float64}:
+ 2.5943093505853696
+ 2.5518688027412066
+ 2.698150130437911
+ 1.7820537256935427
+ 2.698150130437911
+ 1.7142610874647124
+ 0.0
+ 2.5518688027412066
+ 2.5518688027412066
+ 0.0
+ 1.7142610874647124
+ 2.6981501304379116
+ 1.782053725693543
+ 2.698150130437911
+ 2.5518688027412066
+ 2.5943093505853696
+
+p = Parameters(3,1,8,4);funcs=default_funcs(p); push!(funcs,XOR)
+kdict = kolmogorov_complexity_dict(p,funcs)
+  # k_csvfile: ../data/counts/k_complexity_3x1_5funcs7_11_22F.csv
+e5df = read_dataframe("../data/9_24_22/phnet_matrix9_24_22P.csv")
+E = df_to_matrix(e5df,3)
+ent_evo = entropy_evolvability( E, include_self_edges=true )
+bv = BitVector( map( i->(!iszero(ent_evo[i]) ? 1 : 0), 1:256))
+phenos = collect(0x0000:0x00ff)[bv]
+Kcomp = map( ph->kdict[ph], phenos )
+scatter(ent_evo,Kcomp)
+# Not interesting
+
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv");  # circuit_int sampling
+tdf = read_dataframe("../data/8_26_22/evolvable_evolvability8_26_22T.csv")
+E = pheno_vects_to_evolvable_matrix( tdf.pheno_vects)  # phenonet matrix
+ent_evo = entropy_evolvability(E,include_self_edges=true)  # code in Fnc_mt.jl
+scatter(ent_evo,map(lg10,cntdf.ints8_4),smooth=true,xlabel="entropy evolvability",ylabel="log redundancy",labels="log redundancy vs entropy_evolvability")
+scatter!(title="lg redund vs ent evolvability 3x1 8gts4lb 5funcs")
+savefig("../data/10_12_22/lg_redund_vs_ent_evolvability_3x1_8gts4lb_5funcs.png")
+spearman_cor(t_entropy,map(lg10,cntdf.ints8_4)) # (-0.9728282473362417, 1.045234391076208e-163)
+# Strong linear relationship
+
+phenos = collect(0x0000:0x00ff);
+kdict = kolmogorov_complexity_dict(p,funcs)
+  # k_csvfile: ../data/counts/k_complexity_3x1_5funcs7_11_22F.csv
+Kcomp = map( ph->kdict[ph], phenos )
+scatter(ent_evo,Kcomp,smooth=true,xlabel="entropy evolvability",ylabel="Kolmogorov complexity",labels="K complexity vs entropy_evolvability")
+scatter!(title="K complex vs entropy evol 3x1 8gts4lb 5funcs",legend=:topleft)
+savefig("../data/10_12_22/K_complex_vs_entropy_evol_3x1_8gts4lb_5funcs.png")
+spearman_cor(ent_evo, Kcomp ) # (0.7367510367681944, 2.3044407571881675e-45)
+
+edf = read_dataframe("../data/2020/10_27/geno_complexity10_27FMNccons.csv")
+phlist = map(x->eval(Meta.parse(x)),convert(Vector{String},edf.goal))   # 600 phenotypes used in GECCO paper
+
+# Debugging entropy_evolvability() in the 2x1 2gts2lb4gates case
+# Comparing to the function multiset_phenotype_evolvability() which is now in evolvable_evolvability.jl (moved from p_evolve.jl)
+# The multiset version turned out to be correct.  
+# The entropy_evolvability version used StatsBase.entropy which is not equivalent to CGP.evolvabilty. 
+phenotype 0x0002
+Exact E
+ 32   8  16   0  16   24  0   0   8  0   24   4   0   4   0  24
+  8  28   0  12  12   36  0  12  12  0    4   4   0   0  32   0
+ 16   0  12   4   4    0  0   4  12  0   12   4   0   8   0   4
+  0  12   4  16   0    0  0  12   0  0    0   4  32   0   0   0
+ 16  12   4   0  12   12  0   0   0  0    0   8   4   4   4   4
+ 24  36   0   0  12  288  0  36   4  0  120   0   0  12   4  24
+  0   0   0   0   0    0  0   0   0  0    0   0   0   0   0   0
+  0  12   4  12   0   36  0  28  32  0    4   0   0  12  12   8
+  8  12  12   0   0    4  0  32  28  0   36   0  12   4  12   0
+  0   0   0   0   0    0  0   0   0  0    0   0   0   0   0   0
+ 24   4  12   0   0  120  0   4  36  0  288  12   0   0  36  24
+  4   4   4   4   8    0  0   0   0  0   12  12   0   4  12  16
+  0   0   0  32   4    0  0   0  12  0    0   0  16   4  12   0
+  4   0   8   0   4   12  0  12   4  0    0   4   4  12   0  16
+  0  32   0   0   4    4  0  12  12  0   36  12  12   0  28   8
+ 24   0   4   0   4   24  0   8   0  0   24  16   0  16   8  32
+

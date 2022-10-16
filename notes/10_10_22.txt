@@ -1,0 +1,62 @@
+# Testing hypothesis that phenotypes with close to median number of one bits have higher K complexity and lower redundancy
+# Conclusion:  Weak but highly significant correlations
+# Examples of evolvability of phenotypes 0x0009 and 0x0055
+# Mutual information between phenotypes:  maybe better measure of similarity than Hamming distance
+
+# For 3-input goals:
+p = Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 8, 4)
+length(funcs) # 4
+kdict = kolmogorov_complexity_dict(p,funcs)k
+goals = collect(0x0000:0x00ff);
+Kcomp = map(g->kdict[g],goals);
+rdict = redundancy_dict(p,funcs);
+redund = map(g->lg10(rdict[g]),goals)
+ccdf = DataFrame(:goal=>goals,:Kcomp=>Kcomp,:redund=>redund,:cnt_ones=>map(g->abs(count_ones(g)-4),goals));
+spearman_cor(ccdf,:Kcomp,:cnt_ones)  # (-0.28549562730458033, 1.720584360937719e-6)
+spearman_cor(ccdf,:redund,:cnt_ones) # (0.22892426402526844, 0.0001103602577453186)
+scatter(ccdf.cnt_ones,[ccdf.Kcomp,ccdf.redund],smooth=true,labels=["Kcomp vs count ones" "log redund vs count_ones"])
+
+# For 4-input goals:
+p4 = Parameters(4,1,10,5); funcs=default_funcs(p); push!(funcs,XOR)
+kdict = kolmogorov_complexity_dict(p4,funcs);
+rdict = redundancy_dict(p4,funcs);
+goals = collect(0x0000:0xffff);
+Kcomp = map(g->kdict[g],goals);
+redund = map(g->lg10(rdict[g]),goals);
+ccdf = DataFrame(:goal=>goals,:Kcomp=>Kcomp,:redund=>redund,:cnt_ones=>map(g->abs(count_ones(g)-4),goals));
+spearman_cor(ccdf,:Kcomp,:cnt_ones)  # (-0.22213175836689886, 0.0)
+cor(ccdf.Kcomp,ccdf.cnt_ones) # -0.2659202453186717
+spearman_cor(ccdf,:redund,:cnt_ones) # (0.3452425876750642, 0.0)
+cor(ccdf.redund,ccdf.cnt_ones) # 0.3851219943102416
+scatter(ccdf.cnt_ones,[ccdf.Kcomp,ccdf.redund],smooth=true,labels=["Kcomp vs count ones" "log redund vs count_ones"])
+scatter(ccdf.cnt_ones,[ccdf.redund],smooth=true,labels="log redund vs count_ones",xlabel="deviation of count ones from median",ylabel="log redundancy",legend=:bottomright)
+scatter!(title="Log redundancy vs deviation cnt ones from median 4x1 5funcs")
+savefig("../data/10_10_22/Log_redundancy_vs_deviation_cnt_ones_from_median_4x1_5funcs")
+scatter(ccdf.cnt_ones,[ccdf.Kcomp],smooth=true,labels="K complexity vs count_ones",xlabel="deviation of count ones from median",ylabel="Kolmogorov complexity",legend=:topright)
+scatter!(title="K complexity vs deviation cnt ones from median 4x1 5funcs")
+savefig("../data/10_10_22/K_complexity_vs_deviation_cnt_ones_from_median_4x1_5funcs")
+# Heat map plots would be very desirable
+
+====================================
+# Examples of evolvability of phenotypes 0x0009 and 0x0055
+pdf = read_dataframe("../data/7_8_22/evolvable_evolvabilityCGP_3x1_8_4_7_8_22S.csv");
+rename!(pdf,:evolvability=>:e_evolvability);
+edf = read_dataframe("../data/1_3/robust_evo_by_walks1_3E.csv")
+insertcols!(pdf,4,:d_evolvability=>edf.d_evolvability)
+rwdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3E.csv")
+insertcols!(pdf,4,:lg_redund=>map(lg10,cntdf.ints8_4))
+insertcols!(pdf,3,:t_evolvability=>total_evol(pdf))
+findall(x->x>=6.5,pdf.lg_redund)
+4-element Vector{Int64}: 1 86 171 256
+pdf[86,:]
+ Row │ pheno_list  e_evolvability  t_evolvability  complexity  lg_redund  d_evolvability  
+  86 │ 0x0055                 163             255     3.11778     6.5991             215  
+pdf[10,:]
+  10 │ 0x0009                 230             236     3.94677    2.79029             112
+
+
+====================================
+# Mutual information
+mdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22G.csv")
+E = df_to_matrix_mt( mdf, 2 )
+mutual_information(E[5,:]/sum(E[5,:]),E[11,:]/sum(E[11,:])) # MI pops_to_tbl 0.6739505825990277

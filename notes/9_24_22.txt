@@ -17,23 +17,27 @@ I created phnet_matrix_atomic as a matrix of Atomic{Int64}(0).  Testing showed t
 
 data/9_24_22/phnet_matrix9_24_22M.csv
 5gts 3lb 5funcs 48543 seconds = 13.5 hours on surt2
-Results for M:
-phdfM = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv")
-phnM = df_to_matrix( phdfM, 3, denormalize=false );
+Results for M and P:
+phdfM = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv")   # Normalized---Float
+phdfP = read_dataframe("../data/9_24_22/phnet_matrix9_24_22P.csv")   # Not Normalized---Integer
+phnM = df_to_matrix( phdfM, 3, denormalize=false );  # df_to_matrix_mt() is faster
+phnP = df_to_matrix( phdfP, 3, denormalize=false );  # df_to_matrix_mt() is faster
 evdM = entropy_evolvability( phnM, include_self_edges=true);
+evdP = entropy_evolvability( phnP, include_self_edges=true);
 ppdfM = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdM, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)))
+ppdfP = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdP, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)))
 scatter(ppdfM.ent_evol,ppdfM.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="exact lgredund vs entropy evolv 3x1 5gts3lb 5funcs",legend=:topright)
 savefig("../data/9_24_22/exact_lgredund_vs_entropy_evolv_3x1_5gts3lb_5funcs.png")
 sum(phdfM.redund)  # 184_528_126
 phdf[phdfM.redund.<=1600,[:goal,:redund]]
 4×2 DataFrame
- Row │ goal     redund
-     │ String7  Int64
+ Row │ goal   redund
+   │ String7  Int64
 ─────┼─────────────────
-   1 │ 0x29        832
-   2 │ 0x49       1024
-   3 │ 0xb6       1024
-   4 │ 0xd6        832
+   1 │ 0x29    832
+   2 │ 0x49     1024
+   3 │ 0xb6     1024
+   4 │ 0xd6    832
 ss1M = map(ph->length(shape_space_evolvability( ph, phnM, 1 )),collect(0x0000:0x00ff));
 (mean(ss1M),findmin(ss1M),findmax(ss1M)) #  (173.0546875, (111, 59), (255, 1))
 ss2M = map(ph->length(shape_space_evolvability( ph, phnM, 2 )),collect(0x0000:0x00ff));
@@ -56,6 +60,9 @@ findall(x->x==0,phdfN.redund) # 90-element Vector{Int64}:
 sum(phdfN.redund)  # 60_466_177
 
 Can get exact degree, strength, and evolution evolvabilities.
+
+A very small example:
+data/9_24_22/run_phnet_matrixD.jl: for some reason did not produce a csv file
 
 
 =================================================
@@ -110,3 +117,32 @@ need to use either surt2.cs.umt.edu (28 cores) or fluda.cs.umt.edu (12 cores or 
 an in-person or zoom session on moving files between Linux machines.
 
 
+===========================================
+\begin{table}
+   \centering
+   \begin{tabular}{|l|rrrrrrrrrrrrrrrr|}
+\hline
+goal &0x0 &0x1 &0x2 &0x3 &0x4 &0x5 &0x6 &0x7 &0x8 &0x9 &0xa &0xb &0xc &0xd &0xe &0xf\\
+\hline
+0x0 & 32 &  8 & 16 &  0 & 16 & 24 &  0 &  0 &  8 &  0 & 24 &  4 &  0 &  4 &  0 & 24\\
+0x1 &  8 & 28 &  0 & 12 & 12 & 36 &  0 & 12 & 12 &  0 &  4 &  4 &  0 &  0 & 32 &  0\\
+0x2 & 16 &  0 & 12 &  4 &  4 &  0 &  0 &  4 & 12 &  0 & 12 &  4 &  0 &  8 &  0 &  4\\
+0x3 &  0 & 12 &  4 & 16 &  0 &  0 &  0 & 12 &  0 &  0 &  0 &  4 & 32 &  0 &  0 &  0\\
+0x4 & 16 & 12 &  4 &  0 & 12 & 12 &  0 &  0 &  0 &  0 &  0 &  8 &  4 &  4 &  4 &  4\\
+0x5 & 24 & 36 &  0 &  0 & 12 &288 &  0 & 36 &  4 &  0 &120 &  0 &  0 & 12 &  4 & 24\\
+0x6 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0\\
+0x7 &  0 & 12 &  4 & 12 &  0 & 36 &  0 & 28 & 32 &  0 &  4 &  0 &  0 & 12 & 12 &  8\\
+0x8 &  8 & 12 & 12 &  0 &  0 &  4 &  0 & 32 & 28 &  0 & 36 &  0 & 12 &  4 & 12 &  0\\
+0x9 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0\\
+0xa & 24 &  4 & 12 &  0 &  0 &120 &  0 &  4 & 36 &  0 &288 & 12 &  0 &  0 & 36 & 24\\
+0xb &  4 &  4 &  4 &  4 &  8 &  0 &  0 &  0 &  0 &  0 & 12 & 12 &  0 &  4 & 12 & 16\\
+0xc &  0 &  0 &  0 & 32 &  4 &  0 &  0 &  0 & 12 &  0 &  0 &  0 & 16 &  4 & 12 &  0\\
+0xd &  4 &  0 &  8 &  0 &  4 & 12 &  0 & 12 &  4 &  0 &  0 &  4 &  4 & 12 &  0 & 16\\
+0xe &  0 & 32 &  0 &  0 &  4 &  4 &  0 & 12 & 12 &  0 & 36 & 12 & 12 &  0 & 28 &  8\\
+0xf & 24 &  0 &  4 &  0 &  4 & 24 &  0 &  8 &  0 &  0 & 24 & 16 &  0 & 16 &  8 & 32\\
+\end{tabular}
+\end{table}
+
+@time df = include("../data/9_24_22/run_phnet_matrixD.jl")
+E = df_to_matrix(df,2)
+bv = BitVector(map(i->(sum(E[i,:]) > 0 ? 1 : 0), 1:16))

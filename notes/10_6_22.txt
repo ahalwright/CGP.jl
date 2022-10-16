@@ -1,0 +1,42 @@
+Shape-space for a 48-element random subset of 4x1 8gts4lb4funcs phenotypes.
+@time include("../data/10_6_22/run_shape_spaceD.jl")  13662 seconds fluda 12 processes
+ssddf = read_dataframe("../data/10_6_22/shape_space4x1_10gts_3mutates_10_6_22D.csv")
+Plots.scatter(ssddf.Kcomplexity, ssddf.pheno_count1,smooth=true,xlabel="Kolmogorov complexity",ylabel="genotype shape-space 3-evolvability",legend=:none,title="shape-space3 vs Kcomplexity4x1_10gts5lb4funcsD")
+Plots.savefig("../data/10_6_22/shape-space3_vs_Kcomplexity4x1_10gts5lb4funcsD.png")
+spearman_cor(ssddf,:Kcomplexity,:pheno_count1) # (0.7156182620776095, 5.440749984952806e-9)
+Plots.scatter(ssddf.evolvability, ssddf.pheno_count1,smooth=true,xlabel="genotype degree evolvability",ylabel="genotype shape-space 3-evolvability",legend=:none,title="shape-space3 vs evolvability4x1_10gts5lb4funcsD")
+Plots.savefig("../data/10_6_22/shape-space3_vs_evolvability4x1_10gts5lb4funcsD.png")
+spearman_cor(ssddf,:evolvability,:pheno_count1) # (0.9423584398245787, 8.323742750902808e-24)
+rdict = redundancy_dict(p,funcs)
+  csvfile: ../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv
+insertcols!(ssddf,:redundancy=>map(x->rdict[eval(Meta.parse(x))],ssddf.goal))
+Plots.scatter(ssddf.pheno_count1,map(lg10,ssddf.redundancy),ylabel="log redundancy",xlabel="genotype shape-space 3-evolvability",smooth=true,title="lgredund vs shape-space3 evol4x1_10gts5lb4funcs")
+Plots.savefig("../data/10_6_22/lgredund_vs_shape-space3_evol4x1_10gts5lb4funcs.png")
+
+shape-space for the 600-element GECCO random subset of 4x1 8gts4lb4funcs phenotypes.
+@time include("../data/10_6_22/run_shape_spaceG.jl")  # GECCO phenotypes, 86946 seconds
+ssddf = read_dataframe("../data/10_6_22/shape_space4x1_10gts_3mutates_10_6_22G.csv")
+# Should be a heat map
+# heatmap_scatter_plot(Kcomp,event,"Kolmogorov complexity", "Entropy evolvability", "../data/9_30_22/Kcomplexity_vs_entropy_evol_3x1_7gts4lb_4_funcsS.png")
+Plots.scatter(ssddf.Kcomplexity, ssddf.pheno_count1,smooth=true,xlabel="kolmogorov complexity",ylabel="genotype shape-space 3-evolvability",legend=:none,title="shape-space3 vs Kcomplexity4x1_10gts5lb4funcsdG")
+savefig("../data/10_6_22/shape-space3_vs_kcomplexity4x1_10gts5lb4funcsG.png")
+heatmap_scatter_plot(ssddf.Kcomplexity,ssddf.pheno_count1,xlabl="K complexity",ylabl="genotype_shape-space_3-evolvability",pngfile="../data/10_6_22/shape-space3_vs_Kcomplexity4x1_10gts5lb4funcsG_hm.png")
+spearman_cor(ssddf,:kcomplexity,:pheno_count1) # (0.6869399495226206, 2.9519415268433114e-85)
+Plots.scatter(ssddf.evolvability, ssddf.pheno_count1,smooth=true,xlabel="genotype degree evolvability",ylabel="genotype shape-space 3-evolvability",legend=:none,title="shape-space3 vs evolvability4x1_10gts5lb4funcsG")
+Plots.savefig("../data/10_6_22/shape-space3_vs_evolvability4x1_10gts5lb4funcsG.png")
+spearman_cor(ssddf,:evolvability,:pheno_count1) # (0.933532249230015, 6.635907783272795e-269)
+rdict = redundancy_dict(p,funcs)
+  csvfile: ../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_eg.csv
+insertcols!(ssddf,:redundancy=>map(x->rdict[eval(Meta.parse(x))],ssddf.goal))
+Plots.scatter(ssddf.pheno_count1,map(lg10,ssddf.redundancy),ylabel="log redundancy",xlabel="genotype shape-space 3-evolvability",smooth=true,title="lgredund vs shape-space3G 4x1_10gts5lb4funcs",legend=:none)
+Plots.savefig("../data/10_6_22/lgredund_vs_shape-space3G_4x1_10gts5lb4funcsG.png")
+Plots.scatter(map(lg10,ssddf.redundancy),ssddf.pheno_count1,xlabel="log redundancy",ylabel="genotype shape-space 3-evolvability",smooth=true,title="shape-space3 vs lgredund 4x1_10gts5lb4funcsG",legend=:none)
+savefig("../data/10_6_22/shape-space3_vs_lgredund_4x1_10gts5lb4funcsG.png")
+
+
+total evolvability run:  (see 10_9_22.txt also)
+@time include("../data/7_8_22/run_evolvable_evolvability_allq.jl") on fluda results in data/7_8_22/
+evolvable_evolvability4x1_8_4_7_8_22q.csv
+plot procedure from 7_16_22.txt
+pdf = read_dataframe("../data/7_8_22/evolvable_evolvability4x1_8_4_7_8_22q.csv")
+# todo:  work out getting the different evolvabilities into the dataframe.  see 7_15_22.txt

@@ -1232,7 +1232,12 @@ function rescale_fitnesses( fit_vect::Vector{Float64} )
   end
 end        
 
-# Copied from Pop_evolve.jl.  Remove
-function fitness_funct( p::Parameters, c::Chromosome, gl::GoalList )
-  maximum( 1.0-hamming_distance( g, output_values(c), p.numinputs ) for g in gl )
+function fitness_funct( p::Parameters, c::Chromosome, gl::GoalList; mut_inf_matrix::Matrix{Float64}=zeros(Float64,1,1) )
+  ov = output_values(c)
+  #println("size(mut_inf_matrix)[1]: ",size(mut_inf_matrix)[1])
+  if size(mut_inf_matrix)[1] <= 1
+    maximum( 1.0-hamming_distance( g, ov, p.numinputs ) for g in gl )
+  else  
+    maximum( mut_inf_matrix[ov[1]+1,g[1]+1] for g in gl )
+  end
 end

@@ -1,0 +1,11 @@
+Wrote 'Summary of important definitions and concepts.docx' in complexity/cce
+Important concepts:
+
+Complexity
+  Kolmogorov complexity
+
+Evolvability
+  Evolution degree evolvability
+  Random walk sampling degree evolvability
+  
+

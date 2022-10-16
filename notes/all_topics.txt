@@ -317,9 +317,11 @@ These files now have suffix  _21.txt
 9_1:  Draft Evolvabilty topics: 
 9_2:  k_complexity_mutate_all() in Complexity.jl:  See comments on function. 
 9_3:  Testing the hypothesis that mutation from common to rare is unusual (sampling).  
-9_4:   Assignment for Cooper
+9_4:  Assignment for Cooper
 9_5:  Comparing evolution vs sampling common to rare:  Based on K complexity
+9_6:  Plotting density of K complexity of result of mutations
 9_8:  Cooper assignment revised.
+9_10: Writing up universal properties of GP maps.
 9_12: Log redundancy vs rank and log rank
 9_16: Progress on K complexity for all 4x1 phenos
 9_18: Discovered that my multiset definition is essentially strength as defined in Hu (2020) normalized to the redundancy of the phenotype
@@ -329,6 +331,14 @@ These files now have suffix  _21.txt
 9_23: heat map density plot
 9_24: Exact phnet matrices.  Multi-threaded pheno_network_matrix_df() in Fnc.jl. Another run of K complexity for all 4x1 phenos. Assignment for Cooper.
 9_30: Results in data/9_29_22 on approximating phenotype network by random walk sampling
+10_2: Main points of current revisions to pheno network paper
+10_6: Shape-space for 4 inputs including for GECCO phenotypes
+10_8: Evolution, sampling, and total evolvability plots.
+10_9: Redo total evolvability results and plot for 8 gates 4 levelsback based on notes/7_16_22.txt and data/7_8_22
+10_10: Testing hypothesis that phenotypes with close to median number of one bits have higher K complexity and lower redundancy
+10_11: Wrote 'Summary of important definitions and concepts.docx' in complexity/cce
+10_12: Testing various versions of shape-space.
+10_13: Computing approximate phenotype network matrix by evolution, and computing entropy evolvability using this matrix.
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

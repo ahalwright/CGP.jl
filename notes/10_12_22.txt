@@ -1,0 +1,17 @@
+Trying to test the various versions of shape-space.
+shape_space_counts() as in data/9_22_22/run_shape_spaceD.jl in Shape_space.jl  would give same results as run_shape_space_evolvability() in Fnc_mt.jl
+
+
+cedf = read_dataframe("../data/1_3/robust_evo_by_walks1_3C.csv") # phnet matrix for samples   # 5000 walks 2000 steps
+dedf = read_dataframe("../data/1_3/robust_evo_by_walks1_3D.csv") # phnet matrix for samples   # 10000 walks 5000 steps
+eedf = read_dataframe("../data/1_3/robust_evo_by_walks1_3E.csv") # phnet matrix for many samples   # 50000 walks 5000 steps
+cphn = df_to_matrix_mt(cedf,5)
+dphn = df_to_matrix_mt(dedf,5)
+ephn = df_to_matrix_mt(eedf,5)
+cevo = entropy_evolvability(cphn,include_self_edges=false)
+devo = entropy_evolvability(dphn,include_self_edges=false)
+eevo = entropy_evolvability(ephn,include_self_edges=false)
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")  # circuit_int sampling
+scatter([cevo,eevo],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy",labels=["5000 walks 2000 steps" "50000 walks 5000 steps"],shape=[:star6 :rtriangle])
+scatter!(legend=:topleft,title="log redundancy vs. entropy evolvability 3x1 8gts4lb")
+savefig("../data/10_12_22/log_redundancy_vs_entropy_evolvability_3x1_8gts4lb.png")

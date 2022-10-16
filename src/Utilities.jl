@@ -1,5 +1,7 @@
 # Contains functions that are useful in many contexts
-export write_df_to_csv, MyInt_to_string, string_to_MyInt
+export lg10, write_df_to_csv, MyInt_to_string, string_to_MyInt
+
+lg10(x) = iszero(x) ? 0.0 : log10(x)
 
 # Converts a MyInt unsigned integer to a string
 # Example:  MyInt_to_string( MyInt(1) ) returns "0x00000001" if MyInt==UInt32

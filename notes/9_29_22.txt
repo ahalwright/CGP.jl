@@ -1,3 +1,5 @@
+# Computation of random_walk sampling approximmation to computation of phenotype network.
+
 # Modified run_random_walks_parallel() in random_walk.jl to return goal_edge_matrix without converting to a dataframe.
 @time include("../data/9_29_22/run_random_walksR.jl")   3577.562411 seconds   nwalks =20000 steps = 4000
 
@@ -17,6 +19,13 @@ ppdf = DataFrame( :goal=>collect(0x0000:0xffff)[bvv], :ent_evol=>evd, :Kcomp=>ma
 #  13994×4 DataFrame
 scatter(convert(Vector{Float64},ppdfR.ent_evol),convert(Vector{Float64},ppdfR.lgredund))   # shows the same pattern as for 3x1
 csvfile = "../data/9_29_22/robust_evo_by_walks9_29_22RRR.csv"
+@time ss2R = run_shape_space_evolvability( collect(0x0000:0xffff)[bvv], phn, 2 ) # 29.566404 seconds
+(length(ss2R), mean(ss2R), findmin(ss2R), findmax(ss2R)) # (13994, 4025.3490067171647, (1, 13751), (13249, 13994))
+@time ss3R = run_shape_space_evolvability( collect(0x0000:0xffff)[bvv], phn, 3 ) # 1952.528023 seconds
+(length(ss3R), mean(ss3R), findmin(ss3R), findmax(ss3R))
+
+
+
 "../data/9_29_22/robust_evo_by_walks9_29_22RRR.csv"
 if length(csvfile) > 0
            println("csvfile: ",csvfile)

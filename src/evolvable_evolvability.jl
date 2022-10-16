@@ -1,8 +1,64 @@
 # Compute phenotype evolvability for a phenotype ph in ph_list by either evolving ncircuits circuits that map to ph,
 #  or by converting circ_int_list to circuits.  Tnen mutate_all() is applied to these circuits, and a count vector of phenotype counts is returned..
 # Produce a dataframe with phenotypes in ph_list as rows and phenotypes mapped to by mutational neighbors of the circuits.
+
+# epochal evolution version
+# if csvfile == "" returns the approximate phenonet adjacency matrix
+# if csvfile != "" returns a dataframe representing the approximate phenonet adjacency matrix and saves the dataframe to the
+function phenonet_matrix_evol_approx( p::Parameters, funcs::Vector{Func}, ncircuits::Int64, max_steps::Int64, max_tries::Int64; csvfile::String="" )
+  phlist = map(x->[x],collect(MyInt(0):MyInt(2^2^p.numinputs-1)))
+  pdf = evolvable_pheno_df( p, funcs, phlist, ncircuits, max_tries, max_steps )
+  E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects)  # phenonet matrix
+  if length(csvfile) > 0
+    phl = collect(MyInt(0):MyInt(2^2^p.numinputs-1))
+    df = matrix_to_dataframe( E, phl )
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      #println(f,"# run time in minutes: ",(ptime+ntime)/60)
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# evolution pheno matrix")
+      println(f,"# ncircuits: ",ncircuits)
+      println(f,"# length(phl): ",length(phl))
+      #println(f,"# length(circ_int_lists): ",length(circ_int_lists))
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+# random_walk sampling version
+# if csvfile == "" returns the approximate phenonet adjacency matrix
+# if csvfile != "" returns a dataframe representing the approximate phenonet adjacency matrix and saves the dataframe to the
+function phenonet_matrix_sampling_approx( p::Parameters, funcs::Vector{Func}, nwalks::Int64, steps::Int64; csvfile::String="" )
+  phl = collect(MyInt(0):MyInt(2^2^p.numinputs-1))
+  rrw_df = run_random_walks_parallel( p, nwalks, phl, steps, exclude_zero_rows=false, output_dict=false, save_complex=false )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# sampling pheno matrix")
+      println(f,"# length(phl): ",length(phl))
+      println(f,"# nwalks: ",nwalks)
+      println(f,"# steps: ",steps)
+      CSV.write( f, rrw_df, append=true, writeheader=true )
+    end
+    rrw_df
+  else
+    E = df_to_matrix_mt( rrw_df, 5 )  # phenonet matrix
+  end
+end
+
 # Evolution version
 function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64;  use_lincircuit::Bool=false, csvfile::String="" )
+  println("evolvable_pheno_df: length(ph_list): ",length(ph_list))
   nrepeats = nprocs()==1 ? 1 : nprocs()-1
   ncircuits_iter = Int(ceil(ncircuits/nrepeats))   # ncircuits/nrepeats rounded up to the next integer.
   dict_pairs = pmap( i->evolvable_pheno_dict( p, funcs, ph_list, ncircuits_iter, max_tries, max_steps, use_lincircuit=use_lincircuit ), 1:nrepeats )
@@ -110,6 +166,9 @@ function evolvable_pheno_dict( p::Parameters, funcs::Vector{Func}, ph_list::Goal
   (ph_vect_dict, ph_cmplx_dict)
 end
 
+# Computes a circuit list either by:
+#   if length(circ_int_list) == 0 uses pheno_evolve() to evolve ncircuits genotypes to map to the given phenotype ph
+#   if length(circ_int_list) > 0 converts the circuit ints in circ_int_list to circuits
 function compute_circuit_list( p::Parameters, funcs::Vector{Func}, ph::Goal, ncircuits::Int64,
     max_tries::Int64, max_steps::Int64; circ_int_list::Vector{Int128}, use_lincircuit::Bool=false )
   if length(circ_int_list) == 0
@@ -124,9 +183,9 @@ function compute_circuit_list( p::Parameters, funcs::Vector{Func}, ph::Goal, nci
   circuit_list
 end
 
-# Compute phenotype evolvability for a phenotype ph by either evolving ncircuits circuits that map to ph or by using the given circ_int_list,
-#  then applying mutate_all() to each circuit in circ_int_list.
+# Compute phenotype evolvability for a phenotype ph by applying mutate_all() to each circuit in circ_int_list.
 #  The vector pheno_count_vect, which is indexed over phenotypes, is modified in place
+# not multithreaded
 function evolvable_pheno_count!( pheno_count_vect::Vector{Int64}, circuit_list::Union{Vector{Chromosome},Vector{LinCircuit}}, funcs::Vector{Func}; 
     circ_int_list::Vector{Int128}, use_lincircuit::Bool=false )
   for circ in circuit_list
@@ -139,6 +198,7 @@ function evolvable_pheno_count!( pheno_count_vect::Vector{Int64}, circuit_list::
 end
 
 # Returns a boolean (true/false) matrix of the cases where evolvability succeeds
+# not multithreaded
 function pheno_vects_to_boolean_matrix( pheno_vects::Vector{Vector{Int64}} )
   result_matrix = zeros(Bool,length(pheno_vects[1]),length(pheno_vects[1]))
   for i = 1:length(pheno_vects)
@@ -277,6 +337,7 @@ end
 # For the 3x1 7gts 4lb case, pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
 #  E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
 #  B is the Boolean verson of matrix E
+# Close to the corresponding function in random_walk.jl
 function total_evol( pdf::DataFrame )
   to_binary(x::Bool) = x ? 1 : 0
   to_bool(x::Int64) = x != 0 ? true : false
@@ -345,3 +406,131 @@ function df_to_matrix_mt( df::DataFrame, startcolumn::Int64; denormalize::Bool=f
   end
   matrix
 end
+# Compute multiset average of the entropy evolvability of a list of phenotypes.
+# Based on evolving goals to map to the phenotypes
+
+function run_multiset_evolvability( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nreps::Int64, max_tries::Int64, max_steps::Int64;
+    csvfile::String="" )
+  lg10(x) = x==0 ? 0 : log10(x)
+  k_complex_dict = kolmogorov_complexity_dict( p )
+  k_complex_list = map(x->k_complex_dict[x[1]],phlist)
+  redund_dict = redundancy_dict( p )
+  redund_list = map(x->lg10(redund_dict[x[1]]),phlist)
+  entropy_list = Float64[]
+  len_nonzeros_list = Int64[]
+  for ph in phlist
+    @sprintf("0x%04x",ph[1])
+    (pcounts, entropy, len_nonzeros ) = multiset_phenotype_evolvability( p, funcs, ph, nreps, max_tries, max_steps )
+    push!(entropy_list,entropy)
+    push!(len_nonzeros_list,len_nonzeros)
+  end
+  df = DataFrame( :goal=>map(x->@sprintf("0x%04x",x[1]), phlist ), :entropy=>entropy_list, :log_redundancy=>redund_list, :K_complexity=>k_complex_list,
+      :length_nonzeros=>len_nonzeros_list )
+  open( csvfile, "w" ) do f
+    hostname = readchomp(`hostname`)
+    println(f,"# date and time: ",Dates.now())
+    println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+    print_parameters(f,p,comment=true)
+    println(f,"# funcs: ", funcs )
+    println(f,"# nreps: ", nreps )
+    println(f,"# max_tries: ", max_tries )
+    println(f,"# max_steps: ", max_steps )
+    CSV.write( f, df, append=true, writeheader=true )
+  end 
+  df
+end
+
+# Compute multiset average of the entropy evolvability of a phenotype.
+# Based on evolving goals to map to the phenotype
+function multiset_phenotype_evolvability( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, max_tries::Int64, max_steps::Int64 )
+  if max_tries <= nreps
+    error("Please set max_tries to be larger than nreps in function multiset_phenotype_evolvability")
+  end
+  nphenos = 2^(2^p.numinputs)
+  pcounts = zeros(Int64,nphenos)
+  #circ_steps_list = pheno_evolve( p, funcs, ph, nreps, max_tries, max_steps )
+  n_procs = nprocs()==1 ? 1 : nprocs()-1
+  nreps_iter = Int(ceil( nreps/n_procs ) )
+  println("nreps_iter: ",nreps_iter)
+  circ_steps_list_list = pmap(_->pheno_evolve( p, funcs, ph, nreps_iter, max_tries, max_steps ), 1:n_procs )
+  for circ_steps_list in circ_steps_list_list
+    for (c,steps) in circ_steps_list
+      phlist = mutate_all( c, funcs, output_outputs=true )
+      for pph in phlist
+        pcounts[pph[1]+1] += 1
+      end
+    end
+  end
+  denom = sum(pcounts)
+  # println("denom: ",denom)
+  #for i = 1:nphenos
+  #  print(pcounts[i]," ")
+  # end
+  pcounts[ph[1]+1] = 0  # Set count for self-edges to be 0
+  entropy = CGP.entropy( pcounts/denom)
+  nonzeros = findall( x->x!=0, pcounts )
+  (pcounts, entropy, length(nonzeros) )
+end
+
+# Find a random phenotype with a specified K complexity
+function find_phenotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kcomplexity::Int64, max_steps::Int64; kdict::Dict=Dict() )
+  if length(kdict) == 0
+    kdict = kolmogorov_complexity_dict(p,funcs)
+  end
+  step = 0
+  ph = rand(MyInt(0):MyInt(2^2^p.numinputs-1))
+  while step < max_steps && kdict[ph] != Kcomplexity
+    ph = rand(MyInt(0):MyInt(2^2^p.numinputs-1))
+    step += 1
+  end
+  if step == max_steps
+    return nothing
+  else
+    return ph
+  end
+end
+
+# Find a random genotype with a specified K complexity
+function find_genotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kcomplexity::Int64, max_steps::Int64; kdict::Dict=Dict() )
+  if length(kdict) == 0
+    kdict = kolmogorov_complexity_dict(p,funcs)
+  end
+  step = 0
+  c = random_chromosome( p, funcs)
+  while step < max_steps && kdict[output_values(c)[1]] != Kcomplexity
+    c = random_chromosome( p, funcs)
+    step += 1
+  end
+  if step == max_steps
+    return nothing
+  else
+    return c
+  end
+end
+
+# Do multiple epochal evolutions ( calls to neutral_evolve() ) to evolve from a circuit of Kconplexity fromKcomplexity to a goal of Kcomplexity toKcomplexity
+function evolve_to_Kcomplexity( p::Parameters, funcs::Vector{Func}, fromKcomplexity::Int64, toKcomplexity::Int64, nreps::Int64, max_ev_tries::Int64, max_find_steps::Int64, max_evolve_steps::Int64 )
+  kdict = kolmogorov_complexity_dict(p,funcs)
+  ttry_list = zeros(Int64,max_ev_tries)
+  total_steps_list = zeros(Int64,nreps)
+  numfailures = 0
+  for i = 1:nreps
+    c = find_genotype_with_Kcomplexity( p, funcs, fromKcomplexity, max_find_steps, kdict=kdict )
+    ph = find_phenotype_with_Kcomplexity( p, funcs, toKcomplexity, max_find_steps, kdict=kdict )
+    println("i: ",i,"  Kfrom: ",kdict[output_values(c)[1]],"  Kto: ",kdict[ph])
+    ttry = 1
+    (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
+    total_steps = steps
+    while ttry < max_ev_tries && steps == max_evolve_steps
+      (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
+      total_steps += steps
+      ttry += 1
+    end
+    if ttry == max_ev_tries && total_steps == max_evolve_steps
+      numfailures += 1
+    end
+    ttry_list[ttry] += 1
+    total_steps_list[i] = total_steps
+  end
+  (numfailures,ttry_list,total_steps_list)
+end  

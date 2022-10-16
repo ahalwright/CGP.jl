@@ -127,7 +127,7 @@ function to_binary( X::Vector{MyInt}, numbits::Int64 )
   result
 end
 
-# Converts an Int64 vector to a vector of MyIntsj
+# Converts an Int64 vector to a vector of MyInts
 function to_hex( V::Vector{Int64}, len::Int64 )
   result = MyInt(0)
   for i = len:-1:1

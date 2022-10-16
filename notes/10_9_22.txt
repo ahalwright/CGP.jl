@@ -1,0 +1,15 @@
+Redo total evolvability results and plot for 8 gates 4 levelsback based on notes/7_16_22.txt and data/7_8_22
+
+qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability4x1_8_4_7_8_22Q.csv")
+rename!(qpdf,:evolvability=>:e_evolvability)
+insertcols!(qpdf,3,:t_evolvability=>total_evol(qpdf))
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")  
+rwdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3E.csv")
+Plots.scatter([pdf.e_evolvability,Vector{Int64}(rwdf.d_evolvability)],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "sampling evolvability"],ylabel="log redundancy",xlabel="evolvability count")
+Plots.scatter!(legend=:topleft,title="lgredund vs evol & sampling evolvability3x1 8gts4lb4funcs")
+savefig("../data/10_8_22/lgredund_vs_evolQ_and_samplingE_evolvability3x1_8gts4lb4funcs.png")
+
+# Total evolvability is computed by evolution
+Plots.scatter([qpdf.e_evolvability,qpdf.t_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "total evolvability"],ylabel="log redundancy",xlabel="evolvability count")
+Plots.scatter!(legend=:bottomleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs")
+savefig("../data/10_8_22/lgredund_vs_evol_and_total_evolvability3x1_8gts4lb4funcs.png")

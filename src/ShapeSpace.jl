@@ -33,16 +33,20 @@ end
 # For each phenotype, computes the phenotypes in the unions of the k-neighborhoods of these circuits for each k in circuits_per_goal_list[2:end].  k==num_mutates.
 # For each phenotype, there is a row of the output dataframe which includes size of these neighborhoods for each k, 
 #   and if output_phenos==true, the list of phenos for the maximum k value.
+# Each entry of circuits_per_goal_list is a number of circuits used to compute the unique phenotype count
 function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, goal_list::GoalList, circuits_per_goal_list::Vector{Int64}, 
       max_tries::Int64, max_steps::Int64; increase_mutates::Bool=false, use_lincircuit::Bool=false, output_phenos::Bool=false, csvfile::String="" )
   println("circuits_per_goal_list: ",circuits_per_goal_list,"  circuits_per_goal_list[end]: ",circuits_per_goal_list[end])
+  kdict = kolmogorov_complexity_dict( p, funcs )
   if circuits_per_goal_list[end] > max_tries
     error("circuits_per_goal_list[end] < max_tries.  Increase max_tries in the call to shape_space_multiple_genos() ")
   end
   list_of_circuit_steps_lists = pheno_evolve_to_goals( p, funcs, goal_list, circuits_per_goal_list[end], max_tries, max_steps )
+  println("typeof(list_of_circuit_steps_lists): ",typeof(list_of_circuit_steps_lists),"  length(list_of_circuit_steps_lists): ",length(list_of_circuit_steps_lists))
   df = DataFrame()
   df.goal=String[] 
   df.complexity=Float64[] 
+  df.Kcomplexity=Float64[] 
   df.evolvability=Float64[] 
   #println("names(df): ",names(df),"  size(df): ",size(df))
   num_pheno_cols = increase_mutates ? num_mutates : length(circuits_per_goal_list)-1
@@ -56,8 +60,10 @@ function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mut
   #println("df: ",df,"  names(df): ",names(df))
   # Each call to process_genotype() will generate one row of the dataframe
   #df_row_list = pmap( circuit_steps_list->process_genotype( p, funcs, num_mutates, goal_list, circuits_per_goal_list, circuit_steps_list, 
-  df_row_list = map( circuit_steps_list->process_genotype( p, funcs, num_mutates, goal_list, circuits_per_goal_list, circuit_steps_list, 
+  df_row_list = pmap( circuit_steps_list->process_genotype( p, funcs, num_mutates, goal_list, circuits_per_goal_list, circuit_steps_list, 
       increase_mutates=increase_mutates, use_lincircuit=use_lincircuit, output_phenos=output_phenos ), list_of_circuit_steps_lists )
+  #df_row_list = map( circuit_steps_list->process_genotype( p, funcs, num_mutates, goal_list, circuits_per_goal_list, circuit_steps_list, 
+  #    increase_mutates=increase_mutates, use_lincircuit=use_lincircuit, output_phenos=output_phenos ), list_of_circuit_steps_lists )
   for df_row in df_row_list
     #println("length(df_row): ",length(df_row))
     push!(df,df_row)
@@ -85,6 +91,7 @@ end
 function process_genotype( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, goal_list::GoalList, circuits_per_goal_list::Vector{Int64},
       circuit_steps_list::Union{Vector{Tuple{LinCircuit,Int64}},Vector{Tuple{Chromosome,Int64}}}; 
     increase_mutates::Bool=false, use_lincircuit::Bool=false, output_phenos::Bool=false )
+  kdict = kolmogorov_complexity_dict( p, funcs )
   #circuits_list = map( cs->cs[1], circuits_steps_list )  # doesn't work for some reason
   circuits_list = [ circuit_steps_list[i][1] for i = 1:length(circuit_steps_list) ]
   #steps_list = map( cs->cs[2], circuits_steps_list )
@@ -96,6 +103,8 @@ function process_genotype( p::Parameters, funcs::Vector{Func}, num_mutates::Int6
   #println("pheno_string: ",pheno_string)
   complexity_list = map( complexity5, circuits_list )
   complexity = sum(complexity_list)/length(complexity_list)
+  Kcomplexity_list = map( ph->kdict[ph], map(c->output_values(c)[1],circuits_list ))
+  Kcomplexity = sum(Kcomplexity_list)/length(Kcomplexity_list)
   evolvability_list = map( c->genotype_evolvability(c,funcs), circuits_list )
   evolvability = sum(evolvability_list)/length(evolvability_list)
   #current_pheno(ci,p,funcs) = output_values( use_lincircuit ? circuit_int_to_circuit(ci,p,funcs) : int_to_chromosome(ci,p,funcs) )
@@ -118,11 +127,11 @@ function process_genotype( p::Parameters, funcs::Vector{Func}, num_mutates::Int6
   end
   #println("pheno_counts: ",pheno_counts)
   if output_phenos
-    df_row = vcat([ pheno_string, complexity, evolvability ], pheno_counts )
+    df_row = vcat([ pheno_string, complexity, Kcomplexity, evolvability ], pheno_counts )
     cumm_pheno_list = [ ph[1] for ph in cumm_pheno_set ]   # Assumes 1 output by extracting 1 component
     push!(df_row,cumm_pheno_list)
   else
-    df_row = vcat([ pheno_string, complexity, evolvability ], pheno_counts )
+    df_row = vcat([ pheno_string, complexity, Kcomplexity, evolvability ], pheno_counts )
   end
   #println("df_row: ",df_row)
   return df_row 

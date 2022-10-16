@@ -1,3 +1,7 @@
+Random walk sampling phenotype matrix
+Data in 9_29_22.  Plots in 9_30_22.
+
+Random walk Suffix I  more later
 phdfI = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22I.csv");
 phnI = df_to_matrix( phdf, 2, denormalize=false );
 evdI = entropy_evolvability( phn, include_self_edges=true );
@@ -8,6 +12,7 @@ mean(ss2) # 252.015625
 findall(x->iszero(x),ss2)  # 2-element Vector{Int64}: 106 151
 findall(x->(x>0.0 && x < 254.0),ss2) # Int64[]
 
+Random walk Suffix J  More later
 @time include("../data/9_29_22/run_random_walksJ.jl")  9 seconds 2000 walks 2000 steps nprocesses 8
 phdfJ = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22J.csv")
 phnJ = df_to_matrix( phdfJ, 2, denormalize=false )
@@ -19,6 +24,7 @@ mean(ss2) # 236.3671875
 findall(x->iszero(x),ss2)  # 2-element Vector{Int64}: 106 151
 findall(x->(x>0.0 && x < 246.0),ss2) # 6-element Vector{Int64}: 105 140 141 150 210 239
 
+Random walk Suffix K
 @time include("../data/9_29_22/run_random_walksK.jl")  2 seconds 1000 walks 1000 steps nprocesses 8
 phdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22K.csv");
 phn = df_to_matrix( phdf, 2, denormalize=false );
@@ -48,7 +54,7 @@ rdict = redundancy_dict(p,funcs);
 kdict = kolmogorov_complexity_dict(p,funcs);
 #   k_csvfile: ../data/counts/k_complexity_3x1_4funcs7_11_22E.csv
 
-Suffix J
+Random walk Suffix J
 nwalks = 2000
 steps = 2000
 phdfJ = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22J.csv");
@@ -64,7 +70,7 @@ ss1J = map(ph->length(shape_space_evolvability( ph, phnJ, 1 )),collect(0x0000:0x
 ss2J = map(ph->length(shape_space_evolvability( ph, phnJ, 2 )),collect(0x0000:0x00ff));
 (mean(ss2J),findmin(ss2J),findmax(ss2J)) #  (223.73046875, (0, 23), (246, 1))
 
-Suffix I
+Random walk Suffix I
 nwalks = 10_000
 steps = 5000
 phdfI = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22I.csv");
@@ -80,7 +86,7 @@ ss1I = map(ph->length(shape_space_evolvability( ph, phnI, 1 )),collect(0x0000:0x
 ss2I = map(ph->length(shape_space_evolvability( ph, phnI, 2 )),collect(0x0000:0x00ff));
 (mean(ss2I),findmin(ss2I),findmax(ss2I)) #  (251.3046875, (0, 106), (254, 1))
 
-Suffix G
+Random walk Suffix G
 nwalks = 50_000
 steps = 5000
 @time include("../data/9_29_22/run_random_walksG.jl")  # 584 seconds
@@ -103,6 +109,66 @@ scatter(ppdf.ent_evol,ppdf.Kcomp,labels="K complxity vs entropy evolvability",xl
 savefig("../data/9_30_22/Kcompleixity_vs_entropy_evolvabilty_3x1_7gts4lb_4_funcs.png")
 ss1 = map(ph->length(shape_space_evolvability( ph, phnI, 1 )),collect(0x0000:0x00ff));
 ss2 = map(ph->length(shape_space_evolvability( ph, phnI, 2 )),collect(0x0000:0x00ff));
+
+Suffix S  100,000 walks 5000 steps 4x1 9488 seconds 20393x20393 matrix
+Successfully moved the csv file to mac and fluda using rsyn.
+sdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22S.csv");
+phn = df_to_matrix_mt(sdf,2,denormalize=false);   # in evolvable_evolvability.jl
+p = Parameters(4,1,10,5); funcs=default_funcs(p)
+kdict = kolmogorov_complexity_dict(p,funcs);
+rgoals = Vector{MyInt}(map(g->MyInt(Meta.parse(g)),sdf.goal))
+Kcomp = Vector{Int64}(map(g->kdict[g],rgoals))
+rdict = redundancy_dict(p,funcs);
+dredund = map(g->lg10(rdict[g]),rgoals)
+heatmap_scatter_plot(Kcomp,dredund,"Kolmogorov complexity", "log redundancy", "../data/9_30_22/Kcomplexity_vs_logredund_3x1_7gts4lb_4_funcsS.png")
+#  [+] Plot succesfully created and saved to ../data/9_30_22/Kcomplexity_vs_logredund_3x1_7gts4lb_4_funcsS.png
+scatter(Kcomp,dredund,xlabel="Kolmogorov complexity",ylabel="log redundancy",title="log redundancy vs K complexity 4x1 10gts5lb 4funcs S") #shows strong linear negative relationshiip
+savefig("../data/9_30_22/log_redundancy_vs_K_complexity_4x1_10gts5lb_4funcs_S")
+event = entropy_evolvability( phn, include_self_edges=true);
+scatter(Kcomp,evd,xlabel="Kolmogorov complexity", ylabel="Entropy evolvability",legend=:none,jtitle="Entropy evolvability vs Kcomplex 4x1 10gts5lb4funcs S")  
+savefig("../data/9_30_22/Entropy_evolvability_vs_Kcomplex_4x1_10gts5lb4funcs_S")
+heatmap(Kcomp,evd,"Kolmogorov complexity", "Evolvable evolvability")
+heatmap_scatter_plot(Kcomp,event,"Kolmogorov complexity", "Entropy evolvability", "../data/9_30_22/Kcomplexity_vs_entropy_evol_3x1_7gts4lb_4_funcsS.png")
+[+] Plot succesfully created and saved to ../data/9_30_22/Kcomplexity_vs_entropy_evol_3x1_7gts4lb_4_funcsS.png
+ssdf = read_dataframe("../data/9_29_22/shape_space_countsS.csv") 
+scatter(Kcomp,ssdf.ss3,xlabel="Kolmogorov complexity", ylabel="shape-space evolvability 3",legend=:none,title="Entropy evol vs shapespace3 4x1 10gts5lb4funcsS") 
+savefig("../data/9_30_22/Entropy_evol_vs_shapespace3_4x1_10gts5lb4funcsS") 
+heatmap(Kcomp,ssdf.ss3,"Kolmogorov complexity", "shape-space3")
+heatmap_scatter_plot(Kcomp,event,"Kolmogorov complexity", "shape-space3", "../data/9_30_22/Kcomplexity_vs_shapespace3_3x1_7gts4lb_4_funcsS.png")
+# done on surt2
+ss1 = run_shape_space_evolvability( rgoals, phn, 1 );  # 11.384499 seconds
+ss2 = run_shape_space_evolvability( rgoals, phn, 2 );  # 105 seconds
+ss3 = run_shape_space_evolvability( rgoals, phn, 3 );  # 7958 seconds surt2 28 threads
+ssdf = DataFrame( :goal=>rgoals, :ss1=>ss1, :ss2=>ss2, :ss3=>ss3 )
+write_dataframe_with_comments( ssdf, "../data/9_29_22/robust_evo_by_walks9_29_22S.csv", "../data/9_29_22/shape_space_countsR.csv")
+IOStream(<file ../data/9_29_22/shape_space_countsS.csv>)
+
+Suffix T 
+rsyn of data/9_29_22/robust_evo_by_walks9_29_22T.csv to fluda worked easily, but creating matrix phn ran out of memory which killed the job.
+Reading the dataframe into the mac is unlikely to work.
+tdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22T.csv")
+# surt2
+phn = df_to_matrix_mt(tdf,2,denormalize=false)
+phn = map(UInt32,phn)
+using JLD
+save("../data/9_29_22/ph_matrixT.jld","phmatT",phn)
+rdf = DataFrame( :rgoals=>tdf.goal)
+write_dataframe(rdf,"../data/9_29_22/rgoalsT.csv")
+# fluda
+rsyn surt2:cgpd/9_29_22 .
+  receiving incremental file list
+  9_29_22/
+  9_29_22/ph_matrixT.jld
+jldict = load("../data/9_29_22/ph_matrixT.jld")
+Dict{String, Any} with 1 entry:
+  "phmatT" => Int32[185136389 89069 … 10064 5933837; 89528
+  # might work on mac
+phmatT = jldict["phmatT"]
+rgoals = map(ph->eval(Meta.parse(ph)),rdf.rgoals)
+  59760-element SentinelArrays.ChainedVector{Unsigned, Vector{Unsigned}}rdf = read_dataframe("../data/9_29_22/rgoalsT.csv")
+@time ss1 = run_shape_space_evolvability( Vector{MyInt}(rgoals), phmatT, 1 );  # 48 seconds
+kdict = kolmogorov_complexity_dict(p,funcs)
+rdict = redundancy_dict(p,funcs)
 
 
 Exact:

@@ -1,11 +1,12 @@
 Idea:  Define total evolvability which is the combination of evolvability in both directions.
 See the function total_evolvability() in evolvable_evolvability.jl which is a 2-line definition.
+See notes/10_9_22.txt for update with 8 gates 4 lb.
 
+pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
 plot([sort(df.t_evolvability),sort(df.e_evolvability),sort(df.s_evolvability)],labels=["total evolvability" "evolution evolvability" "samplingevolvability"])
 plot!(ylabel="Evolvability", xlabel="rank", title="Sorted total, evolution, sampling evolvabilities")
 plot!(legend=:topleft)
 savefig("../data/7_8_22/total_evolution_sampling_evolvabilities_3x1_7gt4lb.png")
-
 
 scatter(pdf.t_evolvability,pdf.complexity,labels=:none)
 scatter!(xlabel="total evolvability", ylabel="Tononi complexity", title="Tononi complexity vs total evolvability 3x1 7gts4lb")
@@ -17,7 +18,6 @@ scatter!(xlabel="total evolvability", ylabel="log redundancy",title="log redunda
 savefig("../data/7_8_22/total_evol_vs_log_redundancy_3x1_7_4.png")
 
 # Total and evolution evolvability vs log redundancy
-pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
 insertcols!(pdf,5,:t_evolvability=>total_evol(pdf))
 rename!(pdf,:evolvability=>:e_evolvability)
 scatter([pdf.t_evolvability,pdf.e_evolvability],map(lg10,pdf.ints7_4),labels=["total evolvability" "evolution evolvability"])
@@ -28,7 +28,7 @@ savefig("../data/7_8_22/total_evolution_evol_vs_log_redundancy_3x1_7_4.png")
 Specific example:  pheno [0x0a] e_evolvability=152 t_evolvability=243 redundancy=149312004
 
 ============================================================================================
-Shaps space coverage:  ShapeSpace.jl
+Shape space coverage:  ShapeSpace.jl
 
 data/7_16_22/run_common_coverageD.jl
 pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")

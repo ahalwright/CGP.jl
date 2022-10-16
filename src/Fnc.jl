@@ -348,13 +348,13 @@ function pheno_counts( p::Parameters, funcs::Vector{Func}; csvfile::String="" )
 end
 
 # Returns a DataFrame with 2 columns: goal and counts.  
-#   counts is the exact number of genotypes which map to the goal phenotype.
+#   counts is eci = collect(0:Int64(ceil(count_circuits_ch( p, nfuncs=length(funcs))) ) )  # the exact number of genotypes which map to the goal phenotype.
 # If output_vect==true, returns a pair where the first element of the pair is the DataFrame described above, 
 #   and the second element of the pair is a vector P so that P(i) is the phenotype mapped to by the
 #    circuit (genotype) corresponding to chromosome_int i.
 function pheno_counts_ch( p::Parameters, funcs::Vector{Func}; csvfile::String="", output_vect::Bool=false )
   counts = zeros(Int64,2^2^p.numinputs)
-  eci = collect(0:Int64(ceil(count_circuits_ch( p, nfuncs=length(funcs))) ) )
+  eci = collect(0:Int64(ceil(count_circuits_ch( p, nfuncs=length(funcs))))-1 )
   if output_vect 
     P = fill(MyInt(0),length(eci))
   end

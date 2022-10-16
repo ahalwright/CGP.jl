@@ -354,7 +354,7 @@ end
 #    circuit (genotype) corresponding to chromosome_int i.
 function pheno_counts_ch( p::Parameters, funcs::Vector{Func}; csvfile::String="", output_vect::Bool=false )
   counts = zeros(Int64,2^2^p.numinputs)
-  eci = collect(0:Int64(ceil(count_circuits_ch( p, nfuncs=length(funcs))) ) )
+  eci = collect(0:Int64(ceil(count_circuits_ch( p, nfuncs=length(funcs))))-1 )
   if output_vect 
     P = fill(MyInt(0),length(eci))
   end
@@ -382,6 +382,43 @@ function pheno_counts_ch( p::Parameters, funcs::Vector{Func}; csvfile::String=""
     end
   end
   return output_vect ?  (df,P) :  df
+end
+
+# If normalize, divide each row of the matrix by the redundancy of the corresponding phenotype
+function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize::Bool=false, csvfile::String="" )
+  nphenos = 2^(2^p.numinputs)
+  phnet_matrix = zeros( Int64, nphenos, nphenos )
+  (pdf, circ_to_phenotype) = pheno_counts_ch( p, funcs, output_vect=true )
+  for circint = 0:length(circ_to_phenotype)-1
+    circ = int_to_chromosome( circint, p, funcs )
+    from_ph = output_values( circ )[1]
+    mut_phenos = map(x->x[1], mutate_all( circ, funcs ) )
+    for to_ph in mut_phenos
+      phnet_matrix[ from_ph+MyInt(1), to_ph+MyInt(1) ] += 1
+    end
+  end
+  if normalize 
+    phnet_matrix_float = map(x->Float64(x),phnet_matrix)
+    for i = 1:size(phnet_matrix_float)[1]
+      phnet_matrix_float[i,:] /= pdf.counts[i]
+      phnet_matrix_float[i,i] = 0.0
+    end
+    phdf = matrix_to_dataframe( phnet_matrix_float, goallist, hex=true, redund_column=pdf.counts )
+  else
+    phdf = matrix_to_dataframe( phnet_matrix, goallist, hex=true, redund_column=pdf.counts )
+  end
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      prihtln(f,"not multithreaded")
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      CSV.write( f, phdf, append=true, writeheader=true )
+    end
+  end
+  phdf
 end
 
 # Returns a DataFrame with 2 columns: goal and counts.  
@@ -540,7 +577,8 @@ end
 
 # The include_self_edges keyword argument is true, then self edges are included in the computation of the normalizing divisor for rows.
 # This reduces entropy evolvability, especially for high-robustness phenotypes.
-function entropy_evolvability( phmatrix::Matrix; include_self_edges::Bool=false )
+# include_self_edges==true works much better.  See notes/10_13_22.txt
+function entropy_evolvability( phmatrix::Matrix; include_self_edges::Bool=true )
   nphenos = size(phmatrix)[1]
   @assert nphenos == size(phmatrix)[2]
   evolvability_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
@@ -548,7 +586,20 @@ function entropy_evolvability( phmatrix::Matrix; include_self_edges::Bool=false 
   Threads.@threads for i = 1:nphenos
     row = strength_list[i] > 0.0 ? phmatrix[i,:]/strength_list[i] : zeros(Float64,nphenos)
     row[i] = 0.0
-    Threads.atomic_add!( evolvability_list[i], StatsBase.entropy( row ) )
+    Threads.atomic_add!( evolvability_list[i], CGP.entropy( row ) )  # Note that StatsBase.entropy doesn't work 
+  end
+  map( i->evolvability_list[i][], 1:nphenos )
+end
+
+function entropy_evolvabilityA( phmatrix::Matrix; include_self_edges::Bool=true )
+  nphenos = size(phmatrix)[1]
+  @assert nphenos == size(phmatrix)[2]
+  evolvability_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
+  strength_list = strength_evolvability( phmatrix, include_self_edges=include_self_edges )
+  Threads.@threads for i = 1:nphenos
+    row = strength_list[i] > 0.0 ? phmatrix[i,:]/strength_list[i] : zeros(Float64,nphenos)
+    row[i] = 0.0
+    Threads.atomic_add!( evolvability_list[i], StatsBase.entropy( row ) )  # Note that StatsBase.entropy doesn't work 
   end
   map( i->evolvability_list[i][], 1:nphenos )
 end
@@ -574,10 +625,9 @@ end
 function shape_space_evolvability( ph::MyInt, phlist::Vector{MyInt}, phn::Matrix, num_mutates::Int64 )
   @assert ph in phlist
   phset = evo_phset( ph, phlist, phn )
-  phset_list = map( s->evo_phset( s, phlist, phn ), [s for s in phset] )
   for i = 2:num_mutates
+    phset_list = map( s->evo_phset( s, phlist, phn ), [s for s in phset] )
     for phs in phset_list
-      # union!( phset, evo_phset( s, phlist, phn ) )
       union!( phset, phs )
     end
   end

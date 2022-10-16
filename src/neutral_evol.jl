@@ -30,44 +30,45 @@
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
-function neutral_evol( c::Chromosome, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false )
+function neutral_evol( c::Chromosome, funcs::Vector{Func}, g::Goal, max_steps::Integer; mut_inf_matrix::Matrix{Float64}=zeros(Float64,1,1), print_steps::Bool=false )
   default_funcs( c.params.numinputs )
   step = 0
   ov = output_values( c) 
-  current_distance = hamming_distance( ov, g, c.params.numinputs )
+  current_fitness = fitness_funct( p, c, [g], mut_inf_matrix=mut_inf_matrix )
   new_c = deepcopy(c)
   while step < max_steps && ov != g
     step += 1
     new_c = deepcopy(c)
     (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=0.0, delete_gate_prob=0.0 )
     new_ov = output_values( new_c )
-    new_distance = hamming_distance( new_ov, g, c.params.numinputs )
+    #new_distance = hamming_distance( new_ov, g, c.params.numinputs )
+    new_fitness = fitness_funct( p, c, [g], mut_inf_matrix=mut_inf_matrix )
     #=
     if step < 20
-      print("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance,"  " )
+      print("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur fitness: ",current_fitness,"  new_fitness: ",new_fitness,"  " )
       print_circuit(new_c)
     end
     =#
     if new_ov == ov 
       c = new_c
       if print_steps
-        print("step: ",step," is pheno neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance,"  ")
+        print("step: ",step," is pheno neutral.  new_ov: ",new_ov,"  new_fitness: ",new_fitness,"  ")
         print_circuit(new_c)
       end
-    elseif new_distance == current_distance
+    elseif new_fitness == current_fitness
       c = new_c
       if print_steps
-        print("step: ",step," is fitness neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance,"  ")
+        print("step: ",step," is fitness neutral.  new_ov: ",new_ov,"  new_fitness: ",new_fitness,"  ")
         print_circuit(new_c)
       end      
-    elseif new_distance < current_distance
+    elseif new_fitness < current_fitness
       if print_steps
-        println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
+        println("step: ",step,"  new_output: ",new_ov," fitness improved from ",current_fitness," to ",new_fitness)
         print_circuit(new_c)
       end
       c = new_c
       ov = new_ov
-      current_distance = new_distance
+      current_fitness = new_fitness
     else
       if print_steps && step <= 20
         print("step: ",step,"  new_output: ",new_ov,"  new circuit: ")

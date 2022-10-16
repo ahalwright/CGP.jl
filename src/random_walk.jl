@@ -11,13 +11,16 @@ using DataFrames, CSV, Dates, Base.Threads
 # The methodology is to do nprocesses*nwalks random walks each of length steps, and record all of the transitions made.
 # gl is a list of MyInts (for single-output goals) that robust_evolvability() uses to create the output dataframe which 
 #   includes robustness, d_evolvability, and s_evolvability.
+# If exclude_zero_rows is false, then results will include zero rows of goal_edge_matrix
 # If csvfile is specified, writes the dataframe to this file.
-function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector{MyInt}, p::Parameters, steps::Int64; 
-      csvfile::String="", output_dict::Bool=true, save_complex::Bool=false, use_lincircuit::Bool=false )
+function run_random_walks_parallel( p::Parameters, nwalks::Int64, gl::Vector{MyInt}, steps::Int64; 
+      csvfile::String="", exclude_zero_rows::Bool=false, output_dict::Bool=false, save_complex::Bool=false, use_lincircuit::Bool=false )
+  nprocesses = nworkers()
   if save_complex && !output_dict
     error("The save_complex=true and output_dict=false options are not compatible in run_random_walks_parallel().")
   end
-  ngoals = 2^(2^p.numinputs)
+  #ngoals = 2^(2^p.numinputs)
+  #gl = collect(MyInt(0):MyInt(ngoals-1))
   addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
   if output_dict
     goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
@@ -34,21 +37,27 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
     #return goal_pair_dict
     df = robust_evolvability( goal_pair_dict, gl, p, save_complex )  # The version of robust_evolvability() called depends on the type of goal_pair_dict
   else
-    #goal_edge_matrix = zeros(Int64,ngoals,ngoals)
-    #goal_edge_matrix_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ), collect(1:nprocesses) )
-    #goal_edge_matrix_list = map( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ), collect(1:nprocesses) )
     goal_edge_matrix = run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ) 
-    #=
-    println("len: ",length(goal_edge_matrix_list),"  size: ",size(goal_edge_matrix_list[1]),"  type: ",typeof(goal_edge_matrix_list[1]))
-    for gem in goal_edge_matrix_list
-      goal_edge_matrix .+= gem
+    if exclude_zero_rows
+      bv = BitVector(map(i->!iszero(sum(goal_edge_matrix[i,:])),1:size(goal_edge_matrix)[1]))
+    else
+      bv = BitVector(fill(1,size(goal_edge_matrix)[1]))
     end
-    =#
+    println("sum(bv): ",sum(bv))
     #println("goal edge matrix")
     #println(goal_edge_matrix)
-    #df = robust_evolvability( goal_edge_matrix, gl )
-    df = matrix_to_dataframe( goal_edge_matrix, gl, hex=true )
+    df = matrix_to_dataframe( goal_edge_matrix[bv,bv], gl[bv], hex=true )
+    gem_bv = goal_edge_matrix[bv,bv]
+    B = map( x->(iszero(x) ? 0 : 1), gem_bv )
+    d_evolvability = map(i->sum( ( i!=j ? B[i,j] : 0) for j=1:sum(bv) ), 1:sum(bv))
+    s_evolvability = map(i->sum( ( i!=j ? gem_bv[i,j] : 0) for j=1:sum(bv) ), 1:sum(bv) )
+    t_evolvability = total_evol(goal_edge_matrix)
+    #println("min d_evo: ",findmin(d_evolvability_list),"   min s_evo: ",findmin(s_evolvability_list))
+    insertcols!(df, 2, :d_evolvability=>d_evolvability )
+    insertcols!(df, 3, :s_evolvability=>s_evolvability )
+    insertcols!(df, 4, :t_evolvability=>t_evolvability )
   end
+  #csvfile = ""
   if length(csvfile) > 0
     println("csvfile: ",csvfile)
     open( csvfile, "w" ) do f
@@ -68,7 +77,14 @@ function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector
     end
   end
   df
-  #goal_edge_matrix
+  #goal_edge_matrix[bv,bv]
+end
+
+# backward compatibility version
+function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector{MyInt}, p::Parameters, steps::Int64; 
+      csvfile::String="", exclude_zero_rows::Bool=false, output_dict::Bool=false, save_complex::Bool=false, use_lincircuit::Bool=false )
+  run_random_walks_parallel( p, nwalks, phlist, steps::Int64; 
+      csvfile=csvfile, exclude_zero_rows=exclude_zero_rows, output_dict=output_dict, save_complex=save_complex, use_lincircuit=use_lincircuit)
 end
 
 function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_lincircuit::Bool=false, output_dict::Bool=false, save_complex::Bool=false )
@@ -380,3 +396,11 @@ function dict_to_evolvability( goal_pair_dict::Dict{Tuple{MyInt,MyInt},Int64}, g
   df.d_evolvability = d_evolvability
   df
 end
+
+# Close to the corresponding function in evolvable_evolvability.jl
+function total_evol( goal_edge_matrix::Matrix )
+  to_bool(x::Number) = !iszero(x) ? true : false
+  to_binary(x::Bool) = x ? 1 : 0
+  B = map( to_bool, goal_edge_matrix )
+  map( x->sum( B[x,:] .|| B[:,x] ) - to_binary( B[x,x] ), 1:size(goal_edge_matrix)[1] )
+end  
