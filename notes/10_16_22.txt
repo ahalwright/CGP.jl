@@ -1,3 +1,14 @@
+Evolve from low K complexity to high K complexity, and attempt with T complexity
+
+Function run_evolve_to_Kcomplexity_mt(), evolve_to_Kcomplexity(), evolve_to_K_complexity_mt() in evolvable_evolvability.jl.
+
+Dataframe/CSV results in data/10_16_22
+
+
+Tried to do the same for Tononi complexity as a substitute for K complexity for numinputs==5, but there is not a good correspondence.
+Many circuits with K complexity 1 and phenotype 0x0000 and 0xffff have high T complexity.  
+
+# some examples.
 p = Parameters(4,1,10,5); funcs=default_funcs(p); push!(funcs,XOR)  # So length(funcs)==5
 
 # Set parameters

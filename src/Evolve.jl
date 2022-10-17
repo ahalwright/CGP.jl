@@ -900,6 +900,7 @@ end
 function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false,
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
       save_acomplexities::Bool=false ) # Save acomplexity, evolvability, robustness of phenos produced by mutate_all on every step
+  println("neutral evolution started for goal: ",g)
   #if typeof(c) == Chromosome
   #  println("neutral evolution: ")
   #  print_circuit(c)
@@ -1240,4 +1241,117 @@ function fitness_funct( p::Parameters, c::Chromosome, gl::GoalList; mut_inf_matr
   else  
     maximum( mut_inf_matrix[ov[1]+1,g[1]+1] for g in gl )
   end
+end
+
+function run_to_rand_phenos( param_list::Vector{Parameters}, funcs::Vector{Func}, ngoals::Int64, ngoalreps::Int64,  max_tries::Int64, max_steps::Int64;
+    csvfile::String="" )
+  phlist = randgoallist( ngoalreps*ngoals, paramlist[1], repetitions=ngoalreps )
+  println("phlist: ",phlist)
+  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[] )
+  for p in param_list
+    default_funcs(p)
+    ( steps, tries, Tcmplx ) = run_evolve_to_pheno( p, funcs, phlist, max_tries, max_steps )
+    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx ))
+  end
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = readchomp(`hostname`)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      println(f,"# numinputs_list: ",map(i->param_list[i].numinputs,1:length(param_list)))
+      println(f,"# numinteriors_list: ",map(i->param_list[i].numinteriors,1:length(param_list)))
+      println(f,"# ngoals: ",ngoals)
+      println(f,"# ngoalreps: ",ngoalreps)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+function run_to_rand_phenos_mt( param_list::Vector{Parameters}, funcs::Vector{Func}, ngoals::Int64, ngoalreps::Int64,  max_tries::Int64, max_steps::Int64;
+    csvfile::String="" )
+  phlist = randgoallist( ngoalreps*ngoals, paramlist[1], repetitions=ngoalreps )
+  println("phlist: ",phlist)
+  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[] )
+  for p in param_list
+    default_funcs(p)
+    ( steps, tries, Tcmplx ) = run_evolve_to_pheno_mt( p, funcs, phlist, max_tries, max_steps )
+    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx ))
+  end
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = readchomp(`hostname`)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      println(f,"# numinputs_list: ",map(i->param_list[i].numinputs,1:length(param_list)))
+      println(f,"# numinteriors_list: ",map(i->param_list[i].numinteriors,1:length(param_list)))
+      println(f,"# ngoals: ",ngoals)
+      println(f,"# ngoalreps: ",ngoalreps)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64 )
+  println("run_evolve_to_pheno_mt() started")
+  nphenos = length(phlist)
+  #ttry_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
+  #steps_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
+  #Tcomplexity_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
+  ttries = Atomic{Int64}(0.0)
+  ssteps = Atomic{Int64}(0.0)
+  Tcomplexity = Atomic{Float64}(0.0)
+  Threads.@threads for i = 1:nphenos
+    ( nc, steps, tries ) = evolve_to_pheno( p, funcs, phlist[i], max_tries, max_steps )
+    Threads.atomic_add!( ssteps, steps )
+    Threads.atomic_add!( ttries, tries )
+    Tcmplx = (p.numinteriors <= 20) ? complexity5(nc) : 0.0
+    Threads.atomic_add!( Tcomplexity, Tcmplx )
+  end  
+  println("run_evolve_to_pheno_mt() finished")
+  ( ssteps[]/nphenos, ttries[]/nphenos, Tcomplexity[]/nphenos )
+end
+
+function run_evolve_to_pheno( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64 )
+  ttry_list = Int64[]
+  steps_list = Int64[]
+  Tcomplexity_list = Float64[]
+  result_list = pmap( ph->evolve_to_pheno( p, funcs, ph, max_tries, max_steps ), phlist )
+  #result_list = map( ph->evolve_to_pheno( p, funcs, ph, max_tries, max_steps ), phlist )
+    #(nc, ttry, steps) = evolve_to_pheno( p, funcs, ph, max_tries, max_steps )
+  for result in result_list
+    push!(steps_list,result[2])
+    push!(ttry_list,result[3])
+    if p.numinteriors <= 20
+      push!(Tcomplexity_list,complexity5(result[1]))
+    else
+      push!(Tcomplexity_list,0.0)
+    end
+  end
+  (mean(steps_list), mean(ttry_list), mean(Tcomplexity_list))
+end    
+
+function evolve_to_pheno( p::Parameters, funcs::Vector{Func}, ph::Goal, max_tries::Int64, max_steps::Int64; c::Chromosome=random_chromosome(Parameters(1,1,0,1),default_funcs(p)) )
+  if c.params.numinputs == 1
+    c = random_chromosome(p,funcs)
+  end
+  ttry = 1
+  (nc,steps) = neutral_evolution( c, funcs, ph, max_steps)
+  total_steps = steps
+  while ttry < max_tries && steps == max_steps
+    (nc,steps) = neutral_evolution( c, funcs, ph, max_steps )
+    total_steps += steps
+    ttry += 1
+  end
+  if ttry == max_tries && steps == max_steps
+    return nothing
+  end
+  return (nc,steps,ttry)
 end
