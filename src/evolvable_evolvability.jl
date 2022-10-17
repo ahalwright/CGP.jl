@@ -490,8 +490,32 @@ function find_phenotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kc
   end
 end
 
+# Find a random phenotype with a specified minimum T complexity
+function find_phenotype_with_min_Tcomplexity( p::Parameters, funcs::Vector{Func}, Tcomplexity::Int64, max_steps::Int64 )
+  step = 0
+  #ph = rand(MyInt(0):MyInt(2^2^p.numinputs-1))
+  c = random_chromosome( p, funcs)
+  CTcmplx = complexity5(c)
+  println("CTcmplx: ",CTcmplx,"  output_values(c): ",output_values(c),"  kdict[output_values(c)[1]]: ",kdict[output_values(c)[1]],"  number active: ",number_active(c))
+  while step < max_steps && CTcmplx < Tcomplexity
+    c = random_chromosome( p, funcs)
+    CTcmplx = complexity5(c)
+    println("step: ",step,"  CTcmplx: ",CTcmplx,"  output_values(c): ",output_values(c),"  kdict[output_values(c)[1]]: ",kdict[output_values(c)[1]],"  number active: ",number_active(c))
+    step += 1
+  end
+  #println("Tcmplx: ",CTcmplx)
+  ph = output_values(c)[1]
+  if step == max_steps
+    println("WARNING: find_phenotype_with_Kcomplexity() failed with Kcomplexity: ",Kcomplexity," and step: ",step)
+    return nothing
+  else
+    return ph
+  end
+end
+
 # Find a random genotype with a specified K complexity
 function find_genotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kcomplexity::Int64, max_steps::Int64; kdict::Dict=Dict() )
+  #println("find_genotype_with_Kcomplexity() Kcomplexity: ",Kcomplexity)
   if length(kdict) == 0
     kdict = kolmogorov_complexity_dict(p,funcs)
   end
@@ -502,13 +526,83 @@ function find_genotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kco
     step += 1
   end
   if step == max_steps
+    println("WARNING: find_genotype_with_Kcomplexity() failed with Kcomplexity: ",Kcomplexity," and step: ",ste)
     return nothing
   else
+    #println("find_genotype_with_Kcomplexity() kdict[output_values(c)[1]]: ",kdict[output_values(c)[1]])
     return c
   end
 end
 
-# Do multiple epochal evolutions ( calls to neutral_evolve() ) to evolve from a circuit of Kconplexity fromKcomplexity to a goal of Kcomplexity toKcomplexity
+# Find a random genotype with a specified max T complexity
+function find_genotype_with_max_Tcomplexity( p::Parameters, funcs::Vector{Func}, Tcomplexity::Int64, max_steps::Int64 )
+  println("Tcomplexity: ",Tcomplexity)
+  step = 0
+  c = random_chromosome( p, funcs)
+  CTcmplx = complexity5(c)
+  println("Tcomplexity: ",Tcomplexity,"  CTcmplx: ",CTcmplx)
+  while step < max_steps && ( CTcmplx > Tcomplexity || CTcmplx < Tcomplexity-1.0 )
+    c = random_chromosome( p, funcs)
+    CTcmplx = complexity5(c)
+    println("step: ",step,"  CTcmplx: ",CTcmplx,"  output_values(c)[1]: ",output_values(c)[1])
+    step += 1
+  end
+  if step == max_steps
+    return nothing
+  else
+    println("step: ",step,"  CTcmplx: ",CTcmplx,"  output_values(c)[1]: ",output_values(c))
+    return c
+  end
+end
+
+function run_evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromComplexity::Int64, toComplexity::Int64, nreps::AbstractRange, max_ev_tries::Int64, 
+      max_find_steps::Int64, max_evolve_steps::AbstractRange; csvfile::String="" )
+  nreps_list = Int64[]
+  max_ev_steps_list = Int64[]
+  numfailures_list = Int64[]
+  ttry_list_list = Vector{Int64}[]
+  mean_steps_list = Float64[]
+  median_steps_list = Float64[]
+  for nr in nreps
+    for mev_steps in max_evolve_steps
+      push!(nreps_list,nr)
+      push!(max_ev_steps_list,mev_steps)
+      (numfailures, ttry_list, total_steps_list) = 
+          #evolve_to_Kcomplexity( p, funcs, fromComplexity, toComplexity, nr, max_ev_tries, max_find_steps, mev_steps )
+          evolve_to_Kcomplexity_mt( p, funcs, fromComplexity, toComplexity, nr, max_ev_tries, max_find_steps, mev_steps, useKcomplexity=true)
+      push!(numfailures_list,numfailures)
+      push!(ttry_list_list,ttry_list)
+      push!(mean_steps_list,mean(total_steps_list))
+      push!(median_steps_list,median(total_steps_list))
+    end
+  end
+  len = length(nreps)*length(max_evolve_steps)    
+  df = DataFrame( 
+        :fromC=>fill(fromComplexity,len),
+        :toC=>fill(toComplexity,len),
+        :max_ev_tries=>fill(max_ev_tries,len),
+        :nreps=>nreps_list,
+        :failures=>numfailures_list,
+        :max_ev_steps=>max_ev_steps_list,
+        :mean_steps=>mean_steps_list,
+        :median_steps=>median_steps_list,
+        :try_list=>ttry_list_list
+  )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# max_find_steps: ",max_find_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+# Do multiple epochal evolutions ( calls to neutral_evolve() ) to evolve from a circuit of Kcomplexity fromKcomplexity to a goal of Kcomplexity toKcomplexity
 function evolve_to_Kcomplexity( p::Parameters, funcs::Vector{Func}, fromKcomplexity::Int64, toKcomplexity::Int64, nreps::Int64, max_ev_tries::Int64, max_find_steps::Int64, max_evolve_steps::Int64 )
   kdict = kolmogorov_complexity_dict(p,funcs)
   ttry_list = zeros(Int64,max_ev_tries)
@@ -517,7 +611,9 @@ function evolve_to_Kcomplexity( p::Parameters, funcs::Vector{Func}, fromKcomplex
   for i = 1:nreps
     c = find_genotype_with_Kcomplexity( p, funcs, fromKcomplexity, max_find_steps, kdict=kdict )
     ph = find_phenotype_with_Kcomplexity( p, funcs, toKcomplexity, max_find_steps, kdict=kdict )
-    println("i: ",i,"  Kfrom: ",kdict[output_values(c)[1]],"  Kto: ",kdict[ph])
+    #println("i: ",i,"  Kfrom: ",kdict[output_values(c)[1]],"  Kto: ",kdict[ph])
+    @assert fromKcomplexity == kdict[output_values(c)[1]]
+    @assert toKcomplexity == kdict[ph]
     ttry = 1
     (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
     total_steps = steps
@@ -526,11 +622,48 @@ function evolve_to_Kcomplexity( p::Parameters, funcs::Vector{Func}, fromKcomplex
       total_steps += steps
       ttry += 1
     end
-    if ttry == max_ev_tries && total_steps == max_evolve_steps
+    if ttry == max_ev_tries && steps == max_evolve_steps
       numfailures += 1
     end
     ttry_list[ttry] += 1
     total_steps_list[i] = total_steps
   end
   (numfailures,ttry_list,total_steps_list)
+end  
+
+# Do multiple epochal evolutions ( calls to neutral_evolve() ) to evolve from a circuit of complexity fromComplexity to a goal of complexity toComplexity
+# Multi-threaded version
+function evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromComplexity::Int64, toComplexity::Int64, nreps::Int64, max_ev_tries::Int64, max_find_steps::Int64, max_evolve_steps::Int64;
+    useKcomplexity::Bool=true ) # if useKcomplexity==false, this means use Tcomplexity
+  kdict = useKcomplexity ? kolmogorov_complexity_dict(p,funcs) : Dict()
+  ttry_list = [ Atomic{Int64}(0) for i= 1:max_ev_tries]
+  total_steps_list = [ Atomic{Int64}(0) for i= 1:nreps]
+  numfailures = Atomic{Int64}(0)
+  Threads.@threads for i = 1:nreps
+    if useKcomplexity
+      c = find_genotype_with_Kcomplexity( p, funcs, fromComplexity, max_find_steps, kdict=kdict )
+      ph = find_phenotype_with_Kcomplexity( p, funcs, toComplexity, max_find_steps, kdict=kdict )
+      #println("i: ",i,"  ph: ",ph,"  output_values(c): ",output_values(c),"  kdict[output_values(c)[1]]: ",kdict[output_values(c)[1]])
+      #println("i: ",i,"  Kfrom: ",kdict[output_values(c)[1]],"  Kto: ",kdict[ph])
+      @assert fromComplexity == kdict[output_values(c)[1]]
+      @assert toComplexity == kdict[ph]
+    else # use Tononi complexity
+      c = find_genotype_with_max_Tcomplexity( p, funcs, fromComplexity, max_find_steps )
+      ph = find_phenotype_with_min_Tcomplexity( p, funcs, toComplexity, max_find_steps )
+    end
+    ttry = 1
+    (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
+    total_steps = steps
+    while ttry < max_ev_tries && steps == max_evolve_steps
+      (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
+      total_steps += steps
+      ttry += 1
+    end
+    if ttry == max_ev_tries && steps == max_evolve_steps
+      Threads.atomic_add!( numfailures, 1 )
+    end
+    Threads.atomic_add!( ttry_list[ttry], 1 )
+    Threads.atomic_add!( total_steps_list[i], total_steps )
+  end
+  (numfailures[],map(tt->tt[],ttry_list),map(ts->ts[],total_steps_list))
 end  

@@ -1,0 +1,28 @@
+p = Parameters(4,1,10,5); funcs=default_funcs(p); push!(funcs,XOR)  # So length(funcs)==5
+
+# Set parameters
+fromKcomplexity=2; toKcomplexity=7; nreps=500; max_ev_tries=4; max_find_steps = 1000; max_evolve_steps=100_000
+aaa = evolve_to_Kcomplexity( p, funcs, fromKcomplexity, toKcomplexity, nreps, max_ev_tries, max_find_steps, max_evolve_steps )
+(17, [351, 82, 35, 32], [4207, 10610, 148951, 122674, 2642, 365198, 16464, 70653, 42177, 35980  …  24735, 25113, 31960, 107362, 6188, 251339, 174688, 336183, 26881, 7293])
+# 351/500 evolved on the first try, 82 on 2 tries, 35 on 3, 32 on 4, 17 failed
+mean(aaa[3])  83940.86
+median(aaa[3]) 40069.5
+
+# Set parameters
+fromKcomplexity=2; toKcomplexity=7; nreps=100; max_ev_tries=8; max_find_steps = 1000; max_evolve_steps=300_000
+aaa = evolve_to_Kcomplexity( p, funcs, fromKcomplexity, toKcomplexity, nreps, max_ev_tries, max_find_steps, max_evolve_steps )
+(0, [88, 8, 2, 2, 0, 0, 0, 0], [59057, 363605, 258666, 75860, 25162, 122545, 138795, 48748, 1172, 44938  …  29128, 227976, 91872, 27633, 19265, 192144, 17747, 21823, 78876, 56389])
+# 88/100 evolved on the first try, 8 on 2 tries, 2 on 3, 2 on 4, 0 failed
+mean(aaa[3]) 122292.69
+median(aaa[3]) 46922.0
+
+MyInt is UInt32
+Just over 2 seconds to compute T complexity
+Tlist = Float64[]
+for i = 1:500
+    push!(Tlist,complexity5(random_chromosome(p,funcs)))
+end
+mean(Tlist) 10.919762487971594
+using StatsPlots
+density(Tlist,xlabel="Tononi complexity",ylabel="density",title="Density of Tcomplexity 5x1 20gts10lb5funcs",legend=:none)
+savefig("../data/10_16_22/Density_of_Tcomplexity_5x1_20gts10lb5funcs.png")
