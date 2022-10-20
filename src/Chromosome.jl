@@ -361,6 +361,9 @@ function mutate_all( c::Chromosome, funcs::Vector{Func}=default_funcs(c.params.n
 end
 
 function num_mutate_locations( c::Chromosome, funcs::Vector{Func} )
+  if length(c.interiors) == 0
+    return 0
+  end
   num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
   interiors_inputs_list = [ c.interiors[i].inputs for i = 1:c.params.numinteriors ]
   outputs_input_list = [ c.outputs[i].input for i = 1:c.params.numoutputs ]
@@ -451,6 +454,10 @@ function node_values( c::Chromosome )
 end
 
 function output_values( c::Chromosome )
+  if length( c.outputs ) == 0
+    println( "empty chromosome in output_values()")
+    return [ MyInt(0) ]
+  end
   if !c[c.outputs[1].input].active   # if chromosome has not been executed
     context = construct_context(c.params.numinputs)
     return execute_chromosome(c,context)
@@ -932,8 +939,11 @@ function count_circuits_ch( p::Parameters; nfuncs::Int64=0 )
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
   #multiplier = UInt128(1)
-  multiplier = Float64(1)
-  #multiplier = BigInt(1)  # May not work
+  if p.numinputs <= 6 
+    multiplier = Float64(1)
+  else
+    multiplier = BigFloat(1)
+  end
   mij = 0
   for i = 1:p.numinteriors
     mf = nfuncs

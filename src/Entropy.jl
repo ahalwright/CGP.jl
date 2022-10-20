@@ -466,7 +466,7 @@ function mutual_information( P::Vector{FPopulation}; base::Float64=2.0 )
 end
 
 function mutual_information( P1::FPopulation, P2::FPopulation; base::Float64=2.0 )
-  println("MI pops_to_tbl")
+  #println("MI pops_to_tbl")
   sherwin_mutual_information( pops_to_tbl( [P1, P2] ), base=base )
 end 
 

@@ -83,7 +83,7 @@ end
 # backward compatibility version
 function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector{MyInt}, p::Parameters, steps::Int64; 
       csvfile::String="", exclude_zero_rows::Bool=false, output_dict::Bool=false, save_complex::Bool=false, use_lincircuit::Bool=false )
-  run_random_walks_parallel( p, nwalks, phlist, steps::Int64; 
+  run_random_walks_parallel( p, nwalks, gl, steps::Int64; 
       csvfile=csvfile, exclude_zero_rows=exclude_zero_rows, output_dict=output_dict, save_complex=save_complex, use_lincircuit=use_lincircuit)
 end
 

@@ -900,7 +900,7 @@ end
 function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false,
       insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
       save_acomplexities::Bool=false ) # Save acomplexity, evolvability, robustness of phenos produced by mutate_all on every step
-  println("neutral evolution started for goal: ",g)
+  #println("neutral evolution started for goal: ",g)
   #if typeof(c) == Chromosome
   #  println("neutral evolution: ")
   #  print_circuit(c)
@@ -934,8 +934,8 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
     new_distance = hamming_distance( new_ov, g, c.params.numinputs )
     #=
     if step < 20
-      print("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance,"  " )
-      print_circuit(new_c)
+      #print("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur dis: ",current_distance,"  new_dis: ",new_distance,"  " )
+      #print_circuit(new_c)
     end
     =#
     #print("new_c: ")
@@ -1258,7 +1258,7 @@ function run_to_rand_phenos( param_list::Vector{Parameters}, funcs::Vector{Func}
       hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
-      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      println(f,"# funcs: ", Main.CGP.default_funcs(param_list[1].numinputs))
       println(f,"# numinputs_list: ",map(i->param_list[i].numinputs,1:length(param_list)))
       println(f,"# numinteriors_list: ",map(i->param_list[i].numinteriors,1:length(param_list)))
       println(f,"# ngoals: ",ngoals)
@@ -1275,18 +1275,18 @@ function run_to_rand_phenos_mt( param_list::Vector{Parameters}, funcs::Vector{Fu
     csvfile::String="" )
   phlist = randgoallist( ngoalreps*ngoals, paramlist[1], repetitions=ngoalreps )
   println("phlist: ",phlist)
-  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[] )
+  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[], :tries_list=>Vector{Int64}[] )
   for p in param_list
     default_funcs(p)
-    ( steps, tries, Tcmplx ) = run_evolve_to_pheno_mt( p, funcs, phlist, max_tries, max_steps )
-    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx ))
+    ( steps, tries, Tcmplx, tries_list ) = run_evolve_to_pheno_mt( p, funcs, phlist, max_tries, max_steps )
+    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx, tries_list ))
   end
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
       hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
-      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      println(f,"# funcs: ", Main.CGP.default_funcs(param_list[1].numinputs))
       println(f,"# numinputs_list: ",map(i->param_list[i].numinputs,1:length(param_list)))
       println(f,"# numinteriors_list: ",map(i->param_list[i].numinteriors,1:length(param_list)))
       println(f,"# ngoals: ",ngoals)
@@ -1305,6 +1305,7 @@ function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::Goa
   #ttry_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
   #steps_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
   #Tcomplexity_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
+  ttry_list = [ Atomic{Int64}(0) for i= 1:max_tries]
   ttries = Atomic{Int64}(0.0)
   ssteps = Atomic{Int64}(0.0)
   Tcomplexity = Atomic{Float64}(0.0)
@@ -1312,11 +1313,12 @@ function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::Goa
     ( nc, steps, tries ) = evolve_to_pheno( p, funcs, phlist[i], max_tries, max_steps )
     Threads.atomic_add!( ssteps, steps )
     Threads.atomic_add!( ttries, tries )
+    Threads.atomic_add!( ttry_list[tries], 1 )
     Tcmplx = (p.numinteriors <= 20) ? complexity5(nc) : 0.0
     Threads.atomic_add!( Tcomplexity, Tcmplx )
   end  
   println("run_evolve_to_pheno_mt() finished")
-  ( ssteps[]/nphenos, ttries[]/nphenos, Tcomplexity[]/nphenos )
+  ( ssteps[]/nphenos, ttries[]/nphenos, Tcomplexity[]/nphenos, map(tt->tt[],ttry_list) )
 end
 
 function run_evolve_to_pheno( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64 )

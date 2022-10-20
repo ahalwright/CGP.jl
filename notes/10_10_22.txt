@@ -56,7 +56,7 @@ pdf[10,:]
 
 
 ====================================
-# Mutual information
+# Mutual information between two rows of the phenonet matrix.
 mdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22G.csv")
 E = df_to_matrix_mt( mdf, 2 )
 mutual_information(E[5,:]/sum(E[5,:]),E[11,:]/sum(E[11,:])) # MI pops_to_tbl 0.6739505825990277

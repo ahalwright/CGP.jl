@@ -182,7 +182,7 @@ function run_explore_complexity( nruns::Int64, p::Parameters, goallist::GoalList
     explore_complexity_tries += 1
     #println("while !done loop.")
     df = DataFrame()
-    df.numgates = Float64[]
+    df.num_gates = Float64[]
     df.levelsback = Float64[]
     #=  Too complicated for now.  5/19/22
     if insert_gate_prob > 0.0
@@ -482,6 +482,8 @@ end
 # Try to find the minimum number of gates to evolve a goal which I call the Kolmogorov complexity.
 # Start with p.numinteriors and then deccrease the number of gates until the goal is found.
 # Do max_goal_tries evolutions with each number of gates.
+# In the unusual case when no circuit is found on this first loop, a dataframe record with num_gates=-1 is returned. 
+#   This case should be fixed by hand.
 # Then once min number gates is found, do up to num_tries_multiplier*max_goal_tries further evolutions to get
 #    max_goal_tries further approximations of Tononi complexity, robustness, and evolvability.
 # If a chromosome with a smaller number of active gates is found in these further evolutions,
@@ -502,11 +504,13 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
   goal_found = true
   while num_gates > 1 && goal_found  # terminates when no goal is found for this value of num_gates
     num_gates -= 1
-    println("num_gates: ",num_gates)
+    #println("while num_gates > 1 && goal_found: num_gates: ",num_gates)
+    #println("num_gates: ",num_gates)
     p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
     goal_found = false
     tries = 0
     while !goal_found && tries < max_goal_tries  
+      #println("   while !goal_found && tries < max_goal_tries: tries: ",tries,"  num_gates: ",num_gates)
       tries += 1
       #println("inner while tries: ",tries)
       c = random_chromosome( p_current, funcs )
@@ -534,20 +538,28 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
     end
   end
   if num_gates >= 1 && !goal_found
-    println("no goal found for goal ",g," for num_gates: ",num_gates)
+    println("no goal found for goal ",g," for num_gates: ",num_gates,"  num_gates set to: ", num_gates+1 )
     num_gates += 1  # now set to the minimum number of gates for successful circuit
   end  
-  if p_current.numinteriors <= 18  # Too time consuming for a large number of gates
+  if length(found_c.outputs)==0
+    println("found_c not found: ",found_c)
+    return (g,-1,-1,-1.0,tries,-1.0,-1.0,num_gates_exceptions)
+  end
+  if p_current.numinteriors <= 20 && length(found_c.outputs) > 0  # Too time consuming for a large number of gates
     push!(complexities_list, complexity5(found_c))
   end
   #push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
+  #println("end first loop:  mutate_all ")
   (rlist,elist) = mutate_all( found_c, funcs,robustness_only=true)
   push!(robust_list, rlist )
   push!(evol_list, elist )
+  #println("max iter: num_tries_multiplier*max_goal_tries: ",num_tries_multiplier*max_goal_tries)
   p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
   tries = 1
   iter = 0  # put a bound on iterations
+  # Iteration bound might be needed because when a circuit is found with fewer active gates than num_gates, tries is reset to 1.
   while iter < num_tries_multiplier*max_goal_tries && tries < max_goal_tries
+    #println("iter < num_tries_multiplier*max_goal_tries && tries<max_goal_tries: iter: ",iter,"  tries: ",tries,"  num_gates: ",num_gates)
     c = random_chromosome( p_current, funcs )
     #println("mut_evolve for goal ",g,"  with numints : ",c.params.numinteriors)
     if use_mut_evolve
@@ -557,12 +569,12 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
     end
     if step < max_ev_steps
       outputs = output_values( c )
-      #println("outputs: ",outputs,"  goal: ",g)
+      #println("step: ",step,"  outputs: ",outputs,"  goal: ",g)
       @assert sort(outputs) == sort(g)
-      if num_gates != number_active_gates(c)
+      if num_gates != number_active_gates(c)  # In this case, tries is reset to 1
+        println("num_gates not equal to number active gates for goal: ",g)
         println("num_gates: ",num_gates,"  number_active_gates(c): ",number_active_gates(c))
-        println("B  number gates not equal to number active gates for goal: ",g)
-        print_build_chromosome(c)
+        #print_build_chromosome(c)
         found_c = c =  remove_inactive( c )
         num_gates = number_active_gates(found_c)
         p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )

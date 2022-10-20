@@ -30,19 +30,33 @@
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
-function neutral_evol( c::Chromosome, funcs::Vector{Func}, g::Goal, max_steps::Integer; mut_inf_matrix::Matrix{Float64}=zeros(Float64,1,1), print_steps::Bool=false )
+# Note that best fitness is 0.0 rather than 1.0.  So we are minimizing fitness rather than maximizing fitness
+function neutral_evol( c::Chromosome, funcs::Vector{Func}, g::Goal, max_steps::Integer; 
+    fitness_funct::Function=hamming_dist_fitness, mut_inf_matrix::Matrix{Float64}=zeros(Float64,1,1), print_steps::Bool=false )
   default_funcs( c.params.numinputs )
   step = 0
   ov = output_values( c) 
-  current_fitness = fitness_funct( p, c, [g], mut_inf_matrix=mut_inf_matrix )
+  if fitness_funct == hamming_dist_fitness
+    current_fitness = fitness_funct( ov, g, c.params.numinputs )
+  elseif fitness_funct == mutinf_fitness
+    current_fitness = fitness_funct( ov, g, mut_inf_matrix )
+  else
+    error("illegal fitness function in function neutral_evol()")
+  end
   new_c = deepcopy(c)
   while step < max_steps && ov != g
     step += 1
     new_c = deepcopy(c)
     (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=0.0, delete_gate_prob=0.0 )
     new_ov = output_values( new_c )
+    #print_circuit( new_c )
     #new_distance = hamming_distance( new_ov, g, c.params.numinputs )
-    new_fitness = fitness_funct( p, c, [g], mut_inf_matrix=mut_inf_matrix )
+    #new_fitness = fitness_funct( p, c, g, mut_inf_matrix=mut_inf_matrix )
+    if fitness_funct == hamming_dist_fitness 
+      new_fitness = fitness_funct( new_ov, g, c.params.numinputs )
+    elseif fitness_funct == mutinf_fitness
+      new_fitness = fitness_funct( new_ov, g, mut_inf_matrix )
+    end
     #=
     if step < 20
       print("step: ",step,"  ov: ",ov,"  new_ov: ",new_ov,"  cur fitness: ",current_fitness,"  new_fitness: ",new_fitness,"  " )
@@ -70,8 +84,8 @@ function neutral_evol( c::Chromosome, funcs::Vector{Func}, g::Goal, max_steps::I
       ov = new_ov
       current_fitness = new_fitness
     else
-      if print_steps && step <= 20
-        print("step: ",step,"  new_output: ",new_ov,"  new circuit: ")
+      if print_steps && step <= 50
+        print("step: ",step,"  new_output: ",new_ov," fitness changed from ",current_fitness," to ",new_fitness)
         print_circuit( new_c )
       end 
     end
@@ -114,17 +128,54 @@ function accessible_path( c::Chromosome, g::Goal, max_steps::Integer, funcs::Vec
     new = pheno_fitness( g, new_ov, c.params.numinputs, random_fit=rand_fitvec )
   end
 end
-  
 
-function pheno_fitness( g::Goal, output_value::Goal, numinputs::Int64; random_fit::Vector{Float64}=Float64[])
-  if length(random_fitvec) > 0
-    return random_fitvec[g[1]]   # Assumes a single-component goal
+function hamming_dist_fitness( g::Goal, h::Goal, numinputs::Int64; random_fit::Vector{Float64}=Float64[])
+  if length(random_fit) > 0
+    return random_fit[g[1]]   # Assumes a single-component goal
   else
-    #print("  hd: ",hamming_distance( output_value, g, numinputs ))
-    return (1.0 - hamming_distance( output_value, g, numinputs ))
+    #println("g: ",g,"  h: ",h,"  hdf: ",hamming_distance( h, g, numinputs ))
+    return (hamming_distance( h, g, numinputs ))
   end
 end
 
-#function find_path_between_phenotypes( ph1::Goal, c1::Circuit,  ph2:Goal, c2::Circuit, numinputs::Int64 ) end
+function mutinf_fitness( g::Vector{MyInt}, h::Vector{MyInt}, E::Matrix ) 
+  #println("g: ",g,"  h: ",h,"  mi: ",mutinf( E[g[1]+1,:], E[h[1]+1,:] ))
+  return mutinf( E[g[1]+1,:], E[h[1]+1,:] )
+end
 
+function mutinf( x::Vector{Float64}, y::Vector{Float64} )
+  if iszero(sum(x)) || iszero(sum(y))
+    return 0.0
+  end
+  return mutual_information( x/sum(x), y/sum(y) )
+end
 
+# Compare hamming_dist_fitness() and mutinf_fitness()
+function test_neutral_evol( p::Parameters, funcs::Vector{Func}, nreps::Int64, E::Matrix{}, max_steps::Int64; csvfile::String="" )
+  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levelsback=>Int64[], :max_steps=>Int64[], :nreps=>Int64[],
+      :mean_msteps=>Float64[], :mean_hsteps=>Float64[], :std_msteps=>Float64[], :std_hsteps=>Float64[] )
+  msteps_list = Int64[]
+  hsteps_list = Int64[]
+  for nr = 1:nreps
+    g = randgoal(p)
+    (mnc,msteps) = neutral_evol( random_chromosome(p,funcs), funcs, g, max_steps, fitness_funct=mutinf_fitness, mut_inf_matrix=E )
+    push!(msteps_list, msteps )
+    (hnc,hsteps) = neutral_evol( random_chromosome(p,funcs), funcs, g, max_steps, fitness_funct=hamming_dist_fitness )
+    push!(hsteps_list, hsteps )
+  end
+  df_row = ( p.numinputs, p.numinteriors, p.numlevelsback, max_steps, nreps, mean(msteps_list), mean(hsteps_list), std(msteps_list), std(hsteps_list) )
+  push!(df,df_row)
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = readchomp(`hostname`)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", funcs )
+      println(f,"# nreps: ", nreps )
+      println(f,"# max_steps: ", max_steps )
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end

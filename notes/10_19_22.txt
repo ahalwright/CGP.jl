@@ -1,0 +1,35 @@
+Continuing investigation of using the mutual information between rows of the phenotype matrix 
+  as a substitute for Hamming distance in neutral evolution.  Files:  notes/10_10_22.txt
+  and src/neutral_evol.jl.
+
+See functions hamming_dist_fitness(), mutinf_fitness(), mutinf(), test_neutral_evol()  in neutral_evol.jl.
+
+See the result CSV files in data/10_19_22/ 
+
+Conclusions:  For 3x1 mutinf_fitness() is slightly worse that hamming_dist_fitness() except that sometimes
+  mutinf_fitness() fails more often which skews the mutinf mean to be much larger.
+I tried to do 4x1, but this was hard, and I gave up.  
+
+
+mdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22G.csv")
+E = df_to_matrix_mt( mdf, 2 )
+MI = zeros(Float64,256,256); HD= zeros(Float64,256,256);
+for i = 1:256
+ for j = 1:i
+   MI[i,j] = mutinf( E[i,:], E[j,:] )
+ end
+end
+for i = 1:256
+ for j = 1:i
+   HD[i,j] = hamming_distance(MyInt(eval(Meta.parse(mdf.goal[i]))),MyInt(eval(Meta.parse(mdf.goal[j]))),3)
+ end
+end
+hds = Float64[]; mis = Float64[];
+for i = 1:256
+    for j = 1:i
+      push!(hds,HD[i,j])
+      push!(mis,MI[i,j])
+   end
+ end
+spearman_cor(hds,mis)  # (0.38323292966943395, 0.0)
+cor(hds,mis) # 0.46232157220146974
