@@ -1,0 +1,2 @@
+Function negate_dataframe() in Complexity.jl.  
+Fixed call to mutate_all() bug in neighbor_complexity.jl, and appended neighbor_complexity.jl to Complexity.jl.
