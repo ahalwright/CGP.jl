@@ -28,12 +28,12 @@ function neighbor_complexity( g::Goal, p::Parameters, maxreps::Int64, maxsteps::
     c_output = output_values(c)
     #println("goal: ",g,"  i: ",i,"  nrepeats: ",nrepeats,"  c_output: ",c_output)
     @assert sort(c_output) == sort(g)   
-    output_chromes = mutate_all( c, funcs, output_circuits=true )
+    output_chromes = mutate_all( c, funcs, output_circuits=true, output_outputs=false )
     for out_c in output_chromes
       #print("out_c: ")
       #print_build_chromosome(out_c[2])
-      #println("complexity: ",complexity5(out_c[2]))
-      neighbor_complexity_sum += complexity5(out_c[2])
+      #println("complexity: ",complexity5(out_c))
+      neighbor_complexity_sum += complexity5(out_c)
       n_count += 1
     end
     #print("i: ",i,"  c_count: ",c_count,"  c_complex_sum: ",chrome_complexity_sum)
@@ -64,7 +64,7 @@ function run_neighbor_complexity( goallist::Vector{Vector{MyInt}}, p::Parameters
     push!(df, row_tuple) 
   end
   df
-  hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+  hostname = readchomp(`hostname`)
   open(csvfile,"w") do f
     println(f,"# date and time: ",Dates.now())
     println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )

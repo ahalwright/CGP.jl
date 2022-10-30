@@ -339,6 +339,11 @@ These files now have suffix  _21.txt
 10_11: Wrote 'Summary of important definitions and concepts.docx' in complexity/cce
 10_12: Testing various versions of shape-space.
 10_13: Computing approximate phenotype network matrix by evolution, and computing entropy evolvability using this matrix.
+10_14: Entropy evolvability plots
+10_16: Evolve from low K complexity to high K complexity, and attempt with T complexity
+10_19: Continuing investigation of using the mutual information between rows of the phenotype matrix as a substitute for Hamming distance in neutral evolution.
+10_20: Accuracy check for computation of K complexity.
+10_21: Testing hypothesis that strength of relationship between K complexity and degree evolvability decreases as number of gates increases.
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

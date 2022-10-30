@@ -559,7 +559,7 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
   iter = 0  # put a bound on iterations
   # Iteration bound might be needed because when a circuit is found with fewer active gates than num_gates, tries is reset to 1.
   while iter < num_tries_multiplier*max_goal_tries && tries < max_goal_tries
-    #println("iter < num_tries_multiplier*max_goal_tries && tries<max_goal_tries: iter: ",iter,"  tries: ",tries,"  num_gates: ",num_gates)
+    print("goal: ",g,"  iter: ",iter,"  tries: ",tries,"  num_gates: ",num_gates,"   ")
     c = random_chromosome( p_current, funcs )
     #println("mut_evolve for goal ",g,"  with numints : ",c.params.numinteriors)
     if use_mut_evolve
@@ -783,6 +783,29 @@ function randunique( lst::Vector, numelements::Int64, numtries::Int64 )
   end
 end
 
+# Given a dataframe whose first column is a column of phenotypes (goals), generate the dataframe with this column replaced by the ones complement of the phenotypes.
+# Assumes that for the other columns the value of a row corresponding to a phenotype is the same as the value corresponding to the ones complement of that phenotype
+function negate_dataframe( df::DataFrame, p::Parameters; combine::Bool=false )
+  default_funcs(p)  # set global variable Ones so that CGP.Not will work
+  m_one = MyInt(1)
+  if typeof( df[1,1] ) <: AbstractString
+    goals = map( g->eval(Meta.parse( g ))[1], df[:,1] )
+  else
+    goals = Vector{MyInt}(df[:,1])
+  end
+  neg_goals = reverse( map( g->[CGP.Not(g)], goals ) )
+  ndf = DataFrame( Symbol(names(df)[1])=>neg_goals )
+  for i = 2:size(df)[2]
+    insertcols!(ndf,Symbol(names(df)[i])=>reverse(df[:,i]))
+  end
+  if !combine
+    return ndf
+  else
+    ndf.goal = map(g->String15(@sprintf("%s",g)),ndf.goal)
+    return vcat( df, ndf )
+  end
+end
+
 # Prints the phenotypes where the K complexity of every phenotype is not equal to the K complexity of its ones complement
 # If the second argument is true, then sets entries where there is a disagreement to the smaller value
 # Kcomplx must be a vector indexed over all phenotypes for some number of inputs
@@ -796,8 +819,7 @@ function K_complexity_negation_check( Kcmplx::Vector{Int64}, correct::Bool=false
     if Kcmplx[i+1] != Kcmplx[ CGP.Not(i)+1 ]
       count_errors += 1
       #@printf("0x%04x   0x%04x:  ", i+m_one, CGP.Not(i) )
-      @printf("0x%04x   0x%04x:  ", i, CGP.Not(i) )
-      #println(Kcmplx[i+m_one],"  ",Kcmplx[ CGP.Not(i)+m_one ])
+      @printf("0x%04x   0x%04x:  ", i, CGP.Not(i) ) #println(Kcmplx[i+m_one],"  ",Kcmplx[ CGP.Not(i)+m_one ])
       println(Kcmplx[i+1],"  ",Kcmplx[ CGP.Not(i)+1 ])
       if correct
         #knew = min(Kcmplx[i+m_one],Kcmplx[ CGP.Not(i)+m_one ])
@@ -810,6 +832,38 @@ function K_complexity_negation_check( Kcmplx::Vector{Int64}, correct::Bool=false
     end
   end
   count_errors
+end
+
+# Prints the phenotypes where the K complexity of every phenotype is not equal to the K complexity of its ones complement
+# If the second argument is true, then sets entries where there is a disagreement to the smaller value
+# Kcmplx1 and Kcmplx2 must be a vectors indexed over the same collection of phenotypes for some number of inputs
+function Kcomplexity_accuracy_check( Kcmplx1, Kcmplx2, correct::Bool=false )
+  @assert length(Kcmplx1)==length(Kcmplx2)
+  max_error = 4
+  count_errors_plus = zeros(Int64,max_error)
+  count_errors_minus = zeros(Int64,max_error)
+  m_one = MyInt(1)
+  for i = MyInt(0):MyInt(length(Kcmplx1)-1)
+    if Kcmplx1[i+1] != Kcmplx2[i+1]
+      @printf("0x%04x", i )
+      println("  ",Kcmplx1[i+1],"  ",Kcmplx2[i+1])
+      if Kcmplx1[i+1] > Kcmplx2[i+1]
+        count_errors_plus[ Kcmplx1[i+1] - Kcmplx2[i+1] ] += 1
+      elseif Kcmplx2[i+1] > Kcmplx1[i+1]
+        count_errors_minus[ Kcmplx2[i+1] - Kcmplx1[i+1] ] += 1
+      end
+      if correct
+        k1 = Kcmplx1[i+1]
+        k2 = Kcmplx2[i+1]
+        if k1 < k2
+          Kcmplx2[i+1] = k1
+        elseif k2 < k1
+          Kcmplx1[i+1] = k2
+        end
+      end
+    end
+  end
+  ( sum(count_errors_plus)+sum(count_errors_minus), count_errors_plus, count_errors_minus )
 end
 
 function run_K_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, circuit_ints_df::DataFrame=DataFrame(); 

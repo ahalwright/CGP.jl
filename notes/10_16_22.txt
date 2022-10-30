@@ -1,31 +1,42 @@
-Evolve from low K complexity to high K complexity, and attempt with T complexity
+Evolve from low K complexity to high K complexity, and attempt with T complexity.
+More runs on 10/22/22
 
 Function run_evolve_to_Kcomplexity_mt(), evolve_to_Kcomplexity(), evolve_to_K_complexity_mt() in evolvable_evolvability.jl.
 
 Dataframe/CSV results in data/10_16_22
-
 
 Tried to do the same for Tononi complexity as a substitute for K complexity for numinputs==5, but there is not a good correspondence.
 Many circuits with K complexity 1 and phenotype 0x0000 and 0xffff have high T complexity.  
 
 # some examples.
 p = Parameters(4,1,10,5); funcs=default_funcs(p); push!(funcs,XOR)  # So length(funcs)==5
+length(funcs) # 5
 
 # Set parameters
 fromKcomplexity=2; toKcomplexity=7; nreps=500; max_ev_tries=4; max_find_steps = 1000; max_evolve_steps=100_000
-aaa = evolve_to_Kcomplexity( p, funcs, fromKcomplexity, toKcomplexity, nreps, max_ev_tries, max_find_steps, max_evolve_steps )
+aaa = evolve_to_Kcomplexity( p, funcs, fromKcomplexity, toKcomplexity, nreps, max_ev_tries, max_find_steps, max_evolve_steps )  # much longer than with max_evolve_steps = 100_000
 (17, [351, 82, 35, 32], [4207, 10610, 148951, 122674, 2642, 365198, 16464, 70653, 42177, 35980  …  24735, 25113, 31960, 107362, 6188, 251339, 174688, 336183, 26881, 7293])
 # 351/500 evolved on the first try, 82 on 2 tries, 35 on 3, 32 on 4, 17 failed
 mean(aaa[3])  83940.86
 median(aaa[3]) 40069.5
+# Another run 10/22/22
+(15, [347, 90, 33, 30], [9295, 8612, 135996, 225152, 118650, 113800, 6802, 241492, 75216, 13909  …  103687, 69984, 85115, 28807, 28223, 10552, 18703, 19609, 228668, 13195])
 
 # Set parameters
 fromKcomplexity=2; toKcomplexity=7; nreps=100; max_ev_tries=8; max_find_steps = 1000; max_evolve_steps=300_000
-aaa = evolve_to_Kcomplexity( p, funcs, fromKcomplexity, toKcomplexity, nreps, max_ev_tries, max_find_steps, max_evolve_steps )
+length(funcs) # 5
+aaa = evolve_to_Kcomplexity( p, funcs, fromKcomplexity, toKcomplexity, nreps, max_ev_tries, max_find_steps, max_evolve_steps )  # 798 seconds 1 processor Mac
 (0, [88, 8, 2, 2, 0, 0, 0, 0], [59057, 363605, 258666, 75860, 25162, 122545, 138795, 48748, 1172, 44938  …  29128, 227976, 91872, 27633, 19265, 192144, 17747, 21823, 78876, 56389])
 # 88/100 evolved on the first try, 8 on 2 tries, 2 on 3, 2 on 4, 0 failed
-mean(aaa[3]) 122292.69
-median(aaa[3]) 46922.0
+#mean(aaa[3]) 122292.69
+#median(aaa[3]) 46922.0
+# Another run 10/22/22
+(0, [92, 4, 4, 0, 0, 0, 0, 0], [82756, 38402, 743995, 57667, 62576, 10629, 2171, 6573, 10026, 57957  …  7749, 165267, 488670, 256387, 281167, 22788, 337844, 4073, 9379, 110566])dkj
+# 92/100 evolved on the first try, 4 on 2 tries, 4 on 3, 0 on 4, 0 failed
+mean(aaa[3])  109151.0
+median(aaa[3])  50976.5
+# Combine 2 runs
+# 180/200 evolved on the first try, 12 on 2 tries, 6 on 3, 2 on 4, 0 failed
 
 MyInt is UInt32
 Just over 2 seconds to compute T complexity

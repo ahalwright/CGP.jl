@@ -1,0 +1,24 @@
+Creating a sampling degree evolvability and an evolution degree evolvabilty vs K complexity plot
+
+kdf = read_dataframe("../data/counts/k_complexity_3x1_4funcs7_11_22E.csv")   # K complexity is num_gates.
+#gdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22G.csv")
+udf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22U.csv")  # 3x1 8gts4lb 4 funcs 50000 walks 5000 steps
+E = df_to_matrix( udf, 2 )
+d_evo = degree_evolvability( E )
+scatter(d_evo,kdf.num_gates,xlabel="sampling evolability",ylabel="K complexity",smooth=true)
+scatter!(title="K complex vs sampling evo 3x1 8gts 4lb 4funcs")
+savefig("../data/10_21/K_complex_vs_sampling_evo_3x1_8gts_4lb_4funcs.png")
+
+#@time include("../data/10_21_22/run_geno_complexity_5funcs_10_21_22G.jl")  # 1119 seconds 3x1 8gts4lb 4 func
+@time include("../data/10_21_22/run_geno_complexity_5funcs_10_21_22H.jl")  # 5677 seconds 3x1 8gts4lb 4 func 1000 reps
+# returns gcdf dataframe and csvfile geno_complexity_cartGP_10_21_22H.csv
+gcdf = read_dataframe("../data/10_21_22/geno_complexity_cartGP_10_21_22H.csv")
+scatter(gcdf.evo_count,gcdf.Kcomplexity,smooth=true,ylabel="Kolmogorov complexity",xlabel="Degree evolution evolvability",legend=:none,title="K complex vs Degree evolvability 3x1 10gts4lb 4funcs")
+savefig("../data/10_21_22/K_complex_vs_Degree_evolvability_3x1_10gts4lb_4funcs.png")
+
+scatter([gcdf.evo_count,d_evo],gcdf.Kcomplexity,smooth=true,labels=["evolution evolvability" "sampling evolvability"],msize=6,shape=[:star6 :rtriangle],ylims=(0,Inf))
+scatter!(xlabel="degree evolvabilty",ylabel="Kolmogorov complexity",title="K complex vs evolution and sampling evol 3x1 8gts4lb4funcs",legend=:bottomleft) 
+savefig("../data/10_21_22/K_complex_vs_evolution_and_sampling_evol_3x1_8gts4lb4funcs.png")
+spearman_cor(gcdf.evo_count,gcdf.Kcomplexity) (0.6677509057808586, 1.018431162998568e-34)
+spearman_cor(d_evo,gcdf.Kcomplexity) (-0.9281328215254141, 2.6421714891552695e-111)
+

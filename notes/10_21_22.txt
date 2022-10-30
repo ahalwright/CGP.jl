@@ -1,0 +1,89 @@
+Testing hypothesis that strength of relationship between K complexity and degree evolvability decreases as number of gates increases.
+
+@time include("../data/10_21_22/run_geno_complexity_5funcs_10_21_22D.jl")  # 10 gates 5 lb 5 funcs
+ddf = read_dataframe("../data/10_21_22/geno_complexity_cartGP_10_21_22D.csv")
+scatter(gcdf.Kcomplexity,gcdf.evo_count,smooth=true,xlabel="Kolmogorov complexity",ylabel="Evolvability count",legend=:none,title="Evolvability count vs K complexity 3x1 10gts5lb 5funcs")
+spearman_cor(gcdf.Kcomplexity,gcdf.evo_count) (0.7935640912537516, 4.9803995808597937e-57)
+cor(gcdf.Kcomplexity,gcdf.evo_count) 0.7948970761405402
+savefig("../data/10_21_22/evo_count_vs_Kcmplx_3x1_10gts5lb5funcs.png")
+
+@time include("../data/10_21_22/run_geno_complexity_5funcs_10_21_22E.jl")  # 16 gates 8 lb 5 funcs
+edf = read_dataframe("../data/10_21_22/geno_complexity_cartGP_10_21_22E.csv")
+scatter(gcdf.Kcomplexity,gcdf.evo_count,smooth=true,xlabel="Kolmogorov complexity",ylabel="Evolvability count",legend=:none,title="Evolvability count vs K complexity 3x1 16gts8lb 5funcs")
+spearman_cor(gcdf.Kcomplexity,gcdf.evo_count)  # (0.8481984574611698, 2.3337658323261387e-72)
+cor(gcdf.Kcomplexity,gcdf.evo_count) # 0.8399270544781929
+savefig("../data/10_21_22/evo_count_vs_Kcmplx_3x1_16gts8lb5funcs.png")
+
+scatter(ddf.Kcomplexity,[ddf.evo_count,edf.evo_count],smooth=true,xlabel="Kolmogorov complexity",ylabel="Degree evolvability",labels=["10 gates" "16 gates"],shape=[:star6 :rtriangle])
+scatter!(title="Degree Evolvability vs Kcomplexity 3x1 10and16gts5lb 5funcs",legend=:topleft)
+savefig("../data/10_21_22/evo_count_vs_Kcmplx_3x1_10and16gts8lb5funcs.png")
+
+scatter([ddf.evo_count,edf.evo_count],ddf.Kcomplexity,smooth=true,ylabel="Kolmogorov complexity",xlabel="Degree evolvability",labels=["10 gates" "16 gates"],shape=[:star6 :rtriangle])
+scatter!(title="Kcomplexity vs Degree Evolvability 3x1 10and16gts5lb 5funcs",legend=:topleft)
+savefig("../data/10_21_22/Kcmplx_vs_degree_evol_3x1_10and16gts8lb5funcs.png")
+
+Response to Wolfgang's email of 10/20/22.
+
+I have continued to work on related results, and I have a number of additional results.
+I am attaching a PDF of the current draft.
+
+I am writing this article with biological/biophysical researchers as a target audience.
+Thus, GP now refers to genotype-phenotype rather than genetic programming.  Titles of plots
+would be dropped from a final version---they are to help me keep track of parameters, dates,
+etc.  It would be good if you could write a version of this article targeted to an evolutionary
+computation audience.
+
+To answer some of your specific questions:
+
+I use a somewhat complicated algorithm to compute K (Kolmogorov) compexity which is described
+in the draft paper that I am sending you.  I have Kolmogorov complexity computed for all 4x1 
+(4 input 1 output) phenotypes using 5 gate types (AND, OR, NAND, NOR, XOR) and I am in the process 
+of computing them for 4 gate types (without XOR).  I can create a dictionary which maps phenotypes 
+to K complexity.  I can estimate the accuracy of the K complexity computation by repeating it.  
+I will send you some preliminary accuracy estimates.
+
+In our GECCO and GPTP papers, we defined "epochal evolution" which is also defined in the draft that
+I am sending you.  I am now thinking that "neutral hill climbing" would be a better name for this
+algorithm.  What do you think?  Is this algorithm what you would call an iterative GP map?
+Andreas Wagner (2008) (see the paper for the reference) discusses the roles of neutralism and
+selectionism in biological evolution, and his ideas fit in well with our ideas.  Briefly, he claims
+that the role of neutral evolution is to build up diversity which will discover adaptive innovations
+that selection can bring to dominance in a population.  I suggest that you read this article,
+especially the section "Reconcilihg neutralism and selectionism".
+
+I can use this algorithm to consistently evolve from low K complexity 4x1 genotypes to high complexity
+phenotypes.  I think I can do this for 5x1 genotypes if I have a way of finding low and high complexity
+genotypes and phenotypes for the 5x1 case.  My K complexity algorithm works but is not very accurate,
+and random phenotypes seem to have K complexities strongly clustered around 10 or 11.
+
+Does your comment about the "stiffness" of the relationship between evolvability and complexity
+suggest the hypothesis that the relationship will weaken as the number of gates increases?
+The hypothesis would say that if I use 20 gates in the 4x1 case, the relationship would be 
+weaker than for the 10 or 12 gates that I am currently using.  I can test this hypothesis,
+and I think I need to include degee evolvability vs. K complexity plots.
+
+I can consistently evolve random 5x1, 6x1, and 7x1 phenotypes starting from random genotypes.
+See Table 2 of the draft article.  This is helped by the fact that Julia implements an unsigned
+128 bit integer type so I can represent the state of a circuit as this type.
+
+I have several definitions of evolvability.  Total evolvability, which is only computable when
+one has the phenotype network adjacency matrix, shows the correction to the degree evolvabilituy
+by computing evolvability in both directions.  The entropy evolvability of a phenotype is the
+entropy of the corresponding row of the phenotype network adjacency matrix.  I can approximate
+this evolvability without the adjacency matrix, but this is not yet described in the methods.
+Shape space evolvability is just counting the number of unique phenotypes obtained by some
+number of mutations.  Genotype shape space evolvability is strongly related to genotype degree
+evolvability---see Figure 11.  Phenotype shape space evolvability can be approximated by combining 
+the results of many genotypes that map to the phenotype.
+results 
+
+I am not using T (Tononi) complexity in this paper.  You asked about defining T complexity for
+linear GP, and I do this by applying my T complexity definition to the outputs of registers
+instead of the outputs of gates.  When I first starting looking at T complexity, I implemented
+multiple versions of the computation based on the 1994 and 1998 papers by Tononi et al to make
+sure that I was doing this correctly.  The function complexity5() seems to be the fastest of
+these.  You can access my code by cloning the Github repositiory ahalwright/CGP.jl.  However,
+the code is poorly documented and poorly organized.  The code for the Tononi complexity computations
+is in InfTheory.jl.
+
+I am writing the Latex in overleaf.com, and I think I can give you view-only access.  

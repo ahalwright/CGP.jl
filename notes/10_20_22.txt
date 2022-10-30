@@ -1,0 +1,19 @@
+Accuracy check for computation of K complexity.
+
+Wrote function Kcomplexity_accuracy_check() in Complexity.jl.
+
+# Comparing 4x1 5 funcs phenos 0x4000 to 0x7fff
+gdf = read_dataframe("../data/8_9_22/k_complexity8_9_22G.csv")
+pdf = read_dataframe("../data/8_9_22/k_complexity8_9_22P.csv")c
+Kcomplexity_accuracy_check( gdf.num_gates, pdf.num_gates )  
+# (1969, [1069, 5, 0, 0], [891, 4, 0, 0])  # total errors 1962, diff2:  9
+
+# Comparing 3x1 5 funcs all phenos 
+cdf = read_dataframe("../data/10_20_22/k_complexity_3x1_5funcs_10_20_22C.csv");
+ddf = read_dataframe("../data/10_20_22/k_complexity_3x1_5funcs_10_20_22D.csv");
+Kcomplexity_accuracy_check( cdf.num_gates, ddf.num_gates )
+0x001d  3  4
+0x0024  4  3
+(2, [1, 0, 0, 0], [1, 0, 0, 0])
+
+
