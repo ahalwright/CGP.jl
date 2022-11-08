@@ -697,10 +697,10 @@ function kolmogorov_complexity_dict( p::Parameters, funcs::Vector{Func}=default_
       #k_csvfile = "../data/counts/k_complexity_all4x1phenos.csv"
       k_csvfile = "../data/counts/k_complexity8_9_22FGGF.csv"
     else
-      k_csvfile = "../data/counts/k_complexity8_9_22FGGF.csv"   # Incorrect 9/23/22 waiting for computation with 4 gate types
+      k_csvfile = "../data/counts/k_complexity8_9_22XTYZZYTZ.csv"   
     end
   else
-    return "no csv file"
+    error("Illegal parameters or funcs in call to kolmogorov_complexity_dict() ")
   end
   println("k_csvfile: ",k_csvfile)
   df = read_dataframe( k_csvfile )
@@ -722,22 +722,22 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
         elseif length(funcs) == 5
           csvfile = "../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv"
         else
-          error("no csv file")
+          error("no csv file in function redundancy_dict()")
         end
       elseif p.numinteriors == 7 && p.numlevelsback == 4
         if length(funcs) == 4
           csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv"
         else
-          error("no csv file")
+          error("no csv file in function redundancy_dict()")
         end
       elseif p.numinteriors == 8 && p.numlevelsback == 5
         if length(funcs) == 4
           csvfile = "../data/counts/count_outputs_3x1_8gts5lb_4funcs.csv"
         else
-          error("no csv file")
+          error("no csv file in function redundancy_dict()")
         end
       else
-        error("no csv file")
+        error("no csv file in function redundancy_dict()")
       end
     elseif p.numinputs == 4
       #csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
@@ -785,6 +785,7 @@ end
 
 # Given a dataframe whose first column is a column of phenotypes (goals), generate the dataframe with this column replaced by the ones complement of the phenotypes.
 # Assumes that for the other columns the value of a row corresponding to a phenotype is the same as the value corresponding to the ones complement of that phenotype
+# Parameters p is only used to call default_funcs(p), so only p.numinputs is used.
 function negate_dataframe( df::DataFrame, p::Parameters; combine::Bool=false )
   default_funcs(p)  # set global variable Ones so that CGP.Not will work
   m_one = MyInt(1)

@@ -1,0 +1,33 @@
+Comparing the 5-input K complexity of random phenotypes with the K complexity of random genotypes.
+Summary:  We find that the mean complexity of random phenotypes is close to 11 while the mean complexity of random genotypes is around 2 or 3,
+  so evolving from a random genotype to a random phenotype is an example of evolving increaseing K complexity.
+
+Error check:  300 5x1 phenotypes suffixes G and H
+hdf result of running 10_30_22/run_k_complexity5x1H.jl
+gdf = read_dataframe("../data/10_30_22/k_complexity10_30_22G.csv")
+diff = gdf.num_gates-hdf.num_gates
+sum(diff)  1
+findmax(diff), findmin(diff) ((2, 52), (-2, 50))
+length(findall(x->x!=0,diff)),length(findall(x->x==2,diff)),length(findall(x->x==-2,diff)) (135, 8, 6)
+Conclusion:  about 1/4 of values are in error, about 3% by 2.
+
+Data:  10_30_22  run on fluda
+data/10_30_22/run_k_complexity5x1C.jl is 24 random phenotypes
+data/10_30_22/run_k_complexity5x1D.jl is 24 random genotypes
+data/10_30_22/k_complexity10_30_22C.csv and k_complexity10_30_22CC.csv are re-runs on the same phenotypes
+11 differences all with absolute value 1.
+
+
+
+Ran 10_30_22/run_k_complexity6x1A.jl for 6-inputs.
+cc 21
+01 21
+5a 20
+2e 21
+a6 26
+7d 24
+4a 23
+
+
+
+

@@ -46,6 +46,25 @@ plot!(p1,xlabel = "increase in K complexity",ylabel="density of resulting fracti
 #plot!(p1,legend=:topleft)
 savefig("../data/9_6_22/Kcomp_density_evolution4x1_5funcs8_13DFHfract.png")  # Equal weight on each starting phenotype.  
 
+Quantitative results done on 11/5/22:
+kmdf = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22DFH.csv")
+ map(k->sum(kmdf[!,k]),1:size(kmdf)[2])/sum(map(k->sum(kmdf[:,k]),1:size(kmdf)[2]))
+18-element Vector{Float64}:
+ 1.0169267456818749e-5
+ 0.0
+ 8.785117164085085e-5
+ 0.004482387111244442
+ 0.024937586120983776
+ 0.059837099634527824
+ 0.11416443366502094
+ 0.17839465684089448
+ 0.2043714856000348
+ 0.37428892809706454
+ 0.035420688470706015
+ 0.003773080706131334
+ 0.00022513628230790396
+ 6.4970319863008665e-6
+
 # Sampling:  done on 9/26/22
 # Problem:  when there were no genotypes for a phenotype, the program evolved such genotypes
 @time include("../data/9_26_22/run_k_complexity_mutateB.jl")  # saves result dataframe as sdf
@@ -58,7 +77,7 @@ p1 = plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],lab
 plot!(p1,xlabel = "increase in K complexity",ylabel="density of result K complexity",title = "Change in K complexity of mutations (sampling)")
 savefig("../data/9_26_22/Change_in_K_complexity_of_mutations_(sampling)_10gts5lb_5funcs.png")
 
-Bug in run_kolmogorov_complexity:
+Bug in run_kolmogorov_complexity:   # Fixed on 10/22
 
  [2] number_active
     @ ~/Library/CloudStorage/OneDrive-Personal/evotech/CGP.jl/src/Chromosome.jl:425

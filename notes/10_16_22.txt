@@ -1,5 +1,5 @@
 Evolve from low K complexity to high K complexity, and attempt with T complexity.
-More runs on 10/22/22
+More runs on 10/22/22 --- data in 10_16_22, especially suffix G which was used to create table in paper.
 
 Function run_evolve_to_Kcomplexity_mt(), evolve_to_Kcomplexity(), evolve_to_K_complexity_mt() in evolvable_evolvability.jl.
 

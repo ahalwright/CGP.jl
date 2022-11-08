@@ -4,7 +4,9 @@ There are two parts:
 *  pheno_counts_ch()   # This ran out of memory on fluda with 5 gates.
 *  matrix computation
 
-Attempts to parallelize pheno_counts_ch() took lots of time and failed.
+Note:  notes/11_8_22.txt  Plot of exact lg robustness vs exact evolvability
+
+Attempts to pmap parallelize pheno_counts_ch() took lots of time and failed.
 One bug was including a helper function in the main function which also used the variable result.
 Changes to result in the helper function changed result in the main function.
 However, the more time consuming part is constructing the matrix.
@@ -63,7 +65,6 @@ Can get exact degree, strength, and evolution evolvabilities.
 
 A very small example:
 data/9_24_22/run_phnet_matrixD.jl: for some reason did not produce a csv file
-
 
 =================================================
 Computing K complexities for all 4x1 phenos

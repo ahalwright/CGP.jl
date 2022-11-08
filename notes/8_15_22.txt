@@ -88,3 +88,13 @@ kcomp = map(x->k_dict[x],goals)
 lg10(x) = x==0 ? 0.0 : log10(x)
 log_redund = map(x->lg10(r_dict[x]),goals)  
 pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund=>log_redund )
+
+# Statistics on K complexity for 4 inputs:
+k5df = read_dataframe("../data/counts/k_complexity8_9_22FGGF.csv")
+k4df = read_dataframe("../data/counts/k_complexity8_9_22XTYZZYTZ.csv")
+density(k5df.num_gates,xlabel="K complexity",ylabel="density",labels="density of K complexity",legend=:topleft,title="Density of K complexity 10 gates 5 lb XOR")
+savefig("../data/8_15_22/Density_of_K_complexity_10_gates_5_lb_XOR.png")
+density(k4df.num_gates,xlabel="K complexity",ylabel="density",labels="density of K complexity",legend=:topleft,title="Density of K complexity 10 gates 5 lb not XOR")
+savefig("../data/8_15_22/Density_of_K_complexity_10_gates_5_lb_not_XOR.png")
+length(findall(x->x>4 && x<7, k5df.num_gates))/2^2^4   # 0.734283447265625
+length(findall(x->x>=7 && x<=9, k4df.num_gates))/2^2^4 # 0.687408447265625

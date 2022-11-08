@@ -1129,3 +1129,11 @@ function robustness( c::Circuit, funcs::Vector{Func} )
   robust_outputs = filter( x->x==c_output, outputs )
   return length(robust_outputs)/length(outputs)
 end   
+
+# Not correct or finished
+function redundancy_density( p::Parameters, funcs::Vector{Func}, nsamples::Int64 )
+  rdict = redundancy_dict( p, funcs )
+  kdict = kolmogorov_complexity_dict( p, funcs )
+  gdf = read_dataframe( "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv" )
+  glogredund = map( r->lg10(r), gdf.ints10_5 )
+end

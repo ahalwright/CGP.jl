@@ -514,18 +514,18 @@ function find_phenotype_with_min_Tcomplexity( p::Parameters, funcs::Vector{Func}
 end
 
 # Find a random genotype with a specified K complexity
-function find_genotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kcomplexity::Int64, max_steps::Int64; kdict::Dict=Dict() )
+function find_genotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kcomplexity::Int64, max_find_steps::Int64; kdict::Dict=Dict() )
   #println("find_genotype_with_Kcomplexity() Kcomplexity: ",Kcomplexity)
   if length(kdict) == 0
     kdict = kolmogorov_complexity_dict(p,funcs)
   end
   step = 0
   c = random_chromosome( p, funcs)
-  while step < max_steps && kdict[output_values(c)[1]] != Kcomplexity
+  while step < max_find_steps && kdict[output_values(c)[1]] != Kcomplexity
     c = random_chromosome( p, funcs)
     step += 1
   end
-  if step == max_steps
+  if step == max_find_steps
     println("WARNING: find_genotype_with_Kcomplexity() failed with Kcomplexity: ",Kcomplexity," and step: ",ste)
     return nothing
   else
@@ -535,19 +535,19 @@ function find_genotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kco
 end
 
 # Find a random genotype with a specified max T complexity
-function find_genotype_with_max_Tcomplexity( p::Parameters, funcs::Vector{Func}, Tcomplexity::Int64, max_steps::Int64 )
+function find_genotype_with_max_Tcomplexity( p::Parameters, funcs::Vector{Func}, Tcomplexity::Int64, max_find_steps::Int64 )
   println("Tcomplexity: ",Tcomplexity)
   step = 0
   c = random_chromosome( p, funcs)
   CTcmplx = complexity5(c)
   println("Tcomplexity: ",Tcomplexity,"  CTcmplx: ",CTcmplx)
-  while step < max_steps && ( CTcmplx > Tcomplexity || CTcmplx < Tcomplexity-1.0 )
+  while step < max_find_steps && ( CTcmplx > Tcomplexity || CTcmplx < Tcomplexity-1.0 )
     c = random_chromosome( p, funcs)
     CTcmplx = complexity5(c)
     println("step: ",step,"  CTcmplx: ",CTcmplx,"  output_values(c)[1]: ",output_values(c)[1])
     step += 1
   end
-  if step == max_steps
+  if step == max_find_steps
     return nothing
   else
     println("step: ",step,"  CTcmplx: ",CTcmplx,"  output_values(c)[1]: ",output_values(c))

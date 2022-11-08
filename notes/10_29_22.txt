@@ -1,0 +1,19 @@
+Trying to sync all data files to an AWS bucket.
+
+aws s3 sync data s3://cgpdata
+  # Uploaded all files even they were present in the bucket
+  # Maybe the fact that files are in a OneDrive folder messes up synchronization.
+aws s3 ls s3://cgpdata --recursive --human-readable --summarize
+  Total Objects: 4380
+  Total Size: 18.0 GiB
+
+aws s3 website s3://cpgsrc --index-document index.html --error-document error.html
+http://cgpsrc.s3-website-us-west-2.amazonaws.com/
+403 Forbidden
+Code: AccessDenied
+Message: Access Denied
+RequestId: ERTMFQK96CVKAGER
+HostId: EG3Jy1IKvgvXpBj5L9euSkDPkD5GxyW2MjjLOFo/+8/pUp64uplR8SGWZjPBUAgy5c2EpdPs0bY=
+An Error Occurred While Attempting to Retrieve a Custom Error Document
+Code: AccessDenied
+Message: Access Denied

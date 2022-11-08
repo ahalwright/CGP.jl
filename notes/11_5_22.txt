@@ -1,0 +1,11 @@
+Doing a density plot of log redundancy for genotype sampling and phenotype sampling.
+These are called G sampling and P sampling by Dingle 2015.  See Figure 2 of Dingle 2015.
+
+P sampling:
+function redundancy_dict() produces a dictionary mapping phenotypes to redundancy for 3x1 8gts4lb and 4x1 10gts5lb.
+
+G sampling:
+data/counts/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv has a 2*10^10 sample of genotypes mapped to phenotypes.
+These phenotypes can be converted by redundancy by redundancy_dict.
+
+TODO:  reconsider.  Construct a mapping of phenotypes to redundancy weighted by redundancy.

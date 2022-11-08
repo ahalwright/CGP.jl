@@ -344,6 +344,11 @@ These files now have suffix  _21.txt
 10_19: Continuing investigation of using the mutual information between rows of the phenotype matrix as a substitute for Hamming distance in neutral evolution.
 10_20: Accuracy check for computation of K complexity.
 10_21: Testing hypothesis that strength of relationship between K complexity and degree evolvability decreases as number of gates increases.
+10_23: Creating a sampling degree evolvability and an evolution degree evolvabilty vs K complexity plot
+10_28: Function negate_dataframe() in Complexity.jl.
+10_29: Trying to sync all data files to an AWS bucket.
+10_30: Comparing the 5-input K complexity of random phenotypes with the K complexity of random genotypes.
+11_5:  Doing a density plot of log redundancy for genotype sampling and phenotype sampling.
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18
