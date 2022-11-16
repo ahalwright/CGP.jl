@@ -554,7 +554,61 @@ function random_neutral_walk( c::Chromosome, goallist::GoalList, funcs::Vector{F
   return (min_num_active,count_min_num_active,min_active_chromes_list)
 end
 
-# Run pheno_evolve() to evolve circuits that map to the phenotypes in phlist.
+function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, numcircuits::Int64, max_tries::Int64, max_steps::Int64; 
+    use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" )
+  if max_tries <= numcircuits
+    error("function run_ph_evolve(): max_tries should be greater than numcircuits. Your values: max_tries: ",max_tries,"  numcircuits: ",numcircuits)
+  end
+  rdict = redundancy_dict(p,funcs)
+  kdict = kolmogorov_complexity_dict(p,funcs)
+  nphenos = length(phlist)
+  #result_list = map( ph->pheno_evolve( p, funcs, ph, numcircuits, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) 
+  result_list = pmap( ph->pheno_evolve( p, funcs, ph, numcircuits, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) 
+  mean_steps_list = Float64[]
+  median_steps_list = Float64[]
+  std_steps_list = Float64[]
+  log_redundancy_list = Float64[]
+  K_complexity_list = Int64[]
+  #println("result_list: ",result_list)
+  for i = 1:length(result_list)
+    steps_list = map(x->x[2], result_list[i][1:numcircuits])
+    println("steps_list: ",steps_list)
+    mean_steps = mean(steps_list)
+    push!(mean_steps_list,mean_steps)
+    median_steps = median(steps_list)
+    push!(median_steps_list,median_steps)
+    std_steps = std(steps_list)
+    push!(std_steps_list,std_steps)
+    push!(log_redundancy_list,lg10(rdict[phlist[i][1]] ))
+    push!(K_complexity_list,kdict[phlist[i][1]] )
+  end
+  mean_steps_list,
+  median_steps_list,
+  std_steps_list
+  df = DataFrame( :phlist=>phlist, :numinputs=>fill(numinputs,nphenos), :numgates=>fill(numinteriors,nphenos), :levsback=>fill(numlevelsback,nphenos), 
+      :mean_steps=>mean_steps_list, :median_steps=>median_steps_list, :std_steps=>std_steps_list, :Kcomp=>K_complexity_list, :lg_redund=>log_redundancy_list )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# MyInt: ",MyInt)
+      println(f,"# ",use_lincircuit ? "LGP" : "CGP" )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", funcs)
+      println(f,"# length(phlist): ",length(phlist))
+      println(f,"# numcircuits: ",numcircuits)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+#run_ph_evolve( p, funcs, map(x->[x],collect(MyInt(0):MyInt(2^2^p.numinputs-1))), 3, 5, 100_000 )
+
+# Run pheno_evolve() to evolve one circuit that maps to each phenotype in phlist.
 # Does max_tries attempts to evolve a chromosome that maps to each phenotype in phlist
 # Not currently tested for LGP.
 function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64; 
@@ -1357,3 +1411,9 @@ function evolve_to_pheno( p::Parameters, funcs::Vector{Func}, ph::Goal, max_trie
   end
   return (nc,steps,ttry)
 end
+
+function k_complexity_adaptive_walk( p::Parameters, funcs::Vector{Func}, g::Goal, max_ev_steps::Int64, max_tries::Int64, walk_steps::Int64 )
+  c = random_chromosome( p, funcs )
+  nc = neutral_evolution( c, funcs, g, max_ev_steps )
+end
+  

@@ -1,0 +1,24 @@
+Accuracy check for another run of run_kolmogorov_complexity() with different parameters for an accuracy check.
+Previous accuracy checks in 10_20_22.txt
+data/8_9_22/run_k_complexity4x1H.jl   4x1 10gts5lb XOR 0x4000:0x4fff.
+max_goal_tries = 20  (instead of 5)
+max_ev_steps = 400000 (instead of 200000)
+Took 2 full days to run,
+
+
+Created k_complexity8_9_22Gs.csv and k_complexity8_9_22Ps.csv by restricting to 0x4000:0x4fff
+Can compare with G and P
+gdf = read_dataframe("../data/8_9_22/k_complexity8_9_22Gs.csv")
+pdf = read_dataframe("../data/8_9_22/k_complexity8_9_22Ps.csv")
+Kcomplexity_accuracy_check( gdf.num_gates, pdf.num_gates )  # (483, [267, 1, 0, 0], [213, 2, 0, 0])
+hdf = read_dataframe("../data/8_9_22/k_complexity8_9_22H.csv")
+Kcomplexity_accuracy_check( gdf.num_gates, hdf.num_gates )  # (442, [418, 1, 0, 0], [23, 0, 0, 0])
+Kcomplexity_accuracy_check( pdf.num_gates, hdf.num_gates )  # (415, [374, 4, 0, 0], [37, 0, 0, 0])
+
+julia> mean(hdf.avg_robustness) 0.013835146950156075
+julia> mean(gdf.avg_robustness) 0.030849432338246968
+julia> mean(pdf.avg_robustness) 0.03410785586691809
+
+gdfc = read_dataframe("../data/8_9_22/k_complexity8_9_22Gscor.csv")
+pdfc = read_dataframe("../data/8_9_22/k_complexity8_9_22Pscor.csv")
+hdfc = read_dataframe("../data/8_9_22/k_complexity8_9_22Hcor.csv")

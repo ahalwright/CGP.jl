@@ -21,25 +21,35 @@ devo = entropy_evolvability(dphn,include_self_edges=false);
 eevo = entropy_evolvability(ephn,include_self_edges=false);
 ;
 scatter([cevo,eevo],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy",labels=["5000 walks 2000 steps" "50000 walks 5000 steps"],shape=[:star6 :rtriangle])
-scatter!(legend=:topleft,title="log redundancy vs. entropy evolvability 3x1 8gts4lb")
+scatter!(legend=:topleft)
+#scatter!(legend=:topleft,title="log redundancy vs. entropy evolvability 3x1 8gts4lb")
 savefig("../data/10_12_22/log_redundancy_vs_entropy_evolvability_3x1_8gts4lb.png")
 
 # Evolution
 # Uses evolvable_pheno_df() in evolvable_evolvability.jl:
-tdf = read_dataframe("../data/8_26_22/evolvable_evolvability8_26_22T.csv")
-E = pheno_vects_to_evolvable_matrix( tdf.pheno_vects)  # phenonet matrix
-t_entropy = entropy_evolvability(E,include_self_edges=true)  # code in Fnc_mt.jl
+tdf = read_dataframe("../data/8_26_22/evolvable_evolvability8_26_22T.csv");
+E = pheno_vects_to_evolvable_matrix( tdf.pheno_vects);  # phenonet matrix
+t_entropy = entropy_evolvability(E,include_self_edges=true);  # code in Fnc_mt.jl
 scatter(t_entropy,map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy")
-udf = read_dataframe("../data/8_26_22/evolvable_evolvability8_26_22U.csv")
-E = pheno_vects_to_evolvable_matrix( udf.pheno_vects)  # phenonet matrix
-u_entropy = entropy_evolvability(E,include_self_edges=true)
+udf = read_dataframe("../data/8_26_22/evolvable_evolvability8_26_22U.csv");
+E = pheno_vects_to_evolvable_matrix( udf.pheno_vects);  # phenonet matrix
+u_entropy = entropy_evolvability(E,include_self_edges=true);
 scatter([t_entropy,u_entropy],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy")  # plots are almost the same
 
-# Both
+# Both vs log redundancy
 #scatter([u_entropy,eevo],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy",labels=["evolution 1000 circuits" "rw sampling 50000 walks 5000 steps"],shape=[:star6 :rtriangle])
 scatter([u_entropy,devo],map(lg10,cntdf.ints8_4),xlabel="entropy evolvability",ylabel="log redundancy",labels=["evolution 1000 circuits" "rw sampling 10000 walks 5000 steps"],shape=[:star6 :rtriangle])
 # Shows that evol entropy is better for low redundancy phenotypes and rw sampling is better for high redundancy phenotypes
-scatter!(title="lgredund vs evo & rw sampling entropy evol 3x1 8gts4lb4funcs",legend=(0.11,0.32))
+scatter!(legend=(0.11,0.32))
+#scatter!(title="lgredund vs evo & rw sampling ent evol 3x1 8gts4lb noXOR",legend=(0.11,0.32))
 savefig("../data/10_12_22/lgredund_vs_evo_and_rw_sampling_entropy_evol_3x1_8gts4lb4funcs.png")
 
+# Both versus K complexity
+p = Parameters(3,1,8,4); funcs=default_funcs(p)[1:4]
+kdict = kolmogorov_complexity_dict(p,funcs)
+Kcomp = map(ph->kdict[ph], 0x0000:0x00ff )
+scatter([u_entropy,devo],Kcomp,xlabel="entropy evolvability",ylabel="K complexity",labels=["evolution 1000 circuits per phenotype" "rw sampling 10000 walks 5000 steps"],shape=[:star6 :rtriangle])
+scatter!(legend=(0.11,0.75),xlim=(0.07,6.0))
+#scatter!(title="K cmplx vs evo & rw sampling ent evol 3x1 8gts4lb noXOR",legend=(0.11,0.75),xlim=(0.07,6.0))
+savefig("../data/10_12_22/Kcmplx_vs_evo_and_rw_sampling_entropy_evol_3x1_8gts4lb4funcs.png")
 

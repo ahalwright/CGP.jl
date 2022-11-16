@@ -26,6 +26,7 @@ plot!(p1,xlabel = "increase in K complexity",ylabel="density of result K complex
 plot!(p1,ylims=(0,1.7*findmax(E)[1]))
 savefig("../data/9_6_22/Kcomp_density_evolution4lx1_5funcs.png")
   
+# This is the plot in the paper
 df = read_dataframe("../data/8_13_22/k_complexity_mutate8_13_22DFH.csv");
 E = df_to_matrix(df,2);
 nrows=8

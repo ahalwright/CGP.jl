@@ -1,4 +1,5 @@
 Accuracy check for computation of K complexity.
+Further accuracy checks in 11_10_22.txt
 
 Wrote function Kcomplexity_accuracy_check() in Complexity.jl.
 
@@ -16,4 +17,13 @@ Kcomplexity_accuracy_check( cdf.num_gates, ddf.num_gates )
 0x0024  4  3
 (2, [1, 0, 0, 0], [1, 0, 0, 0])
 
-
+# F is rerun with num_gates=30 (instead of 10) and max_ev_steps=400000 instead of 200000
+cdfc = read_dataframe("../data/10_20_22/k_complexity_3x1_5funcs_10_20_22Ccor.csv");
+ddfc = read_dataframe("../data/10_20_22/k_complexity_3x1_5funcs_10_20_22Dcor.csv");
+Kcomplexity_accuracy_check( cdfc.num_gates, ddfc.num_gates, true )
+0x001d  3  4
+0x0024  4  3
+(2, [1, 0, 0, 0], [1, 0, 0, 0])
+ Kcomplexity_accuracy_check( cdfc.num_gates, ddfc.num_gates )
+(0, [0, 0, 0, 0], [0, 0, 0, 0])
+# Conclusion:  Either running twice or running with alt paramters gave same results.

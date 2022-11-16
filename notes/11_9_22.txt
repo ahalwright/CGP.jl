@@ -1,0 +1,37 @@
+Running neutral_evolution_record().
+
+julia> include("../data/11_9_22/run_neutral_evolve_recordB.jl")
+k_csvfile: ../data/counts/k_complexity8_9_22FGGF.csv
+csvfile: ../data/11_2_22/neutral_evolve_record_4x1_10gts_100000max_steps_11_2_22B.csv
+6×8 DataFrame
+ Row │ goal            step   status   distance  kcomplexity  evolvability  robustness  count_goals
+     │ Array…          Int64  String   Float64   Float64      Int64         Float64     Int64
+─────┼──────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ UInt16[0x3fff]    612  improve    0.3125          2.0            17         0.0            0
+   2 │ UInt16[0x37ff]    971  improve    0.25            3.0            27         0.0            0
+   3 │ UInt16[0x36fa]   1223  improve    0.1875          3.0            37         0.0            0
+   4 │ UInt16[0x2659]  13228  improve    0.125           5.0            58         0.0            0
+   5 │ UInt16[0x26d9]  13698  improve    0.0625          4.0            62         0.0            0
+   6 │ UInt16[0x26db]  40406  improve    0.0             7.0            72         0.0           151
+
+Another run on 11/14/22 using a debugged Cooper's version:
+Still not getting the right K complexity file:  funcs got reset.
+julia> include("../data/11_9_22/run_neutral_evolve_recordH.jl")
+csvfile: ../data/11_9_22/neutral_evolve_record_3x1_8gts_5000max_steps_11_9_22H.csv
+k_csvfile: ../data/counts/k_complexity_3x1_5funcs7_11_22F.csv
+340×7 DataFrame
+df[df.status.=="improve",:]
+4×7 DataFrame
+ Row │ step   status   kcomplexity  evolvability  robustness  count_goals  output_values
+     │ Int64  String   Float64      Int64         Float64     Int64        Array…
+─────┼────────────────────────────────────────────────────────────────────────────────────
+   1 │     9  improve          1.0             7    0.833333            0  UInt16[0x0000]
+   2 │    22  improve          2.0            18    0.435897            0  UInt16[0x0001]
+   3 │    97  improve          3.0            26    0.423077            1  UInt16[0x0059]
+   4 │   735  improve          4.0            39    0.217949           17  UInt16[0x0049]
+
+Conclusions:  evolvability increases, robustness decreases
+
+Example run on Nov. 15 shows that robustness decreases over the course of the run.
+ df = neutral_evolution_record( c, funcs, g, max_steps, save_kcomplexities=true )
+

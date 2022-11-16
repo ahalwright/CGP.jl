@@ -2,6 +2,27 @@ Comparing the 5-input K complexity of random phenotypes with the K complexity of
 Summary:  We find that the mean complexity of random phenotypes is close to 11 while the mean complexity of random genotypes is around 2 or 3,
   so evolving from a random genotype to a random phenotype is an example of evolving increaseing K complexity.
 
+5x1
+fdf = read_dataframe("../data/10_30_22/k_complexity10_30_22F.csv")  # 500 random genotypes
+gdf = read_dataframe("../data/10_30_22/k_complexity10_30_22G.csv")  # 300 random phenotypes
+p5 = density([fdf.num_gates,gdf.num_gates],labels=["random genotypes" "random phenotypes"],ylabel="density",xlabel="K complexity",legend=:topleft)
+plot!(p5,title="Density K comp rand genotypes rand phenotypes 5x1")
+savefig("../data/10_30_22/Density_K_comp_rand_genotypes_rand_phenotypes_5x1.png")
+
+4x1
+fdf = read_dataframe("../data/10_30_22/k_complexity_density4x1_10_30_22F.csv");  # 500 random genotypes
+gdf = read_dataframe("../data/10_30_22/k_complexity_density4x1_10_30_22G.csv");  # 300 random phenotypes
+p4=density([fdf.num_gates,gdf.num_gates],labels=["random genotypes" "random phenotypes"],ylabel="density",xlabel="K complexity",legend=:topright)
+plot!(p4,title="Density K comp rand genotypes rand phenotypes 4x1")
+savefig("../data/10_30_22/Density_K_comp_rand_genotypes_rand_phenotypes_4x1.png")
+
+3x1
+fdf = read_dataframe("../data/10_30_22/k_complexity_density3x1_10_30_22F.csv");  # 500 random genotypes
+gdf = read_dataframe("../data/10_30_22/k_complexity_density3x1_10_30_22G.csv");  # 300 random phenotypes
+p3=density([fdf.num_gates,gdf.num_gates],labels=["random genotypes" "random phenotypes"],ylabel="density",xlabel="K complexity",legend=:topright)
+plot!(p3,title="Density K comp rand genotypes rand phenotypes 3x1")
+savefig("../data/10_30_22/Density_K_comp_rand_genotypes_rand_phenotypes_3x1.png")
+
 Error check:  300 5x1 phenotypes suffixes G and H
 hdf result of running 10_30_22/run_k_complexity5x1H.jl
 gdf = read_dataframe("../data/10_30_22/k_complexity10_30_22G.csv")

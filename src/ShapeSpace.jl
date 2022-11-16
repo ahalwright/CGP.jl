@@ -150,11 +150,13 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
       push!( circuits_list, c )
     end
   end
+  #println("length(circuits_list): ",length(circuits_list))
   shape_space_counts( p, funcs, num_mutates, circuits_list, use_lincircuit=use_lincircuit, csvfile=csvfile )
 end
 
 # This version returns the dataframe of results with one row for each of num_circuits random circuits.
 function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, num_circuits::Int64; use_lincircuit::Bool=false, csvfile::String="" )
+  #println("num_circuits: ",num_circuits)
   circuits_list = use_lincircuit ? [ rand_lcircuit( p, funcs ) for _ = 1:num_circuits ] : [ random_chromosome( p, funcs ) for _ = 1:num_circuits ] 
   shape_space_counts( p, funcs, num_mutates, circuits_list, use_lincircuit=use_lincircuit, csvfile=csvfile )
 end    
@@ -171,7 +173,7 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   complexity_list = map( complexity5, circuits_list )
   evolvability_list = map( c->genotype_evolvability(c,funcs), circuits_list )
   current_pheno(ci,p,funcs) = output_values( use_lincircuit ? circuit_int_to_circuit(ci,p,funcs) : int_to_chromosome(ci,p,funcs) )
-  #result_list = map( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
+  #result_list = map( ci->(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
   result_list = pmap( ci->length(pheno_set_funct( p, funcs, [ci], num_mutates, Set([current_pheno(ci,p,funcs)]) )), circuit_int_list )
   df = DataFrame()
   df.phenos = pheno_strings_list

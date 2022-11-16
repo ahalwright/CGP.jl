@@ -63,8 +63,10 @@ sum(phdfN.redund)  # 60_466_177
 
 Can get exact degree, strength, and evolution evolvabilities.
 
-A very small example:
-data/9_24_22/run_phnet_matrixD.jl: for some reason did not produce a csv file
+A small example:
+data/9_24_22/run_phnet_matrixG.jl: 
+data/9_24_22/exact_phnet_matrix9_24_22G.csv
+data/9_24_22/exact_phnet_matrix9_24_22G.tex
 
 =================================================
 Computing K complexities for all 4x1 phenos

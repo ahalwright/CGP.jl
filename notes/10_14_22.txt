@@ -40,9 +40,9 @@ E = pheno_vects_to_evolvable_matrix( tdf.pheno_vects)  # phenonet matrix
 ent_evo = entropy_evolvability(E,include_self_edges=true)  # code in Fnc_mt.jl
 scatter(ent_evo,map(lg10,cntdf.ints8_4),smooth=true,xlabel="entropy evolvability",ylabel="log redundancy",labels="log redundancy vs entropy_evolvability")
 scatter!(title="lg redund vs ent evolvability 3x1 8gts4lb 5funcs")
-savefig("../data/10_12_22/lg_redund_vs_ent_evolvability_3x1_8gts4lb_5funcs.png")
-spearman_cor(t_entropy,map(lg10,cntdf.ints8_4)) # (-0.9728282473362417, 1.045234391076208e-163)
-# Strong linear relationship
+savefig("../data/10_12_22/lg_redund_vs_ent_evolvability_3x1_8gts4lb_4funcs.png")
+spearman_cor(ent_evo,map(lg10,cntdf.ints8_4)) # (-0.9728282473362417, 1.045234391076208e-163)
+# Strong linear negative relationship
 
 phenos = collect(0x0000:0x00ff);
 kdict = kolmogorov_complexity_dict(p,funcs)
@@ -51,10 +51,24 @@ Kcomp = map( ph->kdict[ph], phenos )
 scatter(ent_evo,Kcomp,smooth=true,xlabel="entropy evolvability",ylabel="Kolmogorov complexity",labels="K complexity vs entropy_evolvability")
 scatter!(title="K complex vs entropy evol 3x1 8gts4lb 5funcs",legend=:topleft)
 savefig("../data/10_12_22/K_complex_vs_entropy_evol_3x1_8gts4lb_5funcs.png")
-spearman_cor(ent_evo, Kcomp ) # (0.7367510367681944, 2.3044407571881675e-45)
+spearman_cor(ent_evo, Kcomp ) # (0.9418661543270944, 1.2888454591763918e-122)
+# Strong linear positive relationship
+
+# Trying to explain the strong linear negative relationship between log redundancy and entropy evolvability.
+# Assume cntdf and tdf and E from above
+# Row 4 corresponds to 0x0003 with redund 1171988, row 74 corresponds to 0x0049 with redund 31.
+CGP.entropy(E[74,:]/sum(E[74,:])),CGP.entropy(E[4,:]/sum(E[4,:])) # (5.261427241519567, 3.1583463280117283) # illustrates the negative relationship
+length(findall(x->x>0,E[74,:])),length(findall(x->x>0,E[4,:])) #  (162, 109)
+z74=vcat(fill(1,162),fill(0,94))
+z4 = vcat(fill(1,109),fill(0,147))
+# Not all of the difference in entropies is explained by the number of nonzeros
+CGP.entropy(z74/sum(z74)),CGP.entropy(z4/sum(z4)) # (7.33985000288463, 6.7681843247769296) 
+# similar to GECCO Figure 7a negative relationship between evolution evolvability and log redundancy
+# Entropy evolvability is similar to evolution evolvability.
+# Note that entropy evolvability was calculated by sampling rather than evolution.
 
 edf = read_dataframe("../data/2020/10_27/geno_complexity10_27FMNccons.csv")
-phlist = map(x->eval(Meta.parse(x)),convert(Vector{String},edf.goal))   # 600 phenotypes used in GECCO paper
+scatter!(ylims=(0,7.6),ylabel="log redundancy",xlabel="degree evolvability",legend=:topleft,title="lgredund vs samplingE & evolutionS evol 8gts4lb4funcs")phlist = map(x->eval(Meta.parse(x)),convert(Vector{String},edf.goal))   # 600 phenotypes used in GECCO paper
 
 # Debugging entropy_evolvability() in the 2x1 2gts2lb4gates case
 # Comparing to the function multiset_phenotype_evolvability() which is now in evolvable_evolvability.jl (moved from p_evolve.jl)
@@ -78,4 +92,5 @@ Exact E
   4   0   8   0   4   12  0  12   4  0    0   4   4  12   0  16
   0  32   0   0   4    4  0  12  12  0   36  12  12   0  28   8
  24   0   4   0   4   24  0   8   0  0   24  16   0  16   8  32
+
 

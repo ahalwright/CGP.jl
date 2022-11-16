@@ -594,7 +594,7 @@ function run_evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromC
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       print_parameters(f,p,comment=true)
-      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# funcs: ", funcs )
       println(f,"# max_find_steps: ",max_find_steps)
       CSV.write( f, df, append=true, writeheader=true )
     end

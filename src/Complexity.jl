@@ -604,6 +604,26 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
   (g,num_gates,number_active_gates(found_c),avg_complexity,tries,avg_robustness,avg_evolvability,num_gates_exceptions)
 end
 
+function k_complexity_density( p::Parameters, funcs::Vector{Func}, phlist::GoalList; csvfile::String="" )
+  kdict = kolmogorov_complexity_dict(p,funcs)
+  k_comp_list = Int64[]
+  for ph in phlist
+    push!(k_comp_list,kdict[ph[1]])
+  end
+  df = DataFrame( :phlist=>phlist, :num_gates=>k_comp_list )  
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", funcs)
+      print_parameters(f,p,comment=true)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
 # For each phenotypes in goallist and for each numints in the range numinteriors, 
 #    computes the mean and standard deviation of the Tononi complexity of numcircuits chromosomes evolved to map to the phenotype.
 # Purpose:  try to understand how Tononi complexity scales as numinteriors.
@@ -874,7 +894,7 @@ end
 
 function run_k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, phlist::GoalList, numcircuits::Int64, max_tries::Int64, max_steps::Int64;
     circuit_ints_df::DataFrame=DataFrame(), use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" )
-  k_dict = kolmogorov_complexity_dict( p )
+  k_dict = kolmogorov_complexity_dict( p, funcs )
   df = DataFrame( :goal=>Goal[], :rebased_vect=>RebasedVector[] )
   circuit_ints_list = Vector{Int128}[]   # establish scope
   sampling = false

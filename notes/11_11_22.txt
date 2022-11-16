@@ -1,0 +1,22 @@
+Looking at the distribution of Hamming distance changes over the result of mutate_all() with and without XOR.
+See the file src/dist_counts.jl and the results in data/11_11_22/.
+Conclusion:  Results do not seem to be very related to these results.
+Fraction of Hamming distance 1 is considerably less frequent than Hamming distance 2
+Robustness of all numinputs are much higher that I expected.  
+4 inputs:  0.6 to 0.75
+5 inputs:  0.7 to 0.85
+Thus, a high fraction of steps are neutral.
+
+Important results
+
+Evolvability
+  Redundancy and rank
+  Redundancy and robustness
+  Phenotype network
+    Exact
+    Approx by sampling
+
+
+Complexity
+
+

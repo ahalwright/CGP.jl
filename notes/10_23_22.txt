@@ -3,7 +3,7 @@ Creating a sampling degree evolvability and an evolution degree evolvabilty vs K
 kdf = read_dataframe("../data/counts/k_complexity_3x1_4funcs7_11_22E.csv")   # K complexity is num_gates.
 #gdf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22G.csv")
 udf = read_dataframe("../data/9_29_22/robust_evo_by_walks9_29_22U.csv")  # 3x1 8gts4lb 4 funcs 50000 walks 5000 steps
-E = df_to_matrix( udf, 2 )
+E = df_to_matrix( udf, 5 )
 d_evo = degree_evolvability( E )
 scatter(d_evo,kdf.num_gates,xlabel="sampling evolability",ylabel="K complexity",smooth=true)
 scatter!(title="K complex vs sampling evo 3x1 8gts 4lb 4funcs")
