@@ -1,0 +1,59 @@
+Test how frequent target node 20 = 0x0014 is in the result of mutate_all applied to a chromsome evolved to ph.
+For the example of Figure 7 of Hu 2022 ph is one of nodes 4=0x0004, 16=0x0010, 21=0x0015, or 84=0x0054.
+
+function test_mutate_all( p::Parameters, funcs::Vector{Func}, start::Int64, target::Int64 )
+  rc = rand_lcircuit(p, funcs)
+  nc = neutral_evolution( rc, funcs,[MyInt(start)],50000)[1]
+  muta = mutate_all( nc, output_outputs=true )
+  findall(x->x==[MyInt(target)], muta )
+  #findall(x->x==[MyInt(target)],  mutate_all( neutral_evolution( rand_lcircuit(p, funcs),funcs,[MyInt(start)],50000)[1],output_outputs=true) )
+end
+
+function test_mutate_all( p::Parameters, funcs::Vector{Func}, lcdf::DataFrame, start::Int64, target::Int64 )
+  funcs = funcs[1:4]
+  circuit_ints_list = eval(Meta.parse(lcdf.circuits_list[start+1]))
+  rc = rand_lcircuit(p, funcs)
+  nmutates = length( mutate_all( rc, output_outputs=true ) )
+  #println("circuit_ints_list; ",circuit_ints_list)
+  count = 0
+  for ci in circuit_ints_list
+    nc = circuit_int_to_circuit( ci, p, funcs )
+    @assert output_values( nc )[1] == MyInt(start)
+    muta = mutate_all( nc, output_outputs=true )
+    count += length(findall(x->x==[MyInt(target)], muta ))
+  end
+  count/nmutates/length(circuit_ints_list)
+end
+
+function average_mutate_all( p::Parameters, funcs::Vector{Func}, nreps::Int64, start::Int64, target::Int64 )
+  rc = rand_lcircuit(p, funcs)
+  nmutates = length( mutate_all( rc, output_outputs=true ) )
+  count = 0
+  for i = 1:nreps
+    count += length(test_mutate_all(p,funcs,start,target))
+  end
+  count/nmutates/nreps
+end
+
+
+lcdf = read_dataframe("../data/5_10_22/count_outputs_lc_4funcs_3inputs_6insts_2regs_E.csv")
+lcdf[15,:]
+DataFrameRow
+ Row │ goals    lgints6_2  dgoals  ints6_2    circuits_list
+     │ String7  Float64    Int64   Int64      String
+─────┼──────────────────────────────────────────────────────────────────────────
+  15 │ 0x00e      8.13654      14  136942441  Int128[40950478317441, 431506512…
+funcs = funcs[1:4]
+p = Parameters(3,1,6,2); funcs=default_funcs(p)[1:4]
+output_values( circuit_int_to_circuit( Int128(40950478317441), p, funcs ))
+1-element Vector{UInt16}:
+ 0x000e
+  
+julia> test_mutate_all( p, funcs, lcdf, 16, 20 )
+0.0017435897435897436
+julia> test_mutate_all( p, funcs, lcdf, 4, 20 )
+0.0015384615384615385
+julia> test_mutate_all( p, funcs, lcdf, 21, 20 )
+0.0018205128205128205
+julia> test_mutate_all( p, funcs, lcdf, 84, 20 )
+0.0017692307692307693

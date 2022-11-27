@@ -1,0 +1,30 @@
+Computing sampling evolvability and comparing to evolution evolvability 
+
+function evolvability_sampling( p::Parameters, funcs::Vector{Func}, ph::Goal, circ_ints::Vector{Int128} )  in Evolvability.jl
+
+gdf = read_dataframe("../data/2020/10_27/geno_complexity10_27FMNccons.csv")  # 600 GECCO phenotypes
+select!(gdf,DataFrames.Not(:f_mutrobust))
+select!(gdf,DataFrames.Not(:ratio))
+names(gdf), size(gdf)
+names(gdf), size(gdf)
+(["goal", "numinputs", "numoutputs", "numints", "numlevsback", "maxsteps", "ntries", "nrepeats", "avg_steps", "log_avg_steps", "robustness", "evo_count", "estimate", "nactive", "complexity", "ints11_8"], (600, 16))
+
+sdf = read_dataframe("../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv")  # All 4x1 phenotypes by sampling
+(["goals", "ints10_5", "circuits_list"], (65536, 3))
+
+evo_sampling = Int64[]
+Int64[]
+julia> for i = 1:size(gdf)[1]
+                println("i: ",i)
+                push!(evo_sampling,length(evolvability_sampling(p,funcs,[eval(Meta.parse(gdf.goal[i][8:13]))],eval(Meta.parse(sdf[sdf.goals.==gdf.goal[i][8:13],:circuits_list][1])))))
+           end
+
+insertcols!(gdf,12,:sampling_evol=>evo_sampling)
+scatter(evo_sampling,Vector{Float64}(gdf.evo_count),xlabel="sampling evolvability",ylabel="evolution evolvability",legend=:none,title="GECCO phenotypes 4x1 with XOR 11/21/22")
+savefig("../data/11_21_22/"GECCO_phenotypes_4x1_with_XOR_11_21_22.png")
+
+Plots.scatter(Vector{Float64}(gdf.evo_count),Vector{Float64}(gdf.complexity))
+Plots.scatter(Vector{Float64}(gdf.evo_count),Vector{Float64}(gdf.robustness))
+Plots.scatter(Vector{Float64}(gdf.evo_count),Vector{Float64}(gdf.log_avg_steps))
+Plots.scatter(Vector{Float64}(gdf.evo_count),Vector{Float64}(map(x->lg10(x),gdf.ints11_8)))
+

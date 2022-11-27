@@ -22,7 +22,7 @@ nrows=8
 ll = Array{String}(undef,1,nrows)
 for i = 1:nrows ll[1,i] = "Density of K complexity of result starting with K complexity $(i)" end
 p1 = plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
-plot!(p1,xlabel = "increase in K complexity",ylabel="density of result K complexities",title = "Change in K complexity of mutations")
+plot!(p1,xlabel = "increase in K complexity",ylabel="density result K complexities",title = "Change in K complexity of mutations")
 plot!(p1,ylims=(0,1.7*findmax(E)[1]))
 savefig("../data/9_6_22/Kcomp_density_evolution4lx1_5funcs.png")
   
@@ -32,8 +32,8 @@ E = df_to_matrix(df,2);
 nrows=8
 ll = Array{String}(undef,1,nrows);
 for i = 1:nrows ll[1,i] = "starting K complexity = $(i)" end
-p1 = plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
-plot!(p1,xlabel = "increase in K complexity",ylabel="density of result K complexity",title = "Change in K complexity of mutations")
+p1 = Plots.plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
+Plots.plot!(p1,xlabel = "increase in K complexity",ylabel="density result K complexity",title = "Change in K complexity of mutations")
 #plot!(p1,legend=:topright,ylims=(0,1.4*findmax(E)[1]))  # Not needed
 savefig("../data/9_6_22/Kcomp_density_evolution4x1_5funcs8_13DFH.png")   # Nice plot
 

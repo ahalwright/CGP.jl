@@ -922,7 +922,7 @@ function run_k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, phlist
     push!(k_comp_rebased,RebasedVector(res[2],res[3]))
     push!(df,(res[1],RebasedVector(res[2],res[3])))
   end
-  sdf = kcomp_summary_dataframe( df )
+  sdf = comp_summary_dataframe( df )
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
       hostname = readchomp(`hostname`)
@@ -969,25 +969,23 @@ function k_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, ph::Goal, 
   (ph,k_comp_ph,k_complexity_counts)
 end
     
-function kcomp_summary_dataframe( k_comp_rebased::DataFrame )
+function comp_summary_dataframe( comp_rebased::DataFrame )
   sdf = DataFrame( :kcomp=>Int64[] ) 
   for i = -8:8
     insertcols!(sdf,Symbol(string(i))=>Int64[])
   end
   println("size(sdf): ",size(sdf))
-  ksummary = [ RebasedVector(u,zeros(Int64,17)) for u = 1:8 ]
-  for i = 1:size(k_comp_rebased)[1]
-    j = k_comp_rebased.rebased_vect[i].center
+  summary = [ RebasedVector(u,zeros(Int64,17)) for u = 1:8 ]
+  for i = 1:size(comp_rebased)[1]
+    j = comp_rebased.rebased_vect[i].center
     for k = -8:8
-      #gti!(ksummary[j],k,gti(ksummary[j],k)+gti(k_comp_rebased.rebased_vect[i],k)) 
-      #gti!(ksummary[j],k,ksummary[j][k]+k_comp_rebased.rebased_vect[i][k]) 
-      ksummary[j][k] = ksummary[j][k]+k_comp_rebased.rebased_vect[i][k] 
+      summary[j][k] = summary[j][k]+comp_rebased.rebased_vect[i][k] 
       #println("i: ",i,"  j: ",j,"  k: ",k,"  ksummary[j][k]: ",ksummary[j][k])
     end
   end
   for u = 1:8
-    #println("row length: ",length(vcat([u],ksummary[u].vect)))
-    push!( sdf, vcat([u],[ksummary[u][k] for k = -8:8]) )
+    #println("row length: ",length(vcat([u],summary[u].vect)))
+    push!( sdf, vcat([u],[summary[u][k] for k = -8:8]) )
   end
   sdf
 end

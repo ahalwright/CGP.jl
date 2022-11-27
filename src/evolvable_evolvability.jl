@@ -513,6 +513,28 @@ function find_phenotype_with_min_Tcomplexity( p::Parameters, funcs::Vector{Func}
   end
 end
 
+# Find a random genotype with a specified Hamming distance
+function find_phenotype_with_hamming_dist( p::Parameters, funcs::Vector{Func}, ph::Goal, h_dist::Int64, max_find_steps::Int64 )
+  println("find_genotype_with_hamming_dist() h_dist: ",h_dist,"  ph: ",ph)
+  step = 0
+  rph = rand(MyInt(0):Ones)
+  #hdist = hamming_distance(rph,ph[1],p.numinputs)
+  #println("step: ",step,"  hdist: ",hdist)
+  while step < max_find_steps && hamming_distance(rph,ph[1],p.numinputs) != h_dist/2^p.numinputs
+    rph = rand(MyInt(0):Ones)
+    #hdist = hamming_distance(rph,ph[1],p.numinputs)
+    #println("rph: ",[rph],"  step: ",step,"  hdist: ",hdist)
+    step += 1
+  end
+  if step == max_find_steps
+    println("WARNING: find_genotype_with_hamming_dist() failed with ph: ",ph,"  h_dist: ",h_dist," and step: ",step)
+    return nothing
+  else
+    println("find_genotype_with_hamming_dist() returned ",[rph],"  step: ",step)
+    return rph
+  end
+end
+
 # Find a random genotype with a specified K complexity
 function find_genotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kcomplexity::Int64, max_find_steps::Int64; kdict::Dict=Dict() )
   #println("find_genotype_with_Kcomplexity() Kcomplexity: ",Kcomplexity)

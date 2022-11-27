@@ -119,11 +119,16 @@ function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numin
     #outlist = fill( UInt128(0), numoutputs*2^2^numinputs )
   end
    circuit_ints_list = [ Int128[] for _ = 1:p.numoutputs*2^2^p.numinputs ]
-  for _ = 1:nreps
+  for i = 1:nreps
     if use_lincircuit
       c = rand_lcircuit( p, funcs )
       c_int = instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( c, funcs ), p, funcs )
+      cic = circuit_int_to_circuit(Int128(c_int),p,funcs);
+      println("c_int: ",c_int)
+      println("cic: ",cic)
+      @assert output_values(c) == output_values(cic)
       @assert c_int >= 0
+      println("output_values(c): ",output_values(c))
       #=
       if c_int < 0 
         println(" c_int: ",c_int,"  c: ",c)
@@ -135,6 +140,8 @@ function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numin
     end
     output = output_values( c )
     increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
+    i = output_values(c)[1]  
+    println( "i: ",i,"  circuit_ints_list[i+1]: ",circuit_ints_list[i+1])
     if output_complex
       #println("outlist: ",outlist)
       complexity = use_lincircuit ? lincomplexity(c,funcs) : complexity5(c)
@@ -250,6 +257,7 @@ end
 function increment_circuit_ints_list!( circuit_ints_list::Vector{Vector{Int128}}, output::Goal, c_int::Int128, 
       numcircuits::Int64, p::Parameters, funcs::Vector{Func} )
   index = concatenate_outputs(output,p.numinputs)+1
+  println("output: ",output,"  index: ",index) 
   if length(circuit_ints_list[index]) >= numcircuits
     return
   end

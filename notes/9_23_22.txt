@@ -1,4 +1,5 @@
 Trying out Cooper's src/heat_map_plot_with_plotly.jl
+# Worked on 11/16/22
 
 # Procedure for generating dataframe pdf.
 p=Parameters(4,1,10,5);funcs=default_funcs(p)
@@ -13,6 +14,7 @@ lg10(x) = x==0 ? 0.0 : log10(x)
 log_redund = map(x->lg10(r_dict[x]),goals)
 pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund=>log_redund )
 
+include("heat_map_plot_with_plotly.jl")
 heatmap_density_plot( pdf.kcomp, pdf.log_redund, "../data/9_23_22/heat_map.png",xlab="log redundancy",ylab="K complexity",toShowScale=true, html_loc="../data/9_23_22/heat_map.html" )
 [+] HTML Plot succesfully created and saved to ../data/9_23_22/heat_map.html
 [+] Plot succesfully created and saved to ../data/9_23_22/heat_map.png

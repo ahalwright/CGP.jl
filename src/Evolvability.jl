@@ -1045,3 +1045,21 @@ function pheno_set_rand_neutral_walk( c::Circuit, funcs::Vector{Func}, walk_leng
   pheno_set
 end
 =#
+
+function evolvability_sampling( p::Parameters, funcs::Vector{Func}, ph::Goal, circ_ints::Vector{Int128} )
+  if length(circ_ints) == 0
+    return MyInt[]
+  end
+  @assert output_values( int_to_chromosome( circ_ints[1], p, funcs )) == ph
+  evo_list = MyInt[]  # List of unique MyInts found by applying mutate_all() to each circuit in circ_ints.
+  circuits = map( ci->int_to_chromosome( ci, p, funcs ), circ_ints )
+  for circ in circuits
+    c_phenos = unique( map(x->x[1], mutate_all( circ, funcs, output_outputs=true ) ))
+    evo_list = unique( vcat( evo_list, c_phenos ) )
+  end
+  evo_list
+end
+#map( i->length(eval(Meta.parse(sdf.circuits_list[i]))),1:size(sdf)[1] )
+#evo_sample=map(i->evolvability_sampling( p, funcs, [MyInt(i-1)], eval(Meta.parse(sdf.circuits_list[i])) ), 1:size(sdf)[1] )
+
+

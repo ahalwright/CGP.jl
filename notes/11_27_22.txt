@@ -1,0 +1,21 @@
+Finished the onlyShowEpochChange=true option for neutral_evolution_record()
+Cross-checked with the onlyShowEpochChange=false option which does independent computations.
+
+
+Test runs: (included two successive improvement steps)
+Random.seed!(4); c = random_chromosome(p,funcs); df=neutral_evolution_record( c, funcs, randgoal(p), 20000, onlyShowEpochChange=true )
+Random.seed!(4); c = random_chromosome(p,funcs); df=neutral_evolution_record( c, funcs, randgoal(p), 20000, onlyShowEpochChange=false )
+
+Consistency check between true and false options:
+(Independent computations.)
+true option:
+ Row │ newpheno  epochalStep  neutralStep  dist_goal  first_geno_evol  first_geno_rbst  epochal_Kcmplx  nTargetFound  epochal_evolv  epochal_lgredund  epochal_rbst
+     │ UInt16    Int64        Int64        Float64    Float64          Float64          Float64         Int64         Float64        Float64           Float64
+─────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │       85            1            1      0.25               7.0         0.571429             1.0             0        0.0               0.0          0.0
+   2 │       21          131           96      0.125             25.0         0.385714             2.0            11        7.07368           6.99318      0.706767
+   3 │        5          132           97      0.0               20.0         0.542857             1.0             9       24.0               5.59202      0.385714
+false option:
+mean(df.evolvability[1:95]) # 7.073684210526316
+mean(df.robustness[1:95])   # 0.7067669172932334
+mean(df.lgredund[1:95])     # 6.99318477697684
