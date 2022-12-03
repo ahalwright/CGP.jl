@@ -440,21 +440,24 @@ end
 # Run kolmogorov_complexity() for all goals in goal list gl (in parallel).
 # Write dataframe to csvfile is that is given (keyword argument)
 function run_kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, gl::GoalList, max_goal_tries::Int64, max_ev_steps::Int64;
-      use_mut_evolve::Bool=false, csvfile::String="" ) 
+      use_mut_evolve::Bool=false, use_lincircuit::Bool=false, decimal_goals::Bool=false, csvfile::String="" ) 
   ngoals = length(gl)
   df = DataFrame()
   df.goal = Goal[]
   df.num_gates = Int64[]
-  df.num_active_gates = Int64[]
+  df.num_active = Int64[]
   df.complexity = Float64[]
   df.tries = Int64[]
   df.avg_robustness = Float64[]
   df.avg_evolvability = Float64[]
   df.num_gates_exc = Int64[]
-  result_list = pmap( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_mut_evolve=use_mut_evolve ), gl )
-  #result_list = map( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_mut_evolve=use_mut_evolve ), gl )
+  result_list = pmap( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve ), gl )
+  #result_list = map( g->kolmogorov_complexity( p, funcs, g, max_goal_tries, max_ev_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve ), gl )
   for r in result_list
     push!(df, r )
+  end
+  if decimal_goals
+    df.goal = map( g->Int(g[1]), df.goal )
   end
   hostname = readchomp(`hostname`)
   if length(csvfile) > 0
@@ -478,7 +481,7 @@ function run_kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, gl::Goal
   println("# ngoals: ",ngoals)
   df
 end
-    
+
 # Try to find the minimum number of gates to evolve a goal which I call the Kolmogorov complexity.
 # Start with p.numinteriors and then deccrease the number of gates until the goal is found.
 # Do max_goal_tries evolutions with each number of gates.
@@ -489,8 +492,11 @@ end
 # If a chromosome with a smaller number of active gates is found in these further evolutions,
 #    then num_gates is reset and the further evaluations of complexity, robustness, evolvability are restarted
 # max_ev_steps is the maximum number of steps while doing mut_evolve()
-function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, max_goal_tries::Int64, max_ev_steps::Int64; use_mut_evolve::Bool=true )
+function kolmogorov_complexity( p::Parameters, funcs::Vector{Func}, g::Goal, max_goal_tries::Int64, max_ev_steps::Int64; use_lincircuit::Bool=false, use_mut_evolve::Bool=false )
   num_tries_multiplier = 3   # used in second outer while loop
+  if use_lincircuit && use_mut_evolve
+    use_mut_evolve = false   # use_mut_evolve==true is incompatible with use_lincircuit==true
+  end
   println("goal: ",g)
   num_gates_exceptions = 0
   #funcs = default_funcs(p.numinputs)
@@ -498,9 +504,10 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
   #robust_evol_list = Tuple{Float64,Float64}[]
   robust_list = Float64[]
   evol_list = Float64[]
+  # if use_lincircuit then num_gates is actually num_registers
   num_gates = p.numinteriors+1   # decrement on the first iteration
   p_current = p
-  found_c = Chromosome(p,[],[],[],0.0,0.0)  # dummy chromosome to establish scope
+  found_c = use_lincircuit ?  LinCircuit(Vector{UInt16}[[],[],[],[],[],[]],p) : Chromosome(p,[],[],[],0.0,0.0) # dummy circuit to establish scope
   goal_found = true
   while num_gates > 1 && goal_found  # terminates when no goal is found for this value of num_gates
     num_gates -= 1
@@ -513,7 +520,7 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
       #println("   while !goal_found && tries < max_goal_tries: tries: ",tries,"  num_gates: ",num_gates)
       tries += 1
       #println("inner while tries: ",tries)
-      c = random_chromosome( p_current, funcs )
+      c = use_lincircuit ? rand_lcircuit( p_current, funcs) :  random_chromosome( p_current, funcs )
       if use_mut_evolve
         (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [g], funcs, max_ev_steps, print_steps=false ) 
       else
@@ -526,12 +533,12 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
         end
         try
           @assert sort(outputs) == sort(g)
-          catch(e)
+        catch(e)
           println("g: ",g,"  outputs: ",outputs)
         end
         goal_found = true
         found_c = deepcopy(c)
-        num_gates = number_active_gates(found_c)
+        num_gates = number_active(found_c)
         p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
         println("circuit found for goal ",g," with num_gates = ",num_gates,"  output values: ",output_values(found_c))
       end
@@ -541,12 +548,13 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
     println("no goal found for goal ",g," for num_gates: ",num_gates,"  num_gates set to: ", num_gates+1 )
     num_gates += 1  # now set to the minimum number of gates for successful circuit
   end  
-  if length(found_c.outputs)==0
+  k_failure = use_lincircuit ? length(found_c.circuit_vects[1])==0 : length(found_c.outputs)==0
+  if k_failure
     println("found_c not found: ",found_c)
     return (g,-1,-1,-1.0,tries,-1.0,-1.0,num_gates_exceptions)
   end
-  if p_current.numinteriors <= 20 && length(found_c.outputs) > 0  # Too time consuming for a large number of gates
-    push!(complexities_list, complexity5(found_c))
+  if p_current.numinteriors <= 20   # Too time consuming for a large number of gates
+    push!(complexities_list, use_lincircuit ? lincomplexity(found_c,funcs) : complexity5(found_c))
   end
   #push!(robust_evol_list, mutate_all( found_c, funcs,robustness_only=true))
   #println("end first loop:  mutate_all ")
@@ -560,8 +568,8 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
   # Iteration bound might be needed because when a circuit is found with fewer active gates than num_gates, tries is reset to 1.
   while iter < num_tries_multiplier*max_goal_tries && tries < max_goal_tries
     print("goal: ",g,"  iter: ",iter,"  tries: ",tries,"  num_gates: ",num_gates,"   ")
-    c = random_chromosome( p_current, funcs )
-    #println("mut_evolve for goal ",g,"  with numints : ",c.params.numinteriors)
+    c = use_lincircuit ? rand_lcircuit( p_current, funcs) :  random_chromosome( p_current, funcs )
+    println("mut_evolve for goal ",g,"  with numints : ",c.params.numinteriors)
     if use_mut_evolve
       (c,step,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, [g], funcs, max_ev_steps, print_steps=true ) 
     else
@@ -571,12 +579,12 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
       outputs = output_values( c )
       #println("step: ",step,"  outputs: ",outputs,"  goal: ",g)
       @assert sort(outputs) == sort(g)
-      if num_gates != number_active_gates(c)  # In this case, tries is reset to 1
+      if num_gates != number_active(c)  # In this case, tries is reset to 1
         println("num_gates not equal to number active gates for goal: ",g)
-        println("num_gates: ",num_gates,"  number_active_gates(c): ",number_active_gates(c))
+        println("num_gates: ",num_gates,"  number_active(c): ",number_active(c))
         #print_build_chromosome(c)
         found_c = c =  remove_inactive( c )
-        num_gates = number_active_gates(found_c)
+        num_gates = number_active(found_c)
         p_current = Parameters( p.numinputs, p.numoutputs, num_gates, p.numlevelsback )
         num_gates_exceptions += 1
         complexities_list = Float64[]  # restart complexities_list
@@ -586,7 +594,7 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
         iter = 0
         tries = 1  # do more tries
       end
-      push!(complexities_list, complexity5(c))
+      push!(complexities_list, use_lincircuit ? lincomplexity(found_c,funcs) : complexity5(found_c))
       #push!(robust_evol_list, mutate_all( c, funcs,robustness_only=true))
       (rlist,elist) = mutate_all( c, funcs,robustness_only=true)
       push!(robust_list, rlist )
@@ -601,7 +609,7 @@ function kolmogorov_complexity( p::Parameters, funcs::Vector{Func},  g::Goal, ma
   avg_robustness = sum(robust_list)/length(robust_list)
   #avg_evolvability = sum( map(x->x[2],robust_evol_list))/length(robust_evol_list)
   avg_evolvability = sum(evol_list)/length(evol_list)
-  (g,num_gates,number_active_gates(found_c),avg_complexity,tries,avg_robustness,avg_evolvability,num_gates_exceptions)
+  (g,num_gates,number_active(found_c),avg_complexity,tries,avg_robustness,avg_evolvability,num_gates_exceptions)
 end
 
 function k_complexity_density( p::Parameters, funcs::Vector{Func}, phlist::GoalList; csvfile::String="" )

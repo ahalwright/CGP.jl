@@ -548,7 +548,7 @@ function find_genotype_with_Kcomplexity( p::Parameters, funcs::Vector{Func}, Kco
     step += 1
   end
   if step == max_find_steps
-    println("WARNING: find_genotype_with_Kcomplexity() failed with Kcomplexity: ",Kcomplexity," and step: ",ste)
+    println("WARNING: find_genotype_with_Kcomplexity() failed with Kcomplexity: ",Kcomplexity," and step: ",step)
     return nothing
   else
     #println("find_genotype_with_Kcomplexity() kdict[output_values(c)[1]]: ",kdict[output_values(c)[1]])
@@ -577,6 +577,7 @@ function find_genotype_with_max_Tcomplexity( p::Parameters, funcs::Vector{Func},
   end
 end
 
+# 
 function run_evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromComplexity::Int64, toComplexity::Int64, nreps::AbstractRange, max_ev_tries::Int64, 
       max_find_steps::Int64, max_evolve_steps::AbstractRange; csvfile::String="" )
   nreps_list = Int64[]
@@ -658,9 +659,9 @@ end
 function evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromComplexity::Int64, toComplexity::Int64, nreps::Int64, max_ev_tries::Int64, max_find_steps::Int64, max_evolve_steps::Int64;
     useKcomplexity::Bool=true ) # if useKcomplexity==false, this means use Tcomplexity
   kdict = useKcomplexity ? kolmogorov_complexity_dict(p,funcs) : Dict()
-  ttry_list = [ Atomic{Int64}(0) for i= 1:max_ev_tries]
-  total_steps_list = [ Atomic{Int64}(0) for i= 1:nreps]
-  numfailures = Atomic{Int64}(0)
+  ttry_list = [ Threads.Atomic{Int64}(0) for i= 1:max_ev_tries]
+  total_steps_list = [ Threads.Atomic{Int64}(0) for i= 1:nreps]
+  numfailures = Threads.Atomic{Int64}(0)
   Threads.@threads for i = 1:nreps
     if useKcomplexity
       c = find_genotype_with_Kcomplexity( p, funcs, fromComplexity, max_find_steps, kdict=kdict )

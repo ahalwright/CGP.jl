@@ -1,0 +1,38 @@
+Testing my method for computing K complexity for LGP.
+
+Wrote number_active() and remove_inactive() and test_remove_inactive() in LinChromosome.jl  (number_active() was challenging to write.)
+Revised kolmogorov_complexity() and run_kolmogorov_complexity() in Complexity.jl
+
+Ran 8 repetitions of data/8_9_22/run_k_complexity4x1I.jl on surt2 with csv suffixes I, II, III, etc
+
+function ak( )
+  kc = zeros(Float64,256,8);
+  fname = "../data/8_9_22/k_complexity_LGP8_9_22"
+  suffix = ""
+  for i = 1:8
+    fname = fname * "I"
+    df = read_dataframe(fname*".csv")
+    kc[:,i] = df.num_gates
+  end
+  kc
+end
+
+kc[190,:]
+8-element Vector{Float64}:
+ 5.0 5.0 5.0 6.0 5.0 6.0 5.0 6.0
+
+3 failures out of 8 all with phenotype 189=0x00bd returning num_gates=6 instead of 5
+
+julia> bdc = neutral_evolution( rand_lcircuit(p,funcs), funcs, [0x00bd], 400_000 ); number_active(bdc[1])
+neutral evolution succeeded at step 266813 for goal: UInt16[0x00bd]
+5
+
+# Example of LGP circuit with 5 instructions that maps to phenotype 0x00bd = 189
+bdcr = remove_inactive(bdc[1])
+LinCircuit(Vector{UInt16}[[0x0001, 0x0001, 0x0003, 0x0004], [0x0004, 0x0002, 0x0005, 0x0001], [0x0002, 0x0001, 0x0004, 0x0003], [0x0001, 0x0001, 0x0001, 0x0005], [0x0002, 0x0001, 0x0001, 0x0002]], Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 5, 2))
+
+julia> output_values(bdcr)
+1-element Vector{UInt16}:
+ 0x00bd
+
+kdf = DataFrame(:hgoal=>map(ph->[ph],0x0000:0x00ff),:dgoal=>map(ph->Int(ph),0x0000:0x00ff),:K_complexity=>map(i->Int(i),kc[:,1]))

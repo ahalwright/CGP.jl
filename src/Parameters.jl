@@ -15,7 +15,7 @@ mutable struct Parameters
     numlevelsback::Integer  # For LinCircuits, number of registers
 end
 
-function Parameters(numinputs, numoutputs, numinteriors, numlevelsback)
+function Parameters(numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64 )
     nodearity = 2
     mu = 1
     lambda = 4

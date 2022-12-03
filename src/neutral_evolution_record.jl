@@ -7,6 +7,16 @@
 # If onlyShowEpochChange is true, returns information about distance-reduncing step but not neutral steps
 #   In this case, returns information about the previous epoch, which is the preceding neutral steps after the last distance-reducing step.
 # Evolvability and robustness statistics are genotype evolvability and robustness
+#= Example:
+  julia -L CGP.jl -L evolvable_evolvability.jl -L neutral_evolution_record.jl
+  p = Parameters(4,1,10,5); funcs=default_funcs(p)
+  c = random_chromosome( p, funcs )
+  max_find_steps = 20_000
+  to_K_complexity = 7
+  g = [find_phenotype_with_Kcomplexity( p, funcs, to_K_complexity, max_find_steps )]
+  max_ev_steps = 200_000
+  df = neutral_evolution_record( c, funcs, g, max_ev_steps, onlyShowEpochChange=true )
+=#
 function neutral_evolution_record(
   c::Circuit,
   funcs::Vector{Func},
@@ -23,8 +33,7 @@ function neutral_evolution_record(
   kdict = kolmogorov_complexity_dict(p, funcs)
   rdict = redundancy_dict(p, funcs)
 
-  println("goal: ",g,"  decimal goal: ",g[1], "   goal Kcomplexity: ", kdict[g[1]] )
-  println("max_steps: ",max_steps)
+  println("goal: ",g,"  decimal goal: ",g[1], "   goal Kcomplexity: ", kdict[g[1]], "  max_steps: ",max_steps)
   save_kcomplexities = true  # Save kcomplexity, evolvability, robustness of phenos produced by mutate_all on every step
   if (onlyShowEpochChange)
     save_kcomplexities = false
@@ -35,10 +44,7 @@ function neutral_evolution_record(
   # Can create the inner function anywhere, as long as the function is created prior to its call
   function save_kcomplexity_epochalsteps()
     # ov is the output value of the last genotype of the previous epoch, new_ov is the output value of the new epoch.
-    println("function save_kcomplexity_epochalsteps()  step: ", step )
-    if step==131 || step==132
-      print_circuit( priorEpochGenos_list[end] )
-    end
+    println("function save_kcomplexity_epochalsteps()  step: ", step, "  length(priorEpochGenos_list): ", length(priorEpochGenos_list), "  new_ov: ",new_ov ) 
 
     #Getting new kcomplexity of the new epoch
     push!(newEpochalKComplexity_list, kdict[new_ov[1]])
@@ -55,6 +61,12 @@ function neutral_evolution_record(
 
     allPhenosList = MyInt[]  # A list of all phenotypes produced by mutate_all() applied to all genotypes of the prior epoch
     genoPhenosList = Vector{MyInt}[]  # each element is a tuple of the output values and the list of phenos produced by applying mutate_all() to one genotype
+
+    for geno in priorEpochGenos_list
+      phList =  map(x -> x[1], mutate_all(geno, funcs, output_outputs = true))
+      push!( genoPhenosList, phList )
+      append!( allPhenosList, phList )
+    end
 
     numberTargetFound = reduce( +, map( x -> ((x == g[1]) ? 1 : 0), allPhenosList ))
     push!(numOfTargetFoundInPrevEpoch_list, numberTargetFound)
@@ -82,7 +94,7 @@ function neutral_evolution_record(
       mean_evo_count = 0
       mean_robust = 0.0
     end
-    println("mean_robust: ",mean_robust, "  mean_robust2: ",mean_robust2)
+    #println("mean_robust: ",mean_robust, "  mean_robust2: ",mean_robust2)
     push!(averageEvolInPrevEpoch_list, mean_evo_count)
     push!(averageLgRedundInPrevEpoch_list, mean_lg_redund )
     push!(averageRobustInPrevEpoch_list, mean_robust)
@@ -102,7 +114,6 @@ function neutral_evolution_record(
     push!(firstGenoEvol_list, sizeTupleNewGenoEvolv)
 
     #Calculates the robustness of the new genotype
-    println("new_ov: ",new_ov,"  output_values(new_c): ",output_values(new_c))
     phenoListNewGenoRobust = mutate_all(new_c, funcs, output_outputs = true)
     samePhenoCounterNewGenoRobust = 0
     for pheno in phenoListNewGenoRobust
@@ -175,9 +186,6 @@ function neutral_evolution_record(
     end
     new_ov = output_values(new_c)
     new_distance = hamming_distance(new_ov, g, c.params.numinputs)
-    if step==132
-      println( "step: ", step, "  new_ov: ", new_ov, "  new_distance: ", new_distance )
-    end
     if new_ov == ov  #Neutral 
       c = new_c
       neutral_step += 1

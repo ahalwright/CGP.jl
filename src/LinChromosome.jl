@@ -26,13 +26,13 @@
 # See test/testLinCircuit.jl for tests.
 export LinCircuit, output_values
 export execute_lcircuit, instruction_vect_to_instruction_int, instruction_int_to_instruction_vect, lincomplexity
-export vect_to_int, int_to_vect, rand_ivect, execute_random_circuit, number_active, degeneracy, recover_phenotype
+export vect_to_int, int_to_vect, rand_ivect, execute_random_circuit, degeneracy, recover_phenotype
 export num_instructions # This is the total number of possible instructions for a parameter setting
 export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, mutate_all, print_circuit
 export instruction_vects_to_instruction_ints, instruction_ints_to_instruction_vects
 export instruction_ints_to_circuit_int, circuit_int_to_instruction_ints
 export circuit_int_to_circuit, circuit_to_circuit_int, enumerate_circuits_lc, count_circuits_lc
-#export circuit_int
+export number_active, remove_inactive
 OutputType = Int64
 
 #=
@@ -99,13 +99,13 @@ function execute_lcircuit( circuit_vects::Vector{Vector{MyInt}}, numregisters::I
   R
 end
 
+# Returns the Tononi complexity of the circuit
 function lincomplexity( circuit_vects::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )
   p = Parameters( numinputs, 1, length(circuit_vects), numregisters )
   lincomplexity( LinCircuit(circuit_vects,p), funcs, nodearity=nodearity )
 end
 
-# Executes the circuit, returns the array X of instruction outputs
-# The outputs are  R[1:numoutputs]
+# Returns the Tononi complexity of the circuit
 function lincomplexity( circuit::LinCircuit, funcs::Vector{Func}; nodearity::Int64=2 )
   p = circuit.params
   R = fill(MyInt(0), p.numlevelsback+p.numinputs )
@@ -133,33 +133,57 @@ function num_instructions( p::Parameters, funcs::Vector{Func} )
   num_instructions( p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
-#  Assumes 1 output registers 
-function number_active( circ::LinCircuit )
-  return 0
-end
-#=
-#  Not finished and not debugged
-function number_active( circ::LinCircuit )
-  p = circ.params
-  @assert p.numoutputs == 1
-  numoutputs = p.numoutputs
-  output_instructions = Int64[]
-  output_registers = Set(collect(MyInt(1):MyInt(numoutputs)))
-  output_registers_found = Set(MyInt[])
-  input_registers_found = Set(MyInt[])
-  for i = p.numinteriors:-1:1
-    println("i: ",i,"  cv: ",circ.circuit_vects[i][2],"  oi: ",output_instructions,"  or: ",output_registers,"  orf: ",output_registers_found)
-    if circ.circuit_vects[i][2] in output_registers && !(circ.circuit_vects[i][2] in output_registers_found)
-      push!( output_instructions, i )
-      push!( output_registers_found,circ.circuit_vects[i][2] )
+#  Assumes 1 output register 
+#  The calculation registers are 1 and 2 and the output register is 1.
+#  Registers 3, 4, 5 are the input registers.
+#  Instruction fields are 1 for function, 2 for output, 3 and 4 for input
+function number_active( circ::LinCircuit; return_inst_active::Bool=false )
+  reg_active = Bool[true, false, false, false, false]  # Initially only register field 1 is active.
+  inst_active = fill(false,circ.params.numinteriors)   # circ.params.numinteriors is the number of instrctions
+  for i = circ.params.numinteriors:-1:1   # Iterate through instructions in reverse order
+    inst = circ.circuit_vects[i]
+    if reg_active[inst[2]] 
+      inst_active[i] = true
+      if inst[3] in [MyInt(1),MyInt(2)]
+        reg_active[inst[3]] = true
+      end
+      if inst[4] in [MyInt(1),MyInt(2)]
+        reg_active[inst[4]] = true
+      end
+      if !reg_active[inst[3]] && !reg_active[inst[4]]
+        reg_active[inst[2]] = false
+      end
     end
-    println("i: ",i,"  cv: ",circ.circuit_vects[i][2],"  oi: ",output_instructions,"  or: ",output_registers,"  orf: ",output_registers_found)
-    output_registers = output_registers_found
-    output_registers_found = Set(MyInt[])
   end
-  ( output_instructions, output_registers_found )
+  if !return_inst_active
+    sum(inst_active)
+  else
+    (sum(inst_active), reg_active, inst_active )
+  end
 end
-=#
+
+# Removes the inactive instructions from circ
+function remove_inactive( circ::LinCircuit, active::Vector{Bool} )
+  active_indices = filter( x->x!=0, [ active[i] ? i : 0 for i = 1:length(active) ] )
+  circ.params.numinteriors = length(active_indices)
+  LinCircuit( circ.circuit_vects[active_indices], circ.params )
+end
+
+# Removes the inactive instructions from circ
+function remove_inactive( circ::LinCircuit  )
+  (num_active, reg_active, active ) = number_active( circ, return_inst_active=true )
+  remove_inactive( circ, active )
+end
+
+# Returns nothing if successful
+function test_remove_inactive( p::Parameters, funcs::Vector{Func}; goal::MyInt=MyInt(0) )
+  circ = rand_lcircuit( p, funcs )
+  if goal != MyInt(0)
+    (circ,step) = neutral_evolution( circ, funcs, [goal], 200_000 )
+  end
+  @assert output_values(circ) == output_values( remove_inactive( circ ) )
+end
+  
       
 function degeneracy( circuit::LinCircuit )  # Dummy function for now 10/16/21
   return 0
@@ -297,11 +321,23 @@ function circuit_int_to_instruction_ints( c_int::Int128, p::Parameters, funcs::V
   int_to_vect( c_int, fill( multiplier, numinstructions ))
 end
 
+function circuit_int_to_instruction_ints( c_int::Int64, p::Parameters, funcs::Vector{Func} ) 
+  numinstructions = p.numinteriors
+  multiplier = num_instructions( p, funcs )
+  #println("multiplier: ",multiplier)
+  int_to_vect( c_int, fill( multiplier, numinstructions ))
+end
+
 function circuit_to_circuit_int( circ::LinCircuit, funcs::Vector{Func} )
   instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( circ, funcs ), circ.params, funcs )
 end
 
 function circuit_int_to_circuit( c_int::Int128, p::Parameters, funcs::Vector{Func} )
+  i_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( c_int, p, funcs), p, funcs )
+  LinCircuit( i_vects, p )
+end
+
+function circuit_int_to_circuit( c_int::Int64, p::Parameters, funcs::Vector{Func} )
   i_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( c_int, p, funcs), p, funcs )
   LinCircuit( i_vects, p )
 end

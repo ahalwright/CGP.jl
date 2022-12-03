@@ -60,7 +60,7 @@ end
 # Tentative conclusion:  10/6/20:  The robustness and evolvability computed are genotypic rather than phenotypic.
 # Not what we really want.  The computations in geno_robustness() and geno_complexity() in Evolvability.jl should be correct.
 function run_geno_pheno( iterations::Int64, numinputs::IntRange, numoutputs::IntRange, 
-    numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange, levelsback::IntRange;  use_lincircutt::Bool=false,
+    numinteriors::IntRange, goallistlength::IntRange, maxsteps::IntRange, levelsback::IntRange;  use_lincircuit::Bool=false,
     base::Float64=2.0, allgoals::Bool=false, active_only::Bool=false, gl_repetitions::IntRange=1)
   max_numinteriors = collect(numinteriors)[end]
   maxints_for_degen = Main.CGP.maxints_for_degen

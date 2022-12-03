@@ -962,6 +962,7 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   default_funcs(c.params)
   p = c.params
   LinCirc = typeof(c) == LinCircuit ? :true : :false
+  #if LinCirc println("LGP") else println("CGP") end
   step_list = Int64[] # Only used if save_acomplexities==true
   status_list = String[]  # Only used if save_acomplexities==true
   acomplexity_list = Float64[]  # Only used if save_acomplexities==true

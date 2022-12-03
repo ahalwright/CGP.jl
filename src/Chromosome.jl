@@ -7,7 +7,7 @@ export output_values, number_active, number_active_gates, remove_inactive, deact
 export hamming_distance, ihamming_distance, hamming 
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code 
-export circuit, print_circuit
+export circuit, print_circuit, robustness
 export circuit_distance, remove_inactive, count_circuits_ch
 export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
@@ -442,6 +442,10 @@ function number_active_gates( c::Chromosome )
     execute_chromosome(c,context)
   end
   num_act_int =  reduce(+,[c.interiors[i].active for i = 1:length(c.interiors)])
+end
+
+function number_active( c::Chromosome )
+  number_active_gates( c )
 end
 
 # Requires that cache values are set in the various versions of evaluat_node()

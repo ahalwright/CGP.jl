@@ -1,0 +1,5 @@
+Editing src/neutral_evolution_record.jl.
+
+Fixed bug: epochal evolvability, robustness, and log redundancy were all zeros.
+
+Wrote good comments on function neutral_evolution_record() in neutral_evolution_record.jl.
