@@ -141,7 +141,7 @@ function count_outputs( nreps::Int64, numinputs::Int64, numoutputs::Int64, numin
     output = output_values( c )
     increment_circuit_ints_list!( circuit_ints_list, output, c_int, numcircuits, p, funcs ) 
     i = output_values(c)[1]  
-    println( "i: ",i,"  circuit_ints_list[i+1]: ",circuit_ints_list[i+1])
+    #println( "i: ",i,"  circuit_ints_list[i+1]: ",circuit_ints_list[i+1])
     if output_complex
       #println("outlist: ",outlist)
       complexity = use_lincircuit ? lincomplexity(c,funcs) : complexity5(c)
@@ -257,7 +257,7 @@ end
 function increment_circuit_ints_list!( circuit_ints_list::Vector{Vector{Int128}}, output::Goal, c_int::Int128, 
       numcircuits::Int64, p::Parameters, funcs::Vector{Func} )
   index = concatenate_outputs(output,p.numinputs)+1
-  println("output: ",output,"  index: ",index) 
+  #println("output: ",output,"  index: ",index) 
   if length(circuit_ints_list[index]) >= numcircuits
     return
   end

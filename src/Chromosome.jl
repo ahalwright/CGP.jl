@@ -7,7 +7,7 @@ export output_values, number_active, number_active_gates, remove_inactive, deact
 export hamming_distance, ihamming_distance, hamming 
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code 
-export circuit, print_circuit, robustness
+export circuit, print_circuit
 export circuit_distance, remove_inactive, count_circuits_ch
 export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
@@ -1136,16 +1136,6 @@ function combine_chromosomes( c1::Chromosome, c2::Chromosome )
   new_outputs = vcat(new_output2,deepcopy(c1.outputs))
   Chromosome( p, inputs, interiors, new_outputs, 0.0, 0.0 )
 end
-
-function robustness( c::Circuit, funcs::Vector{Func} )
-  #print("robustness: c:  ")
-  #print_circuit(c,funcs)
-  c_output = output_values(c,funcs)
-  outputs = mutate_all( c, funcs, output_outputs=true )
-  #println("outputs[1]: ",outputs[1])
-  robust_outputs = filter( x->x==c_output, outputs )
-  return length(robust_outputs)/length(outputs)
-end   
 
 # Not correct or finished
 function redundancy_density( p::Parameters, funcs::Vector{Func}, nsamples::Int64 )

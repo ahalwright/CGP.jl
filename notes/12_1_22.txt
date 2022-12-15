@@ -20,42 +20,31 @@ Look carefully at commented-out subsection A mathematical definition of evolvabi
 
 Enumerating all 3x1 5 instructions phenotypes.
 
-using BitSets
-kdf = read_dataframe("../data/8_9_22/k_complexity_LGPsummary.csv")
-f6 = findall(x->x==6,kdf.K_complexity)
-bs = BitSet(f6)
-@time for i = 1:200^3
-         if output_values(circuit_int_to_circuit( i, p, funcs ))[1] in bs
-           println("i: ",i,"  ov: ",output_values(circuit_int_to_circuit( i, p, funcs )))
-         end
-       end
-27.504951 seconds
-function testK6( p::Parameters, funcs::Vector{Func}, bs::BitSet )
-  count = 0
-  for i = 1:200^p.numinteriors
-    if output_values(circuit_int_to_circuit( i, p, funcs ))[1] in bs
-      #println("i: ",i,"  ov: ",output_values(circuit_int_to_circuit( i, p, funcs )))
-      count += 1
-    end
-  end
-  count
-end
-@time testK6( p, funcs, bs ) #  22.347597 seconds # 8064
+surt2:  
+Showing no phenos labeled as K complexity 6 are produced by 5-input LGP genotypes
+julia> kdf = read_dataframe("../data/8_9_22/k_complexity_LGPsummary.csv");
+julia> f6 = findall(x->x==6,kdf.K_complexity);
+julia> f6 = map(x->x-1,f6);
+julia> bs = BitSet(f6);
+julia> p = Parameters(3,1,5,2);funcs=default_funcs(p)[1:4]
+julia> @time testK6( p, funcs, bs ) #  37399.630292 seconds
+UInt8[]
 
+Showing no phenos labeled as K complexity 5 are produced by 4-input LGP genotypes
+p = Parameters(3,1,4,2);funcs=default_funcs(p)[1:4]
+julia> @time testK6( p, funcs, bs ) #  173.858049 seconds 
+UInt8[]
 
+julia> f4 = map(x->x-1,findall(x->x>=4,kdf.K_complexity))
+142-element Vector{Int64}:
+f5 = map(x->x-1,findall(x->x>=5,kdf.K_complexity))
+38-element Vector{Int64}:
+f5 = append!(f5,f4[1:3])
+41-element Vector{Int64}
+bs = BitSet(f5)
+julia> @time testK6( p, funcs, bs )
+167.548466 seconds (1.68 k allocations: 128.234 KiB)
+1792-element Vector{UInt8}:
 
-
-surt2
-using .Threads
-p = Parameters(3,1,4,2); funcs=default_funcs(p)[1:4]
-@time ph_list = [ Threads.Atomic{UInt8}(0) for i= 1:200^p.numinteriors]
-154.682777 seconds
-63.624156 seconds  #second try
-@time Threads.@threads for i = 1:200^p.numinteriors
-               Threads.atomic_add!( ph_list[i], output_values(circuit_int_to_circuit( Int128(i), p, funcs ))[1] )
-             end
-1850.696368 seconds
-
-@time Threads.@threads for i = 1:200^p.numinteriors
-               ph_list[i] = output_values(circuit_int_to_circuit( Int128(i), p, funcs ))[1] 
-             end
+Note:  since run, testK6() has been renamed to testKall()
+function testKall() added to Complexity.jl

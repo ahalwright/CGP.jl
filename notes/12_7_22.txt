@@ -1,0 +1,109 @@
+Navigability for the evolvability paper.
+Moved function robustness() from Chromosome.jl to Robustness.jl, and wrote a function
+genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, nreps::Int64 )
+in Robustness.jl.
+
+12/15/22:  Found and fixed bug in computation of robustness in run_ph_evolve() in Evolve.jl.
+Robustness was computed foer only 1 circuit, and it should have been average of numcircuits circuits.
+
+12/14/22:
+df5 = include("../data/12_7_22/run_ph_evolveB.jl")
+df6 = include("../data/12_7_22/run_ph_evolveC.jl")
+df8 = include("../data/12_7_22/run_ph_evolveD.jl")
+julia> mean(df5.mean_steps), mean(df6.mean_steps), mean(df8.mean_steps)
+(38278.20439999999, 9950.32162, 10574.420380000001)
+julia> mean(df5.lg_redund), mean(df6.lg_redund), mean(df8.lg_redund)
+(2.917568147824842, 3.3626824682639334, 3.3626824682639334)   # because I used log redund with parameters from df6
+julia> mean(df5.robustness), mean(df6.robustness), mean(df8.robustness)
+(0.20699999999999996, 0.28786419753086423, 0.3237640449438202)
+
+rb5 = Vector{Float64}(df5.robustness);
+rb6 = Vector{Float64}(df6.robustness);
+rd5 = Vector{Float64}(df5.lg_redund);
+rd6 = Vector{Float64}(df6.lg_redund);
+scatter(rd5,rb5,smooth=true,labels="10_5")
+scatter!(rd6,rb6,smooth=true,labels="12_6")
+scatter!(legend=:topleft,ylabel="robustness",xlabel="log redundancy")
+scatter!(title="redundancy vs lg robust 12gts6lb 10gts5lb 100circs")
+savefig("../data/12_7_22/redundancy_vs_lg_robust_12gts6lb_10gts5lb_100circs.png")
+
+Thus, I hypothesize that: 
+1.  Robustness is higher for random genotypes than for random phenotypes.
+
+Should attempt to replace K complexity in the complexity paper with redundancy.
+But we don't have redundancy for 5 and higher input circuits.  So the idea is to
+replace redundancy with robustness using tje strong positive linear relationship
+between robustness and log redundancy--see Figure 4 of the GPTP paper.
+However, this is for one parameter setting, and we need the dependence on parameters.
+Thus, I ran data/5_22_22/run_geno_complexity_5funcs_5_22_22F.jl for 4x1 10gts5lb,
+and I will run data/5_22_22/run_geno_complexity_5funcs_5_22_22G.jl for 4x1 12gts6lb.
+
+surt2:
+df = read_dataframe("../data/5_22_22/geno_complexity_cartGP_5_22_22F.csv")
+select!(df,DataFrames.Not(:sumsteps))
+select!(df,DataFrames.Not(:sumtries))
+cdif = read_dataframe("../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv")
+red = [lg10(cdf[cdf.goals.==df.goal[i][8:end-1],:ints10_5][1]) for i = 1:500]
+insertcols!(df,size(df)[2],:ints10_5=>red)
+scatter(df.ints10_5,df.robustness)
+plot!(xlabel="log redundancy",ylabel="robustness",title="robustness vs log redundancy 4x1 10gts5lb",legend=:none))
+savefig("../data/12_7_22/robustness_vs_log_redundancy_4x1_10gts5lb")
+
+numcircuits = 20; max_tries = 40; max_steps = 300_000; ngoals=8;
+@time df = phenotype_robustness( [(3,8,4),(4,10,5),(4,12,6),(5,20,10),(5,28,14)], numcircuits, ngoals, max_tries, max_steps ) 
+1287.883551 seconds (80.57 M allocations: 3.762 GiB, 0.03% gc time, 0.07% compilation time)
+ Row │ ninteriors  ngates  lb     numcircuits  ngoals  mean_robust  std_robust  q10_robust  q90_robust
+     │ Int64       Int64   Int64  Int64        Int64   Float64      Float64     Float64     Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │          3       8      4           20       8     0.324679   0.0930051   0.214904     0.433654
+   2 │          4      10      5           20       8     0.195816   0.0823779   0.0932203    0.293008
+   3 │          4      12      6           20       8     0.300926   0.0885373   0.197377     0.409799
+   4 │          5      20     10           20       8     0.262607   0.078863    0.163537     0.350122
+   5 │          5      28     14           20       8     0.408225   0.0790762   0.316233     0.50495
+1252.967934 seconds (79.81 M allocations: 3.911 GiB, 0.04% gc time, 0.13% compilation time)
+ Row │ ninteriors  ngates  lb     numcircuits  ngoals  mean_robust  std_robust  q10_robust  q90_robust
+     │ Int64       Int64   Int64  Int64        Int64   Float64      Float64     Float64     Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │          3       8      4           20       8     0.31851    0.1014      0.202885     0.448558
+   2 │          4      10      5           20       8     0.179767   0.0810891   0.0737288    0.275106
+   3 │          4      12      6           20       8     0.277546   0.0878354   0.176698     0.38233
+   4 │          5      20     10           20       8     0.269314   0.0784484   0.18         0.35628
+   5 │          5      28     14           20       8     0.430125   0.078027    0.3307       0.533683
+
+surt2:
+julia> @time include("../data/5_22_22/run_geno_complexity_5funcs_5_22_22F.jl")  # 17584.532198 seconds
+
+julia> p = Parameters(6,1,40,20); funcs=default_funcs(p)
+rlist = Float64[]
+julia> @time for i = 1:1000 push!(rlist,robustness(random_chromosome(p,funcs),funcs)) end
+196.331369 seconds (524.53 M allocations: 28.289 GiB, 1.47% gc time, 0.00% compilation time)
+
+density(rlist)
+mean(rlist),std(rlist)
+(0.795839455782313, 0.11363037688759269)
+julia> quantile(rlist,0.9),quantile(rlist,0.1)
+(0.9564625850340136, 0.6523809523809524)
+
+rph = run_ph_evolve( p, funcs, randgoallist( 12, p ), 3, 5, 200_000 )
+12×9 DataFrame
+ Row │ phlist                      numinputs  numgates  levsback  mean_steps  median_steps  std_steps  Kcomp  lg_redund
+     │ Array…                      Int64      Int64     Int64     Float64     Float64       Float64    Int64  Float64
+─────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ UInt64[0x000000000000d077]          4        12         6     1044.0          814.0     898.36      5    3.52699
+   2 │ UInt64[0x000000000000c205]          4        12         6     2691.33        2764.0    1389.43      5    3.10346
+   3 │ UInt64[0x0000000000003fdb]          4        12         6     6039.0         2447.0    7956.33      6    3.25382
+   4 │ UInt64[0x0000000000007d6a]          4        12         6     9140.67       10775.0    4329.39      6    1.94939
+   5 │ UInt64[0x000000000000130a]          4        12         6     3088.0         1845.0    3031.09      5    4.10315
+   6 │ UInt64[0x000000000000efa6]          4        12         6    12797.7        14733.0    4050.07      6    2.02938
+   7 │ UInt64[0x000000000000e193]          4        12         6     6323.33        4949.0    3519.84      5    2.43933
+   8 │ UInt64[0x0000000000007e8c]          4        12         6     3345.0         2396.0    3279.16      6    1.80618
+   9 │ UInt64[0x0000000000008e5e]          4        12         6    15208.7        12770.0   13002.7       5    2.70927
+  10 │ UInt64[0x000000000000df43]          4        12         6     7506.67        6870.0    1947.67      6    2.51851
+  11 │ UInt64[0x000000000000d1ee]          4        12         6     4486.33        1232.0    6195.63      4    4.40634
+  12 │ UInt64[0x0000000000003a0e]          4        12         6     4988.67        2391.0    5681.83      7    2.62221
+
+rlist = Float64[]
+nc = pheno_evolve( p, funcs, randgoal(p), 5, 200_000 )
+neutral evolution succeeded at step 166578 for goal: UInt64[0xebed74079fe23072]
+julia> robustness(nc[1],funcs)
+0.4326530612244898

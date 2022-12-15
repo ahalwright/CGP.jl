@@ -1,0 +1,7 @@
+Trying to get fado, guitar, and graphviz packages to work.
+
+OneDrive/evotech/FA/FAdo.pdf  Expecially section 17 a small tutorial.
+
+conda install -c anaconda graphviz
+
+See OneDrive/evotech/FA/testFAdo.py and OneDrive/evotech/FA/FAdo.pdf (especially the tutorial in section 17).

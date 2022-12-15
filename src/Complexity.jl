@@ -7,7 +7,7 @@ export filter_goallist_by_complexity, complexity_freq_scatter_plot
 export bin_value, bin_data, bin_counts
 export kolmogorov_complexity, run_kolmogorov_complexity, redund_vs_k_complexity_plot
 export run_k_complexity_mutate_all, kcomp_summary_dataframe, redundancy_dict, kolmogorov_complexity_dict, redundancy_dict
-export gti, gti!
+export gti, gti!, testKall
 # Distribution of complexities for circuits evolving into a given goal
 # Results in data/10_31
 function evolve_complexity( g::Goal, p::Parameters, num_circuits::Int64, maxsteps::Int64 )
@@ -768,8 +768,19 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
         error("no csv file in function redundancy_dict()")
       end
     elseif p.numinputs == 4
-      #csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
-      csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv"
+      if length(funcs) == 5 
+        if p.numinteriors == 10 && p.numlevelsback == 5
+          csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv"
+        elseif p.numinteriors == 12 && p.numlevelsback == 6
+          csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_12gates_6lb_H.csv"
+        elseif p.numinteriors == 11 && p.numlevelsback == 8
+          csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
+        else
+          println("only 10gts 5lb and 12gts 6 lb are supported at this time")
+        end
+      else
+        println("Only 5 funcs is supported for 4 inputs at this time")
+      end
     else
       error("only 3 and 4 inputs are supported at this time")
     end
@@ -1170,3 +1181,29 @@ function run_neighbor_complexity( goallist::Vector{Vector{MyInt}}, p::Parameters
   df
 end         
     
+# Test whether any phenotypes that I categorized as K complexity Kmin can be produced with a LGP circuit with 5 instructdions
+#= Setup
+Kmin = 5
+kdf = read_dataframe("../data/8_9_22/k_complexity_LGPsummary.csv");
+p = Parameters(3,1,Kmin-1,2);funcs=default_funcs(p)[1:4]
+f5 = map(x->x-1,findall(x->x>=Kmin,kdf.K_complexity));
+bs = BitSet(f5);
+@time testKall( p, funcs, bs )  # 360 seconds on Mac with 8 processes
+UInt16[] 
+=#
+function testKall( p::Parameters, funcs::Vector{Func}, bs::BitSet )
+  function tf( rng::UnitRange{Int64} )
+    result_list = MyInt[]
+    for i in rng
+      ov = output_values(circuit_int_to_circuit( i, p, funcs ))[1]
+      if ov in bs
+        push!(result_list, ov )
+      end
+    end
+    result_list
+  end
+  niters = div( 200^p.numinteriors, 25 )  # Exact result, no remainder
+  ranges = [ (i-1)*niters:i*niters for i = 1:25 ]
+  results = pmap( i->tf(ranges[i]), 1:25 )
+  reduce( vcat, results )
+end

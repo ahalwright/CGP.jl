@@ -1,15 +1,14 @@
 Redo total evolvability results and plot for 8 gates 4 levelsback based on notes/7_16_22.txt and data/7_8_22
 
-qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability4x1_8_4_7_8_22Q.csv")
+qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability4x1_8_4_7_8_22Q.csv")  # Suffixex P, Q have ncircuits=2000, S has ncircuits=5000
 rename!(qpdf,:evolvability=>:e_evolvability)
 insertcols!(qpdf,3,:t_evolvability=>total_evol(qpdf))
-cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")  
-rwdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3E.csv")
-Plots.scatter([pdf.e_evolvability,Vector{Int64}(rwdf.d_evolvability)],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "sampling evolvability"],ylabel="log redundancy",xlabel="evolvability count")
-Plots.scatter!(legend=:topleft,title="lgredund vs evol & sampling evolvability3x1 8gts4lb4funcs")
-savefig("../data/10_8_22/lgredund_vs_evolQ_and_samplingE_evolvability3x1_8gts4lb4funcs.png")
-
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")  # 10^8 samples minimum redundancy 8
+rwdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3D.csv") # C: 5000 wlks 2000 steps, D: 10000 wlks 5000 steps, E: 50000 wlks 5000 steps
+Plots.scatter([qpdf.e_evolvability,Vector{Int64}(rwdf.d_evolvability)],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "sampling evolvability"],msize=6,shape=[:star6 :rtriangle])
+Plots.scatter!(legend=:topleft,title="lgredund vs evol & sampling evolvability3x1 8gts4lb4funcs",ylabel="log redundancy",xlabel="evolvability count")  
+savefig("../data/10_8_22/lgredund_vs_evolQ_and_samplingD_evolvability3x1_8gts4lb4funcs.png")
 # Total evolvability is computed by evolution
-Plots.scatter([qpdf.e_evolvability,qpdf.t_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "total evolvability"],ylabel="log redundancy",xlabel="evolvability count")
-Plots.scatter!(legend=:bottomleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs")
+Plots.scatter([qpdf.e_evolvability,qpdf.t_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "total evolvability"],msize=6,shape=[:star6 :rtriangle])
+Plots.scatter!(legend=:bottomleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs",ylabel="log redundancy",xlabel="evolvability count")
 savefig("../data/10_8_22/lgredund_vs_evol_and_total_evolvability3x1_8gts4lb4funcs.png")

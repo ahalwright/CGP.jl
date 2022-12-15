@@ -1,3 +1,23 @@
+Cooper assignment:
+
+Note that /home/ccraig/evotech/cgp.jl/ on xps contains the OneDrive synced version of my files which are the versions that I am working on.
+In particular, /home/ccraig/evotech/cgp.jl/src/neutral_evolution_record.jl is my most recent version.  
+   It include good comments including how to do a example run.  
+   Be careful about editing these files, becuase they are my "master" versions.
+/home/ccraig/evotech/CGP.jl/ includes my latest version that I have pushed to GitHub.
+  Modifying these files would be OK but if you edit source files, they will likely be overwritten when I next do a git pull.
+  But I normally save changed versions to the src/stash/ subdirectory.
+
+/home/ccraig/evotech/cgp.jl/data/  contains my OneDrive synced version of data directories.  In particular, 
+  if you include /home/ccraig/evotech/cgp.jl/data/12_2_22/run_neutral_evolution_recordA.jl  
+  it will run neutral_evolution_record and create a datafile in /home/ccraig/evotech/cgp.jl/data/12_2_22
+  You can copy this file to run_neutral_evolution_recordB.jl and change the suffix in the file to save the dataframe from another run.
+  And of course, you can do B, C, D etc.
+
+Assignment:  Do multiple runs of neutral_evolution_record() as in the comments in neutral_evolution_record.jl.
+Try to understand what epochal factors cause long epochs, and what are the changes as epochal evolution proceeds.
+
+
 Editing src/neutral_evolution_record.jl.
 
 Fixed bug: epochal evolvability, robustness, and log redundancy were all zeros.

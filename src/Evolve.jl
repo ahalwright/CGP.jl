@@ -1,7 +1,7 @@
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, mut_evolve_increase_numints
 export mut_reduce_numactive
 export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
-export evolve_function, mut_evolve_repeat, circuit_evolve, run_circuit_evolve
+export evolve_function, mut_evolve_repeat, circuit_evolve, run_circuit_evolve, run_ph_evolve
 export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, lambda_evolution, pheno_evolve, run_pheno_evolve
 
 # 5/21: To test:
@@ -567,17 +567,19 @@ function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nu
   mean_steps_list = Float64[]
   median_steps_list = Float64[]
   std_steps_list = Float64[]
+  robustness_list = Float64[]
   log_redundancy_list = Float64[]
   K_complexity_list = Int64[]
   #println("result_list: ",result_list)
   for i = 1:length(result_list)
     steps_list = map(x->x[2], result_list[i][1:numcircuits])
-    println("steps_list: ",steps_list)
+    #println("steps_list: ",steps_list)
     mean_steps = mean(steps_list)
     push!(mean_steps_list,mean_steps)
     median_steps = median(steps_list)
     push!(median_steps_list,median_steps)
     std_steps = std(steps_list)
+    push!(robustness_list,mean( robustness( result_list[i][j][1], funcs ) for j = 1:numcircuits ) )
     push!(std_steps_list,std_steps)
     push!(log_redundancy_list,lg10(rdict[phlist[i][1]] ))
     push!(K_complexity_list,kdict[phlist[i][1]] )
@@ -585,8 +587,9 @@ function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nu
   mean_steps_list,
   median_steps_list,
   std_steps_list
-  df = DataFrame( :phlist=>phlist, :numinputs=>fill(numinputs,nphenos), :numgates=>fill(numinteriors,nphenos), :levsback=>fill(numlevelsback,nphenos), 
-      :mean_steps=>mean_steps_list, :median_steps=>median_steps_list, :std_steps=>std_steps_list, :Kcomp=>K_complexity_list, :lg_redund=>log_redundancy_list )
+  df = DataFrame( :phlist=>phlist, :numinputs=>fill(p.numinputs,nphenos), :numgates=>fill(p.numinteriors,nphenos), :levsback=>fill(p.numlevelsback,nphenos), 
+      :mean_steps=>mean_steps_list, :median_steps=>median_steps_list, :std_steps=>std_steps_list, :Kcomp=>K_complexity_list, :robustness=>robustness_list,
+      :lg_redund=>log_redundancy_list )
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f

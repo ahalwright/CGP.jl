@@ -216,6 +216,9 @@ function pheno_vects_to_boolean_matrix( pheno_vects::Vector{String} )
 end
 
 # returns a matrix of counts of the phenotypes that contribute to the evolvability set
+# Example from notes/9_5_22.txt:
+# pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
+# E = pheno_vects_to_evolvable_matrix( pdf.pheno_vects )
 function pheno_vects_to_evolvable_matrix( pheno_vects::Vector{Vector{Int64}} )
   result_matrix = zeros(Int64,length(pheno_vects[1]),length(pheno_vects[1]))
   for i = 1:length(pheno_vects)
