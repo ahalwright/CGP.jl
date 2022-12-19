@@ -96,7 +96,7 @@ mutable struct DFA
   k::Int64
   states::Vector{String}
   sigma::Vector{Char}
-  delta::Dict{Tuple{Int64,Int64},Int64}
+  delta::Dict{Tuple{Int64,Char},Int64}
   start::Int64
   final::Vector{Int64}
 end
@@ -106,14 +106,71 @@ mutable struct dfaState
 end  
 
 function dfa( ; name::String="dfa")
-  dfa = DFA( name, 0, 0, Int64[], Int64[], Dict{Tuple{Int64,Int64},Int64}(), 0, [0] )
+  dfa = DFA( name, 0, 0, Int64[], Int64[], Dict{Tuple{Int64,Char},Int64}(), 0, [0] )
 end
 
 function setSigma!( dfa::DFA, slist::Vector{Char} )
   dfa.sigma = slist
+  dfa.k = length(slist)
 end
 
 function addState!( dfa::DFA, state::String )
   push!( dfa.states, state )
-  dfa
+  dfa.n += 1
+end
+
+function setInitial!( dfa::DFA, init::Int64 )
+  dfa.start = init
+end
+
+function setFinal!( dfa::DFA, final::Vector{Int64} )
+  dfa.final = final
+end
+
+function evalWordP( dfa::DFA, input::String )
+  st = dfa.start
+  for c in input
+    st = dfa.delta[( st, c )] 
+  end
+  st in dfa.final
+end
+
+function addTransition!( dfa::DFA, fromSt::Int64, input::Char, toSt::Int64 )
+  dfa.delta[(fromSt,input)] = toSt
+end
+
+function test_DFA()
+  ddfa = dfa( name="ddfa" )
+  setSigma!( ddfa, ['0', '1', '2'] )
+  addState!( ddfa, "S1" )
+  addState!( ddfa, "S2" )
+  addState!( ddfa, "S3" )
+  setInitial!(ddfa,1)
+  setFinal!(ddfa,[1])
+  #=
+  #addTransition!( ddfa, 1, '0', 2 )
+  addTransition!( ddfa, 1, '0', 1)
+  addTransition!( ddfa, 1, '1', 2)
+  addTransition!( ddfa, 2, '0', 3)
+  addTransition!( ddfa, 2, '1', 1)
+  addTransition!( ddfa, 3, '0', 2)
+  addTransition!( ddfa, 3, '1', 3)
+  =#
+
+  addTransition!( ddfa, 1, '1', 3)
+  addTransition!( ddfa, 1, '2', 2)
+  addTransition!( ddfa, 1, '3', 1)
+  addTransition!( ddfa, 2, '1', 4)
+  addTransition!( ddfa, 2, '2', 1)
+  addTransition!( ddfa, 2, '3', 2)
+  addTransition!( ddfa, 3, '1', 2)
+  addTransition!( ddfa, 3, '2', 4)
+  addTransition!( ddfa, 3, '3', 1)
+  addTransition!( ddfa, 4, '1', 3)
+  addTransition!( ddfa, 4, '2', 4)
+  addTransition!( ddfa, 4, '3', 2)
+
+  println("evalWordP(ddfa,\"011\"): ",evalWordP(ddfa,"011"))
+  println("evalWordP(ddfa,\"1011\"): ",evalWordP(ddfa,"1011"))
+  ddfa
 end

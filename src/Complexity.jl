@@ -632,6 +632,50 @@ function k_complexity_density( p::Parameters, funcs::Vector{Func}, phlist::GoalL
   df
 end
 
+function lg_redund_density( p::Parameters, funcs::Vector{Func}, phlist::GoalList; csvfile::String="" )
+  rdict = redundancy_dict(p,funcs)
+  redund_list = Int64[]
+  for ph in phlist
+    push!(redund_list,rdict[ph[1]])
+  end
+  df = DataFrame( :phlist=>phlist, :lg_redund=>map(lg10,redund_list ) )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", funcs)
+      print_parameters(f,p,comment=true)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+function robustness_density( p::Parameters, funcs::Vector{Func}, phlist::GoalList; csvfile::String="" )
+  if p.numinputs == 4 && p.numinteriors == 10 && p.numlevelsback == 5
+    rdf = read_dataframe( "../data/12_7_22/ph_evolve_12_7_22G.csv")
+  else
+    error("only 4x1 10gts 5lb allowed")
+  end
+  grobust_list = Float64[]
+  for i = 1:500
+    push!( grobust_list, robustness( random_chromosome( p, funcs), funcs ) )
+  end  
+  df = DataFrame( :phlist=>phlist, :ph_robust=>rdf.robustness, :geno_robust=>grobust_list )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", funcs)
+      print_parameters(f,p,comment=true)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
 # For each phenotypes in goallist and for each numints in the range numinteriors, 
 #    computes the mean and standard deviation of the Tononi complexity of numcircuits chromosomes evolved to map to the phenotype.
 # Purpose:  try to understand how Tononi complexity scales as numinteriors.
@@ -761,6 +805,12 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
       elseif p.numinteriors == 8 && p.numlevelsback == 5
         if length(funcs) == 4
           csvfile = "../data/counts/count_outputs_3x1_8gts5lb_4funcs.csv"
+        else
+          error("no csv file in function redundancy_dict()")
+        end
+      elseif p.numinteriors == 10 && p.numlevelsback == 5
+        if length(funcs) == 5
+          csvfile = "../data/counts/count_outputs_ch_5funcs_3inputs_10gates_5lb_Y.csv"
         else
           error("no csv file in function redundancy_dict()")
         end

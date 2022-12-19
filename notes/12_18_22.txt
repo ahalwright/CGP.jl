@@ -1,0 +1,9 @@
+Robustness density plots.
+
+New functions lg_redund_density() and robustness_density() in Complexity.jl.
+
+density(rdf.ph_robust,labels="phenotype density")
+density!(rdf.geno_robust,labels="genotype density")
+plot!(xlabel="robustness",ylabel="density",title="Robustness density 10gts5lb")
+plot!(xlabel="robustness",ylabel="density",title="Robustness density 4inputs 10gts5lb")
+savefig("../data/12_18_22/Robustness_density_4inputs_10gts5lb.png")
