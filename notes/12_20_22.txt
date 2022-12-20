@@ -1,0 +1,8 @@
+Robustness density plots.
+Gave up on multithreading.  Multithreaded functions are not in Evolve.jl, but look in src/stash.
+
+Revised run_ph_evolve() in Evolve.jl to adapt to the cases where kolmogorov_complexity_dict() and redundancy_dict() don't work.
+Added Bool keyword argument geno_robust which allows for the option of adding a geno_robust column to the output dataframe.
+Now the data to do a genotype and phenotype density plot is in the output dataframe.
+Examples in data/12_20_22/.
+

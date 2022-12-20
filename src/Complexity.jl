@@ -772,7 +772,8 @@ function kolmogorov_complexity_dict( p::Parameters, funcs::Vector{Func}=default_
       k_csvfile = "../data/counts/k_complexity8_9_22XTYZZYTZ.csv"   
     end
   else
-    error("Illegal parameters or funcs in call to kolmogorov_complexity_dict() ")
+    println("Illegal parameters or funcs in call to kolmogorov_complexity_dict() ")
+    return nothing
   end
   println("k_csvfile: ",k_csvfile)
   df = read_dataframe( k_csvfile )
@@ -794,28 +795,33 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
         elseif length(funcs) == 5
           csvfile = "../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv"
         else
-          error("no csv file in function redundancy_dict()")
+          println("no csv file in function redundancy_dict()")
+          return nothing
         end
       elseif p.numinteriors == 7 && p.numlevelsback == 4
         if length(funcs) == 4
           csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv"
         else
-          error("no csv file in function redundancy_dict()")
+          println("no csv file in function redundancy_dict()")
+          return nothing
         end
       elseif p.numinteriors == 8 && p.numlevelsback == 5
         if length(funcs) == 4
           csvfile = "../data/counts/count_outputs_3x1_8gts5lb_4funcs.csv"
         else
-          error("no csv file in function redundancy_dict()")
+          println("no csv file in function redundancy_dict()")
+          return nothing
         end
       elseif p.numinteriors == 10 && p.numlevelsback == 5
         if length(funcs) == 5
           csvfile = "../data/counts/count_outputs_ch_5funcs_3inputs_10gates_5lb_Y.csv"
         else
-          error("no csv file in function redundancy_dict()")
+          println("no csv file in function redundancy_dict()")
+          return nothing
         end
       else
-        error("no csv file in function redundancy_dict()")
+        println("no csv file in function redundancy_dict()")
+        return nothing
       end
     elseif p.numinputs == 4
       if length(funcs) == 5 
@@ -827,12 +833,15 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
           csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
         else
           println("only 10gts 5lb and 12gts 6 lb are supported at this time")
+          return nothing
         end
       else
         println("Only 5 funcs is supported for 4 inputs at this time")
+        return nothing
       end
     else
-      error("only 3 and 4 inputs are supported at this time")
+      println("only 3 and 4 inputs are supported at this time")
+      return nothing
     end
   end
   println("csvfile: ",csvfile)

@@ -10,8 +10,20 @@ function robustness( c::Circuit, funcs::Vector{Func} )
   return length(robust_outputs)/length(outputs)
 end   
 
+# Returns a list of the robustnesses of numcircuits random genotypes
+function genotype_robustness( p::Parameters, funcs::Vector{Func}, numcircuits::Int64; use_lincircuit::Bool=false )
+  robust_list = Float64[]
+  for i = 1:numcircuits
+    c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
+    push!( robust_list, robustness( c, funcs ) )
+  end
+  robust_list
+end
+
+# Average robustness of numcircuits random chromosomes for a list of parameters settings
+# Triple:  (numiinputs, numinteriors, numlevelsback)  
 # Example:  genotype_robustness( [(3,8,4),(4,10,5)], 100 )
-function genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, nreps::Int64 )
+function genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, numcircuits::Int64 )
   ni_list = Int64[]
   ng_list = Int64[]
   lb_list = Int64[]
@@ -24,7 +36,7 @@ function genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}
     p = Parameters( ni, 1, ng, lb )
     funcs = default_funcs( p )
     rlist = Float64[]
-    for i = 1:nreps
+    for i = 1:numcircuits
       push!(rlist,robustness(random_chromosome(p,funcs),funcs))
     end
     push!( ni_list, ni )
@@ -36,11 +48,12 @@ function genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}
     push!( q90_rbst_list, quantile( rlist, 0.9 ) )
     push!( rlist_list, rlist )
   end
-  df = DataFrame( :ninteriors=>ni_list, :ngates=>ng_list, :lb=>lb_list, :nreps=>fill(nreps,length(ni_ng_lb_triples)), 
+  df = DataFrame( :ninteriors=>ni_list, :ngates=>ng_list, :lb=>lb_list, :numcircuits=>fill(nreps,length(ni_ng_lb_triples)), 
       :mean_robust=>mean_rbst_list, :std_robust=>std_rbst_list, :q10_robust=>q10_rbst_list, :q90_robust=>q90_rbst_list,
       :rlists=>rlist_list )
 end
 
+# Alternative: function run_ph_evolve() in Evolve.jl
 function phenotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, numcircuits::Int64, ngoals::Int64, max_tries::Int64, max_steps::Int64;
      use_lincircuit::Bool=false, use_mut_evolve::Bool=false, csvfile::String="" )
   ni_list = Int64[]
@@ -85,6 +98,7 @@ end
 
 # Evolves numciruits circuits to map to each phenotype in phlist.
 # Returns a dataframe containing robustness statistics and rlists.
+# Alternative: function run_ph_evolve() in Evolve.jl
 function run_pheno_evolve_rbst( p::Parameters, funcs::Vector{Func}, phlist::GoalList, numcircuits::Int64, max_tries::Int64, max_steps::Int64;
     use_lincircuit::Bool=false, use_mut_evolve::Bool=false, csvfile::String="" )
   nphenos = length(phlist)

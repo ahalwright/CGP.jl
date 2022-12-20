@@ -1,3 +1,4 @@
+# Restored to stash/Evolve12_15_22.jl on 12/19/22.  Gave up on adding robustness:  too many failures.
 using .Threads
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, mut_evolve_increase_numints
 export mut_reduce_numactive
@@ -557,12 +558,15 @@ function random_neutral_walk( c::Chromosome, goallist::GoalList, funcs::Vector{F
 end
 
 function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, numcircuits::Int64, max_tries::Int64, max_steps::Int64; 
-    use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" )
+    use_lincircuit::Bool=false, geno_robust::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" )
   if max_tries <= numcircuits
     error("function run_ph_evolve(): max_tries should be greater than numcircuits. Your values: max_tries: ",max_tries,"  numcircuits: ",numcircuits)
   end
+  println("methods(robustness): ",methods(robustness))
   rdict = redundancy_dict(p,funcs)
   kdict = kolmogorov_complexity_dict(p,funcs)
+  k_comp_funct( x::MyInt ) = typeof(kdict) <: Dict ? kdict[x] : 0
+  redund_funct( x::MyInt ) = typeof(rdict) <: Dict ? rdict[x] : 0
   nphenos = length(phlist)
   #result_list = map( ph->pheno_evolve( p, funcs, ph, numcircuits, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) 
   result_list = pmap( ph->pheno_evolve( p, funcs, ph, numcircuits, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) 
@@ -583,8 +587,8 @@ function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nu
     std_steps = std(steps_list)
     push!(robustness_list,mean( robustness( result_list[i][j][1], funcs ) for j = 1:numcircuits ) )
     push!(std_steps_list,std_steps)
-    push!(log_redundancy_list,lg10(rdict[phlist[i][1]] ))
-    push!(K_complexity_list,kdict[phlist[i][1]] )
+    push!(log_redundancy_list,lg10(redund_funct(phlist[i][1]) ))
+    push!(K_complexity_list,k_comp_funct(phlist[i][1]) )
   end
   mean_steps_list,
   median_steps_list,
@@ -592,6 +596,10 @@ function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nu
   df = DataFrame( :phlist=>phlist, :numinputs=>fill(p.numinputs,nphenos), :numgates=>fill(p.numinteriors,nphenos), :levsback=>fill(p.numlevelsback,nphenos), 
       :mean_steps=>mean_steps_list, :median_steps=>median_steps_list, :std_steps=>std_steps_list, :Kcomp=>K_complexity_list, :robustness=>robustness_list,
       :lg_redund=>log_redundancy_list )
+  if geno_robust
+    geno_robust_list = genotype_robustness( p, funcs, length(phlist), use_lincircuit=use_lincircuit )
+    insertcols!( df, 10, :geno_robust=>geno_robust_list )
+  end
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f
@@ -1310,8 +1318,8 @@ function run_to_rand_phenos( param_list::Vector{Parameters}, funcs::Vector{Func}
   df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[] )
   for p in param_list
     default_funcs(p)
-    ( steps, tries, Tcmplx, robust ) = run_evolve_to_pheno( p, funcs, phlist, max_tries, max_steps )
-    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx, robust ))
+    ( steps, tries, Tcmplx ) = run_evolve_to_pheno( p, funcs, phlist, max_tries, max_steps )
+    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx ))
   end
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
@@ -1335,16 +1343,11 @@ function run_to_rand_phenos_mt( param_list::Vector{Parameters}, funcs::Vector{Fu
     csvfile::String="" )
   phlist = randgoallist( ngoalreps*ngoals, param_list[1], repetitions=ngoalreps )
   println("phlist: ",phlist)
-  include("../../src/Robustness.jl")
-  println("robustness: ",robustness)
-  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[], 
-      :robustness=>Float64[], :tries_list=>Vector{Int64}[] )
+  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[], :tries_list=>Vector{Int64}[] )
   for p in param_list
     default_funcs(p)
-    ( steps, tries, Tcmplx, robust, tries_list ) = run_evolve_to_pheno_mt( p, funcs, phlist, max_tries, max_steps )
-    #( steps, tries, Tcmplx, tries_list ) = run_evolve_to_pheno_mt( p, funcs, phlist, max_tries, max_steps )
-    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx, robust, tries_list ))
-    #push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx, tries_list ))
+    ( steps, tries, Tcmplx, tries_list ) = run_evolve_to_pheno_mt( p, funcs, phlist, max_tries, max_steps )
+    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx, tries_list ))
   end
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
@@ -1365,7 +1368,7 @@ function run_to_rand_phenos_mt( param_list::Vector{Parameters}, funcs::Vector{Fu
 end
 
 function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64 )
-  println("run_evolve_to_pheno_mt() started.")
+  println("run_evolve_to_pheno_mt() started")
   nphenos = length(phlist)
   #ttry_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
   #steps_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
@@ -1374,7 +1377,6 @@ function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::Goa
   ttries = Atomic{Int64}(0.0)
   ssteps = Atomic{Int64}(0.0)
   Tcomplexity = Atomic{Float64}(0.0)
-  robust = Atomic{Float64}(0.0)
   Threads.@threads for i = 1:nphenos
     ( nc, steps, tries ) = evolve_to_pheno( p, funcs, phlist[i], max_tries, max_steps )
     Threads.atomic_add!( ssteps, steps )
@@ -1382,12 +1384,9 @@ function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::Goa
     Threads.atomic_add!( ttry_list[tries], 1 )
     Tcmplx = (p.numinteriors <= 20) ? complexity5(nc) : 0.0
     Threads.atomic_add!( Tcomplexity, Tcmplx )
-    #println("robustness(nc): ",robustness(nc,funcs),funcs)
-    Threads.atomic_add!( robust, robustness(nc,funcs) )
   end  
   println("run_evolve_to_pheno_mt() finished")
-  ( ssteps[]/nphenos, ttries[]/nphenos, Tcomplexity[]/nphenos, robust[]/nphenos, map(tt->tt[],ttry_list) )
-  #( ssteps[]/nphenos, ttries[]/nphenos, Tcomplexity[]/nphenos, map(tt->tt[],ttry_list) )
+  ( ssteps[]/nphenos, ttries[]/nphenos, Tcomplexity[]/nphenos, map(tt->tt[],ttry_list) )
 end
 
 function run_evolve_to_pheno( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64 )
@@ -1410,16 +1409,13 @@ function run_evolve_to_pheno( p::Parameters, funcs::Vector{Func}, phlist::GoalLi
 end    
 
 function evolve_to_pheno( p::Parameters, funcs::Vector{Func}, ph::Goal, max_tries::Int64, max_steps::Int64; c::Chromosome=random_chromosome(Parameters(1,1,0,1),default_funcs(p)) )
-  #println("evolve_to_pheno() started")
   if c.params.numinputs == 1
     c = random_chromosome(p,funcs)
   end
   ttry = 1
   (nc,steps) = neutral_evolution( c, funcs, ph, max_steps)
-  #println("evolve_to_pheno neutral_evoution done  steps: ",steps,"  max_steps: ",max_steps)
   total_steps = steps
   while ttry < max_tries && steps == max_steps
-    println("neutral evolution try: ",ttry,"   ph: ",ph)
     (nc,steps) = neutral_evolution( c, funcs, ph, max_steps )
     total_steps += steps
     ttry += 1
@@ -1427,7 +1423,6 @@ function evolve_to_pheno( p::Parameters, funcs::Vector{Func}, ph::Goal, max_trie
   if ttry == max_tries && steps == max_steps
     return nothing
   end
-  #println("evolve_to_pheno() finished")
   return (nc,steps,ttry)
 end
 
