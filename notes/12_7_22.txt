@@ -35,6 +35,16 @@ savefig("../data/12_7_22/"lg_redund_vs_K_complex_4x1_10gts5lb.png")
 scatter(df5.Kcomp,df5.robustness,smooth=true,xlabel="K complexity",ylabel="robustness",legend=:none,title="robustness vs K complex 4x1 10gts5lb 200circs")
 savefig("../data/12_7_22/robustness_vs_K_complex_4x1_10gts5lb_200circs")
 
+12/21/22:
+
+julia> scatter(rd6,rb6,smooth=true,labels="12 gates 6 levelsback")
+julia> scatter!(rd5,rb5,smooth=true,labels="10 gates 5 levelsback")
+julia> plot!(xlabel="log redundancy",ylabel="robustness",legend=:topleft,title="robustness vs log redundancy 4 inputs")
+julia> corspearman( rd5, rb5 )
+0.949108681444515
+julia> corspearman( rd6, rb6 )
+0.9547143444703411
+
 Thus, I hypothesize that: 
 1.  Robustness is higher for random genotypes than for random phenotypes.
 

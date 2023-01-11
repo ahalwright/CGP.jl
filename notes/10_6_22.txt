@@ -1,3 +1,4 @@
+# See additional results on 12/25/22.
 Shape-space for a 48-element random subset of 4x1 8gts4lb4funcs phenotypes.
 @time include("../data/10_6_22/run_shape_spaceD.jl")  13662 seconds fluda 12 processes
 ssddf = read_dataframe("../data/10_6_22/shape_space4x1_10gts_3mutates_10_6_22D.csv")

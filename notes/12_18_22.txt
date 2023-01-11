@@ -1,4 +1,4 @@
-Robustness density plots.
+Robustness density plots.  Genotype density vs. phenotype density.
 
 New functions lg_redund_density() and robustness_density() in Complexity.jl.
 

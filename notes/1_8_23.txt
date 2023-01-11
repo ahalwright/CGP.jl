@@ -1,0 +1,44 @@
+Fixing errors in redundancy_mutate_all.jl which will be moved back into Complexity.jl.
+
+See notes/1_6_23.txt for a description of one of the errors.
+
+Rewrote the definition of redundancy_mutate_all() to correct errors and make it more understandable.
+
+Reran data/11_16_22/run_redundancy_mutateC.jl which is the data for the evolvability paper.  No errors.
+
+# demonstrate that mutational probability of log redunancy decreases exponentially with the difference in log redundancy
+cdf = read_dataframe("../data/11_16_22/redundancy_mutate_all11_16_22C.csv")
+plot(collect(-5:0),[[ lg10(x) for x in cdf[k,5:10] ] for k = 5:8],labels=reshape(["start log redundancy $(k)" for k = 5:8 ],1,4))
+plot!(legend=:topleft,xlabel="change in log redundancy",ylabel="log frequency")
+plot!(title="mutation change in log redundancy 4x1 10gts5lb")
+savefig("../data/11_16_22/mutation_change_in_log_redundancy_2000goals_4x1_10gts5lb.png")
+
+# Ran @time include("../data/11_16_22/run_redundancy_mutateG.jl") with 10000 instead of 2000 goals.
+# This plot is used in the evolvability paper.
+gdf = read_dataframe("../data/11_16_22/redundancy_mutate_all11_16_22G.csv")
+plot(collect(-5:0),[[ lg10(x) for x in gdf[k,5:10] ] for k = 5:8],labels=reshape(["start log redundancy $(k)" for k = 5:8 ],1,4))
+plot!(legend=:topleft,xlabel="change in log redundancy",ylabel="log frequency")
+plot!(title="mutation change in log redundancy 4x1 10gts5lb")
+savefig("../data/11_16_22/mutation_change_in_log_redundancy_10000goals_4x1_10gts5lb.png")
+
+
+# A new error:
+rebased vector error: i: 9846  k: -8  j: 9
+rebased vector error: i: 9846  k: -7  j: 9
+rebased vector error: i: 9846  k: -6  j: 9
+rebased vector error: i: 9846  k: -5  j: 9
+rebased vector error: i: 9846  k: -4  j: 9
+rebased vector error: i: 9846  k: -3  j: 9
+rebased vector error: i: 9846  k: -2  j: 9
+rebased vector error: i: 9846  k: -1  j: 9
+rebased vector error: i: 9846  k: 0  j: 9
+rebased vector error: i: 9846  k: 1  j: 9
+rebased vector error: i: 9846  k: 2  j: 9
+rebased vector error: i: 9846  k: 3  j: 9
+rebased vector error: i: 9846  k: 4  j: 9
+rebased vector error: i: 9846  k: 5  j: 9
+rebased vector error: i: 9846  k: 6  j: 9
+rebased vector error: i: 9846  k: 7  j: 9
+rebased vector error: i: 9846  k: 8  j: 9
+Note error is for j: 9 instead of j: 0
+

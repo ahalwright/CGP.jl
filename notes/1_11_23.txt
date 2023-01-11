@@ -1,0 +1,12 @@
+Functions in ch_to_int.jl
+
+chromosome_to_int
+
+gate_int
+
+inputs_list
+
+enumerate_circuits_ch   (2 versions)  no change from Chromosome.jl
+
+int_to_chromsome   no change from Chromosome.jl
+

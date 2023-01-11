@@ -1,0 +1,20 @@
+Results on Shape-Space covering.  Data in data/10_6_22.
+
+Wrote function shape_space_fract_successes() in ShapeSpace.jl which computes the fraction of 
+  common phenotypes covered by num_mutates mutations of a circuit evolved to map to the given phenotype.
+
+Results:
+  3 inputs 8 gts 4 lb num_mutates=2  all 3x1 phenotypes
+  quantile_value = 0.9
+  fractSuccesses = 1.0 in 246 of 256 cases
+  mean(phdf.fractSuccesses) # 0.998046875
+  quantile_value = 0.8
+  fractSuccesses = 1.0 in 140 of 256 cases
+  mean(phdf.fractSuccesses) # 0.9847506009615383
+
+
+wdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")   # includes circuit_ints
+circ_list = map( x-> eval(Meta.parse(x)), wdf.circuits_list )
+c7 = int_to_chromosome( rand( circ_list[7] ), p, funcs )
+c9 = int_to_chromosome( rand( circ_list[9] ), p, funcs )
+

@@ -1,0 +1,38 @@
+Worked on shape space covering with code in ShapeSpace.jl and results in data/12_29_22/.
+
+Wrote code to find shape-space coverage for evolution and sampling techniques, for different criteria for the log redundancy of phenotype,
+  for different number of mutations.  Used num_mutates=2 for 3 inputs, num_mutates=3 for 4 inputs.
+
+Evolution shape-space:
+  function shape_space_multiple_genos( )
+  function shape_space_fract_successes( )
+  function shape_space_evolution_successes( )  combines the two previous fumctions
+
+Sampling shape-space:
+  function shape_space_circuit_ints_list()
+  function shape_space_fract_successes( )
+  function shape_space_sampling_successes( )  combines the two previous fumctions
+
+Results for evolution in data/12_29_22/shape_space_counts_evolution_12_29_22P.csv   # 100 phenotypes
+Results for sampling in data/12_29_22/shape_space_counts_sampling_12_29_22C.csv     # 100 phenotypes
+
+ddf = read_dataframe("../data/12_29_22/shape_space_counts_sampling_12_29_22D.csv")
+qdf = read_dataframe("../data/12_29_22/shape_space_counts_evolution_12_29_22Q.csv")
+smeans = map( i->mean( ddf[:,i] ), 3:8 )
+emeans = map( i->mean( qdf[:,i] ), 6:11 )
+plot( names(ddf)[3:8], [smeans,emeans], labels=["sampling" "evolution"], legend=:topleft )
+plot!(xlabel="fraction of phenotypes that are common",ylabel="fraction of phenotypes that are common")
+savefig("../data/12_29_22/fraction_of_phenotypes_that_are_common4x2_12gts6lbXOR_2.png")
+
+Plot in data/12_29_22/fraction_of_phenotypes_that_are_common4x2_12gts6lbXOR.png
+Results disappointing in that very little difference betwen evolution and sampling.
+
+However, some difference, probably significant, between pheno_counts :
+julia> mean(cdf.pheno_count), mean(pdf.pheno_counts)
+(8479.93, 8637.58)
+
+Results for evolution in data/12_29_22/shape_space_counts_evolution_12_29_22Q.csv   # 200 phenotypes
+Results for sampling in data/12_29_22/shape_space_counts_sampling_12_29_22D.csv     # 200 phenotypes
+julia> mean(ddf.pheno_count), mean(qdf.pheno_counts)
+(8067.76, 8780.715)
+

@@ -1,0 +1,113 @@
+Revisiting shape-space covering in the file ShapeSpace.jl.
+
+It seemed that using evolution to find genotypes that mapped to phenotypes gave much larger coverage than sampling.
+But evolution as implemented by function shape_space_multiple_genos() was based on evolving 2 circuits per phenotype,
+  and I didn't understand how it worked.  So I saved the previos version of ShapeSpace.jl in stash/ShapeSpace12_26_22.jl
+  and made multiple simplifcations.  The argument circuits_per_goal_list::Vector{Int64} was replaced by circuits_per_goal::Int64.
+  In the new version, circuits_per_goal is the number of circuits evolved for each phenotype, and there is only one
+  :pheno_counts column in the output dataframe.
+
+I also got rid of the increase_mutates keyword argument.
+
+Comparing evolution vs. sampling
+
+# Sampling
+kdf= read_dataframe("../data/12_26_22/shape_space_counts12_26_22K.csv")  # sampling 24 goals
+ mean(kdf.pheno_count)
+7482.208333333333
+
+ldf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22L.csv")  # sampling 24 goals
+mean(ldf.pheno_count), mean(ldf.fractSuccesses)
+(7990.583333333333, 0.748093058733791)
+
+lldf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22LL.csv")  # sampling 24 goals
+mean(lldf.pheno_count), mean(lldf.fractSuccesses)
+(6891.916666666667, 0.7268306636155607)
+
+qdf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22QQ.csv")
+mean(qdf.pheno_count),mean(qdf.fractSuccesses)   # sampling, 56 phenotypes
+(7713.232142857143, 0.7568241255312192)
+
+idf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22I.csv")
+ mean(idf.pheno_count)
+7727.666666666667
+
+jdf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22J.csv")
+mean(jdf.pheno_count)
+7694.791666666667,
+
+# Evolution
+@time include("../data/12_26_22/run_shape_spaceN.jl")   # evolution returns dataframe df
+mean(df.pheno_counts), mean(df.fractSuccesses)
+(8829.541666666666, 0.7486651411136539)
+
+@time include("../data/12_26_22/run_shape_spaceR.jl")  # evolution, 54 phenotypes
+mean(df.pheno_counts),mean(df.fractSuccesses)   #Evolution
+(8588.333333333334, 0.7629177613922086)
+
+ndf = read_dataframe("../data/12_26_22/shape_space_successes12_26_22N.csv")
+mean(ndf.pheno_counts)
+8829.541666666666
+
+rdf = read_dataframe("../data/12_26_22/shape_space_successes12_26_22R.csv")
+mean(rdf.pheno_counts)
+8588.333333333334
+
+
+# Evolution
+rdf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22R.csv")  # Evolution
+rrdf =read_dataframe("../data/12_26_22/shape_space_successes12_26_22R.csv")
+mean(rdf.pheno_counts), mean(rrdf.fractSuccesses)
+8588.333333333334,  0.7629177613922082
+
+mean(sdf.pheno_counts)   Evolution  3974 seconds
+8765.87037037037
+
+mean(tdf.pheno_counts)   Evolution  4008 seconds
+9196.296296296296
+
+stdf = vcat(sdf,tdf)
+size(stdf)
+(108,7)
+mean(stdf.pheno_counts), std(stdf.pheno_counts)
+rdf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22R.csv")
+rstdf = vcat(rdf,stdf)
+select!(stdf,DataFrames.Not("fs0.98"))  # remove column fs0.98 from stdf.
+size(rstdf),mean(rstdf.pheno_counts), std(rstdf.pheno_counts)
+((162, 6), 8850.166666666666, 4062.08188866083)
+write_dataframe_with_comments( rstdf, "../data/12_26_22/shape_space_successes12_26_22S.csv","../data/12_26_22/shape_space_successes12_26_22RST.csv")
+
+kdf= read_dataframe("../data/12_26_22/shape_space_counts12_26_22K.csv");
+ldf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22L.csv");
+lldf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22LL.csv");
+qdf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22QQ.csv");
+idf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22I.csv")
+jdf = read_dataframe("../data/12_26_22/shape_space_counts12_26_22J.csv");
+klqdf = vcat(kdf,ldf,lldf,qdf);
+ijdf = vcat(idf,jdf);
+select!(klqdf,DataFrames.Not("fractSuccesses"));
+select!(ijdf,DataFrames.Not("fs0.98"));
+klqijdf = vcat(klqdf,ijdf)
+size(klqijdf), mean(klqijdf.pheno_count),std(klqijdf.pheno_count)
+((176, 3), 7607.005681818182, 3497.1175861552188)
+write_dataframe_with_comments( klqijdf, "../data/12_26_22/shape_space_counts12_26_22K.csv","../data/12_26_22/shape_space_counts12_26_22KLQIJ.csv")
+IOStream(<file ../data/12_26_22/shape_space_counts12_26_22KLQIJ.csv>)
+
+UnequalVarianceTTest(klqijdf.pheno_count,rstdf.pheno_counts)
+Two sample t-test (unequal variance)
+------------------------------------
+Population details:
+    parameter of interest:   Mean difference
+    value under h_0:         0
+    point estimate:          -1243.16
+    95% confidence interval: (-2058.0, -428.8)
+
+Test summary:
+    outcome with 95% confidence: reject h_0
+    two-sided p-value:           0.0029
+
+Details:
+    number of observations:   [176,162]
+    t-statistic:              -3.003271547952302
+    degrees of freedom:       319.0109775953497
+    empirical standard error: 413.9355915704989

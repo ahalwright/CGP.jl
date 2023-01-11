@@ -557,8 +557,11 @@ function random_neutral_walk( c::Chromosome, goallist::GoalList, funcs::Vector{F
   return (min_num_active,count_min_num_active,min_active_chromes_list)
 end
 
+# Run pheno_evolve() to evolve numcircuits circuits that map to each phenotype in phlist.
+# Does max_tries attempts to evolve one circuit that maps to each phenotype in phlist
+# Not currently tested for LGP.
 function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, numcircuits::Int64, max_tries::Int64, max_steps::Int64; 
-    use_lincircuit::Bool=false, geno_robust::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" )
+    use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" )
   if max_tries <= numcircuits
     error("function run_ph_evolve(): max_tries should be greater than numcircuits. Your values: max_tries: ",max_tries,"  numcircuits: ",numcircuits)
   end
@@ -596,10 +599,6 @@ function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nu
   df = DataFrame( :phlist=>phlist, :numinputs=>fill(p.numinputs,nphenos), :numgates=>fill(p.numinteriors,nphenos), :levsback=>fill(p.numlevelsback,nphenos), 
       :mean_steps=>mean_steps_list, :median_steps=>median_steps_list, :std_steps=>std_steps_list, :Kcomp=>K_complexity_list, :robustness=>robustness_list,
       :lg_redund=>log_redundancy_list )
-  if geno_robust
-    geno_robust_list = genotype_robustness( p, funcs, length(phlist), use_lincircuit=use_lincircuit )
-    insertcols!( df, 10, :geno_robust=>geno_robust_list )
-  end
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f
@@ -622,7 +621,7 @@ end
 #run_ph_evolve( p, funcs, map(x->[x],collect(MyInt(0):MyInt(2^2^p.numinputs-1))), 3, 5, 100_000 )
 
 # Run pheno_evolve() to evolve one circuit that maps to each phenotype in phlist.
-# Does max_tries attempts to evolve a chromosome that maps to each phenotype in phlist
+# Does max_tries attempts to evolve one circuit that maps to each phenotype in phlist
 # Not currently tested for LGP.
 function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64; 
     use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" ) 
@@ -673,6 +672,7 @@ end
 # Evolve a circuit that maps to a given phenotype (Goal)
 # max_tries is the maximum number of attempts using neutral_evolution to find the circuit
 # max_steps is the maximum number of steps during a run of neutral_evolution()
+# Note that there is no num_circuits_per_goal argument which distinguishes this version from the version that evolves multiple circuits per phenotype
 # if no genotype that maps to goal is found, returns (nothing,nothing)
 function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; 
     use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
@@ -712,10 +712,11 @@ end
 # Evolve num_circuits_per_goal circuits that map to a given phenotype (Goal) goal.
 # max_tries is the maximum number of attempts using neutral_evolution to find the circuit
 # max_steps is the maximum number of steps during a run of neutral_evolution()
+# Note that there is a num_circuits_per_goal argument which distinguishes this version from the version that evolves one circuit per phenotype
 # Returns a list of 2-tuples (circuit,steps).  If no circuits are found, returns empty list
 # if no genotype (circuit) that maps to goal is found, returns (nothing,nothing)
 function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circuits_per_goal::Int64, max_tries::Int64, max_steps::Int64; 
-      use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
+     use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
   default_funcs(p)
   #println("length(funcs): ",length(funcs))
   steps = 0   # establish scope

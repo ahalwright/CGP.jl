@@ -1,0 +1,17 @@
+Trying to show that probability of mutation from high redundancy to low redundancy decreases exponentially with the difference in log redundancy.
+  
+ccdf = read_dataframe("../data/11_16_22/redundancy_mutate_all11_16_22C.csv")   # The data for the plot of density of mutational change.
+
+map(lg10,ccdf[5,6:10]
+
+l5 = Matrix(DataFrame(ccdf[5,6:10]))
+1×5 Matrix{Int64}:
+ 19  315  2774  12910  85045
+
+ll5 = map(lg10,l5)
+1×5 Matrix{Float64}:
+ 1.27875  2.49831  3.44311  4.11093  4.92965
+
+plot(-5:-1,ll5')    # Gives an approximate straight line
+
+Running D in data/11_16_22 with 12 gts 6 lb and 5 times as many goals.

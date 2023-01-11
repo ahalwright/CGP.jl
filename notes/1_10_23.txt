@@ -1,0 +1,60 @@
+Outline of circuit int algorithms:
+
+For a particular parameter and func setting, we have a function to compute a one-to-one mapping from 
+circuits (genotypes) to integers, and a function to compute the inverse of this mapping.
+This functio is implemented by function chromosome_to_int() defined below.
+
+mutable struct Func
+    func::Function
+    arity::Integer
+    name::AbstractString
+end
+
+mutable struct InputNode <: Node
+    index::Integer
+    active::Bool
+    cache::MyInt
+end
+
+mutable struct InteriorNode <: Node
+    func::Func
+    inputs::Vector{Integer}
+    active::Bool
+    cache::MyInt
+end
+
+mutable struct Chromosome
+    params::Parameters
+    inputs::Vector{InputNode}
+    interiors::Vector{InteriorNode}
+    outputs::Vector{OutputNode}
+end
+
+# Reverted to original
+function getindex(c::Chromosome, i::Integer)  # returns the i^th node of the Chromosome
+  if i <= c.params.numinputs   # input node
+    return c.inputs[i]
+  end
+  elseif i <= c.params.numinteriors
+    return c.interiors[i-c.params.numinputs]  # interior node
+  else  # output node
+    return c.outputs[i - c.params.numinteriors - c.params.numinputs]
+  end
+end
+
+function chromosome_to_int( ch::Chromosome, funcs::Vector{Func} )  
+  result = Int128(0)
+  for i = 1:length(ch.interiors)   # Interiors are the same as gates
+    (gint,multiplier) = gate_int( i, ch, funcs )
+    result = result*multiplier+gint
+  end
+  result
+end
+
+# i is the index of node in the chromosome..  
+function gate_int( i::Integer, ch::Chromosome, funcs::Vector{Func} )
+  func_int = the index if the function of the gate.  AND has index 1, OR has index 2, etc.
+  gate_inputs = ch.interiors[i].inputs  # the node indices of the inputs to the gates. E. g. [4,2]
+  gate_inputs = getindex(ch,i).inputs  # the node indices of the inputs to the gates. E. g. [4,2]
+  
+

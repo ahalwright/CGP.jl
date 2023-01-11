@@ -1,0 +1,28 @@
+Investigating bugs in redundancy_mutate_all() which is both in Complexity.jl and in redundancy_mutate_all.jl.
+
+See end of this file for the errors.
+
+The problem was that if the redundancy of a phenotype was 1 or 2, then the statement
+"r_comp_ph = max(1,Int(round(lg10(r_dict[ph[1]]))))  returned a 0 for r_comp_ph which resulted in a rebased vector with center 0.
+
+So I changed this statement to:
+r_comp_ph = max(1,Int(ceil(lg10(r_dict[ph[1]]))))
+
+Run of @time include("../data/11_16_22/run_redundancy_mutateC.jl")  10 gates 5 lb  XOR
+rebased vector error: i: 166  k: -8  j: 0
+rebased vector error: i: 166  k: -7  j: 0
+rebased vector error: i: 166  k: -6  j: 0
+rebased vector error: i: 166  k: -5  j: 0
+rebased vector error: i: 166  k: -4  j: 0
+rebased vector error: i: 166  k: -3  j: 0
+rebased vector error: i: 166  k: -2  j: 0
+rebased vector error: i: 166  k: -1  j: 0
+rebased vector error: i: 166  k: 0  j: 0
+rebased vector error: i: 166  k: 1  j: 0
+rebased vector error: i: 166  k: 2  j: 0
+rebased vector error: i: 166  k: 3  j: 0
+rebased vector error: i: 166  k: 4  j: 0
+rebased vector error: i: 166  k: 5  j: 0
+rebased vector error: i: 166  k: 6  j: 0
+rebased vector error: i: 166  k: 7  j: 0
+rebased vector error: i: 166  k: 8  j: 0

@@ -1,5 +1,5 @@
 # Contains functions that are useful in many contexts
-export lg10, write_df_to_csv, MyInt_to_string, string_to_MyInt
+export lg10, set_to_list, write_df_to_csv, MyInt_to_string, string_to_MyInt
 
 lg10(x) = iszero(x) ? 0.0 : log10(x)
 
@@ -34,6 +34,10 @@ function string_to_MyInt( x::AbstractString )
   else
     error("Illegal argument ",x," to function string_to_MyInt()" )
   end
+end
+
+function set_to_list( s::Set )
+  [ i for i in s ]
 end
 
 # Writes a dataframe to a CSV file

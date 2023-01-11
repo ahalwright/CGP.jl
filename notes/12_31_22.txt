@@ -1,0 +1,37 @@
+Testing "self-adaptation" from Toussaint's 2002 neutrality paper.
+
+Parameters(1, 4, 0.05, 0.0, 4, 1, 2, 12, 6)
+funcs
+5-element Vector{Func}:
+
+ch = random_chromosome(p,funcs);
+output_values(ch)
+1-element Vector{UInt16}:
+ 0xa5a5
+
+alist = map(x->x[1],reduce(vcat,map(x->mutate_all(x),mutate_all(ch,output_circuits=true,output_outputs=false))))
+dlist = map(x->hamming(output_values(ch)[1],x),alist)
+density(dlist)
+plot!(title="density_double_mutations_of_circuit_pheno_0xa5a5")
+savefig("../data/12_31_22/density_double_mutations_of_circuit_pheno_0xa5a5")
+
+ch = random_chromosome(p,funcs); output_values(ch)
+1-element Vector{UInt16}:
+ 0x1155
+
+
+p = Parameters(5,1,20,10);  funcs=default_funcs(p) # 5-element Vector{Func}:
+ch = random_chromosome(p,funcs); output_values(ch)    0x42a042a0
+ch = random_chromosome(p,funcs); output_values(ch)    0xffff5555
+savefig("../data/12_31_22/density_of_double_mutations_5x1.png")
+
+p = Parameters(5,1,24,12);funcs=default_funcs(p)
+dlist = mutational_density( p, funcs, randgoal(p), 10, 300_000 )
+savefig("../data/1_1_22/density_of_hamming_distance_of_2_mutations_from_start5x1_24gts.png")
+
+
+
+Insight:  We know that as the number of inputs increases, robustness increases.
+Thus, the proportion of neutral mutations within an epoch will increase.
+Most of these neutral mutations will just be modifying inactive gates which will
+help in increasing diversity and thus self-adaptation.

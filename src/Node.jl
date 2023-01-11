@@ -8,7 +8,6 @@ mutable struct Func
 end
 Func(f::Function, a::Integer) = Func(f, a, string(f)) 
 
-
 mutable struct InputNode <: Node
     index::Integer
     active::Bool
@@ -35,6 +34,7 @@ function InteriorNode(func::Func, inputs::Vector{Integer})
 end
 
 mutable struct OutputNode <: Node
+#struct OutputNode <: Node
     input::Integer
 end
 

@@ -1,0 +1,24 @@
+Plotting number of genotypes vs number of phenotypes using count_circuits_ch().  Fit of 2.8^n for number of phenotypes.
+
+function count_chromes(ninputs::Int64, ngates::Int64)
+  count_circuits_ch( Parameters(ninputs,1,ngates,div(ngates,2)))
+end 
+
+# works but the first value is larger than the second
+rng = 3:1:10
+plot(rng,[map(n->Float64(log2(log2(2^2^BigFloat(n)))),rng),map(n->Float64(log2(log2(count_chromes(n,Int(ceil(2.8^n/n)))))),rng)])
+plot(rng,[map(n->Float64(log2(log2(2^2^BigFloat(n)))),rng),map(n->Float64(log2(log2(count_chromes(n,Int(ceil(2.8^n/n)))))),rng)],labels=["log2(log2(nphenos))" "log2(log2(count_chromes))"])
+plot!(xlabel="n",title="log2(log2(nphenos)) vs log2(log2(count_chromes))",legend=:topleft)
+savefig("../data/12_21_22/log2_log2_nphenos_vs_log2_log2_count_chromes.png")
+
+Conclusion:  number of genotypes also increases doubly exponentially, but at a higher rate.
+
+map(n->2.8^n/n,3:7)  # close to what I used
+5-element Vector{Float64}:
+   7.317333333333331,    8
+  15.366399999999997,   12
+  34.42073599999999,    36
+  80.31505066666664,    70
+ 192.75612159999991,   200
+
+

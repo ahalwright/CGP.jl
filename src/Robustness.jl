@@ -94,6 +94,7 @@ function phenotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}
       CSV.write(f, df, append=true, writeheader=true )
     end
   end
+  df
 end
 
 # Evolves numciruits circuits to map to each phenotype in phlist.

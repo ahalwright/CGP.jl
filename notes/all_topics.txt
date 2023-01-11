@@ -349,7 +349,30 @@ These files now have suffix  _21.txt
 10_29: Trying to sync all data files to an AWS bucket.
 10_30: Comparing the 5-input K complexity of random phenotypes with the K complexity of random genotypes.
 11_5:  Doing a density plot of log redundancy for genotype sampling and phenotype sampling.
+11_8:  Procedure for plotting exact log robustness vs exact degree evolvability for 3x1 5gts3lb noXOR and XOR.
+11_9:  Running neutral_evolution_record().
+11_10: Accuracy check for another run of run_kolmogorov_complexity() with different parameters for an accuracy check.
+11_11: Looking at the distribution of Hamming distance changes over the result of mutate_all() with and without XOR.
+11_15: Trying to show that probability of mutation from high redundancy to low redundancy decreases exponentially with the difference in log redundancy.
+11_19: Plot of "Change in log redundacy of mutations" 
+11_21: Computing sampling evolvability and comparing to evolution evolvability
+11_23: Test how frequent target node 20 = 0x0014 is in the result of mutate_all applied to a chromsome evolved to ph.
 11_27: Major revision with correctness checks for src/neutral_evolution_record()
+11_28: Testing my method for computing K complexity for LGP.
+12_1:  Preparing overleaf version of evolvability paper.  Evolvability TODO.
+12_2:  Cooper assignment
+12_7:  Navigability for the evolvability paper.
+12_9:  Trying to get fado, guitar, and graphviz packages to work.
+12_12: Working on DFAs (discrete finite automata).
+12_18: Robustness density plots.  Genotype density vs. phenotype density
+12_19: Modified run_to_rand_phenos_mt() in Evolve.jl to add robustness to the output dataframe.
+12_20: Robustness density plots.  Gave up on multithreading.  function run_ph_evolve().
+12_21: Plotting number of genotypes vs number of phenotypes using count_circuits_ch().  Fit of 2.8^n for number of phenotypes.
+12_25: Results on Shape-Space covering.  Data in data/10_6_22.
+12_26: Revisiting shape-space covering in the file ShapeSpace.jl.
+12_29: Worked on shape space covering with code in ShapeSpace.jl and results in data/12_29_22/.
+12_31: Testing "self-adaptation" from Toussaint's 2002 neutrality paper.
+2023:
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

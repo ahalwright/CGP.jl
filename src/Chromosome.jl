@@ -15,28 +15,51 @@ export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to
 PredType = Int64
 #= Commented out.  The included definition is in aliases.jl.
 mutable struct Chromosome
-    params::Parameters
-    inputs::Vector{InputNode}
-    interiors::Vector{InteriorNode}
-    outputs::Vector{OutputNode}
-    fitness::Float64
-    robustness::Union{Float64,PredType}
+  params::Parameters
+  inputs::Vector{InputNode}
+  interiors::Vector{InteriorNode}
+  outputs::Vector{OutputNode}
+  fitness::Float64
+  robustness::Union{Float64,PredType}
 end
 =#
-
 CPopulation = Vector{Chromosome}
 
-function Chromosome(p::Parameters; ident::PredType=PredType(0))
-    inputs = Array{InputNode}( undef, p.numinputs)
-    interiors = Array{InteriorNode}( undef, p.numinteriors )
-    outputs = Array{OutputNode}( undef, p.numoutputs)
-    fitness = 0.0
-    if ident == PredType(0)
-      robustness = 0.0
-    else
-      robustness = ident
+# A chromosome includes InputNodes, InteriorNodes, and OutputNodes in that order.
+# This function defines an indexing on these notes.
+# Thus, if Chromosome ch has 4 InputNodes, then getindex(ch,5) would return the first interior node.
+#=
+function getindex(c::Chromosome, i::Integer)
+  if i <= c.params.numinputs   # input node
+    return c.inputs[i]
+  elseif i <= c.params.numinteriors 
+    return c.interiors[i-c.params.numinputs]  # interior node
+  else  # outputnode
+    return c.outputs[i - c.params.numinteriors - c.params.numinputs]
+  end
+end
+=#
+function getindex(c::Chromosome, index::Integer)
+    if index <= c.params.numinputs   # input node
+        return c.inputs[index]
     end
-    return Chromosome(p, inputs, interiors, outputs, fitness, robustness )
+    if index > c.params.numinteriors + c.params.numinputs  # output node
+        return c.outputs[index - c.params.numinteriors - c.params.numinputs]
+    end
+    return c.interiors[index-c.params.numinputs]  # interior node
+end
+
+function Chromosome(p::Parameters; ident::PredType=PredType(0))
+  inputs = Array{InputNode}( undef, p.numinputs)
+  interiors = Array{InteriorNode}( undef, p.numinteriors )
+  outputs = Array{OutputNode}( undef, p.numoutputs)
+  fitness = 0.0
+  if ident == PredType(0)
+    robustness = 0.0
+  else
+    robustness = ident
+  end
+  return Chromosome(p, inputs, interiors, outputs, fitness, robustness )
 end
 
 function random_chromosome(p::Parameters; ident::PredType=PredType(0))
@@ -45,41 +68,39 @@ function random_chromosome(p::Parameters; ident::PredType=PredType(0))
 end
 
 function random_chromosome(p::Parameters, funcs::Vector{Func}; ident::PredType=PredType(0))
-    #println("Creating random Chromosome")
-    c = Chromosome(p)
-
-    for index = 1:p.numinputs
-        c.inputs[index] = InputNode(index)
-        c.inputs[index].active = false
-        c.inputs[index].cache = 0
-    end
-    for index = (p.numinputs +1):(p.numinputs+p.numinteriors)
-        maxindex = index - 1 
-        minindex = max(1,index-p.numlevelsback)
-        #println("index: ",index,"  minindex: ",minindex,"  maxindex: ",maxindex)
-        func = funcs[rand(1:end)]
-        inputs = Array{Int64}(undef, func.arity)
-        for i = 1:func.arity
-            inputs[i] = rand(minindex:maxindex)
-            #println("i: ",i,"  inputs[i]: ",inputs[i])
-        end
-        c.interiors[index - p.numinputs] = InteriorNode(func, inputs)
-    end
-    minindex = max(1,p.numinputs + p.numinteriors - p.numlevelsback + 1)
-    maxindex = p.numinputs + p.numinteriors
-    #println("output (minindex, maxindex): ",(minindex,maxindex))
-    for i = 1:length(c.outputs)
-        #index = rand(minindex:maxindex)
-        index = p.numinputs + p.numinteriors + i - p.numoutputs   # use the last numoutputs interiors
-        #println("output ",i," index: ",index)
-        c.outputs[i] = OutputNode(index)
-        c[index].active = true  #  Output nodes are always active
-    end
-    set_active_to_false(c)
-    if ident != PredType(0)
-      c.robustness = ident
-    end
-    return c
+  #println("Creating random Chromosome")
+  c = Chromosome(p)
+  for index = 1:p.numinputs
+      c.inputs[index] = InputNode(index, false, MyInt(0))
+  end
+  for index = (p.numinputs +1):(p.numinputs+p.numinteriors)
+      maxindex = index - 1 
+      minindex = max(1,index-p.numlevelsback)
+      #println("index: ",index,"  minindex: ",minindex,"  maxindex: ",maxindex)
+      func = funcs[rand(1:end)]
+      inputs = Array{Int64}(undef, func.arity)
+      for i = 1:func.arity
+          inputs[i] = rand(minindex:maxindex)
+          #println("i: ",i,"  inputs[i]: ",inputs[i])
+      end
+      c.interiors[index - p.numinputs] = InteriorNode(func, inputs)
+  end
+  minindex = max(1,p.numinputs + p.numinteriors - p.numlevelsback + 1)
+  maxindex = p.numinputs + p.numinteriors
+  #println("output (minindex, maxindex): ",(minindex,maxindex))
+  #println("c: ",c)
+  for i = 1:length(c.outputs)
+      #index = rand(minindex:maxindex)
+      index = p.numinputs + p.numinteriors + i - p.numoutputs   # use the last numoutputs interiors
+      #println("output i: ",i," index: ",index)
+      c.outputs[i] = OutputNode(index)
+      c[index].active = true  #  Output nodes are always active
+  end
+  set_active_to_false(c)
+  if ident != PredType(0)
+    c.robustness = ident
+  end
+  return c
 end
 
 function set_active_to_false( c::Chromosome )
@@ -504,7 +525,6 @@ function remove_inactive( c::Chromosome )
   #   the corresponding node in the new chromosome
   map_indices = zeros(Int64, numinputs+numints )
   active_gate_indices = int_inds[ [c.interiors[i].active for i = 1:numints]]
-  #map_indices = ttt(numinputs,numints,active_gate_indices)
   map_indices = collect(1:numinputs)
   j = 1
   for i = 1:numints
@@ -529,63 +549,6 @@ function remove_inactive( c::Chromosome )
   @assert output_values(nc) == output_values(c)
   nc
 end             
-
-function ttt(numinputs,numints,active_gate_indices)
-  map_indices = collect(1:numinputs)
-  j = 1
-  for i = 1:numints
-    if active_gate_indices[j] > i
-      push!(map_indices,0)
-    else
-      push!(map_indices,j+numinputs)
-      j+= 1
-    end
-  end
-  map_indices
-end
-
-function getindex(c::Chromosome, index::Integer)
-    if index <= c.params.numinputs   # input node
-        return c.inputs[index]
-    end
-
-    if index > c.params.numinteriors + c.params.numinputs  # output node
-        return c.outputs[index - c.params.numinteriors - c.params.numinputs]
-    end
-
-    return c.interiors[index-c.params.numinputs]  # interior node
-end
-
-# Number of bits where x and y differ.  x and y are interpreted as bit strings
-function hamming( x::MyInt, y::MyInt )
-  xr = xor( x, y )
-  result = 0
-  my_one = convert(MyInt,1)
-  my_zero = convert(MyInt,0)
-  while xr != my_zero
-    result +=  xr & my_one
-    xr >>= 1
-  end
-  result
-end
-
-# Hamming distance between MyInts which is between 0 and 1.
-# If hamming(x,y) >= 2^numinputs/2, then hamming_distance(x,y,numinputs) = 1.0
-function hamming_distance( x::MyInt, y::MyInt, numinputs::Int64 )
-  result = hamming(x,y)/2^numinputs
-end
-
-# Hamming distance between MyInts which is between 0 and 1.
-# If hamming(x,y) >= 2^numinputs/2, then hamming_distance(x,y,numinputs) = 1.0
-function hamming_distance( x::MyInt, y::MyInt, c::Circuit )
-  result = hamming(x,y)/2^c.params.numinputs
-end
-
-# Hamming distance between Goals which is between 0 and 1.
-function hamming_distance( x::Vector{MyInt}, y::Vector{MyInt}, numinputs::Int64 )
-  @assert length( x ) == length( y )
-  sum( hamming_distance( x[i], y[i], numinputs ) for i = 1:length(x))/length(x)
-end
 
 # Hamming distance between Goals which is between 0 and 1.
 function hamming_distance( x::Vector{MyInt}, y::Vector{MyInt}, c::Circuit )
@@ -835,50 +798,59 @@ function print_build_chromosome( c::Chromosome )
   print_build_chromosome( Base.stdout, c)
 end          
 
+# Returns a Int128 integer which is unique to this chromsome.
+# The values map one-to-one onto the integers in the range from 0 to count_circuits_ch(p,funcs)-1.
 # Generates a Int128 integer corresponding to chromosome ch.  The integer is unique for parameters p.  
 # Assumes that outputs come from the last numoutputs interior nodes and thus don't affect the number of chromosomes.
-# See test/testChromosome.jl for a test----but only where all gates have arity max_arity.
+# See test/testChromosome.jl for a test----but only where all gates have arity maxarity.
 function chromosome_to_int( ch::Chromosome, funcs::Vector{Func}=default_funcs(ch.params.numinputs); maxarity::Int64=2 )
   p = ch.params
-  func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
-  funcs_int = findfirst(x->x==ch.interiors[1].func.func,func_list)[1]-1 
-  #println("funcs_int: ",funcs_int)
-  multiplier = 1
+  #func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
+  #func_int = findfirst(x->x==ch.interiors[1].func.func,func_list)[1]-1 
+  #println("func_int: ",func_int)
+  #multiplier = 1
   result = Int128(0)
   for i = 1:length(ch.interiors)
-    (gint,multiplier) = gate_int( i, ch, funcs )
+    (gint,multiplier) = gate_int( i+p.numinputs, ch, funcs )
     result = result*multiplier+gint
     #println("i: ",i,"  gate_int: ",gate_int( i, ch, funcs ),"  multiplier: ",multiplier, "  result: ",result)
   end
-  #println("result: ",result)
+  #println("ch_to_int result: ",result)
   result
 end
 
-function gate_int( i::Int64, ch::Chromosome, funcs::Vector{Func} )
-  #println("i: ",i)
-  #println("ch.interiors[i].func: ",ch.interiors[i].func)
-  p = ch.params
-  maxarity = p.nodearity
-  func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
-  funcs_int = findfirst(x->x==ch.interiors[i].func.func,func_list)[1]-1
-  numinputs = ch.params.numinputs
-  #println("funcs_int: ",funcs_int)
-  gate_inputs = ch.interiors[i].inputs
-  il = inputsList( maxarity, max(1,numinputs+i-p.numlevelsback), i+numinputs-1 )
-  #println("i: ",i,"  gate_inputs: ",gate_inputs,"  il: ",il)
-  inputs_int = findfirst(x->x==gate_inputs,il)-1
-  multiplier = length(il)*length(func_list) 
-  #funcs_int*ni + inputs_int
-  (inputs_int*length(func_list)+funcs_int, multiplier)
+# Same as chromosome_to_int() but with a different name
+function circuit_to_int( ch::Chromosome, funcs::Vector{Func}=default_funcs(ch.params.numinputs); maxarity::Int64=2 )
+  chromosome_to_int( ch, funcs, maxarity=maxarity )
 end
 
-# In all non-recursive calls to this function, numinputs is maxarity
-function inputsList( numinputs::Int64, minval::Int64, maxval::Int64 )
-  #println("inputsList numimnputs: ",numinputs,"  minval: ",minval,"  maxval: ",maxval )
-  if numinputs == 1
+# i is the Chromosome index of the gate as defined by getindex(ch,i)
+function gate_int( i::Int64, ch::Chromosome, funcs::Vector{Func} )
+  interior_node = getindex(ch,i)
+  #println("interior_node.func: ",interior_node.func)
+  p = ch.params
+  func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
+  func_int = findfirst(x->x==interior_node.func.func,func_list)[1]-1
+  gate_inputs = interior_node.inputs
+  all_possible_inputs = inputsList( p.nodearity, max(1,i-p.numlevelsback), i-1 )
+  #println("i: ",i,"  gate_inputs: ",gate_inputs,"  all_possible_inputs: ",all_possible_inputs)
+  inputs_int = findfirst(x->x==gate_inputs,all_possible_inputs)-1
+  multiplier = length(all_possible_inputs)*length(func_list) 
+  (inputs_int*length(func_list)+func_int, multiplier)
+end
+
+# returns a list of the possilbe inputs to a chromosome where minval and maxval are 
+#   determined by the parameters and the position of the gate in the chromosome.
+# In all non-recursive calls to this function, numgateinputs is maxarity for the gates that we use in the evolvability paper.
+# In recursive calls, numinputs is decreased
+# Example for Parameters(2,1,4,3):  
+#     inputsList(2,2,4): [[2, 2], [2, 3], [2, 4], [3, 2], [3, 3], [3, 4], [4, 2], [4, 3], [4, 4]]
+function inputsList( numgateinputs::Int64, minval::Int64, maxval::Int64 )
+  #println("inputsList numgateinputs: ",numgateinputs,"  minval: ",minval,"  maxval: ",maxval )
+  if numgateinputs == 1
     return [ [i] for i = minval:maxval ]
   end
-  result = inputsList( numinputs-1, minval, maxval )
+  result = inputsList( numgateinputs-1, minval, maxval )
   new_result = Vector{Int64}[]
   for r in result
     for i = minval:maxval
@@ -888,7 +860,7 @@ function inputsList( numinputs::Int64, minval::Int64, maxval::Int64 )
       #println("i: ",i,"  dcr: ",dcr)
     end
   end
-  #println("numimnputs: ",numinputs,"  new_result: ",new_result)
+  #println("inputsList: numgateinputs: ",numgateinputs,"  new_result: ",new_result)
   new_result
 end     
 
@@ -938,6 +910,11 @@ function int_to_chromosome( ch_int::Integer, p::Parameters, funcs::Vector{Func}=
   Chromosome( p, inputnodes, reverse(interiors), outputs, 0.0, 0.0 )
 end
 
+# Same as int_to_chromosome() but with a different name
+function int_to_circuit( ch_int::Integer, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
+  int_to_chromosome( ch_int, p, funcs, maxarity=maxarity )
+end
+
 # Hamming distance between chromosomes normalized to be between 0.0 and 1.0
 function circuit_distance( c1::Chromosome, c2::Chromosome )
   code1 = circuit_code(c1)
@@ -952,15 +929,10 @@ end
 
 # Return the number of circuits for parameters p and number of funcs nfuncs if nfuncs>0
 # If nfuncs==0, nfuncs is reset to be length(default_funcs(p.numinputs))
-function count_circuits_ch( p::Parameters; nfuncs::Int64=0 )
+function count_circuits_ch( p::Parameters; nfuncs::Int64=5 )
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
-  #multiplier = UInt128(1)
-  if p.numinputs <= 6 
-    multiplier = Float64(1)
-  else
-    multiplier = BigFloat(1)
-  end
+  multiplier = BigFloat(1)
   mij = 0
   for i = 1:p.numinteriors
     mf = nfuncs
@@ -969,8 +941,8 @@ function count_circuits_ch( p::Parameters; nfuncs::Int64=0 )
       mij = min(p.numlevelsback,i-1+p.numinputs)
       multiplier *= mij
     end
-    println("i: ",i,"  mf: ",mf,"  mij: ",mij,"  multiplier: ",multiplier)
-    println("i: ",i,"  mf: ",mf,"  mij: ",mij,"  log multiplier: ",log10(multiplier))
+    #println("i: ",i,"  mf: ",mf,"  mij: ",mij,"  multiplier: ",multiplier)
+    #println("i: ",i,"  mf: ",mf,"  mij: ",mij,"  log multiplier: ",log10(multiplier))
     exp = trunc(log10(multiplier))
     fract = 10^(log10(multiplier)-exp)
     #=
@@ -1135,6 +1107,22 @@ function combine_chromosomes( c1::Chromosome, c2::Chromosome )
   end
   new_outputs = vcat(new_output2,deepcopy(c1.outputs))
   Chromosome( p, inputs, interiors, new_outputs, 0.0, 0.0 )
+end
+
+# find the average relatioship between the number of one bits in a phenotype and its log redundancy, K complexity
+# Written on 12/23/22.  Results were disappointing
+function count_ones_properties( p::Parameters, funcs::Vector{Func} )
+  @assert p.numinputs <= 4
+  #println("methods robustness: ",methods(robustness) )
+  kdict = kolmogorov_complexity_dict( p, funcs )
+  rdict = redundancy_dict( p, funcs )
+  pheno_list = collect(MyInt(0):MyInt(2^2^p.numinputs-1))
+  count_ones_list = map( ph->count_ones(ph), pheno_list )
+  lg_redund_list = map( ph->lg10(rdict[ph]), pheno_list )
+  k_complexity_list = map( ph->kdict[ph], pheno_list )
+  #robustness_list = map( ph->robustness( ph, funcs ), pheno_list )
+  #DataFrame( :pheno=>pheno_list, :log_redund=>lg_redund_list, :k_complexity=>k_complexity_list, :robustness=>robustness_list )
+  DataFrame( :pheno=>pheno_list, :count_ones=>count_ones_list, :log_redund=>lg_redund_list, :k_complexity=>k_complexity_list )
 end
 
 # Not correct or finished

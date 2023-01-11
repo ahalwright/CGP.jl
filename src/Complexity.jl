@@ -6,8 +6,9 @@ export average_dataframes, extend_list_by_dups, goal_complexity_frequency_datafr
 export filter_goallist_by_complexity, complexity_freq_scatter_plot
 export bin_value, bin_data, bin_counts
 export kolmogorov_complexity, run_kolmogorov_complexity, redund_vs_k_complexity_plot
-export run_k_complexity_mutate_all, kcomp_summary_dataframe, redundancy_dict, kolmogorov_complexity_dict, redundancy_dict
-export gti, gti!, testKall
+export run_k_complexity_mutate_all, kcomp_summary_dataframe, run_redundancy_mutate_all 
+export redundancy_dict, kolmogorov_complexity_dict, testKall
+##gti, gti!, 
 # Distribution of complexities for circuits evolving into a given goal
 # Results in data/10_31
 function evolve_complexity( g::Goal, p::Parameters, num_circuits::Int64, maxsteps::Int64 )
@@ -676,6 +677,15 @@ function robustness_density( p::Parameters, funcs::Vector{Func}, phlist::GoalLis
   df
 end
 
+function mutational_density( p::Parameters, funcs::Vector{Func}, ph::Goal, max_tries::Int64, max_steps::Int64 )
+  ch = pheno_evolve( p, funcs, ph, max_tries, max_steps )[1]
+  alist = map(x->x[1],reduce(vcat,map(x->mutate_all(x),mutate_all(ch,output_circuits=true,output_outputs=false))))
+  dlist = map(x->hamming(output_values(ch)[1],x),alist)
+  #density(dlist)
+  #plot!(title="density_double_mutations_of_circuit_pheno_0xa5a5")
+  #savefig("../data/12_31_22/density_double_mutations_of_circuit_pheno_0xa5a5")o
+end
+
 # For each phenotypes in goallist and for each numints in the range numinteriors, 
 #    computes the mean and standard deviation of the Tononi complexity of numcircuits chromosomes evolved to map to the phenotype.
 # Purpose:  try to understand how Tononi complexity scales as numinteriors.
@@ -1265,4 +1275,115 @@ function testKall( p::Parameters, funcs::Vector{Func}, bs::BitSet )
   ranges = [ (i-1)*niters:i*niters for i = 1:25 ]
   results = pmap( i->tf(ranges[i]), 1:25 )
   reduce( vcat, results )
+end
+
+function run_K_complexity_mutate_all( p::Parameters, funcs::Vector{Func}, circuit_ints_df::DataFrame=DataFrame(); 
+     use_lincircuit=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" )
+  run_redundancy_mutate_all( p, funcs, Goal[], 0, 0, 0, circuit_ints_df=circuit_ints_df, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps )
+end
+
+function run_redundancy_mutate_all( p::Parameters, funcs::Vector{Func}, phlist::GoalList, numcircuits::Int64, max_tries::Int64, max_steps::Int64;
+    circuit_ints_df::DataFrame=DataFrame(), use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" )
+  r_dict = redundancy_dict( p, funcs )
+  df = DataFrame( :goal=>Goal[], :rebased_vect=>RebasedVector[] )
+  circuit_ints_list = Vector{Int128}[]   # establish scope
+  sampling = false
+  #println("size(circuit_ints_df)[1]: ",size(circuit_ints_df)[1])
+  if size(circuit_ints_df)[1] > 0
+    println("length(circuit_ints_df.goals): ",length(circuit_ints_df.goal))
+    circuit_ints_df.goal = map(x->[eval(Meta.parse(x))],circuit_ints_df.goals)
+    println("length(circuit_ints_df.goal): ",length(circuit_ints_df.goal))
+    circuit_ints_df.circuit_ints_list = pmap(x->eval(Meta.parse(x)),circuit_ints_df.circuits_list)
+    println("length(circuit_ints_df.circuits_list): ",length(circuit_ints_df.circuits_list))
+    phlist = circuit_ints_df.goal
+    circuit_ints_list = circuit_ints_df.circuit_ints_list
+    sampling = true
+  end
+  #println("length(circuit_ints_list): ",length(circuit_ints_list))
+  r_comp_rebased = RebasedVector[]
+  result_list = pmap( i->redundancy_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, r_dict, 
+      circuit_ints_list=length(circuit_ints_list)>0 ? circuit_ints_list[i] : Int128[],
+      use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
+  #result_list = map( i->redundancy_mutate_all( p, funcs, phlist[i], numcircuits, max_tries, max_steps, r_dict, 
+  #    circuit_ints_list=length(circuit_ints_list)>0 ? circuit_ints_list[i] : Int128[],
+  #    use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), 1:length(phlist) )
+  for res in result_list
+    push!(r_comp_rebased,RebasedVector(res[2],res[3]))
+    push!(df,(res[1],RebasedVector(res[2],res[3])))
+  end
+  sdf = rcomp_summary_dataframe( df )
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = readchomp(`hostname`)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      println(f,"# ",(use_lincircuit ? "LGP" : "CGP"))
+      println(f,"# ",(sampling ? "sampling" : "evolution"), " evolvability")
+      print_parameters(f,p,comment=true)
+      println(f,"# numcircuits: ",numcircuits)
+      println(f,"# ngoals: ",length(phlist))
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, sdf, append=true, writeheader=true )
+    end
+  end
+  sdf
+end
+
+# Find the K complexity of all genotypes generated by mutate_all() applied to numcircuits genotypes that map to phenotype ph
+#    and accumulates their counts in redundancy_counts.
+# The default case is that the genotypes that map to ph are generated by calling pheno_evolve().
+# The alternate case is that circuit_ints_list supplies a list of circuit ints of circuits that map to ph.
+function redundancy_mutate_all( p::Parameters, funcs::Vector{Func}, ph::Goal, numcircuits::Int64, max_tries::Int64, max_steps::Int64, r_dict::Dict{MyInt,Int64}; 
+     circuit_ints_list::Vector{Int128}=Int128[], use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false )
+  default_funcs(p)  # Set global variable Ones on this process
+  redundancy_counts = zeros(Int64,14)  # 14 is an upper bound for possible log redundancies
+  r_comp_ph = Int(round(lg10(r_dict[ph[1]])))
+  if length(circuit_ints_list) == 0
+    circuit_steps_list = pheno_evolve( p, funcs, ph::Goal, numcircuits, max_tries::Int64, max_steps::Int64,
+        use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps )
+    circuit_list = map( x->x[1], circuit_steps_list )
+  else
+    circuit_list = map( ci->int_to_chromosome(ci,p,funcs),circuit_ints_list)
+    println("ph: ",ph,"  length(circuit_list): ",length(circuit_list))
+  end
+  for c in circuit_list
+    outputs_list = mutate_all( c, funcs, output_outputs=true )
+    r_comp_list = map( x->Int(round(lg10(r_dict[x[1]]))), outputs_list )
+    r_comp_list = map( r_comp->( iszero(r_comp) ? 1 : r_comp), r_comp_list )
+    for r_comp in r_comp_list
+      if iszero(r_comp)
+        r_comp = 1
+        println("rcomp zero r_comp_list: ",r_comp_list)
+      end
+      redundancy_counts[r_comp] += 1
+    end
+  end
+  (ph,r_comp_ph,redundancy_counts)
+end
+    
+function rcomp_summary_dataframe( r_comp_rebased::DataFrame )
+  sdf = DataFrame( :rcomp=>Int64[] ) 
+  for i = -8:8
+    insertcols!(sdf,Symbol(string(i))=>Int64[])
+  end
+  println("size(sdf): ",size(sdf))
+  rsummary = [ RebasedVector(u,zeros(Int64,17)) for u = 1:8 ]
+  for i = 1:size(r_comp_rebased)[1]
+    j = r_comp_rebased.rebased_vect[i].center
+    for k = -8:8
+      try
+        rsummary[j][k] = rsummary[j][k]+r_comp_rebased.rebased_vect[i][k] 
+      catch
+        println("rebased vector error: i: ",i,"  k: ",k,"  j: ",j)
+      end
+      #println("i: ",i,"  j: ",j,"  k: ",k,"  rsummary[j][k]: ",rsummary[j][k])
+    end
+  end
+  for u = 1:8
+    #println("row length: ",length(vcat([u],rsummary[u].vect)))
+    push!( sdf, vcat([u],[rsummary[u][k] for k = -8:8]) )
+  end
+  sdf
 end

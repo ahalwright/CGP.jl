@@ -1,11 +1,22 @@
+Plot of "Change in log redundacy of mutations"
 Adapted from notes/9_6_22.txt
 
+# Redone including regenerating plot 1/8/23.  Uses 2000 goals.  No significant difference from 11/19/22
 rdf = read_dataframe("../data/11_16_22/redundancy_mutate_all11_16_22C.csv")
 E = df_to_matrix(rdf,2);
 nrows=8
 ll = Array{String}(undef,1,nrows);
-for i = 1:nrows ll[1,i] = starting log redundancy $(i)" end
+for i = 1:nrows ll[1,i] = "starting log redundancy $(i)" end
 p1 = Plots.plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
 Plots.plot(p1,legend=:topleft,xlabel="increase in log redundancy",ylabel="density of result log redundancy",title="Change in log redundacy of mutations")
 savefig("../data/11_19_22/log_redund_density_evolution4x1_10gts5lb5funcs11_19.png")   # Nice plot
 
+# Done on 1/8/23:
+gdf = read_dataframe("../data/11_16_22/redundancy_mutate_all11_16_22G.csv")
+E = df_to_matrix(gdf,2);
+nrows=8
+ll = Array{String}(undef,1,nrows);
+for i = 1:nrows ll[1,i] = "starting log redundancy $(i)" end
+p1 = Plots.plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
+Plots.plot(p1,legend=:topleft,xlabel="increase in log redundancy",ylabel="density of result log redundancy",title="Change in log redundacy of mutations")
+savefig("../data/11_19_22/log_redund_density_evolution4x1_10gts5lbXOR_1_8_23.png")   # Plot supporting figure for "Density of mutational change" plot.

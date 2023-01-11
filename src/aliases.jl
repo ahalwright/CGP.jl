@@ -60,12 +60,14 @@ mutable struct InputNode <: Node
     cache::MyInt
 end
 mutable struct InteriorNode <: Node
+#struct InteriorNode <: Node
     func::Func
     inputs::Vector{Integer}
     active::Bool
     cache::MyInt
 end
 mutable struct OutputNode <: Node
+#struct OutputNode <: Node
     input::Integer
 end
 PredType = Int64
