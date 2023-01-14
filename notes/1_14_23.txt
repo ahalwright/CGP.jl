@@ -1,0 +1,4 @@
+Found that various versions of hamming() and hamming_distance() had been dropped from Chromosome.jl which meant that run_redundancy_mutate_all()
+    crashed when running data/11_16_22/run_redundancy_mutateA.jl.  Fixed this problem.
+
+Reposted the writeshortest not defined problem on the Github page for the CSV package.

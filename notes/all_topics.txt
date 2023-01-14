@@ -373,6 +373,12 @@ These files now have suffix  _21.txt
 12_29: Worked on shape space covering with code in ShapeSpace.jl and results in data/12_29_22/.
 12_31: Testing "self-adaptation" from Toussaint's 2002 neutrality paper.
 2023:
+1_6_23:  Investigating rebased_vector bugs in redundancy_mutate_all() which is both in Complexity.jl and in redundancy_mutate_all.jl.
+1_8_23:  Fixing rebased_vector errors in redundancy_mutate_all().  
+1_10_23: Outline of circuit int algorithms
+1_11_23: Wrote subsection Circuit to integers mapping in Overleaf.
+1_13_23: Trying to straighten out Introduction section: Now in cce/Evolvability_Introduction_1_13_23.docx
+
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

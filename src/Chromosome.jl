@@ -550,9 +550,34 @@ function remove_inactive( c::Chromosome )
   nc
 end             
 
+# Number of bits where x and y differ.  x and y are interpreted as bit strings
+function hamming( x::MyInt, y::MyInt )
+  xr = xor( x, y )
+  result = 0
+  my_one = MyInt(1)
+  my_zero = MyInt(0)
+  while xr != my_zero
+    result +=  xr & my_one
+    xr >>= 1
+  end
+  result
+end
+
+# Hamming distance between MyInts which is between 0 and 1.
+# If hamming(x,y) >= 2^numinputs/2, then hamming_distance(x,y,numinputs) = 1.0
+function hamming_distance( x::MyInt, y::MyInt, numinputs::Int64 )
+  result = hamming(x,y)/2^numinputs
+end
+
 # Hamming distance between Goals which is between 0 and 1.
 function hamming_distance( x::Vector{MyInt}, y::Vector{MyInt}, c::Circuit )
   numinputs = c.params.numinputs
+  @assert length( x ) == length( y )
+  sum( hamming_distance( x[i], y[i], numinputs ) for i = 1:length(x))/length(x)
+end
+
+# Hamming distance between Goals which is between 0 and 1.
+function hamming_distance( x::Vector{MyInt}, y::Vector{MyInt}, numinputs::Int64 )
   @assert length( x ) == length( y )
   sum( hamming_distance( x[i], y[i], numinputs ) for i = 1:length(x))/length(x)
 end
@@ -649,8 +674,9 @@ end
 
 # Creates a Chromosome (circuit) from the concise format.
 # Example:  
-# julia>circuit((1,2,3), ((4,OR,1,2), (5,AND,2,3), (6,XOR,4,5)))
+# julia>circuit((1,2,3), ((4,OR,1,2), (5,AND,2,3), (6,XOR,4,5)),levsback=3)
 #    creates a circuit with 3 input nodes and 3 gate nodes and 1 implicit output node.
+#  The levsback keyword parameter is necessary to set the circuit parameters correctly.
 # gate nodes have 4 fields: 
 #    node_index:  should be the index of the node.  Not used in construcing the circuit, but checked for correctness
 #    node_function:  See Func.jl for options
@@ -799,17 +825,17 @@ function print_build_chromosome( c::Chromosome )
 end          
 
 # Returns a Int128 integer which is unique to this chromsome.
-# The values map one-to-one onto the integers in the range from 0 to count_circuits_ch(p,funcs)-1.
+# The values map one-to-one onto the integers in the range from 0 to _lcount_circuits_ch(p,funcs)-1.
 # Generates a Int128 integer corresponding to chromosome ch.  The integer is unique for parameters p.  
 # Assumes that outputs come from the last numoutputs interior nodes and thus don't affect the number of chromosomes.
 # See test/testChromosome.jl for a test----but only where all gates have arity maxarity.
 function chromosome_to_int( ch::Chromosome, funcs::Vector{Func}=default_funcs(ch.params.numinputs); maxarity::Int64=2 )
   p = ch.params
-  #func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
-  #func_int = findfirst(x->x==ch.interiors[1].func.func,func_list)[1]-1 
-  #println("func_int: ",func_int)
-  #multiplier = 1
-  result = Int128(0)
+  if count_circuits_ch( p, nfuncs=length(funcs) ) < Float64(typemax(Int128))
+    result = Int128(0)
+  else
+    result = BigInt(0)
+  end
   for i = 1:length(ch.interiors)
     (gint,multiplier) = gate_int( i+p.numinputs, ch, funcs )
     result = result*multiplier+gint
@@ -832,7 +858,7 @@ function gate_int( i::Int64, ch::Chromosome, funcs::Vector{Func} )
   func_list = [ f.func for f in funcs ]   # necessary because the == operator doesn't work on structs
   func_int = findfirst(x->x==interior_node.func.func,func_list)[1]-1
   gate_inputs = interior_node.inputs
-  all_possible_inputs = inputsList( p.nodearity, max(1,i-p.numlevelsback), i-1 )
+  all_possible_inputs = inputs_list( p.nodearity, max(1,i-p.numlevelsback), i-1 )
   #println("i: ",i,"  gate_inputs: ",gate_inputs,"  all_possible_inputs: ",all_possible_inputs)
   inputs_int = findfirst(x->x==gate_inputs,all_possible_inputs)-1
   multiplier = length(all_possible_inputs)*length(func_list) 
@@ -844,13 +870,13 @@ end
 # In all non-recursive calls to this function, numgateinputs is maxarity for the gates that we use in the evolvability paper.
 # In recursive calls, numinputs is decreased
 # Example for Parameters(2,1,4,3):  
-#     inputsList(2,2,4): [[2, 2], [2, 3], [2, 4], [3, 2], [3, 3], [3, 4], [4, 2], [4, 3], [4, 4]]
-function inputsList( numgateinputs::Int64, minval::Int64, maxval::Int64 )
-  #println("inputsList numgateinputs: ",numgateinputs,"  minval: ",minval,"  maxval: ",maxval )
+#     inputs_list(2,2,4): [[2, 2], [2, 3], [2, 4], [3, 2], [3, 3], [3, 4], [4, 2], [4, 3], [4, 4]]
+function inputs_list( numgateinputs::Int64, minval::Int64, maxval::Int64 )
+  #println("inputs_list numgateinputs: ",numgateinputs,"  minval: ",minval,"  maxval: ",maxval )
   if numgateinputs == 1
     return [ [i] for i = minval:maxval ]
   end
-  result = inputsList( numgateinputs-1, minval, maxval )
+  result = inputs_list( numgateinputs-1, minval, maxval )
   new_result = Vector{Int64}[]
   for r in result
     for i = minval:maxval
@@ -860,7 +886,7 @@ function inputsList( numgateinputs::Int64, minval::Int64, maxval::Int64 )
       #println("i: ",i,"  dcr: ",dcr)
     end
   end
-  #println("inputsList: numgateinputs: ",numgateinputs,"  new_result: ",new_result)
+  #println("inputs_list: numgateinputs: ",numgateinputs,"  new_result: ",new_result)
   new_result
 end     
 
@@ -882,7 +908,7 @@ function enumerate_circuits_ch( p::Parameters, numints::Int64, funcs::Vector{Fun
   result = Chromosome[]
   for prev_ch in prev_result
     #println("numints: ",numints,"  length(prev_result): ",length(prev_result))
-    for inputs in inputsList( maxarity, max(1,p.numinputs+numints-p.numlevelsback), p.numinputs+numints-1 )
+    for inputs in inputs_list( maxarity, max(1,p.numinputs+numints-p.numlevelsback), p.numinputs+numints-1 )
       for func in funcs
         new_interiors = vcat(prev_ch.interiors,[InteriorNode(func,inputs)])
         new_ch = Chromosome( p, prev_ch.inputs,new_interiors,[OutputNode(p.numinputs+numints)],0.0,0.0) 
@@ -894,16 +920,20 @@ function enumerate_circuits_ch( p::Parameters, numints::Int64, funcs::Vector{Fun
 end
 
 function int_to_chromosome( ch_int::Integer, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs); maxarity::Int64=2 )
-  ch_int = Int128(ch_int)
+  if count_circuits_ch( p, nfuncs=length(funcs) ) < Float64(typemax(Int128))
+    ch_int = Int128(ch_int)
+  else
+    result = BigInt(ch_int)
+  end
   nfuncs = length(funcs)
   inputnodes = [ InputNode(i) for i = 1:p.numinputs ]
   interiors = InteriorNode[]
   for i in p.numinteriors:-1:1
-    inputs_list = inputsList( p.nodearity, max(1,p.numinputs+i-p.numlevelsback), i+p.numinputs-1 )
+    inputslist = inputs_list( p.nodearity, max(1,p.numinputs+i-p.numlevelsback), i+p.numinputs-1 )
     fct = funcs[ch_int % nfuncs + 1 ]
     ch_int = div( ch_int, nfuncs )
-    inputs = inputs_list[ ch_int % length(inputs_list) + 1 ]
-    ch_int = div( ch_int, length(inputs_list) )
+    inputs = inputslist[ ch_int % length(inputslist) + 1 ]
+    ch_int = div( ch_int, length(inputslist) )
     push!( interiors, InteriorNode( fct, inputs ) )
   end
   outputs = [ OutputNode(i) for i = (p.numinputs + p.numinteriors -p.numoutputs + 1):p.numinputs + p.numinteriors]
@@ -1039,6 +1069,7 @@ function delete_gate!( c::Chromosome )
   dg = rand(inactive_interior_list)
   return delete_gate!( c, dg )
 end
+
 # References the function combine_chromosomes( c1::Chromosome, c2::Chromosome ) in Chromosome.jl.
 # Given a pair of phenotypes ph1 and ph2, test whether combining chromosomes c1 and c2 evolved separately to output ph1 and ph2 has
 #   greater Tononi complexity than a chromosome c0 evolved to output the phenotype [ph1[1],ph2[1]].

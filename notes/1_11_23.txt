@@ -1,3 +1,13 @@
+Wrote subsection Circuit to integers mapping in Overleaf.
+
+Includes pseudo-code for functions chromosome_to_int(), gate_int(), inputs_list(), int_to_chromosome() in Chromosome.jl.
+  Defined functions circuit_to_int() and int_to_circuit() which are defined by calling chromosome_to_int() and int_to_chromosome().
+
+Revised test/test_chromosome() which tests the above plus function enumerate_circuits_ch().
+
+
+ch_to_int.jl is a temporary version of the above functions.  Has been incorporated into Chromosome.jl
+
 Functions in ch_to_int.jl
 
 chromosome_to_int

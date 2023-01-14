@@ -17,6 +17,9 @@ E = df_to_matrix(gdf,2);
 nrows=8
 ll = Array{String}(undef,1,nrows);
 for i = 1:nrows ll[1,i] = "starting log redundancy $(i)" end
-p1 = Plots.plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll)
+ls = Array{Symbol}(undef,1,nrows);
+for i = 1:nrows ls[1,i] = rand([:solid,:dash,:dot,:dashdot,:dashdotdot]) end
+p1 = Plots.plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll,linestyle=ls)
 Plots.plot(p1,legend=:topleft,xlabel="increase in log redundancy",ylabel="density of result log redundancy",title="Change in log redundacy of mutations")
-savefig("../data/11_19_22/log_redund_density_evolution4x1_10gts5lbXOR_1_8_23.png")   # Plot supporting figure for "Density of mutational change" plot.
+savefig("../data/11_19_22/log_redund_density_evolution4x1_10gts5lbXOR_linest_1_8_23.png")   # Plot supporting figure for "Density of mutational change" plot.
+

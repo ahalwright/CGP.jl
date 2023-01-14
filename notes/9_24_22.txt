@@ -17,15 +17,22 @@ I created phnet_matrix_atomic as a matrix of Atomic{Int64}(0).  Testing showed t
 * This technique eliminates race conditions.
 * puts a separate lock on each matrix entry
 
-data/9_24_22/phnet_matrix9_24_22M.csv
+# Added Q df and matrix on 1/13/23
+
+phdfG = read_dataframe("../data/9_24_22/exact_phnet_matrix9_24_22G.csv")   # Not Normalized  Integer 4 funcs 2 inputs 3 gates 2 levelsback no XOR
 5gts 3lb 5funcs 48543 seconds = 13.5 hours on surt2
-Results for M and P:
-phdfM = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv")   # Normalized---Float
-phdfP = read_dataframe("../data/9_24_22/phnet_matrix9_24_22P.csv")   # Not Normalized---Integer
+Results for M and P:  3 inputs, 5 gates
+phdfM = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv")   # Normalized---Float  5 funcs
+phdfP = read_dataframe("../data/9_24_22/phnet_matrix9_24_22P.csv")   # Not Normalized  Integer 4 funcs
+phdfQ = read_dataframe("../data/9_24_22/phnet_matrix9_24_22Q.csv")   # Not Normalized  Integer 5 funcs
+# verify dataframes:
+sum(phdfP.redund), sum(phdfQ.redund) #  (60466177, 184528126)
 phnM = df_to_matrix( phdfM, 3, denormalize=false );  # df_to_matrix_mt() is faster
 phnP = df_to_matrix( phdfP, 3, denormalize=false );  # df_to_matrix_mt() is faster
+phnQ = df_to_matrix( phdfQ, 3, denormalize=false );  # df_to_matrix_mt() is faster
 evdM = entropy_evolvability( phnM, include_self_edges=true);
 evdP = entropy_evolvability( phnP, include_self_edges=true);
+evdQ = entropy_evolvability( phnQ, include_self_edges=true);
 ppdfM = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdM, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)))
 ppdfP = DataFrame( :goal=>collect(0x0000:0x00ff), :ent_evol=>evdP, :Kcomp=>map(ph->kdict[ph],collect(0x0000:0x00ff)),:lgredund=>map(ph->lg10( rdict[ph] ), collect(0x0000:0x00ff)))
 scatter(ppdfM.ent_evol,ppdfM.lgredund,labels="log redund vs entropy evolvability",xlabel="entropy evolvability",ylabel="log redundancy",title="exact lgredund vs entropy evolv 3x1 5gts3lb 5funcs",legend=:topright)

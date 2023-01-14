@@ -1,0 +1,80 @@
+Trying to straighten out Introduction section:
+
+List of Introduction subsections: topics covered in each subsection.
+
+Abstract
+  Motivates genotype-phenotype map
+  Universal properties
+  Relationships between evolvability, redundancy, robustness
+  Epochal evolution 
+  Effectiveness even when number of genotypes and phenotypes is very large
+  Defines phenotype network
+  Defines phenotype evolvability as degree evolvability
+  Compares 2 methods of approximating phenotype evolvability
+
+Genotypes and phenotypes.
+  Definition of genotypes and phenotypes
+  Universal properties.
+  Definitions of redundancy, robustness, evolvability.
+  Comments approximation of phenotype evolvability
+  Mentions but doesn't define phenotype networks
+  No reference to phenotype network or to network definitions
+
+Complexity, evolvability, and genotype-phenotype maps  B
+  Doesn't include anything new----DROP from paper
+
+Robustness and evolvability B
+  Wagner 2008 definitions of genotype and phenotype robustness and evolvability
+  Mentions but doesn't define the phenotype network
+  Mentions computation of the exact phenotype network
+  Two methods of approximating phenotype evolvability
+  Total evolvability
+  
+Evolvability and redundancy E
+  Motivates genotype-phenotype map
+  Universal properties
+  Kolmogorov complexity ---- drop from evolvability paper
+
+Logic gate circuit GP maps  B
+  Definition of genotypes and phenotypes
+  Definition of an AND gate---truth table
+  Logic gate circuit map figure
+  Comment:  merge with "Genotypes and phe otypes" section.
+
+Phenotype and genotype networks  B
+  Defines the phenotype network
+  Mentions computation of the exact phenotype network.
+
+Robustness and evolvability  E
+  Defines genotype and phenotype evolvability
+  Defines degree evolvability and strength evolvability
+  Hu (2020) definitions of evolvability
+  Shape space evolvability
+  Entropy evolvability
+  Comparison of methods for approximating phenotype evolvability 
+  Relationship of approximate phenotype evolvability and robustness
+
+Universal structural properties of GP maps  B
+  Redundancy
+  Bias
+  Evolvability
+  Shape-space covering
+  Genetic correlation
+  Navigability
+
+End of list of Introduction subsections
+
+Issues: 
+
+  How do we combine the direct approach to evolvability versus phenotype network approach?
+
+  Introduction doesn't cover the second and third main points of the paper given below.
+
+What are the main points of the paper:
+
+  Strengths and weaknesses of methods of approxmating phenotype evolvability, total evolvability
+
+  Probability of mutation from high to low redundancy decreases exponentially with difference in log redundancy
+
+  Evolution from high redundancy to low redundancy succeeds.
+  

@@ -1,5 +1,6 @@
-Fixing errors in redundancy_mutate_all.jl which will be moved back into Complexity.jl.
-
+Showing that mutational probability of log redunancy decreases exponentially with the difference in log redundancy.
+Fixing rebased_vector errors in run_redundancy_mutate_all() in Complexity.jl.
+Moved contents of redundancy_mutate_all.jl to Complexity.jl  (1/14/23) and moved redundancy_mutate_all.jl to stash.
 See notes/1_6_23.txt for a description of one of the errors.
 
 Rewrote the definition of redundancy_mutate_all() to correct errors and make it more understandable.
