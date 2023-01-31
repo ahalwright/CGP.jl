@@ -1,0 +1,49 @@
+Finding redundancy, robustness, and evolbability from phenotype network.  See notes/9_24_22.txt. 
+
+Found bugs in random_walk.jl in that it sets funcs by calling default_funcs() in many places.
+So if default_funcs() includes XOR but we are trying to run without XOR, results are incorrect.
+
+The same bug was in mutate_all() in Chromosome.jl.  
+Revised random_walk.jl to call with funcs provided.
+But included backward compatibility versions that use default_funcs() (with a WARNING).
+
+============================================
+Approximate Sampling evolvability for 2 inputs
+df = include("../data/9_29_22/run_random_walksY.jl")
+============================================
+Approximate Evolution evolvability for 2 inputs
+df = include("../data/1_30_23/run_evolvable_evolvabilityA.jl")  # one column is evolvability
+E = pheno_vects_to_evolvable_matrix( df.pheno_vects )   # the matrix
+============================================
+
+Where run_random_walks_parallel() is called:
+
+cgpd
+rg run_random_walks_parallel *
+2020/12_27
+1_1
+1_2
+1_3
+4_5
+4_8
+9_3_21
+9_8_21
+10_3_21
+10_21_21
+5_1_22
+7_17_22
+9_29_22
+
+cgpn
+fgrep run_random_walk *.txt
+2_9
+4_8
+10_4_21
+10_13_21
+10_21_21
+7_17_22
+9_29_22
+9_30_22
+10_13_22
+1_15_23
+

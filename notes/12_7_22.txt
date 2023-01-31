@@ -7,14 +7,14 @@ in Robustness.jl.
 Robustness was computed foer only 1 circuit, and it should have been average of numcircuits circuits.
 
 12/16/22:
-df8 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22E.csv")
-df5 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22G.csv")
-df6 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22F.csv")
-julia> mean(df5.mean_steps), mean(df6.mean_steps), mean(df8.mean_steps)
+df8 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22E.csv");
+df5 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22G.csv");
+df6 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22F.csv");
+mean(df5.mean_steps), mean(df6.mean_steps), mean(df8.mean_steps)
 (36373.86827, 9682.37749, 10546.20 )
-julia> mean(df5.lg_redund), mean(df6.lg_redund), mean(df8.lg_redund)
+mean(df5.lg_redund), mean(df6.lg_redund), mean(df8.lg_redund)
 (2.8897894374972926, 3.3296421144161563, 3.160158467492447)
-julia> mean(df5.robustness), mean(df6.robustness), mean(df8.robustness)
+mean(df5.robustness), mean(df6.robustness), mean(df8.robustness)
 (0.20895779661016953, 0.28788641975308643, 0.3248741011235956)
 
 rb5 = Vector{Float64}(df5.robustness);
@@ -23,12 +23,12 @@ rb8 = Vector{Float64}(df8.robustness);
 rd5 = Vector{Float64}(df5.lg_redund);
 rd6 = Vector{Float64}(df6.lg_redund);
 rd8 = Vector{Float64}(df8.lg_redund);
-scatter(rd5,rb5,smooth=true,labels="10_5")
-scatter!(rd6,rb6,smooth=true,labels="12_6")
-scatter!(rd8,rb8,smooth=true,labels="11_8")
+scatter(rd5,rb5,smooth=true,labels="10 gates 5 levelsback")
+scatter!(rd6,rb6,smooth=true,labels="12 gates 6 levelsback")
+#scatter!(rd8,rb8,smooth=true,labels="11_8")
 scatter!(legend=:topleft,ylabel="robustness",xlabel="log redundancy")
-scatter!(title="lg_redund vs robust 12gts6lb 10gts5lb 11gts8lb 200circs")
-savefig("../data/12_7_22/lg_redund_vs_robust_12gts6lb_10gts5lb_11gts8lb_200circs.png")
+#scatter!(title="lg_redund vs robust 12gts6lb 10gts5lb 200circs")
+savefig("../data/12_7_22/lg_redund_vs_robust_12gts6lb_10gts5lb_200circs.png")
 
 scatter!(df5.Kcomp,df5.lg_redund,smooth=true,xlabel="K complexity",ylabel="log redundancy",legend=:none,title="lg redund vs K complex 4x1 10gts5lb 200circpespe:1")
 savefig("../data/12_7_22/"lg_redund_vs_K_complex_4x1_10gts5lb.png")

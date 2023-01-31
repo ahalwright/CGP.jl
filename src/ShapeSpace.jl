@@ -155,6 +155,7 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   shape_space_counts( p, funcs, num_mutates, circuits_list, use_lincircuit=use_lincircuit, csvfile=csvfile )
 end    
 
+# There is another method for shape_space_circuit_ints_list which calls this method
 # Write a DataFrame with one row per phenotype.  
 # DataFrame has 3 columns:  :goal, :pheno_counts, and :pheno.  
 # :pheno column is the phenotypes discovered by doing num_mutates mutations of a circuit that maps to the corresponding phenotype/.
@@ -165,8 +166,10 @@ end
 # shape_space_circuit_ints_list( p, funcs, 1, wdf.circuits_list )
 function shape_space_circuit_ints_list( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, circuit_ints_list_list::Union{Vector{Vector{Int128}},Vector{String}}; 
      goals_list::Vector{MyInt}=MyInt[], use_lincircuit::Bool=false, csvfile::String="" )
+  #println("shape_space_circuit_ints_list(): goals_list: ",goals_list,"  length(circuit_ints_list_list): ",length(circuit_ints_list_list))
   if length(goals_list) > 0
-    goals_indices = map(x->x+MyInt(1),goals_list)   # convert to 1-based indexing
+    goals_indices = map(x->Int(x)+1,goals_list)   # convert to 1-based indexing
+    #println("goals_indices: ",goals_indices)
     circuit_ints_list_list = circuit_ints_list_list[goals_indices]   # restrict to goals_indices
   end
   if typeof(circuit_ints_list_list) == Vector{String}
@@ -344,7 +347,7 @@ function shape_space_fract_successes( p::Parameters, funcs::Vector{Func}, quanti
     commonPhenosSet = Set( map(x->x[1], commonPhenos ) )
     setdiff_list = map( phset->setdiff(commonPhenosSet,phset), phenoSet_list )
     insert_position = size(ph_df)[2]  
-    insertcols!(ph_df,insert_position,Symbol("fs$(qv)")=>map(x->(numcommon-length(x))/numcommon,setdiff_list))
+    insertcols!(ph_df,insert_position,Symbol("$(qv)")=>map(x->(numcommon-length(x))/numcommon,setdiff_list))
   end
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)

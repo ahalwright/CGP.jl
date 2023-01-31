@@ -23,10 +23,12 @@ function Parameters(numinputs::Int64, numoutputs::Int64, numinteriors::Int64, nu
     targetfitness = 0.0
     MyInt_bits = MyIntBits( MyInt )
     #println("MyInt_bits: ",MyInt_bits)  
+    #=
     if numinteriors > MyInt_bits && maxints_for_degen > MyInt_bits
       println("maxints_for_degen: ",maxints_for_degen,"  MyInt_bits: ",MyInt_bits,"  numinteriors: ",numinteriors)
       error("maxints_for_degen > MyInt_bits in function Parameters.  Run with a larger width MyInt" )
     end
+    =#
     return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
 end
 

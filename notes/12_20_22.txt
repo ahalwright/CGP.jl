@@ -6,40 +6,55 @@ Added Bool keyword argument geno_robust which allows for the option of adding a 
 Now the data to do a genotype and phenotype density plot is in the output dataframe.
 Examples in data/12_20_22/.
 
-Density plots.  Data in data/12_20_22/
+Data in data/12_20_22/
+using StatsPlots
 
-Compare 3, 4, 5, 6 inputs
+Compare 3, 4, 5, 6, 7 inputs
 
 kdf = read_dataframe("../data/12_20_22/ph_evolve_3inputs_10gates_5lb_12_20_22K.csv")
 density(kdf.robustness, labels="pheno robustenss")
 density!(kdf.geno_robust, labels="geno robustness")
-plot!(xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 3inputs 10gts 5lb")
+#plot!(xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 3inputs 10gts 5lb")
+plot!(xlabel="robustness",ylabel="density")
 savefig("../data/12_20_22/phenotype_and_genotype_robustness_3inputs_10gts_5lb.png")
 
-mdf = read_dataframe("../data/12_20_22/ph_evolve_4inputs_12gates_6lb_12_20_22M.csv")
-density(mdf.robustness, labels="pheno robustenss")
-density!(mdf.geno_robust, labels="geno robustness")
-plot!(xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 4inputs 12gts 6lb")
-savefig("../data/12_20_22/phenotype_and_genotype_robustness_4inputs_12gts_6lb.png")
+xlims = (0.13,1.05)
+ylims = (0,25)
+mdf = read_dataframe("../data/12_20_22/ph_evolve_4inputs_12gates_6lb_12_20_22M.csv");
+md = density(mdf.robustness, labels="pheno robustenss",xlims=xlims,ylims=ylims)
+density!(md,mdf.geno_robust, labels="geno robustness")
+#plot!(md,xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 4inputs 12gts 6lb")
+#plot!(md,xlabel="robustness",ylabel="density")
+plot!(md,xlabel="robustness",ylabel="density",legend=:none,ann=(0.35,20,"4 inputs 12 gates"),annotationshalign=:left,annotationfontsize=10)
+#savefig("../data/12_20_22/phenotype_and_genotype_robustness_4inputs_12gts_6lb.png")
 
-cdf = read_dataframe("../data/12_20_22/ph_evolve_5inputs_36gates_18lb_12_20_22C.csv")
-density(cdf.robustness, labels="pheno robustenss")
-density!(cdf.geno_robust, labels="geno robustness")
-plot!(xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 5inputs 36gts 18lb")
-savefig("../data/12_20_22/phenotype_and_genotype_robustness_5inputs_36gts_18lb.png")
+cdf = read_dataframe("../data/12_20_22/ph_evolve_5inputs_36gates_18lb_12_20_22C.csv");
+cd = density(cdf.robustness, labels="pheno robustenss",xlims=xlims,ylims=ylims)
+density!(cd,cdf.geno_robust, labels="geno robustness")
+#plot!(cd,xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 5inputs 36gts 18lb")
+#plot!(cd,xlabel="robustness",ylabel="density")
+plot!(cd,xlabel="robustness",ylabel="density",legend=:none,ann=(0.35,20,"5 inputs 36 gates"),annotationshalign=:left,annotationfontsize=10)
+#savefig("../data/12_20_22/phenotype_and_genotype_robustness_5inputs_36gts_18lb.png")
 
-edf = read_dataframe("../data/12_20_22/ph_evolve_6inputs_70gates_35lb_12_20_22E.csv")
-density(edf.robustness, labels="pheno robustenss")
-density!(edf.geno_robust, labels="geno robustness")
-plot!(xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 6inputs 70gts 35lb")
-savefig("../data/12_20_22/phenotype_and_genotype_robustness_6inputs_70gts_35lb.png")
+edf = read_dataframe("../data/12_20_22/ph_evolve_6inputs_70gates_35lb_12_20_22E.csv");
+ed = density(edf.robustness, labels="pheno robustenss",xlims=xlims,ylims=ylims)
+density!(ed,edf.geno_robust, labels="geno robustness")
+#plot!(ed,xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 6inputs 70gts 35lb")
+plot!(ed,xlabel="robustness",ylabel="density",legend=:none,ann=(0.35,20,"6 inputs 70 gates"),annotationshalign=:left,annotationfontsize=10)
+#savefig("../data/12_20_22/phenotype_and_genotype_robustness_6inputs_70gts_35lb.png")
 
-fdf = read_dataframe("../data/12_20_22/ph_evolve_7inputs_200gates_100lb_12_20_22F.csv")
-density(fdf.robustness, labels="pheno robustenss")
-density!(fdf.geno_robust, labels="geno robustness")
-plot!(xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 7inputs 200gts 100lb")
-savefig("../data/12_20_22/phenotype_and_genotype_robustness_yinputs_200gts_100lb.png")
+fdf = read_dataframe("../data/12_20_22/ph_evolve_7inputs_200gates_100lb_12_20_22F.csv");
+fd = density(fdf.robustness, labels="pheno robustenss",xlims=xlims,ylims=ylims)
+density!(fd,fdf.geno_robust, labels="geno robustness")
+#plot!(fd,xlabel="robustness",ylabel="density",title="phenotype and genotype robustness 7inputs 200gts 100lb")
+#plot!(fd,xlabel="robustness",ylabel="density")
+plot!(fd,xlabel="robustness",ylabel="density",legend=:none,ann=(0.35,20,"7 inputs 200 gates"),annotationshalign=:left,annotationfontsize=10)
+#savefig("../data/12_20_22/phenotype_and_genotype_robustness_yinputs_200gts_100lb.png")
 
+plot( md, cd, ed, fd, layout=(4,1), legend=:false, size=(600,600) )
+savefig("../data/12_20_22/phenotype_and_genotype_robustness_4_5_6_7inputs.png")
+
+# outdated 1/26/23
 #density(kdf.robustness, labels="3 inputs pheno robustness")
 density(mdf.robustness, labels="4 inputs pheno robustness")
 density!(cdf.robustness, labels="5 inputs pheno robustness")

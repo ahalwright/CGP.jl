@@ -1,9 +1,12 @@
 Log redundancy vs rank and log rank
+using Plots
 
 4x1:
 cdf4 = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv")
-Plots.scatter(1:2^2^4,cdf4.ints10_5lgsrt,markerstrokecolor=:blue)
-Plots.scatter!(xlabel="rank",ylabel="log redundancy",title="log redundancy vs rank 4x1 10gts5lb_8_15_22",legend=:none)
+insertcols!(cdf4,3,:ints10_5lgsrt=>sort(map(x->lg10(x),cdf4.ints10_5),rev=true))
+Plots.scatter(0:(2^2^4-1),cdf4.ints10_5lgsrt,markerstrokecolor=:blue)
+#Plots.scatter!(xlabel="rank",ylabel="log redundancy",title="log redundancy vs rank 4x1 10gts5lb_8_15_22",legend=:none)
+Plots.scatter!(xlabel="rank",ylabel="log redundancy",legend=:none)
 savefig("../data/9_12_22/log_redund_vs_rank_4x1_10gts5lb_8_15_22.png")
 
 Plots.scatter(map(lg10,1:2^2^4),cdf4.ints10_5lgsrt,markerstrokecolor=:blue)

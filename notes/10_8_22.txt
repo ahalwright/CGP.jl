@@ -45,12 +45,13 @@ savefig("../data/10_8_22/lgredund_vs_rwsampling_and_total_evolvability3x1_8gts4l
 Plots.scatter([pdf.e_evolvability,Vector{Int64}(rwdf.d_evolvability)],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "random walk sampling evolvability"],ylabel="log redundancy",xlabel="evolvability count")
 savefig("../data/10_8_22/lgredund_vs_evolP_and_samplingD_evolvability3x1_8gts4lb4funcs.png")
 
-# This is the plot used in the paper.
+# This is the plot used in the paper.  Replaced by notes/10_9_22.txt
 using Plots; gr()
-cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")  # circuit_int sampling
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv");  # circuit_int sampling
 rwdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3E.csv");
 spdf = read_dataframe("../data/7_8_22/evolvable_evolvabilityCGP_3x1_8_4_7_8_22S.csv");
 rename!(spdf,:evolvability=>:e_evolvability);
 scatter([spdf.e_evolvability,Vector{Int64}(rwdf.d_evolvability)],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "sampling evolvability"],msize=6,shape=[:star6 :rtriangle])
-scatter!(ylims=(0,7.6),ylabel="log redundancy",xlabel="degree evolvability",legend=:topleft,title="lgredund vs samplingE & evolutionS evol 8gts4lb4funcs")
+#scatter!(ylims=(0,7.6),ylabel="log redundancy",xlabel="degree evolvability",legend=:topleft,title="lgredund vs samplingE & evolutionS evol 8gts4lb4funcs")
+scatter!(ylims=(0,7.6),ylabel="log redundancy",xlabel="degree evolvability",legend=:topleft)
 savefig("../data/10_8_22/lgredund_vs_samplingE_and_evolutionS_evol_8gts4lb4funcs.png")

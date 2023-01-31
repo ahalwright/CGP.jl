@@ -1,10 +1,12 @@
 # Used in GECCO paper
+# On 1/30/23 I discovered a bug in that default_funcs(p) was used for funcs.
+# Added versions with funcs as an argument, but also maintained backward compatibility versions.
 using Statistics, Printf
 using DataFrames, CSV, Dates, Base.Threads
 # This file does not include the "export" declarations needed to be included in CGP.jl.
 # Thus, it should be directly included.  Sample runs in ../data/9_3_21/.
 
-# Calculates robustness and evolvability for all phenotypes by sampling circuits as in Hu et al. (2020).
+# Calculates robustness and evolvability for all phenotypes by random walk sampling circuits as in Hu et al. (2020).
 # The node-adjacency matrix for the network of phenotypes is computed as goal_edge_matrix.
 # Diagonal entries are the number of self edges which is the robustness count.
 # goal_edge_matrix[g,h] is the number of mutations discovered from goal g to goal h.
@@ -13,7 +15,7 @@ using DataFrames, CSV, Dates, Base.Threads
 #   includes robustness, d_evolvability, and s_evolvability.
 # If exclude_zero_rows is false, then results will include zero rows of goal_edge_matrix
 # If csvfile is specified, writes the dataframe to this file.
-function run_random_walks_parallel( p::Parameters, nwalks::Int64, gl::Vector{MyInt}, steps::Int64; 
+function run_random_walks_parallel( p::Parameters, funcs::Vector{Func}, nwalks::Int64, gl::Vector{MyInt}, steps::Int64; 
       csvfile::String="", exclude_zero_rows::Bool=false, output_dict::Bool=false, save_complex::Bool=false, use_lincircuit::Bool=false )
   nprocesses = nworkers()
   if save_complex && !output_dict
@@ -25,8 +27,7 @@ function run_random_walks_parallel( p::Parameters, nwalks::Int64, gl::Vector{MyI
   if output_dict
     goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
     #goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-    dict_list = pmap( x->run_random_walks( nwalks, p, steps, output_dict=output_dict, save_complex=save_complex, use_lincircuit=use_lincircuit ), 
-        collect(1:nprocesses) )
+    dict_list = pmap( x->run_random_walks( nwalks, p, funcs, steps, output_dict=output_dict, save_complex=save_complex, use_lincircuit=use_lincircuit ), collect(1:nprocesses) )
     #println("length(dict_list): ",length(dict_list))
     #println("dict_list[1]: ",dict_list[1])
     #println("typeof(goal_pair_dict): ",typeof(goal_pair_dict))
@@ -37,7 +38,8 @@ function run_random_walks_parallel( p::Parameters, nwalks::Int64, gl::Vector{MyI
     #return goal_pair_dict
     df = robust_evolvability( goal_pair_dict, gl, p, save_complex )  # The version of robust_evolvability() called depends on the type of goal_pair_dict
   else
-    goal_edge_matrix = run_random_walks( nwalks, p, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ) 
+    goal_edge_matrix = run_random_walks( nwalks, p, funcs, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ) 
+    @assert length(gl) <=  size(goal_edge_matrix)[1]
     if exclude_zero_rows
       bv = BitVector(map(i->!iszero(sum(goal_edge_matrix[i,:])),1:size(goal_edge_matrix)[1]))
     else
@@ -64,7 +66,7 @@ function run_random_walks_parallel( p::Parameters, nwalks::Int64, gl::Vector{MyI
       hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
-      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      println(f,"# funcs: ", funcs )
       print_parameters(f,p,comment=true)
       println(f,"# nwalks: ",nwalks)
       println(f,"# steps: ",steps)
@@ -81,15 +83,32 @@ function run_random_walks_parallel( p::Parameters, nwalks::Int64, gl::Vector{MyI
 end
 
 # backward compatibility version
-function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector{MyInt}, p::Parameters, steps::Int64; 
+function run_random_walks_parallel( p::Parameters, nwalks::Int64, gl::Vector{MyInt}, steps::Int64; 
       csvfile::String="", exclude_zero_rows::Bool=false, output_dict::Bool=false, save_complex::Bool=false, use_lincircuit::Bool=false )
-  run_random_walks_parallel( p, nwalks, gl, steps::Int64; 
+  println("WARNING:  using default_funcs(p) for funcs")
+  funcs = default_funcs(p)
+  run_random_walks_parallel( p, funcs, nwalks, gl, steps, use_lincircuit=use_lincircuit, output_dict=output_dict, save_complex=save_complex )
+end
+
+# backward compatibility version
+function run_random_walks_parallel( nprocesses::Int64, nwalks::Int64, gl::Vector{MyInt}, p::Parameters, funcs::Vector{Func}, steps::Int64; 
+      csvfile::String="", exclude_zero_rows::Bool=false, output_dict::Bool=false, save_complex::Bool=false, use_lincircuit::Bool=false )
+  #run_random_walks_parallel( p, nwalks, gl, steps::Int64; 
+  run_random_walks_parallel( p, funcs, nwalks, gl, steps::Int64; 
       csvfile=csvfile, exclude_zero_rows=exclude_zero_rows, output_dict=output_dict, save_complex=save_complex, use_lincircuit=use_lincircuit)
 end
 
+# backward compatibility version
 function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_lincircuit::Bool=false, output_dict::Bool=false, save_complex::Bool=false )
+  println("WARNING:  using default_funcs(p) for funcs")
+  funcs = default_funcs(p)
+  run_random_walks( nwalks, p, funcs, steps, use_lincircuit=use_lincircuit, output_dict=output_dict, save_complex=save_complex )
+end
+
+# Multithreaded version
+function run_random_walks( nwalks::Int64, p::Parameters, funcs::Vector{Func}, steps::Int64; use_lincircuit::Bool=false, output_dict::Bool=false, save_complex::Bool=false )
   @assert p.numoutputs == 1
-  funcs = default_funcs(p.numinputs)
+  #funcs = default_funcs(p.numinputs)
   addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
   nphenos = 2^(2^p.numinputs)
   if use_lincircuit
@@ -100,7 +119,7 @@ function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_linci
   if output_dict
     goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
     for i = 1:nwalks
-      random_walk_dict!( goal_pair_dict, c_list[i], steps )
+      random_walk_dict!( goal_pair_dict, c_list[i], steps, funcs )
     end
     return goal_pair_dict
   else
@@ -114,7 +133,7 @@ function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_linci
     end
     println("goal_edge_matrix Atomic initialized")
     Threads.@threads for i = 1:nwalks
-      random_walk_mat!( goal_edge_matrix, c_list[i], steps )
+      random_walk_mat!( goal_edge_matrix, c_list[i], steps, funcs )
       #println(sum(goal_edge_matrix))
     end
     println("goal_edge_matrix updated")
@@ -123,11 +142,11 @@ function run_random_walks( nwalks::Int64, p::Parameters, steps::Int64; use_linci
 end
 
 # Does one random walk starting at c
-# Outputs a node-edge adjacency matrix unless output_dict==true, 
+# Outputs a node-edge adjacency matrix unless output_dict==true,
 #      in which case a dictionary indexed on goal pairs whose values the the count of the goal pair
 function random_walk_dict!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, Dict{Tuple{MyInt,MyInt},Int64},Matrix{Int64}},
-    c::Union{Chromosome,LinCircuit}, steps::Int64 )
-  funcs = default_funcs(c.params.numinputs)
+    c::Union{Chromosome,LinCircuit}, steps::Int64, funcs::Vector{Func} )
+  #funcs = default_funcs(c.params.numinputs)
   ngoals = 2^(2^c.params.numinputs)
   #addvalues(x,y) = (x[1]+y[1],(x[2]+y[2])/2.0)
   addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
@@ -184,9 +203,9 @@ function random_walk_dict!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,
   end
 end
 
-function random_walk_mat!( goal_edge_matrix::Array{Atomic{Int64},2}, c::Union{Chromosome,LinCircuit}, steps::Int64 )
+function random_walk_mat!( goal_edge_matrix::Array{Atomic{Int64},2}, c::Union{Chromosome,LinCircuit}, steps::Int64, funcs::Vector{Func} )
       #goal_edge_matrix[Int64(prev_goal)+1,Int64(goal)+1] += 1
-  funcs = default_funcs(c.params.numinputs)
+  #funcs = default_funcs(c.params.numinputs)
   goal = output_values(c)[1]
   for i = 1:steps 
     prev_goal = goal
@@ -356,7 +375,6 @@ function robust_evolvability_to_df( goal_pair_list::Array{Pair{Tuple{UInt16,UInt
       hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
-      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
       print_parameters(f,p,comment=true)
       #println(f,"# nwalks: ",nwalks)
       #println(f,"# steps: ",steps)

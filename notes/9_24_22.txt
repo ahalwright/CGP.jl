@@ -1,4 +1,36 @@
 Exact computation of phenotype adjacency matrix
+
+Table "Exact phenotype evolvability"
+Based on data/9_24_22/exact_phnet_matrix9_24_22G.csv
+
+p = Parameters(2,1,3,2); funcs=default_funcs(p)[1:4]
+count_circuits_ch(p,funcs)  # 4096.0
+gdf = read_dataframe("../data/9_24_22/exact_phnet_matrix9_24_22G.csv")
+E = df_to_matrix(gdf,2)
+sum(E) 61440.0
+rc = random_chromosome(p,funcs);
+mutate_all(rc,funcs,output_outputs=true) 15-element Vector{Vector{UInt16}}:   # number of mutations is 15
+15*4096 = 61440  
+ov = map( x->output_values(int_to_chromosome(x,p,funcs))[1], 0:4095 );  # list of all output values
+findall( x->x==0x0002, ov ) 96-element Vector{Int64}:  # Conclude that redundancy of 0x0002 is 96
+div(sum(E[:,3]),15)  #  96.0  
+# conclude that redundancy of a phenotype is the sum of the corresding row of E divided by number of mutations (15)
+
+Phenotype robustness should be the diagonal element divided by the sum of the corresponding row:
+Example: phenotype 0x2 corresponds to i=3 
+E[i,i]/sum(E[:,i]) 0.2111111111111111
+
+B = map( x->(iszero(x) ? 0 : 1), E );   # Binary matrix
+The phenotype evolvability should be the sum of the non-diagonal entries of the corresponding row:
+Example: phenotype 0x2 corresponds to i=3 
+sum( ( i!=j ? B[i,j] : 0) for j = 1:size(B)[1] )
+# Evolvabilities computed by random_walks_parallel are correct
+
+@time df = include("../data/9_24_22/run_phnet_matrixD.jl")
+E = df_to_matrix(df,2)
+bv = BitVector(map(i->(sum(E[i,:]) > 0 ? 1 : 0), 1:16))
+===========================================
+
 Parallelizing pheno_network_matrix_df() in Fnc.jl.
 There are two parts:  
 *  pheno_counts_ch()   # This ran out of memory on fluda with 5 gates.
@@ -21,7 +53,7 @@ I created phnet_matrix_atomic as a matrix of Atomic{Int64}(0).  Testing showed t
 
 phdfG = read_dataframe("../data/9_24_22/exact_phnet_matrix9_24_22G.csv")   # Not Normalized  Integer 4 funcs 2 inputs 3 gates 2 levelsback no XOR
 5gts 3lb 5funcs 48543 seconds = 13.5 hours on surt2
-Results for M and P:  3 inputs, 5 gates
+Results for M and P:  3 inputs, 5 gates  (N and P are the same except for comments).
 phdfM = read_dataframe("../data/9_24_22/phnet_matrix9_24_22M.csv")   # Normalized---Float  5 funcs
 phdfP = read_dataframe("../data/9_24_22/phnet_matrix9_24_22P.csv")   # Not Normalized  Integer 4 funcs
 phdfQ = read_dataframe("../data/9_24_22/phnet_matrix9_24_22Q.csv")   # Not Normalized  Integer 5 funcs
@@ -52,7 +84,7 @@ ss1M = map(ph->length(shape_space_evolvability( ph, phnM, 1 )),collect(0x0000:0x
 ss2M = map(ph->length(shape_space_evolvability( ph, phnM, 2 )),collect(0x0000:0x00ff));
 (mean(ss2M),findmin(ss2M),findmax(ss2M)) #  (256.0, (256, 1), (256, 1))
 
-Results for N:
+Results for N:  Note:  phnet_matrix9_24_22N.csv and phnet_matrix9_24_22P.csv are the same matrix.  Files only differ in comments.
 data/9_24_22/phnet_matrix9_24_22N.csv
 phdfN = read_dataframe("../data/9_24_22/phnet_matrix9_24_22N.csv")
 #  5gts 3lb 4funcs 14084 seconds = 3.9 hours on surt2
@@ -127,32 +159,3 @@ need to use either surt2.cs.umt.edu (28 cores) or fluda.cs.umt.edu (12 cores or 
 an in-person or zoom session on moving files between Linux machines.
 
 
-===========================================
-\begin{table}
-   \centering
-   \begin{tabular}{|l|rrrrrrrrrrrrrrrr|}
-\hline
-goal &0x0 &0x1 &0x2 &0x3 &0x4 &0x5 &0x6 &0x7 &0x8 &0x9 &0xa &0xb &0xc &0xd &0xe &0xf\\
-\hline
-0x0 & 32 &  8 & 16 &  0 & 16 & 24 &  0 &  0 &  8 &  0 & 24 &  4 &  0 &  4 &  0 & 24\\
-0x1 &  8 & 28 &  0 & 12 & 12 & 36 &  0 & 12 & 12 &  0 &  4 &  4 &  0 &  0 & 32 &  0\\
-0x2 & 16 &  0 & 12 &  4 &  4 &  0 &  0 &  4 & 12 &  0 & 12 &  4 &  0 &  8 &  0 &  4\\
-0x3 &  0 & 12 &  4 & 16 &  0 &  0 &  0 & 12 &  0 &  0 &  0 &  4 & 32 &  0 &  0 &  0\\
-0x4 & 16 & 12 &  4 &  0 & 12 & 12 &  0 &  0 &  0 &  0 &  0 &  8 &  4 &  4 &  4 &  4\\
-0x5 & 24 & 36 &  0 &  0 & 12 &288 &  0 & 36 &  4 &  0 &120 &  0 &  0 & 12 &  4 & 24\\
-0x6 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0\\
-0x7 &  0 & 12 &  4 & 12 &  0 & 36 &  0 & 28 & 32 &  0 &  4 &  0 &  0 & 12 & 12 &  8\\
-0x8 &  8 & 12 & 12 &  0 &  0 &  4 &  0 & 32 & 28 &  0 & 36 &  0 & 12 &  4 & 12 &  0\\
-0x9 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0 &  0\\
-0xa & 24 &  4 & 12 &  0 &  0 &120 &  0 &  4 & 36 &  0 &288 & 12 &  0 &  0 & 36 & 24\\
-0xb &  4 &  4 &  4 &  4 &  8 &  0 &  0 &  0 &  0 &  0 & 12 & 12 &  0 &  4 & 12 & 16\\
-0xc &  0 &  0 &  0 & 32 &  4 &  0 &  0 &  0 & 12 &  0 &  0 &  0 & 16 &  4 & 12 &  0\\
-0xd &  4 &  0 &  8 &  0 &  4 & 12 &  0 & 12 &  4 &  0 &  0 &  4 &  4 & 12 &  0 & 16\\
-0xe &  0 & 32 &  0 &  0 &  4 &  4 &  0 & 12 & 12 &  0 & 36 & 12 & 12 &  0 & 28 &  8\\
-0xf & 24 &  0 &  4 &  0 &  4 & 24 &  0 &  8 &  0 &  0 & 24 & 16 &  0 & 16 &  8 & 32\\
-\end{tabular}
-\end{table}
-
-@time df = include("../data/9_24_22/run_phnet_matrixD.jl")
-E = df_to_matrix(df,2)
-bv = BitVector(map(i->(sum(E[i,:]) > 0 ? 1 : 0), 1:16))

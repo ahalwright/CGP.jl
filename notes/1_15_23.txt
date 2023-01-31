@@ -1,0 +1,32 @@
+Running run_random_walks_parallel() for 2_000_000 walks of 10_000 steps each on Mac.
+@time gdf = include("../data/1_3/run_random_walksG.jl")
+
+Previous:
+@time df = include("../data/1_3/run_random_walksF.jl")   # on both surt2 and mac.
+Output file on mac:  run_random_walksF.jl
+Output file on surt2:  run_random_walksFF.jl
+
+Copied mac file to surt2
+
+On surt2:
+@time include("../data/1_3/run_random_walksF.jl")
+df[df.d_evolvability.<255,[:goal,:d_evolvability]]
+87×2 DataFrame
+ffdf = deepcopy(df)
+fdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3F.csv")
+ffdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3FF.csv")
+insertcols!(ffdf,3,:f_evolvability=>fdf.d_evolvability)
+insertcols!(ffdf,4,:max_evolvability=>map((x,y)->max(x,y),ffdf.d_evolvability,ffdf.f_evolvability))
+
+Idea for a phenotype-based evolutionary algorithm (or walk) for evolution of a target_phenotype from a start_phenotype.
+
+  gmatrix = map(Int, df_to_matrix_mt(gdf,5) )
+
+  cur_ph = start_phenotype
+  while cur_ph != target
+    probs = map( i-> (hdist( cur_ph, target ) <= (hdist( i, target ) ? gmatrix[ cur_ph, i ] : 0 )), 0x0000:0x00ff )
+    probs = probs/sum(probs)
+    new_ph = select from probs
+  end
+
+Question:  How does this phenotype based program compare to epochal evolution?

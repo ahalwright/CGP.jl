@@ -13,6 +13,18 @@ Sampling shape-space:
   function shape_space_fract_successes( )
   function shape_space_sampling_successes( )  combines the two previous fumctions
 
+3-inputs results (1/22/23)
+fdf = read_dataframe("../data/12_29_22/shape_space_counts_sampling_12_29_22F.csv")
+rdf = read_dataframe("../data/12_29_22/shape_space_counts_evolution_12_29_22R.csv")
+fmeans = map( i->mean( fdf[:,i] ), 3:7 )
+rmeans = map( i->mean( rdf[:,i] ), 6:10 )
+@assert names(fdf)[3:7] == names(rdf)[6:10]
+plot( names(fdf)[3:7], [fmeans,rmeans], labels=["sampling" "evolution"], legend=:topleft )
+plot!(xlabel="fraction of all phenotypes that are common",ylabel="fraction of observed phenotypes that are common",guidefont=font(9))
+savefig("../data/12_29_22/fraction_of_phenotypes_that_are_common3x1_8gts4lb_noXOR.png")
+
+
+4-inputs results
 Results for evolution in data/12_29_22/shape_space_counts_evolution_12_29_22P.csv   # 100 phenotypes
 Results for sampling in data/12_29_22/shape_space_counts_sampling_12_29_22C.csv     # 100 phenotypes
 
@@ -20,9 +32,10 @@ ddf = read_dataframe("../data/12_29_22/shape_space_counts_sampling_12_29_22D.csv
 qdf = read_dataframe("../data/12_29_22/shape_space_counts_evolution_12_29_22Q.csv")
 smeans = map( i->mean( ddf[:,i] ), 3:8 )
 emeans = map( i->mean( qdf[:,i] ), 6:11 )
+@assert names(ddf)[3:8] == names(qdf)[6:11]
 plot( names(ddf)[3:8], [smeans,emeans], labels=["sampling" "evolution"], legend=:topleft )
-plot!(xlabel="fraction of phenotypes that are common",ylabel="fraction of phenotypes that are common")
-savefig("../data/12_29_22/fraction_of_phenotypes_that_are_common4x2_12gts6lbXOR_2.png")
+plot!(xlabel="fraction of all phenotypes that are common",ylabel="fraction of observed phenotypes that are common",guidefont=font(9))
+savefig("../data/12_29_22/fraction_of_phenotypes_that_are_common4x1_12gts6lbXOR.png")
 
 Plot in data/12_29_22/fraction_of_phenotypes_that_are_common4x2_12gts6lbXOR.png
 Results disappointing in that very little difference betwen evolution and sampling.

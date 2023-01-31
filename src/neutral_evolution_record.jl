@@ -174,9 +174,12 @@ function neutral_evolution_record(
   new_distance = 0.0  # Value not used.  Establish scope.
   step = 0
   neutral_step = 0   # counts the number of neutral and improvement steps
-  while step < max_steps && ov != g   # The main evolutionary loop
+  #while step < max_steps && ov != g   # The main evolutionary loop
+  while step < max_steps && !iszero(current_distance)   # The main evolutionary loop
     step += 1
-    #println("A step: ",step," current_distance: ",current_distance)
+    if step % 500 == 0
+      println("A step: ",step," current_distance: ",current_distance)
+    end
     new_c = deepcopy(c)
     if typeof(c) == Chromosome
       (new_c, active) = mutate_chromosome!(new_c, funcs)
@@ -369,7 +372,7 @@ function neutral_evolution_record(
       :epochal_lgredund => averageLgRedundInPrevEpoch_list,
       :epochal_rbst => averageRobustInPrevEpoch_list,
     )
-  end
+  end # if save_kcomplexities
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)
     open(csvfile, "w") do f

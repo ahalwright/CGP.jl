@@ -17,9 +17,10 @@ savefig("../data/11_16_22/mutation_change_in_log_redundancy_2000goals_4x1_10gts5
 # Ran @time include("../data/11_16_22/run_redundancy_mutateG.jl") with 10000 instead of 2000 goals.
 # This plot is used in the evolvability paper.
 gdf = read_dataframe("../data/11_16_22/redundancy_mutate_all11_16_22G.csv")
-plot(collect(-5:0),[[ lg10(x) for x in gdf[k,5:10] ] for k = 5:8],labels=reshape(["start log redundancy $(k)" for k = 5:8 ],1,4))
+ls = [:solid :dash :dot :dashdot :dashdotdot]
+plot(collect(-5:0),[[ lg10(x) for x in gdf[k,5:10] ] for k = 5:8],labels=reshape(["start log redundancy $(k)" for k = 5:8 ],1,4),linestyle=ls)
 plot!(legend=:topleft,xlabel="change in log redundancy",ylabel="log frequency")
-plot!(title="mutation change in log redundancy 4x1 10gts5lb")
+#plot!(title="mutation change in log redundancy 4x1 10gts5lb")
 savefig("../data/11_16_22/mutation_change_in_log_redundancy_10000goals_4x1_10gts5lb.png")
 
 

@@ -1,6 +1,7 @@
 # Compute phenotype evolvability for a phenotype ph in ph_list by either evolving ncircuits circuits that map to ph,
 #  or by converting circ_int_list to circuits.  Tnen mutate_all() is applied to these circuits, and a count vector of phenotype counts is returned..
 # Produce a dataframe with phenotypes in ph_list as rows and phenotypes mapped to by mutational neighbors of the circuits.
+using Base.Threads
 
 # epochal evolution version
 # if csvfile == "" returns the approximate phenonet adjacency matrix
@@ -175,7 +176,9 @@ function compute_circuit_list( p::Parameters, funcs::Vector{Func}, ph::Goal, nci
     circuit_list = use_lincircuit ? LinCircuit[] : Chromosome[]
     for i = 1:ncircuits
       (circ,steps) = pheno_evolve( p, funcs, ph, max_tries, max_steps; use_lincircuit=use_lincircuit )
-      push!(circuit_list,circ)
+      if circ !== nothing
+        push!(circuit_list,circ)
+      end
     end
   else
     circuit_list = map( ci->( use_lincircuit ? (circuit_int_to_circuit( ci, p, funcs )) : (int_to_chromosome( ci, p, funcs ))), circ_int_list )

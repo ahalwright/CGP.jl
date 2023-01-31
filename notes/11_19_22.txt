@@ -11,15 +11,15 @@ p1 = Plots.plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrow
 Plots.plot(p1,legend=:topleft,xlabel="increase in log redundancy",ylabel="density of result log redundancy",title="Change in log redundacy of mutations")
 savefig("../data/11_19_22/log_redund_density_evolution4x1_10gts5lb5funcs11_19.png")   # Nice plot
 
-# Done on 1/8/23:
+# Done on 1/18/23:  Plot in data/11_19_22
 gdf = read_dataframe("../data/11_16_22/redundancy_mutate_all11_16_22G.csv")
 E = df_to_matrix(gdf,2);
 nrows=8
 ll = Array{String}(undef,1,nrows);
 for i = 1:nrows ll[1,i] = "starting log redundancy $(i)" end
-ls = Array{Symbol}(undef,1,nrows);
-for i = 1:nrows ls[1,i] = rand([:solid,:dash,:dot,:dashdot,:dashdotdot]) end
+ls = [:solid :dash :dot :dashdot :dashdotdot :solid :dash :dashdot]
 p1 = Plots.plot([-(nrows-1):(nrows-1)],[E[i,(10-nrows):(8+nrows)] for i = 1:nrows],labels=ll,linestyle=ls)
-Plots.plot(p1,legend=:topleft,xlabel="increase in log redundancy",ylabel="density of result log redundancy",title="Change in log redundacy of mutations")
+#Plots.plot(p1,legend=:topleft,xlabel="increase in log redundancy",ylabel="density of result log redundancy",title="Change in log redundacy of mutations")
+Plots.plot(p1,legend=:topleft,xlabel="increase in log redundancy",ylabel="density of result log redundancy")
 savefig("../data/11_19_22/log_redund_density_evolution4x1_10gts5lbXOR_linest_1_8_23.png")   # Plot supporting figure for "Density of mutational change" plot.
 

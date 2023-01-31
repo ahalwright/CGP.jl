@@ -230,7 +230,7 @@ end
 # If robustness_only==true returns the pair: (avg_robustness, evolvability)
 # Deterministic if all functions in default_funcs() have the same arity
 # TODO:  simplify by using the model of mutate_all() in LinChromosome.jl
-function mutate_all( c::Chromosome, funcs::Vector{Func}=default_funcs(c.params.numinputs); 
+function mutate_all( c::Chromosome, funcs::Vector{Func};
       robustness_only::Bool=false, output_outputs::Bool=true, output_circuits::Bool=false )
   #println("mutate_all: numlevelsback: ", c.params.numlevelsback )
   #sav_c = deepcopy(c)
@@ -955,6 +955,16 @@ function circuit_distance( c1::Chromosome, c2::Chromosome )
     diff_count += code1[i] == code2[i] ? 0 : 1
   end
   diff_count/length(code1)
+end
+
+# Return the number of circuits for parameters p and funcs 
+function count_circuits_ch( p::Parameters, funcs::Vector{Func} )
+  count_circuits_ch( p, nfuncs=length(funcs) )
+end
+
+# Return the number of circuits for parameters p and number of funcs nfuncs 
+function count_circuits_ch( p::Parameters, nfuncs::Int64 )
+  count_circuits_ch( p, nfuncs=nfuncs )
 end
 
 # Return the number of circuits for parameters p and number of funcs nfuncs if nfuncs>0

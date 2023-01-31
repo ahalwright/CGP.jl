@@ -1,0 +1,18 @@
+
+
+
+function navigability_dataframe(data_dir::String="../data/1_23_23")
+  maxsteps = [300_000, 300_000, 300_000, 600_000, 600_000, 600_000, 600_000, 600_000, 2_000_000, 2_000_000]
+  new_df = DataFrame(:numinputs=>Int64[],:numgates=>Int64[],:numlevelsback=>Int64[],:fail_fract=>Float64[],:mean_steps=>Float64[],:median_steps=>Float64[],
+      :std_steps=>Float64[],:mean_nactive=>Float64[], :mean_robust=>Float64[], :fail_vect=>Vector{Int64}[], :first_fail=>Int64[],:subseqent_fail=>Int64[])
+  for i = 1:10
+    df_location = data_dir * "/" * readdir(data_dir)[i]
+    rdf = read_dataframe( df_location )
+    tfl = [ eval(Meta.parse(tt)) for tt in  rdf.total_failures_list ][1]
+    fail_vect = reduce(+,tfl)
+    insertcols!(rdf,12,:fail_vect=>[fail_vect])
+    push!(new_df,rdf[1,1:12])
+  end
+  insertcols!(new_df,4,:maxsteps=>maxsteps )
+  new_df
+end

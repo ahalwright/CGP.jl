@@ -1,0 +1,26 @@
+Wrote a pheno evolution function which is currently in Utilities and should be moved elsewhere.
+
+p = Parameters(3,1,8,4); funcs = default_funcs(p)[1:4]
+hdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3H.csv")  # Approximate phenotype adjacency matrix after many samples.
+include("evolvable_evolvability.jl")
+hmatrix = df_to_matrix_mt(hdf,5)
+hmatrix = Map(Int,hmatrix)
+pheno_evolve( p, funcs, [0x0033], [0x00cc], hmatrix, max_reps=200 )
+10-element Vector{Tuple{Vector{UInt16}, Float64}}:
+ ([0x0033], 1.0)
+ ([0x0033], 1.0)
+ ([0x0023], 0.875)
+ ([0x008c], 0.125)
+ ([0x008c], 0.125)
+ ([0x008c], 0.125)
+ ([0x008c], 0.125)
+ ([0x008c], 0.125)
+ ([0x008c], 0.125)
+ ([0x00cc], 0.0)
+
+Now usually works, distance is always non-increasing
+
+
+edf = read_dataframe("../data/1_3/robust_evo_by_walks1_3E.csv")
+ematrix = df_to_matrix_mt(edf,5)
+ematrix = Map(Int,ematrix)

@@ -14,12 +14,14 @@ findall(i->Bnz[i,i]==0,1:sum(bv))   # [19,31,136,148]  There are phenotypes with
 evo = map(i->sum(Bnz[i,:])-Bnz[i,i], 1:sum(bv))
 phnPbv = phnP[bv,bv]
 rbst = map(i->Int(phnPbv[i,i])/sum(phnPbv[i,:]),1:sum(bv))
-scatter(evo,rbst,smooth=true,xlabel="degree evolvability",ylabel="robustness",title="robustness vs evolvability exact 5gts 3lb noXOR",legend=:none)
+#scatter(evo,rbst,smooth=true,xlabel="degree evolvability",ylabel="robustness",title="robustness vs evolvability exact 5gts 3lb noXOR",legend=:none)
+scatter(evo,rbst,smooth=true,xlabel="degree evolvability",ylabel="robustness",legend=:none)
 spearman_cor(evo,rbst) # (0.9088991913841078, 1.7329653392762514e-64)
-savefig("../data/9_24_22/robustness_vs_evolvability_exact_5gts_3lb_noXOR")
+savefig("../data/9_24_22/robustness_vs_evolvability_exact_5gts_3lb_noXOR")   # Used in evolvability paper
 # log redundancy vs evolvability without XOR gate
-scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="degree evolvability",ylabel="log redundancy",title="log redund vs evolvability exact 5gts 3lb noXOR",legend=:none)
-savefig("../data/9_24_22/log_redund_vs_evolvability_exact_5gts_3lb_noXOR")
+#scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="degree evolvability",ylabel="log redundancy",title="log redund vs evolvability exact 5gts 3lb noXOR",legend=:none)
+scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="degree evolvability",ylabel="log redundancy",legend=:none)
+savefig("../data/9_24_22/log_redund_vs_evolvability_exact_5gts_3lb_noXOR")  # Used in evolvability paper
 spearman_cor(evo,map(lg10,phdfP.redund[bv]))  #(0.9078117804512094, 4.380986495488303e-64)
 
 phdfQ = read_dataframe("../data/9_24_22/phnet_matrix9_24_22Q.csv")
@@ -34,6 +36,6 @@ phnQbv = phnQ[bv,bv];
 rbst = map(i->Int(phnQbv[i,i])/sum(phnQbv[i,:]),1:sum(bv))
 scatter(evo,rbst,smooth=true,xlabel="degree evolvability",ylabel="robusness",title="robusness vs evolvability exact 5gts 3lb XOR",legend=:none)
 spearman_cor(evo,rbst) # (0.7544368655728784, 1.189553368355556e-48)
-savefig("../data/9_24_22/robusness_vs_evolvability_exact_5gts_3lb_XOR")
+savefig("../data/9_24_22/robusness_vs_evolvability_exact_5gts_3lb_XOR")   # Not used in evolvability paper
 
 

@@ -627,12 +627,13 @@ function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
     use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false, csvfile::String="" ) 
   function ph_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries::Int64, max_steps::Int64; 
       use_lincircuit::Bool=false, use_mut_evolve::Bool=false, print_steps::Bool=false ) 
+    # This is the version of pheno_evolve that finds one circuit per goal.
     (c,steps,total_failures) = pheno_evolve( p, funcs, goal, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps )
-    return c != nothing ? (c,steps,number_active(c),total_failures) : (nothing,nothing,nothing,nothing)
+    return c != nothing ? (c,steps,number_active(c),robustness(c,funcs),total_failures) : (nothing,nothing,nothing,nothing,nothing)
   end
   println("length(funcs): ",length(funcs))
-  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :numlevelsback=>Int64[], :fail_fract=>Float64[], 
-      :mean_steps=>Float64[], :median_steps=>Float64[], :std_steps=>Float64[], :mean_nactive=>Float64[], :first_fail=>Int64[], :subseqent_fail=>Int64[] )
+  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :numlevelsback=>Int64[], :fail_fract=>Float64[], :mean_steps=>Float64[], :median_steps=>Float64[], 
+      :std_steps=>Float64[], :mean_nactive=>Float64[], :mean_robust=>Float64[], :first_fail=>Int64[], :subseqent_fail=>Int64[], :total_failures_list=>Vector{Vector{Int64}}[] )
   #result_list = filter(x->x[1]!=nothing, Folds.map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
   result_list = filter(x->x[1]!=nothing, pmap( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
   #result_list = filter(x->x[1]!=nothing, map( ph->ph_evolve( p, funcs, ph, max_tries, max_steps, use_lincircuit=use_lincircuit, use_mut_evolve=use_mut_evolve, print_steps=print_steps ), phlist ) )
@@ -640,17 +641,21 @@ function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
     println("no results")
     return nothing
   end
+  println("length(result_list): ",length(result_list))
   fail_fract = (length(phlist)-length(result_list))/length(phlist)
   steps_list = map(x->x[2], result_list)
   mean_steps = mean(steps_list)
   median_steps = median(steps_list)
   std_steps = std(steps_list)
   numactive_list = map(x->x[3], result_list )
+  robust_list = map(x->x[4], result_list )
   mean_numactive = mean(numactive_list)
-  total_failures_list = map(x->x[4], result_list )
-  first_fail = sum( total_failures_list[i][1] for i = 1:length(total_failures_list ))
-  subsequent_fail = sum( sum( total_failures_list[i][2:end] ) for i = 1:length(total_failures_list ))
-  df_row = [ p.numinputs, p.numinteriors, p.numlevelsback, fail_fract, mean_steps, median_steps, std_steps, mean_numactive, first_fail, subsequent_fail ]
+  mean_robust = mean(robust_list)
+  total_failures_list = map(x->x[5], result_list )
+  #println("total_failures_list: ",total_failures_list)
+  first_fail = sum( total_failures_list[i][1] for i = 1:length(total_failures_list ))  # the number of phenotypes where evolution failed on the first try
+  subsequent_fail = sum( sum( total_failures_list[i][2:end] ) for i = 1:length(total_failures_list ))  # the number of failures on the second and later tries
+  df_row = [ p.numinputs, p.numinteriors, p.numlevelsback, fail_fract, mean_steps, median_steps, std_steps, mean_numactive, mean_robust, first_fail, subsequent_fail, total_failures_list ]
   push!(df,df_row)
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)
@@ -670,6 +675,7 @@ function run_pheno_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
 end
 
 # Evolve a circuit that maps to a given phenotype (Goal)
+# There is another method of this function that evolves multiple circuits to the given phenotype
 # max_tries is the maximum number of attempts using neutral_evolution to find the circuit
 # max_steps is the maximum number of steps during a run of neutral_evolution()
 # Note that there is no num_circuits_per_goal argument which distinguishes this version from the version that evolves multiple circuits per phenotype
@@ -710,6 +716,7 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries
 end
 
 # Evolve num_circuits_per_goal circuits that map to a given phenotype (Goal) goal.
+# There is another method of this function that evolves one circuit to the given phenotype
 # max_tries is the maximum number of attempts using neutral_evolution to find the circuit
 # max_steps is the maximum number of steps during a run of neutral_evolution()
 # Note that there is a num_circuits_per_goal argument which distinguishes this version from the version that evolves one circuit per phenotype
