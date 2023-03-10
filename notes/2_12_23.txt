@@ -1,0 +1,84 @@
+Finding phenotypes for all chromosome ints for all chromosomes for a parameter/funcs setting.  data/2_12_23/  Verify previous results.ZZ
+Example parameter setting:  3435  means 3 inputs, 4 gates, 3 lb, 5 funcs
+
+Chromosome ints have values from 0 to Int64(count_circuits_ch(p,funcs))-1)
+ph3435 is the array of output values corresponding to these chromosome ints.
+
+# Verify that this method of computing the neutral set size agrees with earlier results on computing geno_components
+p = Parameters(3,1,4,3); funcs=default_funcs(p)
+Int(count_circuits_ch( Parameters(3,1,4,3), 5 )) # 4100625
+@time ph3435 = map( i->output_values(int_to_chromosome( i, p, funcs ))[1], 0:4100624 )
+p = Parameters(3,1,4,4); funcs=default_funcs(p)
+Int64(count_circuits_ch(p,funcs)) - 1 #   23039999
+@time ph3445 = map( i->output_values(int_to_chromosome( i, p, funcs ))[1], 0:(Int64(count_circuits_ch(p,funcs))-1) )  # 1952 seconds
+ f = open("../data/2_12_23/ph3445.csv","w") #  IOStream(<file ../data/2_12_23/ph3445.csv>)
+julia> df = DataFrame( :ph3445=>ph3445 ) 23040000×1 DataFrame
+CSV.write(f,df)   # IOStream(<file ../data/2_12_23/ph3445.csv>)
+close(f)
+findall(x->x==0x4a,ph3445)  # 4696-element Vector{Int64}:  agrees with xlsx file
+findall(x->x==0x56,ph3445)  # 64192-element Vector{Int64}: does not agree with xlsx file
+findall(x->x==0x5a,ph3445)  # 156440-element Vector{Int64}: agrees with xlsx file
+p = Parameters(3,1,5,3); funcs=default_funcs(p)[1:4]
+Int64(count_circuits_ch(p,funcs)) #  60466176
+@time ph3534 = map( i->output_values(int_to_chromosome( i, p, funcs ))[1], 0:(Int64(count_circuits_ch(p,funcs))-1) )
+6171.127965 seconds  60466176-element Vector{UInt8}:
+f = open("../data/2_12_23/ph3534.csv","w") #  IOStream(<file ../data/2_12_23/ph3534.csv>)
+df = DataFrame( :ph3534=>ph3534 );
+CSV.write(f,df) # IOStream(<file ../data/2_12_23/ph3534.csv>)
+close(f)
+
+
+# Test (and an example):
+ph3435df = read_dataframe("../data/2_12_23/ph3435.csv")
+p = Parameters(3,1,4,3); funcs=default_funcs(p)
+5-element Vector{Func}:
+cc = Int64(count_circuits_ch(p,funcs))  # 4100625
+i=rand(0:cc); (i,output_values(int_to_chromosome(i,p,funcs)),MyInt(ph3435df.ph3435[i+1]))
+#  (2202562, UInt16[0x00dd], 0x00dd)
+
+# Save outputs for 3 inputs, 5 gates, 3 lb 5 funcs
+p = Parameters(3,1,5,3); funcs=default_funcs(p)
+Int64(count_circuits_ch(p,funcs)) #  184528125
+@time ph3535 = map( i->output_values(int_to_chromosome( i, p, funcs ))[1], 0:(Int64(count_circuits_ch(p,funcs))-1) )
+18876.467346 seconds 184528125-element Vector{UInt8}:
+f = open("../data/2_12_23/ph3535.csv","w") #  IOStream(<file ../data/2_12_23/ph3535.csv>)
+df = DataFrame( :ph3535=>ph3535 );
+CSV.write(f,df) # IOStream(<file ../data/2_12_23/ph3535.csv>)
+close(f)
+
+# Save outputs for 3 inputs, 3 gates, 3 lb 5 funcs
+p = Parameters(3,1,3,3); funcs=default_funcs(p)
+Int64(count_circuits_ch(p,funcs)) #  91125
+@time ph3335 = map( i->output_values(int_to_chromosome( i, p, funcs ))[1], 0:(Int64(count_circuits_ch(p,funcs))-1) )
+5.64 seconds 91125-element Vector{UInt8}:
+f = open("../data/2_12_23/ph3335.csv","w") #  IOStream(<file ../data/2_12_23/ph3335.csv>)
+df = DataFrame( :ph3335=>ph3335 );
+CSV.write(f,df) # IOStream(<file ../data/2_12_23/ph3335.csv>)
+close(f)
+
+# An example of a common phenotype for 3 inputs, 4 gates, 4 lb 5 funcs
+p, nfuncs # (Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 4), 5)
+ ph, field, csvfile #  (UInt16[0x0022], :ph3445, "../data/2_12_23/ph3445.csv")
+julia> @time df = run_geno_components( p, funcs, ph, csvfile, field )
+6768.791474 seconds (97.05 G allocations: 16.044 TiB, 10.58% gc time)
+5×2 DataFrame
+ Row │ component_counts  component_sizes
+     │ Int64             Int64
+─────┼───────────────────────────────────
+   1 │                1           428840
+   2 │               48                6
+   3 │               40                4
+   4 │               16                2
+   5 │              208                11
+
+# Edit and add to header
+# date and time: 2023-02-13
+# host: MacBook-Pro-33.local 
+# 5.6 seconds
+# MyInt: UInt16
+# numinputs: 3
+# numoutputs: 1
+# numinteriors: 3
+# numlevelsback: 3
+# funcs: Func[Func(&, 2, "AND"), Func(|, 2, "OR"), Func(Main.CGP.Nand, 2, "NAND"), Func(Main.CGP.Nor, 2, "NOR"), Func(xor, 2, "XOR"]
+

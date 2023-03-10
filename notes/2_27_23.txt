@@ -1,0 +1,30 @@
+Ideas on navigability:
+
+Major correction on 3/1/23:  I had a misunderstanding of the fitness function used in the Greenbury 2022 paper:
+Fitness from [0,1] is assigned randomly to phenotypes except that fitness(target)==1.0
+
+For 3 inputs is won't be hard to show universal navigability.
+
+For 4 inputs, our only methods of knowing if there is a genotype that represents a phenotype are:
+ * sampling
+ * epochal evolution
+
+Unless we reduce the number of gates and levelsback to low values, sampling is not going to be feasible.
+Examples:
+count_circuits_ch( Parameters(4,1,6,3),4) # 2.176782336e+09
+count_circuits_ch( Parameters(4,1,6,3),5) # 8.303765625e+09
+len=Int(count_circuits_ch( Parameters(4,1,5,3),4)) # 60466176
+2.176782336e+09/60466176 # 36.0  # Shows that ( Parameters(4,1,6,3),4) is feasible
+phcount = zeros(Int64, 2^2^4 ) #  65536-element Vector{Int64}:
+julia> @time for i = Int128(0):Int128(len)
+         ch = int_to_chromosome(i,p,funcs)
+         ov = output_values(ch)[1]
+         phcount[ov+1] += 1
+       end
+6596.238795 seconds
+findall(x->x>0,phcount) # 166-element Vector{Int64}:
+Could implment multi-threaded by making phcount Atomic or by pmap and just adding phcounts from each process.
+
+If we find a goal by epochal evolution, we have just demonstrated its navigability.
+
+An alternative might be to measure navigability by number of evolutionary steps.

@@ -1,0 +1,65 @@
+What is old and what is new in the evolvability paper.  Detailed review of G-P models described in Ahnert 2017 and Manrubia 2021
+
+Old:  Universal properties
+  Degree (or Wagner) phenotype evolvability TODO: connect degree evolvability with Wagner evolvability in paper.
+
+New:
+  Two size genotype parameters: number of inputs and number of gates
+  Neutral and epochal evolution
+    Used for deriving properties of the G-P map
+  Evolution evolvability
+  Phenotype network: new to biologists, old for genetic programming readers
+  Sampling evolvability
+  Total evolvability
+  Shape-space evolvability
+  Long neutral walk evolvability
+  Evolution of 5, 6, 7 input phenotypes
+
+Possible experiments for other G-P maps:
+  Implement epochal evolution
+  Compute evolution evolvability
+  Compare evolution and sampling evolvability
+  Appromate phenotype network by random walk sampling
+    
+TODO:
+  How is phenotype evolvability approximated in universal properties papers?
+  "In the RNA, HP and Polyomino GP maps the majority of phenotypes has been 
+      shown to lie in close proximity of any genotype [18,22,26]. This is because 
+      of the high-dimensional nature of GP maps." Ahnert 2017 page 7.
+
+Universal properties models:
+  Ahnert 2017
+    RNA secondary structure
+    HP model
+    Polynomial model
+    Gene regulatory
+    Metabolic and signalling
+  Manrubia 2021
+    (page 58)
+    RNA secondary structure
+    Protein secondary structures
+    Gene regulatory networks
+    Metabolic networks
+    Protein complexes
+    Artificial life
+    Multilevel like toyLIFE
+    (more detail page 62)
+    RNA 3.3
+      Hints from inverse folding algorithms 3.3.3
+        Note: epochal evolution might be an effective inverse folding algorithm
+    Artificial life 3.4
+      High degree of robustness
+      Probability of transitioning from a larger to a chosen smaller neutral set by point 
+          mutations is much smaller than that in the reverse direction.
+      
+    (rest of paper overview)
+    Mean field model 5.4  Schaper & Louis (2014) "Arrival of the Frequent"
+      Note:  Manrubia reverses the subscripts from Shaper
+      \phi_{\xi,\chi} = probability that a point mutation for genotypes that map to phenotype \xi generates
+          a genotype for phenotype \chi averaged over all genotypes that map to \xi.
+          Note:  φ = \phi,  ξ = \xi,  χ = \chi
+      Interestingly, for RNA, as well as for a number of other GP maps [12], it was found to a good first 
+          approximation that if ξ ∕= χ then φ_{ξχ} ≈ f_χ, (6) where f_χ is the global frequency of phenotype χ, 
+          i.e., the fraction of genotypes that map to χ.
+      The mean field model predicts that for many different starting phenotypes ξ, the probability that a 
+          different phenotype χ will appear as potential variation will scale as fχ.

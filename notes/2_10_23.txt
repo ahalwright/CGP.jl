@@ -1,0 +1,9 @@
+Idea for evolving student proof block solutions to correct solutions
+
+Correct solution is a digraph.  
+
+Student solution is a digraph.  
+
+Need distance metric on solutions:  edit distance
+
+Mutations:  edit operations

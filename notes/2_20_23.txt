@@ -1,0 +1,16 @@
+Comparing low and high redundancy phenotypes for evolvability paper
+
+  Low redundamcy (rare) phenotypes
+    High evol evolvability Fig 9
+    Low sampling evolvability Fig 9
+    High long walk evolvability Fig 17
+    Low robustness Fig 4, GPTP
+      Note figure number are for current overleaf version
+
+  High redundancy (common) phenotypes
+    Low evol evolvability Fig 9
+    High sampling evolvability Fig 9
+    High total evolvability Fig 10
+    High long walk evolvability Fig 17
+    High robustness Fig 4, GPTP
+

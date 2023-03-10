@@ -15,7 +15,10 @@ export run_geno_robustness, geno_robustness, evo_robust, random_neutral_walk, ru
 export run_geno_complexity, geno_complexity, pop_evolvability_robustness
 export parent_child_complexity, rand_norm, scatter_plot
 export pheno_set_rand_neutral_walks, pheno_set_rand_neutral_walk
+export genotype_evolvability, mean_genotype_evolvabilities
+
 #=  Moved to aliases.jl so that this file can be included.
+   Consider deleting since I think this is only used in functions evolvability() and evo_result() which can also be deleted.
 mutable struct evo_result_type
   goal::Goal
   nchromes::Int64
@@ -119,6 +122,7 @@ function evolvability( g::Goal, funcs::Vector{Func}, nchromes::Int64, maxsteps::
   evolvability( g, funcs, nchromes,  maxsteps, p )
 end
 
+# This function is never called and is complicated to understand.  Consider deleting it.
 # Update er with results of one run of computation of evolvability
 # The following is done nchromes times:
 #   Start with a random chromosome and evolve the goal.
@@ -655,6 +659,7 @@ end
 #   goals over more pmap-parallel iterations, set iter_maxreps to be small relative to maxreps
 # The max_tries parameter determines how many attempts are made to evolve difficult goals.
 # Returns a dataframe with num_iterations=Int(ceil(maxreps/iter_maxreps)) rows per goal.
+# Alternative function evolvable_pheno_df() in evolvable_evolvability.jl:
 function run_geno_complexity( goallist::GoalList, maxreps::Int64, iter_maxreps::Int64, p::Parameters,
       max_steps::Int64, max_tries::Int64, maxsteps_recover::Int64=0, maxtrials_recover::Int64=0, maxtries_recover::Int64=0; 
       use_lincircuit::Bool=false, consolidate::Bool=true, csvfile::String = "" )
@@ -971,7 +976,7 @@ function pop_evolvability_robustness( population::Vector{Chromosome} )
   end
   (length(ph_set)/count_neighbors,robust_sum/length(population))
 end
-#=
+
 # Uses map-reduce to union the set results of multiple runs of pheno_set_rand_neutral_walk() for a single phenotype ph.
 # unions of the results of multiple walks
 function pheno_set_rand_neutral_walks( p::Parameters, funcs::Vector{Func}, ph::Goal, nwalks::Int64, walk_length::Int64,  max_tries::Int64, max_steps::Int64;
@@ -983,19 +988,20 @@ function pheno_set_rand_neutral_walks( p::Parameters, funcs::Vector{Func}, ph::G
   df = DataFrame()
   df.pheno_list =  [ s for s in pheno_set ] 
   if length(csvfile) > 0
-  hostname = readchomp(`hostname`)
-  open( csvfile, "w" ) do f
-    println(f,"# date and time: ",Dates.now())
-    println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
-    #println(f,"# run time in minutes: ",(ptime+ntime)/60)
-    print_parameters(f,p,comment=true)
-    println(f,"# funcs: ", Main.CGP.default_funcs(p))
-    println(f,"# phenotype: ", ph)
-    println(f,"# nwalks: ",nwalks)
-    println(f,"# walk_length: ",walk_length)
-    println(f,"# max_tries: ",max_tries)
-    println(f,"# max_steps: ",max_steps)
-    CSV.write( f, df, append=true, writeheader=true )
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      #println(f,"# run time in minutes: ",(ptime+ntime)/60)
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# phenotype: ", ph)
+      println(f,"# nwalks: ",nwalks)
+      println(f,"# walk_length: ",walk_length)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
   end
   df
 end
@@ -1011,7 +1017,7 @@ function pheno_set_rand_neutral_walk( p::Parameters, funcs::Vector{Func}, ph::Go
   pheno_set_rand_neutral_walk( nc, funcs, walk_length, max_tries, max_steps )
 end
 
-# returns the set of phenotypes encountered in a random neutral walk starting from a circuit evolved to map to phenotype ph.
+# returns the set of phenotypes encountered in a random neutral walk starting from circuit c
 function pheno_set_rand_neutral_walk( c::Circuit, funcs::Vector{Func}, walk_length::Int64,  max_tries::Int64, max_steps::Int64 )
   use_lincircuit = typeof(c) == LinCircuit
   println("use_lincircuit: ",use_lincircuit)
@@ -1023,7 +1029,7 @@ function pheno_set_rand_neutral_walk( c::Circuit, funcs::Vector{Func}, walk_leng
     j = 1
     while j <= max_steps   # also terminated by a break statement
       sav_c = deepcopy(c)
-      use_lincircuit ? mutate_circuit!( c, funcs ) : mutate_chromosome!( c, funcs )
+     use_lincircuit ? mutate_circuit!( c, funcs ) : mutate_chromosome!( c, funcs )
       #println("c: ",c)
       output = output_values(c)[1]
       if output == goal
@@ -1044,7 +1050,36 @@ function pheno_set_rand_neutral_walk( c::Circuit, funcs::Vector{Func}, walk_leng
   end
   pheno_set
 end
-=#
+
+# Computes evolution evolvabilties of the phenotypes in phlist based on nreps epochal evolutions to find genotypes that map to the phenotype
+function run_evolution_evolvability( p::Parameters, funcs::Vector{Func}, phlist::Vector{Goal}, nreps::Int64, max_tries::Int64, max_steps::Int64; csvfile::String="" )
+  evol_evolvabilities = pmap( ph->evolvability_evolution( p, funcs, ph, nreps, max_tries, max_steps ), phlist )
+  df = DataFrame( :goal=>phlist, :evol_evolvability=>evol_evolvabilities )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", funcs)
+      println(f,"# nreps: ",nreps)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+#  Computes evolution evolvability of phenotype ph based on nreps epochal evolutions to find genotypes that map to the phenotype
+function evolvability_evolution( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, max_tries::Int64, max_steps::Int64 )
+  if max_tries <= nreps
+    println("max_tries should be greater than nreps in function evolvability_evolution")
+    println("max_tries: ",max_tries,"  nreps: ",nreps)
+  end
+  clist  = pheno_evolve( p, funcs, ph, nreps, max_tries, max_steps )
+  mean(map(x->genotype_evolvability(x[1],funcs),clist))
+end
 
 function evolvability_sampling( p::Parameters, funcs::Vector{Func}, ph::Goal, circ_ints::Vector{Int128} )
   if length(circ_ints) == 0
@@ -1062,4 +1097,109 @@ end
 #map( i->length(eval(Meta.parse(sdf.circuits_list[i]))),1:size(sdf)[1] )
 #evo_sample=map(i->evolvability_sampling( p, funcs, [MyInt(i-1)], eval(Meta.parse(sdf.circuits_list[i])) ), 1:size(sdf)[1] )
 
+# compute the genotype evolvability of chromsome ch
+function genotype_evolvability( ch::Chromosome, funcs::Vector{Func} )
+  length( unique(  mutate_all( ch, funcs, output_outputs=true ) ))
+end
 
+# Helper function for function mean_genotype_evolvabilities()
+function geno_evolvabilities( p::Parameters, funcs::Vector{Func}, circ_int_list::Vector{Int128} )
+  map(x->genotype_evolvability(int_to_chromosome( x, p, funcs ), funcs ), circ_int_list )
+end
+
+# Computes the mean evolvability of all phenotypes in dataframe df based on the circuit_ints in df.field (usually df.ciruits_list)
+function mean_genotype_evolvabilities( p::Parameters, funcs::Vector{Func}, df::DataFrame, field::Symbol=:circuits_list )
+  @assert String(field) in names(df)
+  circ_list = pmap( x->string_to_expression(x), df[:,field] )  # convert to Julia expressions
+  geno_evols = pmap( x->mean(geno_evolvabilities( p, funcs, x )), circ_list )
+end
+
+function run_mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, df::DataFrame )
+  cints_ph = string_to_expression( df.circuits_list[ ph[1]+1 ] )
+  #ch = int_to_chromosome( rand( cints_ph ), p, funcs )
+  results = pmap( _->mutation_vs_sample_ch( p, funcs, int_to_chromosome( rand( cints_ph ), p, funcs ) ), 1:nreps )
+  mutate_mean = mean( map( x->x[1], results ) )
+  sample_mean = mean( map( x->x[2], results ) )
+  (mutate_mean, sample_mean)
+end
+
+function mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ch::Chromosome, df::DataFrame )
+  cints_ph = string_to_expression( df.circuits_list[ ph[1]+1 ] )
+  ch = int_to_chromosome( rand( cints_ph ), p, funcs )
+  mutation_vs_sample_ch( p, funcs, ch )
+end
+
+function mutation_vs_sample_ch( p::Parameters, funcs::Vector{Func}, ch::Chromosome )
+  ph = output_values( ch )
+  ge_ch = genotype_evolvability( ch, funcs )
+  (outputs,circs) =mutate_all(ch,funcs,output_circuits=true,output_outputs=true)
+  mutall_circs = circs[findall( x->x==ph, outputs )]
+  mean_ge_mutall = mean( map( x->genotype_evolvability(x,funcs), mutall_circs ) )
+  (ge_ch,mean_ge_mutall)
+end
+
+# Random neutral walk for a single phenotype ph
+function mutate_walk( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, max_tries::Int64, max_steps::Int64; save_interval::Int64=10 )
+  ch = pheno_evolve(p,funcs,ph,max_tries,max_steps)[1] 
+  mutate_walk( p, funcs, ch::Chromosome, nreps::Int64; save_interval=save_interval )
+end
+
+# Random neutral walk given a starting Chromosome c
+# Returns the history of ph_set lengths
+function mutate_walk( p::Parameters, funcs::Vector{Func}, ch::Chromosome, nreps::Int64; save_interval::Int64=10 )
+  ph = output_values( ch )
+  ph_set = Set(Goal[ ph ])
+  length_history = Int64[]
+  for step = 0:nreps
+    (outputs,circs) = mutate_all(ch,funcs,output_circuits=true,output_outputs=true)
+    new_ch = rand( circs[findall( x->x==ph, outputs )] )
+    #println("new_ov: ",output_values(new_ch))
+    #println(map(x->output_values(x), circs ) )
+    ph_set = union!( ph_set, Set( outputs ) )
+    if step % save_interval == 0
+      #println("step: ",step,"  length(ph_set): ",length(ph_set))
+      push!(length_history,length(ph_set))
+    end
+    ch = new_ch
+  end
+  length_history
+end
+
+function sample_walk( p::Parameters, funcs::Vector{Func}, ch::Chromosome, nreps::Int64, df::DataFrame )
+  ph = output_values( ch )
+  cints_ph = string_to_expression( df.circuits_list[ ph[1]+1 ] )
+  ph_set = Set(Goal[ ph ])
+  for step = 1:nreps
+    ch = int_to_chromosome( rand( cints_ph ), p, funcs )
+    (outputs,circs) = mutate_all(ch,funcs,output_circuits=true,output_outputs=true)
+    #println("step: ",step,"  outputs: ",outputs)
+    ph_set = union!( ph_set, Set( outputs ))
+  end
+  ph_set
+end
+
+function run_mutate_walks( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nreps::Int64, max_tries::Int64, max_steps::Int64; 
+    csvfile::String="", save_interval::Int64=10, redund_params::Parameters=p)
+  length_histories = pmap( ph->mutate_walk( p, funcs, ph, nreps, max_tries, max_steps, save_interval=save_interval ), phlist )
+  df = DataFrame( :goal=>phlist, :walk_length=>map(x->x[end],length_histories), :walk_length_histories=>length_histories )
+  rdict = redundancy_dict( redund_params, funcs )
+  if typeof(rdict) <: Dict
+    insertcols!(df, 2, :lg_redund=>map( ph->lg10(rdict[ph[1]]), phlist ) )
+  end
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      #println(f,"# run time in minutes: ",(ptime+ntime)/60)
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", funcs)
+      println(f,"# nreps: ",nreps)
+      println(f,"# save_interval: ",save_interval)
+      println(f,"# max_tries: ",max_tries)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end

@@ -1,0 +1,26 @@
+Population evolution Wright=Fisher model.  
+
+Code in PopEvolve.jl.   Also fixed a bug in Propsel.jl:  when selecting a population, needed to deepcopy the population elements.
+
+@time summary_pop_evolve( p, funcs, target, [0.1,0.2], 10_000, [100,200], nreps)
+# These are (mutrate, popsize, maxfit, fract_maxfit, fract_first_majority) tuples for target [0x0034]
+653.647911 seconds (1.43 G allocations: 77.145 GiB, 0.71% gc time)
+4-element Vector{Tuple{Float64, Int64, Float64, Float64}}:
+ (0.1, 100, 0.14666666666666667, 0.09)
+ (0.1, 200, 0.2, 0.06333333333333334)
+ (0.2, 100, 0.245, 0.12666666666666668)
+ (0.2, 200, 0.30333333333333334, 0.04)
+Another run
+ (0.1, 100, 0.175, 0.12166666666666667)
+ (0.1, 200, 0.18666666666666668, 0.06666666666666667)
+ (0.2, 100, 0.23166666666666666, 0.12)
+ (0.2, 200, 0.29, 0.028333333333333332)
+Another run
+ (0.1, 100, 0.15666666666666668, 0.09666666666666666)
+ (0.1, 200, 0.19666666666666666, 0.06)
+ (0.2, 100, 0.24666666666666667, 0.11166666666666666)
+ (0.2, 200, 0.2816666666666667, 0.04833333333333333)
+
+Conclusion:
+  mutrate 0.2 is better than 0.1 for fract_maxfit
+  popsize 100 is better for fract_first_majority

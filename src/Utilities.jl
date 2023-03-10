@@ -1,5 +1,7 @@
 # Contains functions that are useful in many contexts
+export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
 export lg10, set_to_list, write_df_to_csv, MyInt_to_string, string_to_MyInt
+export string_to_expression
 
 lg10(x) = iszero(x) ? 0.0 : log10(x)
 
@@ -34,6 +36,11 @@ function string_to_MyInt( x::AbstractString )
   else
     error("Illegal argument ",x," to function string_to_MyInt()" )
   end
+end
+
+# Converts a string representing a Julia expression to that expression
+function string_to_expression( x::AbstractString ) 
+  eval(Meta.parse(x))
 end
 
 function set_to_list( s::Set )

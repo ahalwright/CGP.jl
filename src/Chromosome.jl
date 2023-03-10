@@ -1,7 +1,8 @@
 using DataFrames
 using CSV
 import Base.getindex
-export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all, PredType
+export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all, mutate_all_neutral
+export PredType
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_gates, remove_inactive, deactivate_chromosome!
 export hamming_distance, ihamming_distance, hamming 
@@ -379,6 +380,13 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
   else
     result
   end
+end
+
+# Returns the list of chromosomes returned by mutate_all whose output is neutral, i. e., whose output is the phenotype of c
+function mutate_all_neutral( c::Chromosome, funcs::Vector{Func} )
+  ph = output_values( c )
+  (outputs_list,ch_list) = mutate_all(c,funcs,output_circuits=true,output_outputs=true);
+  ch_list[findall(x->x[1]==ph[1],outputs_list)];
 end
 
 function num_mutate_locations( c::Chromosome, funcs::Vector{Func} )

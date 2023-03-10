@@ -1,5 +1,7 @@
 Trying to straighten out Introduction section:
 
+Also: added exact evolvability Q matrix for 3 inputs, 5 gates, 3lb, 5funcs to 9_24_22.txt
+
 List of Introduction subsections: topics covered in each subsection.
 
 Abstract

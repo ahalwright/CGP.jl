@@ -1,0 +1,90 @@
+How can we show why evolution genotype evolvability is greater than sampling genotype evolvability?
+Updated 2/22/23
+
+Hypothesis 1:  If we epochal evolve a genotype to map to a target phenotype, then 
+  the genotype evolvability of evolved genotypes will be larger than the genotype
+  evolvability of sampled genotypes that map to the target phenotype.
+
+  Test 1a:  We have the average genotype evolvabvility of sampled genotypes for a given phenotype.
+    Compare to the average genotype evolvability of genotypes epochal evolved to the 
+    given phenotype.
+
+  Test 1b: Compute the average genotype evolvability of the circuit samples
+    that we have for each phenotype for the 3x1 and 4x1 cases.  For a given target
+    phenotype, coompare this average for the target phenotype to the average genotype 
+    evolvability of circuits epochal evolved to map to the target phenotype.
+
+Hypothesis 2:  The genotype evolvability of a genotype is positively related to
+  its evolution or sampling phenotype evolvabilty.  
+
+  Test 2a:  See below.  Did a scatter plot.
+    Result: Strongly related to evolution evolvability. Oppositely related to sampling evolvabilty.  The best we could hope for.
+
+2/22/23:  Test 1a:
+p = Parameters( 3,1,8,4);funcs=default_funcs(p)   # length(funcs) == 5
+
+# Evolution evolvability for 3 cases
+# lowest redundancy [0x00b6]  10653
+@time clist  = pheno_evolve( p, funcs, [0x00b6], 1000, 4000, 100_000 );
+mean(map(x->genotype_evolvability(x[1],funcs),clist)) #33.05
+# Medium low redundancy [0x000d]  78733
+@time clist  = pheno_evolve( p, funcs, [0x00d], 1000, 4000, 100_000 );
+mean(map(x->genotype_evolvability(x[1],funcs),clist)) #25.573
+# High redundancy [0x0022]  243574
+@time clist  = pheno_evolve( p, funcs, [0x0022], 1000, 4000, 100_000 );
+mean(map(x->genotype_evolvability(x[1],funcs),clist)) #14.451
+# Sampling evolvability for the same 3 cases
+vdf = read_dataframe("../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv")
+mge = mean_genotype_evolvabilities( p, funcs, vdf )  #  256-element Vector{Float64}:
+insertcols!(vdf,3,:mean_geno_evolvabilties=>mge)
+ Row │ goals    ints8_4    mean_geno_evolvabilties  circuits_list
+ 183 │ 0x00b6     10653                  32.6289  Int128[416252502736442, 54913399…
+  10 │ 0x0009      78733                 22.128    Int128[38615394382081, 839177715…
+  35 │ 0x0022    2436574                 13.908    Int128[534800434983546, 62676545…
+# Conclusion: sampling evolvability less than evolution evolvability in all 3 cases, but maybe not significantly.
+for [0x09] is 22.128  which is lessv than evolution evolvability of 25.573
+
+
+wdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_ge_W.csv")
+wdf[0x006a,[:goals,:ints8_4,:mean_geno_evolvabilties]]
+ Row │ goals    ints8_4  mean_geno_evolvabilties
+─────┼───────────────────────────────────────────
+ 106 │ 0x0069         8                   31.375
+@time clist  = pheno_evolve( p, funcs, [0x0069], 1000, 4000, 100_000 );  1588 seconds
+mean(map(x->genotype_evolvability(x[1],funcs),clist)) # 33.712 and 33.737 showing evolution greater than sampling
+@time clist  = pheno_evolve( p, funcs, [0x0096], 1000, 4000, 100_000 );  1604 seconds
+mean(map(x->genotype_evolvability(x[1],funcs),clist)) # 33.552
+
+Seems to be a confirmation of the hypothesis
+
+2/1/23:
+
+Added functions genotype_evolvability(), geno_evolvabilities(), and mean_genotype_evolvabilities() to Evolvability.jl
+
+cdf = read_dataframe( "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv");
+p = Parameters(3,1,8,4);funcs=default_funcs(p)[1:4]
+# compute mean genotype evolvabily of all phenotypes
+mge = mean_genotype_evolvabilities( p, funcs, cdf ) #  256-element Vector{Float64}:
+insertcols!(cdf,3,:mean_geno_evolvavilties=>mge)
+
+qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability3x1_8_4_7_8_22Q.csv")
+rename!(qpdf,:evolvability=>:e_evolvability);
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv");
+rwdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3D.csv");
+using Plots
+# geno_evolvability very similar to evolution evolvability:  both a strong negative relationship to log redundancy
+scatter([qpdf.e_evolvability,cdf.mean_geno_evolvabilties*8],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "8*(genotype evolvability)"],msize=6,shape=[:star6 :rtriangle])
+scatter!(legend=:bottomleft,ylabel="log redundancy",xlabel="evolvability count")
+savefig("../data/2_1_23/evol_geno_evolvability_3s1_8gts4lb_noXOR.png")
+
+# Also shows that sampling evolvability is oppositely related to genotype evolvability
+scatter([qpdf.e_evolvability,Vector{Int64}(rwdf.d_evolvability),cdf.mean_geno_evolvabilties*8],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "sampling evolvability" "8*(genotype evolvability)"],msize=6,shape=[:star6 :rtriangle :ltriangle])
+scatter!(legend=:topleft,ylabel="log redundancy",xlabel="evolvability count",ylim=(0.5,9.5))
+
+Sampling evolution algorithm (comparison to epochal evolution)
+
+Assume a sampling dataframe with a circuit_ints column like cdf above.  May need to run sampling with larger sample size and numcircuits.
+Copied 8_15_22/run_count_outputs_ch_W.jl to 2_1_23/run_count_outputs_ch_A.jl and copied to surt2
+
+Idea: when the next circuit is needed, choose the next circuit from the circuit_int list of the current phenotype.
+Maintain a index/counter for each phenotype of the circuit_ints list for that phenotype.

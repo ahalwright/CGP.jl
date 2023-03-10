@@ -10,6 +10,7 @@ But included backward compatibility versions that use default_funcs() (with a WA
 ============================================
 Approximate Sampling evolvability for 2 inputs
 df = include("../data/9_29_22/run_random_walksY.jl")
+Writes CSV file on Mac
 ============================================
 Approximate Evolution evolvability for 2 inputs
 df = include("../data/1_30_23/run_evolvable_evolvabilityA.jl")  # one column is evolvability

@@ -1,0 +1,22 @@
+New definition of total evolvability.
+
+I realized that total evolvability is just evolvability based on symmetrizing the Boolean pheno network adjacency matrix B.  
+More precisely, let B be the 2^n by 2^n matrix where B[i,j] is 1 iff there is a mutation from a genotype of phenotype i to 
+a genotype of phenotype j,  The symmetrized matrix S is defined by S[i,j]=1 iff either B[i,j]=1 or B[j,i]=1.  
+Total evolvability is just degree evolvability for S.
+
+I am also thinking about how to present evolvability.  Perhaps order the phenotypes by redundancy, and show the 16 by 16 matrix 
+corresponding to the 8 least redundant (rare) and 8 most redundant (common) phenotypes.  This is closer to what we sent Ting 
+and Wolfgang when we asked them to collaborate.  
+
+I am also thinking about how epochal evolution traverses the pheno net matrix.
+
+Order the rows of the matrix by increasing fitness, and order the columns by increasing redundancy.  
+There will be bands of rows corresponding to equal fitness and an epoch stays within a band, while
+starting a new epoch corresponds to moving from a band to a higher band.
+Evolving from left to right is easy while evolving from right to left is hard. 
+
+
+The naviagability section shows that most evolutions from a random genotype to a random phenotype are from
+right to left (but this may only minimally hold for the 3-input case).
+

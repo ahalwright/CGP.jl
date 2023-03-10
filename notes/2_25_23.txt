@@ -1,0 +1,145 @@
+Summary of 
+2022 Greenbury Navigability paper "The structure of genotype-phenotype maps makes fitness landscapes navigable"
+and
+2016 Greenbury Genetic Correlations paper
+
+=======================================================
+2022 paper
+
+if we define accessible paths of point mutations between a low fitness phenotype and a high
+fitness phenotype as those with monotonically increasing fitness, are such paths sufficiently 
+common that they can easily be found by an evolving population?
+
+Our main contribution here is to show that commonly observed structural properties of GP maps greatly increase the
+number of accessible paths, or ‘navigability’, in associated fitness landscapes. 
+
+Our findings show that certain structural properties of GP maps give rise to navigable fitness landscapes, and that 
+the resulting accessible paths are indeed likely to be exploited in the course of biological evolution.
+
+II results
+
+Except for one result, fitness is assigned randomly from [0,1] to phenotypes except that the target phenotype has fitness 1.
+
+A Several well-studied genotype-phenotype maps induce navigable fitness landscapes
+
+Three example landscapes:
+1)  RNA secondary structure
+2)  Polynomial
+3)  Several HP lattice protein folding maps
+
+Two random phenotypes.  Navigability
+
+< \psi > = 1/N \sum_k^N \psi_{s_k t_k}
+
+over source target pairs where \psi_{ij} = probability that an increasing fitness mutational path exists
+from a genotype of i to a genotype of j.
+
+Navigability greater than 0.6 for all but non-compact HP model.
+
+B  Common properties of GP maps are associated with navigability
+
+2 Positive neutral correlations increase navigability
+3 Large dimensionality increases navigability and decreases ruggedness
+    We measure landscape ruggedness <κ> as the average proportion of all genotypes encountered that are local 
+      fitness maxima (no neutral neighbours or neighbours with increased fitness). 
+      NOTE: for logic gate G-P map, local fitness maxima are very rare.
+
+C Navigability of functional RNA fitness landscapes
+
+With neutral mutations allowed, navigability is almost always 1.0, suggesting that fitness landscapes with 
+    fRNAdb source and targets are highly navigable. 
+
+Where neutral mutations are disallowed, we find that navigability is markedly reduced below 1.0, although still 
+substantially greater than zero (< \psi > in [0:38; 0:64]).
+
+D. Evolutionary dynamics make use of accessible paths between fRNAs
+
+We simulated evolutionary dynamics with a Wright-Fisher process, implemented via a genetic algorithm, and 
+considered two different fitness assignment schemes: (a) random and (b) using a given phenotype’s 
+dot-bracket Hamming distance to the target phenotype
+
+We consider only the polymorphic dynamical regime (NµL ≫ 1, where N is population size, µ is point mutation 
+rate and L is genotype length).
+
+III. SUMMARY AND DISCUSSION
+
+The metaphor of the fitness landscape has endured for almost a century of research in evolutionary biology. It is often
+discussed in intuitive terms, as a low-dimensional landscape.  This can be problematic, as it obscures 
+counter-intuitive properties of high-dimensional spaces, which real fitness landscapes are. Moreover, much of the 
+literature on fitness landscapes does not consider genotype-phenotype maps and their properties, such as the ubiquity 
+of neutral networks and their correlations in genotype space. Our contribution demonstrates
+that specific GP map properties, in combination with highdimensionality, make fitness landscapes navigable.
+
+Additionally, we demonstrated that the phenotype network is arguably a more useful way to conceptualise 
+evolutionary exploration.  Visualising the fitness landscape in this way avoids the misleading intuitions of 
+fitness valleys that can arise from the lowdimensional fitness landscape metaphor.
+
+IV. METHODS
+
+=======================================================
+2016 paper
+
+Abstract
+
+The mutational neighbourhood of a genotype in these GP maps is much more likely to contain genotypes 
+mapping to the same phenotype than in the random null model. Such neutral correlations can be quantified 
+by the robustness to mutations, which can be many orders of magnitude larger than that of the null
+model, and crucially, above the critical threshold for the formation of large neutral networks
+of mutationally connected genotypes which enhance the capacity for the exploration of
+phenotypic novelty. Thus neutral correlations increase evolvability. 
+
+Author Summary
+
+Point mutations are orders of magnitude more likely than expected by random chance to link genotypes that map 
+to the same phenotype, which vitally increases the potential for evolutionary innovation by generating
+neutral networks. If GP maps were uncorrelated like the random map, evolution may not even be possible. 
+We also find correlations for non-neutral mutations: Mutational neighbourhoods are less diverse than expected 
+by random chance. Such local heterogeneity slows down the rate at which new phenotypic variation can be found. 
+But non-neutral correlations also enhance evolvability by lowering the probability of mutating to a deleterious
+non-folding or non-assembling phenotype.
+
+Introduction
+
+We employ a model we call the random GP map. It has the same number of genotypes mapping to each phenotype 
+as the biophysical GP map to which it is being compared, as well as the same basic type of genotype space 
+(alphabet size and genome length), and nodes (genomes) that are linked by single mutations if they differ by 
+one locus. The difference is that the genotypes are randomly distributed across the genotype space. 
+
+Besides their simplicity, an advantage of using the random GP maps for this purpose is that the overall 
+connectivity of the genotype space is left intact, along with several global properties of the map, 
+allowing the way phenotypes are arranged to be directly considered.
+
+Results
+
+Phenotypic robustness and neutral correlations
+
+Algebraic definition of phenotypic robustness 
+
+\rho_p = 1/F_p \sum_{g in \cal{G}_p} \frac{\eta_{p,g}}{(K-1)L}
+
+\eta_{p,g} is the number of genotypes that are accessible with a 1-poin mutation of g.
+
+K is alphabet size.} \frac{\eta_{p,g}}{(K-1)L}
+
+\eta_{p,g} is the number of genotypes that are accessible with a 1-poin mutation of g.
+
+K is alphabet size.  F_p is neutral set size.
+
+In Fig 2A, we compare the phenotypic robustness across our three biological GP maps 
+to the robustness of the associated random GP map. 
+
+Generalised robustness and neutral correlations
+
+Generalised robustness or n-robustness \rho_p^{(n)}, measures phenotypic robustness for a greater 
+number of mutations. It is defined as the robustness of a genotype with phenotype p to n 
+1independent mutations to its genotype, rather than just the single mutation discussed above.
+
+Figure 2a shows phenotype robustness vs. log redundancy increases linearly.
+Figure 2b shows n-robustness vs radius.  Not very interesting.
+
+We also define a neutral correlation length n^* which measures the mutational hamming distance 
+over which neutral correlations extend. 
+
+The presence of positive neutral correlations/higher phenotype robustness results in larger 
+and fewer neutral components
+

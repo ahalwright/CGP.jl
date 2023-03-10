@@ -1,0 +1,17 @@
+Trying to confirm that evolution evolvability is greater than sampling evolvability for all 3x1 8gts 4lb 4funcs phenotypes.
+
+Sampling evolvabilities taken from ../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_ge_W.csv
+wdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_ge_W.csv")
+
+Evolution evolvabilities computed in data/2_24_23/evolution_evolvability_4funcs_3inputs_8gates_4lb_C.csv
+edf = read_dataframe("../data/2_24_23/evolution_evolvability_4funcs_3inputs_8gates_4lb_C.csv")
+
+insertcols!(wdf,4,:evol_evolvability=>edf.evol_evolvability)
+
+mean(wdf.mean_geno_evolvabilties),mean(wdf.evol_evolvability)
+(20.889421970263058, 21.136078125000004)
+
+diffs = -wdf.mean_geno_evolvabilties+wdf.evol_evolvability
+findall(x->x>=0,diffs)
+179-element Vector{Int64}  # So most cases evol greater than sampling, but not very decisively
+

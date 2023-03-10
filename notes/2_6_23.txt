@@ -1,0 +1,57 @@
+Functions geno_component() and geno_components() run_geno_components() which have been moved to file Geno_components.jl
+using DataStructures
+
+# Disjoint sets is not the best way to compute geno_components
+a = DisjointSets{Int128}(Int128[5,8,395]) # DisjointSets{Int128} with 3 elements: 5 8 395
+push!(a,Int128(94))
+a   #DisjointSets{Int128} with 4 elements: 5 8 395 94
+find_root!(a,Int128(395))   # 395
+root_union!(a,Int128(395),Int128(94)) #  395
+
+xdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_X.csv")
+wdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")
+ph = [0x0009]
+ph_str = "0x0009"
+se=string_to_expression(xdf[xdf.goals.=="0x0069",:circuits_list][1]) # 68-element Vector{Int128}:
+se=string_to_expression(wdf[wdf.goals.==ph_str,:circuits_list][1]) # 270-element Vector{Int128}:
+a = DisjointSets{Int128}(se) #  DisjointSets{Int128} with 68 elements:
+p = Parameters(3,1,8,4);funcs=default_funcs(p)[1:4]
+ch = int_to_chromosome(se[1],p); print_circuit(ch)
+
+se=string_to_expression(xdf[xdf.goals.=="0x0005",:circuits_list][1])
+cilist = map(x->int_to_chromosome(x,funcs),se);
+ph = output_values(cilist[5])  # [0x0004]
+nlist=cilist[findall(x->x[1]==ph[1],outputs_list)];
+map(output_values,nlist) # 30-element Vector{Vector{UInt16}}: [0x0004] [0x0004]
+rch = random_chronosone(p,funcs)
+chl=mutate_all_neutral(rch,funcs); # map(output_values,chl) 48-element Vector{Vector{UInt16}}: [0x0055] ...
+
+# Disjoint sets is not the best way to compute geno_components
+function geno_components( p, funcs, cint_list::Vector{Int128} )
+  mutate_all_list = Int128[]   # list of circuit ints that have been mutated.
+  dis_sets = DisjointSets{Int128}( cint_list )
+  ch_list = Chromosome[]
+  for ci in cint_list
+    if !(ci in mutate_all_list)i 
+      push!( ci, mutate_all_list )
+      ch = int_to_chromosome(ci,funcs)
+      #push( ch_list, ch )
+      mu_ch_list = mutate_all_neutral(ch,funcs)
+      mu_ci_list = map( ch->chromosome_to_int( ch ), mu_ch_list )
+      for mu_ci in mu_ci_list
+        if !( ci in dis_sets )
+          push!( dis_sets, mu_ci )
+        end
+        root_union!( dis_sets, ci, mu_ci )
+      end
+    end
+  end
+  roots = Set(Int128[])
+  for i in dis_sets
+    r = find_root!(dis_sets,i)
+    union!( roots, Set([r]) )
+  end
+  roots
+end
+      
+    

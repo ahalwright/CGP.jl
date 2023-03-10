@@ -1,6 +1,6 @@
 #  Doing redundancy for 3x1 8gts 4lb
 @time include("../data/8_15_22/run_count_outputs_ch_V.jl")  # 771 seconds
-df = ©read_dataframe("../data/8_15_22/count_outputs_ch_4funcs_3inputs_8insts_4regs_V.csv")
+df = read_dataframe("../data/8_15_22/count_outputs_ch_4funcs_3inputs_8insts_4regs_V.csv")
 findmin(df.ints8_4) # (6, 151)
 
 #  Doing redundancy for 4x1 12gts 6lb on surt2

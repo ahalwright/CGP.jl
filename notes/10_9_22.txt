@@ -2,7 +2,7 @@ Redo total evolvability results and plot for 8 gates 4 levelsback based on notes
 Include exact evolvability
 
 # the total evolvability plot in the evolvability paper
-qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability4x1_8_4_7_8_22Q.csv")  # Suffixes P, Q have ncircuits=2000, S has ncircuits=5000
+qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability3x1_8_4_7_8_22Q.csv")  # Suffixes P, Q have ncircuits=2000, S has ncircuits=5000
 rename!(qpdf,:evolvability=>:e_evolvability)
 insertcols!(qpdf,3,:t_evolvability=>total_evol(qpdf))  # total_evol() is in evolvable_evolvability.jl
 cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")  # 10^8 samples minimum redundancy 8

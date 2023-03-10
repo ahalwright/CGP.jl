@@ -1,7 +1,7 @@
 Navigability for the evolvability paper.
 Moved function robustness() from Chromosome.jl to Robustness.jl, and wrote a function
 genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, nreps::Int64 )
-in Robustness.jl.
+in Robustness.jl.  Note that there is another function genotype_robustness() in ShapeSpace.jl.
 
 12/15/22:  Found and fixed bug in computation of robustness in run_ph_evolve() in Evolve.jl.
 Robustness was computed foer only 1 circuit, and it should have been average of numcircuits circuits.

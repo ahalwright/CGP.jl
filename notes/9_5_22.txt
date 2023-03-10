@@ -41,7 +41,7 @@ df = submatrix_to_dataframe( p, funcs, E, pdf, kcommon_str, krare_str )  # 2 non
 
 Based on redundancy
 rrare = map(x->eval(Meta.parse(x)),rdf[rdf.ints7_4.<=2000,:goals])
-rcommon = map(x->eval(Meta.parse(x)),rdf[rdf.ints7_4.>=,140000000,:goals])  # length 14
+rcommon = map(x->eval(Meta.parse(x)),rdf[rdf.ints7_4.>=140000000,:goals])  # length 14
 rrare_str = map(x->@sprintf("0x%04x",x[1]),rrare)   # length 10
 rcommon_str = map(x->@sprintf("0x%04x",x[1]),rcommon)
 df = submatrix_to_dataframe( p, funcs, E, pdf, rcommon_str, rrare_str )  # 0 nonzeros

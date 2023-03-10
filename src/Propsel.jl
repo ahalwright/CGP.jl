@@ -138,7 +138,7 @@ function propsel_alt( pop::Population, dfe::Function)
 end
 
 @doc """function propsel!(p::Population, fitness::Vector{Float64} )
-Conduct proportional selection in-place.
+Conduct proportional selection on a vector of Chromosomes in-place.
 """
 function propsel!( pop::Vector{Chromosome}, fitness::Vector{Float64}; maxfit::Float64=0.0  )
   if maxfit == 0.0
@@ -148,6 +148,7 @@ function propsel!( pop::Vector{Chromosome}, fitness::Vector{Float64}; maxfit::Fl
       return
     end
   end
+  #println("maxfit: ",maxfit)
   n = length(pop)
   selected = zeros(Int64, n)
   k = 0
@@ -158,6 +159,8 @@ function propsel!( pop::Vector{Chromosome}, fitness::Vector{Float64}; maxfit::Fl
       selected[k + 1] = i
       k += 1
     end
+    #println("k: ",k,"  i: ",i,"  w: ",w,"  selected: ",selected)
   end
-  pop[:] = [ pop[selected[i]] for i = 1:n ]
+  #println("selected: ",selected)
+  pop[:] = [ deepcopy(pop[selected[i]]) for i = 1:n ]
 end 

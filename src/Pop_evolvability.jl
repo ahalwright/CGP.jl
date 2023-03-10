@@ -1,4 +1,5 @@
 # Testing the hypothesis that evolution under a varying environment increases evolvability.
+# This is NOT based on the logic gate G-P map.
 
 # The purpose of the function run_run_pop_evolvability() is to explore settings of popsize,
 # mutrate, and ngens for the population-based evolutionary algorithm.  The function allows

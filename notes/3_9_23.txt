@@ -1,0 +1,5 @@
+Trying to understand the effect of increasing the number of gates on number of epochal evolution steps.
+
+Ran data/8_15_22/run_count_outputs_ch_I.jl data/8_15_22/run_count_outputs_ch_J.jl on both Mac and surt2 due to apparent inconsistencies.
+
+See notes/11_15_22.txt for inconsistent results on gates vs steps.

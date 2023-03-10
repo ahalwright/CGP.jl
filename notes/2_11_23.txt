@@ -1,0 +1,46 @@
+# Algorithm to find neutral component.  Basically breadth-first search.
+
+# Start with a genotype ch with int chi that maps to phenotype ph.
+Code moved to GenGeno_components.jl
+
+using DataStructures
+
+# Finds the chromosome_ints of the circuits in the component of the genotype network of the phenotype mapped to by ch.
+function geno_component( p::Parameters, funcs::Vector{Func}, ch::Chromosome )
+  ph = output_values(ch)[1] 
+  chi = chromosome_to_int(ch, funcs )
+  mutated = Set(Int128[chi])
+  q = RBTree{Int128}();
+  push!(q,chi)
+  while length(q) > 0
+    chi = q[1]
+    delete!(q,chi)
+    if !(chi in mutated)
+      push!( mutated, chi )
+    end 
+    ch = int_to_chromosome( chi, p, funcs )
+    mut_list = mutate_all_neutral( ch, funcs )
+    for mch in mut_list
+      mchi = chromosome_to_int( mch, funcs )
+      if !(mchi in mutated) && !(mchi in q)
+        push!(q,mchi)
+      end 
+    end
+    #println("length(q): ",length(q),"  length(mutated): ",length(mutated))
+  end
+  [ chi for chi in mutated ]
+end
+
+# Results comparing to those of Neutral_components_examples12_30_21.xlsx.
+Parameters(3,1,4,4) with XOR
+@time ch = pheno_evolve(p,funcs,ph,5,10_000)[1]; @time geno_component(p,funcs,ch)
+0x4a  Several runs with result 2984, one with 180
+0x56  1456, 2464, 32,    does not agree with xlxs
+0x5a  one run with result 154168   1185 seconds
+
+phx4a = map(y->y-1,findall(x->x==0x4a,ph3445)) ## 4696-element Vector{Int64}:
+sphx4a = Set(phx4a);
+
+gcx4a = map(x->Int64(x),geno_component(p,funcs,ch))
+sgcx4a = Set(gcx4a);
+issubset( sgcx4a, sphx4a )  # true

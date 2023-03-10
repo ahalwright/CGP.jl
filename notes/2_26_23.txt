@@ -1,0 +1,39 @@
+Wrote redundancy functions in Redundancy.jl and tested in data/2_26_23/pheno_robust2_26_23.ipynb
+
+Tried to find an example of where navigability failed.  I. e., where epochal evolution failed on multiple tries.
+A genotype in a component of size 1 did not slow down epochal evolution.  
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 4)  
+length(funcs) 5
+julia> ch = pheno_evolve( p, funcs, ph1, 10, 100_000 )[1]; geno_component(p,funcs,ch)
+neutral evolution succeeded at step 808 for goal: UInt16[0x000d]
+1-element Vector{Int128}:
+ 7956391
+neutral_evolution(ch,funcs,ph2, 100_000 )
+neutral evolution succeeded at step 17 for goal: UInt16[0x000c]
+julia> print_circuit(ch)
+circuit((1,2,3), ((4,AND,2,1), (5,NOR,3,1), (6,XOR,2,4), (7,OR,6,5)))
+
+data/2_20_23/run_ph_evolveR.jl and data/2_20_23/ph_evolve_4inputs_10gates_5lb_12_20_22R.csv
+findmax(rdf.max_steps) #  (1.211593e6, 68)
+rdf[68,:]
+DataFrameRow
+ Row │ phlist          numinputs  numgates  levsback  mean_steps  median_steps  max_steps  std_steps  Kcomp  robustness  lg_redund
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  68 │ UInt16[0x834d]          4        10         5   2.32798e5     1.18996e5  1.21159e6  3.66293e5      7    0.104237   0.954243
+
+Clearly failed multiple times, but ultimately succeeded.
+
+Another idea:  Look at those phenotypes that were not found by sampling.  
+data/2_20_23/run_ph_evolveS.jl
+data/2_20_23/run_ph_evolveR.jl and data/2_20_23/ph_evolve_4inputs_10gates_5lb_12_20_22S.csv
+
+Phenotype with largest max_steps
+ Row │ phlist          numinputs  numgates  levsback  mean_steps  median_steps  max_steps  std_steps  Kcomp  robustness  lg_redund
+  70 │ UInt16[0xe678]          4        10         5   3.57657e5    189770.0    1.81283e6  5.31273e5    8   0.105932        0  
+But epochal evolution to it succeeds.
+
+# ch is a chromosome evolved to this phenotype
+geno_component(p,funcs,ch)
+72-element Vector{Int128}:
+
+See notes/2_27_23 for thoughts on navigability.

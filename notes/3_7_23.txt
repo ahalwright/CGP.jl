@@ -1,0 +1,19 @@
+Why epochal evolution "fails"---actually why it takes an extremely large number of steps.
+
+I am attaching a link to a Google Collab copy of a Jupyter notebook which shows how an epochal evolution takes an extremely large number of steps for a 3-input goal.  I disabled equal fitness steps in the implementation of "neutral_evolution" function which is where epochal evolution is implemented.
+
+Cell [18] shows epochal evolution starting from a circuit of the phenotype [0x0055] to a goal of [0x00b6] which succeeds after 157257 steps.
+
+Evolution goes through 4 epochs:  [0x0055] --> [0x0005] --> [0x00f5] --> [0x00bf] --> [0x00be] --> [0x00b6].
+
+This happens when the goal phenotype has the strongly interrelated properties:
+1.  Low redundancy.
+2.  High K complexity.
+3.  Low redundancy.
+
+Table of redundancies and K complexity of phenotypes:
+[0x
+
+In the example notebook, the redundancy of the goal phenotype [0x00b6] is 1842 which is 1.8e-7 of the sum of the redundancies of all phenotypes.  Each step of the final epoch does a mutation and checks to see if it is the goal.  By redundancies, this should take 1/1.8e-7 = 5.6e6 steps.  It succeeds in far fewer steps because of genotype correlations---a genotype is likely to have similar neighbors.
+
+The K complexity of the penultimate phenotype [0x00be] is 4, and the K complexity of the goal [0x00b6] is 6.

@@ -1,0 +1,38 @@
+Methods for Shape Space covering.
+
+Evolution:
+
+data/12_29_22/run_shape_space_evolR.jl
+phdf = shape_space_evolution_successes( p, funcs, num_mutates, quantile_values, phlist, max_tries, max_steps, csvfile="" )
+  shape_space_multiple_genos
+        # for each ph in phlist:
+        #   find phenotypes in the num_mutates neighborhood a circuit evolved to map to ph
+        #   generates a row of the output dataframe with the properties of this circuit
+    pheno_evolve_to_goals
+    process genotype
+      genotype_evolvability
+        mutate_all
+
+  shape_space_fract_successes  # computes the fraction of common phenotypes covered by num_mutates mutations of the given phenotype.
+    common_phenos
+
+
+
+Sampling:
+phdf = shape_space_sampling_successes( p, funcs, num_mutates, quantile_values, wdf.circuits_list, goals_list=phlist, csvfile="" )
+  shape_space_circuit_ints_list
+    shape_space_circuit_ints
+      pheno_set_funct  # Recursively compute the set of phenotypes reached by all num_mutates mutations from all circuits in circuit_int_list
+        mutate_all
+
+  shape_space_fract_successes
+
+=====================================
+
+
+Both: A "success" is phenotype produced by mutate_all that is common.  Fract successes is the fraction of common phenotypes covered by phenotypes generate by  mutate_all.
+
+  produce a dataframe with a row for each ph in phlist and a fract_successes column for each quantile value 
+  plot these fract_successes values.
+    
+      

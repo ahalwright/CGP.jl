@@ -5,6 +5,7 @@
 #  "From sequences to shapes and back: a case study in RNA secondary structures. Proc R Soc Lond B 1994;255:279–84"].
 
 # Runs shape_space_multiple_genos() and returns the fraction of the phenos in phenos_to_cover that are in the output phenotypes of shape_space_multiple_genos().
+# phenos_to_cover is the most common phenotypes under some criterion to define common
 # If output_phenos==true, then for each 
 function fraction_coverage( p::Parameters, funcs::Vector{Func}, phenos_to_cover::Vector{MyInt},  num_mutates::Int64, goal_list::GoalList, circuits_per_goal_list::Vector{Int64},  
       max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, output_phenos::Bool=false, csvfile::String="" )
@@ -13,6 +14,9 @@ function fraction_coverage( p::Parameters, funcs::Vector{Func}, phenos_to_cover:
 end
 
 # df is the dataframe produced by shape_space_multiple_genos() with output_phenos==true
+# phenos_to_cover is the most common phenotypes under some criterion to define common
+# If output_phenos==true, then for each 
+# fraction covered is the intersection of phenos_to_cover with with the phenos in df.phenos divided by the number of common phenos
 function fraction_coverage( df::DataFrame, phenos_to_cover::Vector{MyInt}; csvfile::String="" )
   n = length(phenos_to_cover)
   fract_covered = zeros(Float64,size(df)[1])
@@ -29,14 +33,13 @@ function phenos_to_cover( pdf::DataFrame, quant::Float64 )
   map(x->eval(Meta.parse(x)),pdf[ pdf.ints7_4 .>= quantile(pdf.ints7_4,quant),1])  # Assumes that the first column is the string representation of goals
 end
   
-# For each phenotype in goal_list, uses function pheno_evolve_to_goals() to evolve a circuit that map to the phenotype.
-# For each phenotype, computes the phenotypes in the num_mutates-neighborhoods of this circuit 
-# For each phenotype, there is a row of the output dataframe which includes size of these neighborhoods, 
-#   and if output_phenos==true, the list of phenos.[
-#### Each entry of circuits_per_goal_list is a number of circuits used to compute the unique phenotype count
-#function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, goal_list::GoalList, circuits_per_goal_list::Vector{Int64}, 
-#      max_tries::Int64, max_steps::Int64; increase_mutates::Bool=false, use_lincircuit::Bool=false, output_phenos::Bool=false, csvfile::String="" )
-# in the evolvability paper, circuits_per_goal == 1.
+# For each phenotype in goal_list: 
+#    uses function pheno_evolve_to_goals() to evolve a circuit that map to the phenotype,
+#    computes the phenotypes in the num_mutates-neighborhoods of this circuit,
+#    there is a row of the output dataframe which includes size of these neighborhoods, 
+# If output_phenos==true, the list of computed phenos is included in the output dataframe.
+# circuits_per_goal is the number of circuits evolved to map to each phenotype in goal_list.
+# In the evolvability paper, circuits_per_goal is always 1.
 function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, goal_list::GoalList, circuits_per_goal::Int64, 
       max_tries::Int64, max_steps::Int64; use_lincircuit::Bool=false, output_phenos::Bool=false, csvfile::String="" )
   #println("output_phenos: ",output_phenos)
@@ -90,6 +93,7 @@ function shape_space_multiple_genos( p::Parameters, funcs::Vector{Func}, num_mut
 end
 
 # helper function for function shape_space_multiple_genos()
+# returns one row of the dataframe
 function process_genotype( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, circuits_per_goal::Int64,
       circuit_steps_list::Union{Vector{Tuple{LinCircuit,Int64}},Vector{Tuple{Chromosome,Int64}}}, kdict::Dict{MyInt,Int64}; 
     use_lincircuit::Bool=false, output_phenos::Bool=false )
@@ -131,6 +135,7 @@ function process_genotype( p::Parameters, funcs::Vector{Func}, num_mutates::Int6
   return df_row 
 end
 
+#= Never called
 # This version returns the dataframe of results with one row for each phenotype in goal_list.
 # For each phenotype in goal_list, a starting circuit is evolved using function pheno_evolve() which is defined in Evolve.jl
 # If pheno_evolve() fails, it returns (nothing,nothing), and no circuit is added to circuits list.
@@ -154,13 +159,13 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   circuits_list = use_lincircuit ? [ rand_lcircuit( p, funcs ) for _ = 1:num_circuits ] : [ random_chromosome( p, funcs ) for _ = 1:num_circuits ] 
   shape_space_counts( p, funcs, num_mutates, circuits_list, use_lincircuit=use_lincircuit, csvfile=csvfile )
 end    
+=#
 
-# There is another method for shape_space_circuit_ints_list which calls this method
 # Write a DataFrame with one row per phenotype.  
 # DataFrame has 3 columns:  :goal, :pheno_counts, and :pheno.  
-# :pheno column is the phenotypes discovered by doing num_mutates mutations of a circuit that maps to the corresponding phenotype/.
-# circuit_ints_list_list is the circuits_list column from a count output file such as those in data/counts.
+# :pheno column is the phenotypes discovered by doing num_mutates mutations of a circuit that maps to the corresponding phenotype.
 # goals_list is a list of MyInt phenotypes that will be processed.
+# circuit_ints_list_list is the circuits_list column from a count output file such as those in data/counts.
 # Example:  wdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")
 # Note that p must be the same parameters as those for the counts file.
 # shape_space_circuit_ints_list( p, funcs, 1, wdf.circuits_list )
@@ -228,6 +233,7 @@ function shape_space_circuit_ints( p::Parameters, funcs::Vector{Func}, num_mutat
   (goal,phenos)
 end  
 
+#= Never called
 # produces a dataframe with the lengths of the result of pheno_set_funct() for each the circuits in circuits_list.
 function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::Int64, circuits_list::Union{ Vector{LinCircuit}, Vector{Chromosome} }; 
     use_lincircuit::Bool=false, csvfile::String="" )
@@ -262,7 +268,7 @@ function shape_space_counts( p::Parameters, funcs::Vector{Func}, num_mutates::In
   end
   df
 end
-
+=#
     
 function pheno_evolve_to_goals( p::Parameters, funcs::Vector{Func}, goal_list::GoalList, num_circuits_per_goal::Int64, max_tries::Int64, max_steps::Int64;
       use_lincircuit::Bool=false )
@@ -297,7 +303,9 @@ function pheno_set_funct( p::Parameters, funcs::Vector{Func}, circuit_int_list::
   end
 end
 
-# Returns a list of the robustnesses of numcircuits random genotypes
+# Returns a list of the robustnesses of numcircuits random genotypes with the given parameters and funcs
+# There is another function with this name in Robustness.jl
+#= Moved to Robustness.jl
 function genotype_robustness( p::Parameters, funcs::Vector{Func}, pheno::Goal, numcircuits::Int64; use_lincircuit::Bool=false )
   robust_list = Float64[]
   for i = 1:numcircuits
@@ -306,6 +314,7 @@ function genotype_robustness( p::Parameters, funcs::Vector{Func}, pheno::Goal, n
   end
   robust_list
 end
+=#
 
 # list of phenotypes in ph_list  which are above the quantile_value quantile for ph_list
 function common_phenos( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, quantile_value::Float64, rdict::Dict{MyInt,Int64} )
@@ -319,8 +328,8 @@ end
   
 # computes the fraction of common phenotypes covered by num_mutates mutations of the given phenotype.
 # ph_df should be the DataFrame result of function shape_space_multiple_genos() or function shape_space_circuit_ints_list() with option output_phenos=true.
-# Note that num_mutates is a parameter of shape_space_multiple_genos() and of function shape_space_circuit_ints_list()
-# There is no check that parameters p and funcs agree with the settings used to generate DataFrame ph_df.
+# Note that num_mutates is a parameter of shape_space_multiple_genos() and of function shape_space_circuit_ints_list() which have been called before this function.
+# There is no check that parameters p and funcs agree with the settings used to generate DataFrame ph_df./pheno
 function shape_space_fract_successes( p::Parameters, funcs::Vector{Func}, quantile_values::Union{Float64,Vector{Float64}}, ph_df::DataFrame; csvfile::String="" )
   rdict = redundancy_dict(p,funcs)
   if !( "phenos" in names(ph_df) )

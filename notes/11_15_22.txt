@@ -1,5 +1,6 @@
 Exploring whether complexity can be dropped from the evolvability paper.  Plot of log redund vs log mean evolve steps.
-1/8/23:  outdated. See 11_19_22
+
+See also notes/3_9_22.txt
 
 #@time df = include("../data/11_15_22/run_ph_evolveB.jl")
 df = read_dataframe("../data/11_15_22/neutral_evolve_record_3x1_8gts_noXOR_11_15_22B.csv")
@@ -8,3 +9,17 @@ scatter(map(x->lg10(x),df.mean_steps),df.lg_redund,smooth=true,ylabel="log redun
 savefig("../data/11_15_22/log_redund_vs_log_mean_evolution_steps_3x1_8gts4lb_noXOR_11_15_22.png")
 
 cdf = read_dataframe("../data/11_16_22/redundancy_mutate_all11_16_22C.csv")
+
+
+#@time bdf = include("../data/11_15_22/run_ph_evolveB.jl")
+bdf = read_dataframe("../data/11_15_22/neutral_evolve_record_3x1_8gts_noXOR_11_15_22B.csv")
+scatter(bdf.lg_redund,map(x->lg10(x),bdf.mean_steps),smooth=true,xlabel="log redundancy",ylabel="log mean evolution steps",labels="8 gates 4 levelsback")
+#scatter!(title="log redund vs. log mean evolution steps 3x1 8gts4lb noXOR")
+
+#cdf = read_dataframe("../data/11_15_22/neutral_evolve_record_3x1_10gts_noXOR_11_15_22C.csv")
+#scatter!(cdf.lg_redund,map(x->lg10(x),cdf.mean_steps),smooth=true,xlabel="log redundancy",ylabel="log mean evolution steps")
+
+ddf = read_dataframe("../data/11_15_22/neutral_evolve_record_3x1_12gts_noXOR_11_15_22D.csv")
+scatter!(ddf.lg_redund,map(x->lg10(x),ddf.mean_steps),smooth=true,xlabel="log redundancy",ylabel="log mean evolution steps")
+
+savefig("../data/11_15_22/log_redund_vs_log_mean_evolution_steps_3x1_8gts4lb_noXOR_11_15_22.png")

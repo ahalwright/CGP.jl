@@ -1,0 +1,125 @@
+How can we show why evolution evolvability is greater than sampling evolvability?
+
+Hypothesis 1:  If we epochal evolve a genotype to map to a target phenotype, then 
+  the genotype evolvability of evolved genotypes will be larger than the genotype
+  evolvability of sampled genotypes that map to the target phenotype.
+
+  Test 1a:  We have the average genotype evolvabvility of sampled genotypes for a given phenotype.
+    Compare to the average genotype evolvability of genotypes epochal evolved to the 
+    given phenotype.
+
+  Test 1b: Compute the average genotype evolvability of the circuit samples
+    that we have for each phenotype for the 3x1 and 4x1 cases.  For a given target
+    phenotype, coompare this average for the target phenotype to the average genotype 
+    evolvability of circuits epochal evolved to map to the target phenotype.
+
+Hypothesis 2:  The genotype evolvability of a genotype is positively related to
+  its evolution or sampling phenotype evolvabilty.  
+
+  Test 2a:  See below.  Did a scatter plot.
+    Result: Strongly related to evolution evolvability. Oppositely related to sampling evolvabilty.  The best we could hope for.
+
+#Lost updates on 2/21 and 2/22
+2/3/23:  Test 1a:
+@time clist  = pheno_evolve( p, funcs, [0x00d], 1000, 4000, 100_000 );
+mean(map(x->genotype_evolvability(x[1],funcs),clist))
+20.116
+
+cdf = read_dataframe( "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv");
+adf = read_dataframe("../data/2_1_23/count_outputs_ch_4funcs_3inputs_8gate_4lb_B.csv")
+mge = mean_genotype_evolvabilities( p, funcs, adf ) #  256-element Vector{Float64}:
+insertcols!(adf,3,:mean_geno_evolvabilties=>mge)
+ Row │ goals    ints8_4    mean_geno_evolvavilties  circuits_list
+  10 │ 0x0009        6269                 25.6203   Int128[60666810959004, 657076618…
+@time clist  = pheno_evolve( p, funcs, [0x00d], 1000, 4000, 100_000 );
+mean(map(x->genotype_evolvability(x[1],funcs),clist))
+20.116
+adf[0x006a,[:goals,:ints8_4,:mean_geno_evolvavilties]]
+@time clist  = pheno_evolve( p, funcs, [0x0069], 1000, 4000, 100_000 );  1588 seconds
+mean(map(x->genotype_evolvability(x[1],funcs),clist))
+33.712
+DataFrameRow
+ Row │ goals    ints8_4  mean_geno_evolvavilties
+ 106 │ 0x0069        68                  32.3235
+@time clist  = pheno_evolve( p, funcs, [0x0096], 1000, 4000, 100_000 );  1604 seconds
+mean(map(x->genotype_evolvability(x[1],funcs),clist))
+33.552
+
+Seems to be a confirmation of the hypothesis
+
+2/22/23
+clist  = pheno_evolve( p, funcs, [0x00d], 1000, 4000, 100_000 );
+
+
+
+
+2/1/23:
+
+Added functions genotype_evolvability(), geno_evolvabilities(), and mean_genotype_evolvabilities() to Evolvability.jl
+
+cdf = read_dataframe( "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv");
+p = Parameters(3,1,8,4);funcs=default_funcs(p)[1:4]
+# compute mean genotype evolvabily of all phenotypes
+mge = mean_genotype_evolvabilities( p, funcs, cdf ) #  256-element Vector{Float64}:
+insertcols!(cdf,3,:mean_geno_evolvavilties=>mge)
+
+qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability3x1_8_4_7_8_22Q.csv")
+rename!(qpdf,:evolvability=>:e_evolvability);
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv");
+rwdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3D.csv");
+using Plots
+# geno_evolvability very similar to evolution evolvability:  both a strong negative relationship to log redundancy
+scatter([qpdf.e_evolvability,cdf.mean_geno_evolvabilties*8],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "8*(genotype evolvability)"],msize=6,shape=[:star6 :rtriangle])
+scatter!(legend=:bottomleft,ylabel="log redundancy",xlabel="evolvability count")
+savefig("../data/2_1_23/evol_geno_evolvability_3s1_8gts4lb_noXOR.png")
+
+# Also shows that sampling evolvability is oppositely related to genotype evolvability
+scatter([qpdf.e_evolvability,Vector{Int64}(rwdf.d_evolvability),cdf.mean_geno_evolvabilties*8],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "sampling evolvability" "8*(genotype evolvability)"],msize=6,shape=[:star6 :rtriangle :ltriangle])
+scatter!(legend=:topleft,ylabel="log redundancy",xlabel="evolvability count",ylim=(0.5,9.5))
+
+Sampling evolution algorithm (comparison to epochal evolution)
+
+Assume a sampling dataframe with a circuit_ints column like cdf above.  May need to run sampling with larger sample size and numcircuits.
+Copied 8_15_22/run_count_outputs_ch_W.jl to 2_1_23/run_count_outputs_ch_A.jl and copied to surt2
+
+Idea: when the next circuit is needed, choose the next circuit from the circuit_int list of the current phenotype.
+Maintain a index/counter for each phenotype of the circuit_ints list for that phenotype.
+
+Email to Cheyenne
+
+I hope you are resolving your Missoula College problems.
+
+I have been reading the Ahnert 2017 Manrubia 2021 papers more carefully.
+
+The overall message about G-P maps is that the likelihood of discovering a phenotype depends strongly on the size of its neutral network.
+
+"neutral network size strongly determines how likely a phenotype is to arise in evolution. In the context
+of RNA structures, it was also shown more recently that fitter phenotypes remain undiscovered if their neutral network
+is too small [58]. The most striking result in this respect is that the functional RNA secondary structures that have
+arisen naturally in the course of biological evolution closely mirror the distribution one would expect based on
+the neutral network size [24]. This provides strong evidence that, rather than being the result of strong selective pressures
+and evolutionary optimization, functional non-coding RNAs represent the most accessible solutions to a given evolutionary 
+challenge. More generally speaking this result implies that the accessibility of phenotypes may be just as important a 
+determinant of evolutionary outcomes as the pressures of natural selection."  Ahnert 2017 page 9.
+
+The "Arrival of the Fittest paper" by Shaper and Louis 2014 comes to a similar concludion.
+"we show that the discovery time T_p of a phenotype p similarly scales to first order as 1/F_p for a wide range 
+of population sizes and mutation rates".  Here F_p = N_p/N_G, with N_p the number of genotypes mapping onto phenotype p.
+
+Thus, the claim is that in a population-based evolution, a less fit but higher redundancy phenotype will fix before
+a more fit but lower redundancy phenotype is discovered.
+
+Epochal evolution overcomes this phenomenon by having very strong selection: as soon as a more fit phenotype is discovered,
+it "fixes" immediately.  These assumptions make epochal evolution not very realistic for biological evolution.
+But this is not a problem for genetic programming evolution.
+
+Thus in our "Navigability" section results on 4, 5, 6, and 7 input phenotypes these properties of epochal evolution
+(no population and strong selection) are overcoming the properties of the G-P map.
+
+I think we should be emphasizing two uses for epochal evolution:
+
+1)  As a tool for understanding the G-P map.  An example is our evolution approximation of evolvability.
+
+2)  As a simulation of the evoltuion of the G-P map.  In other words, if the G-P map is from some application,
+     then this would be a simulation of evolution for this application.
+

@@ -825,6 +825,15 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
       elseif p.numinteriors == 10 && p.numlevelsback == 5
         if length(funcs) == 5
           csvfile = "../data/counts/count_outputs_ch_5funcs_3inputs_10gates_5lb_Y.csv"
+        elseif length(funcs) == 4
+          csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_10gate_5lb_I.csv"
+        else
+          println("no csv file in function redundancy_dict()")
+          return nothing
+        end
+      elseif p.numinteriors == 12 && p.numlevelsback == 6
+        if length(funcs) == 4
+          csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_12gate_6lb_J.csv"
         else
           println("no csv file in function redundancy_dict()")
           return nothing
@@ -860,7 +869,7 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
   pheno_name = Symbol(names(df)[1])
   counts_name = Symbol(names(df)[2])
   #println("pheno_name: ",pheno_name,"  counts_name: ",counts_name)
-  println("size(df): ",size(df))
+  #println("size(df): ",size(df))
   for i = 1:size(df)[1]
     dict[string_to_MyInt(df[i,pheno_name])] = df[i,counts_name]
   end

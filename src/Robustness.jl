@@ -20,9 +20,21 @@ function genotype_robustness( p::Parameters, funcs::Vector{Func}, numcircuits::I
   robust_list
 end
 
+# Returns a list of the robustnesses of numcircuits random genotypes with the given parameters and funcs
+# There is another function with this name below.
+function genotype_robustness( p::Parameters, funcs::Vector{Func}, pheno::Goal, numcircuits::Int64; use_lincircuit::Bool=false )
+  robust_list = Float64[]
+  for i = 1:numcircuits
+    c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
+    push!( robust_list, robustness( c, funcs ) )
+  end
+  robust_list
+end
+
 # Average robustness of numcircuits random chromosomes for a list of parameters settings
 # Triple:  (numiinputs, numinteriors, numlevelsback)  
 # Example:  genotype_robustness( [(3,8,4),(4,10,5)], 100 )
+# Note there is another function with this name above.
 function genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, numcircuits::Int64 )
   ni_list = Int64[]
   ng_list = Int64[]
@@ -153,3 +165,44 @@ end
   df
 end
 =#
+
+# jupyter notebook:  data/2_26_23/pheno_robust2_26_23.ipynb
+
+# Phenotype robustness under the random model of Greenbury "Genetic Correlations" 2016
+function random_pheno_robustness( p::Parameters, funcs::Vector{Func}, ph::Goal, rdict::Dict=redundancy_dict(p,funcs) )
+  redund = rdict[ph[1]]
+end
+
+# Phenotype robustness computed based the circ_ints_list of a counts dataframe.
+# Example:  p = Parameters( 3, 1, 8, 4 ); funcs=default_funcs(p)[1:4]
+#     wdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_ge_W.csv")
+#     sampling_pheno_robustness( p, funcs, [0x000d], wdf.circuits_list )
+function sampling_pheno_robustness( p::Parameters, funcs::Vector{Func}, ph::Goal, circ_ints_list::Union{Vector{Vector{Int128}},Vector{String}} )
+  if typeof(circ_ints_list) == Vector{String}
+    circ_ints = string_to_expression( circ_ints_list[ph[1]+1] )
+  else
+    circ_ints = circ_ints_list[ph[1]+1]
+  end
+  @assert output_values( int_to_chromosome( circ_ints[1], p, funcs )) == ph
+  circuits = map( ci->int_to_chromosome( ci, p, funcs ), circ_ints )
+  mean( map( ch->robustness( ch, funcs ), circuits ) )
+end
+
+# Phenotype robustnesses computed based the circ_ints_list of a counts dataframe.
+# Example:  sampling_pheno_robustnesses( p, funcs, [[0x000d],[0x0033]], wdf.circuits_list )
+function sampling_pheno_robustnesses( p::Parameters, funcs::Vector{Func}, phlist::GoalList, circ_ints_list::Union{Vector{Vector{Int128}},Vector{String}} )
+  map( ph->sampling_pheno_robustness( p, funcs, ph, circ_ints_list), phlist )
+end
+
+# Phenotype robustness computed based evolving ncircuits circuits that map to ph
+# Examle:  evolution_pheno_robustness( p, funcs, [0x000d], 5, 10, 100_000 )
+function evolution_pheno_robustness( p::Parameters, funcs::Vector{Func}, ph::Goal, ncircuits::Int64, max_tries::Int64, max_steps::Int64 )
+  circ_steps_list = pheno_evolve( p, funcs, ph, ncircuits, max_tries, max_steps )
+  circuits_list = map( x->x[1], circ_steps_list )
+  mean( map( ch->robustness( ch, funcs ), circuits_list ) )
+end
+
+# Phenotype robustnesses computed based evolving ncircuits circuits that map to each ph in phlist
+function evolution_pheno_robustnesses( p::Parameters, funcs::Vector{Func}, phlist::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64 )
+  map( ph->evolution_pheno_robustness( p, funcs, ph, ncircuits, max_tries, max_steps ), phlist )
+end

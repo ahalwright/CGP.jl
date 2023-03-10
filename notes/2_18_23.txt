@@ -1,0 +1,87 @@
+Reconstructing complexity paper:
+More complete writeup:
+evotech/pheno_network/complexity_paper/Comments & outline for complexity paper2_20_23.docx
+
+Most essential results:
+
+Explain G-P map.  Set levelsback to maximum possible.
+
+Tononi vs. K complexity  ---- maybe just refer to GPTP paper
+
+log redundancy vs K complexity  Note:  GECCO does log redund vs T complexity
+
+K complexity vs neighbor K complexity (GPTP does for T complexity)
+  Perhaps do a heat plot.
+
+review of Dingle's complexity results
+
+mutation from low complexity to high complexity
+
+evolution from low complexity to high complexity
+
+evolution and sampling evolvability vs K complexity
+
+Navibability section explained by complexity:  can use different numbers of gates and max levelsback
+
+Needed:
+
+Logic gate circuit:  Can use a different example
+
+Maybe use strength evolvability instead of degree evolvability
+
+============================
+
+Full Outline
+
+Introduction
+
+  Genotypes and phenotypes
+    Includes logic gate circuits
+      New example circuit
+      No levelsback parameter
+      Perhaps 4 inputs for all results (except navigability)
+ 
+  Kolmogorov and Tononi complexity 
+    Refer to GPTP for T complexity explanation
+  
+  Neutral and epochal evolution
+    Used to approximate K complexity
+  
+  Robustness and evolvability
+    Use definitions other than pheno network
+  
+  Summarize universal properties 
+    refer to evolvability paper
+
+Methods
+
+  Details of neutral and epochal evolution
+
+  Approximation of K complexity
+
+  Mutation and evolution from low to high complexity
+
+  Sampling (don't need random-walk sampling)
+
+  Approximation of evolvability (evolution and sampling)
+
+Results
+
+  Log redundancy versus rank:  
+    Different parameters but same basic plot
+
+  Log redundancy versus K complexity
+
+  Robustness vs K complexity
+
+  Evolution and sampling evolvability vs K complexity
+
+  Mutation from low complexity to high complexity
+
+  Evolution from low complexity to high complexity
+
+
+  Navigability 
+    Different parameters 
+    Explain why almost every evolution is fron low to high complexity
+

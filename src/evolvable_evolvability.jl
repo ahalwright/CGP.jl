@@ -57,7 +57,9 @@ function phenonet_matrix_sampling_approx( p::Parameters, funcs::Vector{Func}, nw
   end
 end
 
+# Evolves evolvability, Tononi complexity, and pheno_vects for the phenotypes in ph_list using ncircuits per phenotype
 # Evolution version
+# Alternative function:  run_geno_complexity() in Evolvability.jl
 function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64;  use_lincircuit::Bool=false, csvfile::String="" )
   println("evolvable_pheno_df: length(ph_list): ",length(ph_list))
   nrepeats = nprocs()==1 ? 1 : nprocs()-1
@@ -97,6 +99,8 @@ function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, ph_list::GoalLi
   df
 end
 
+# Computes evolvability, Tononi complexity for the phenotypes in ph_list using ncircuits per phenotype
+# Requires circ_int_lists from sampling.
 # Sampling version
 function evolvable_pheno_df( p::Parameters, funcs::Vector{Func}, phlist::Vector, circ_int_lists::Vector; use_lincircuit::Bool=false, csvfile::String="" )
   if typeof(phlist[1]) <: AbstractString
@@ -268,6 +272,24 @@ function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{I
   edf
 end
 
+function submatrix_to_dataframe( p::Parameters, funcs::Vector{Func}, E::Matrix{Int64}, evdf::DataFrame, row_col_list::Union{Vector{MyInt},Vector{String}} )
+  tostring(x::MyInt) = MyInt==UInt16 ? @sprintf("0x%04x",x) : @sprintf("0x%04x",x)
+  row_col_list_str = typeof(row_col_list)==Vector{String} ? row_col_list : map(x->tostring(x[1]), row_col_list )
+  bv = BitVector( map( i->evdf.pheno_list[i] in row_col_list_str, 1:size(evdf)[1] ))
+  row_col_indices = map(i->findfirst(x->row_col_list_str[i]==x, evdf.pheno_list),1:length(row_col_list_str))
+  println("row_col_indices: ",row_col_indices)
+  edf = DataFrame()
+  for i = 1:length(row_col_list)
+    #println("i: ",i)
+    insertcols!(edf,i,@sprintf("0x%02x",row_col_indices[i]-1)=>E[row_col_indices,row_col_indices[i]])
+  end
+  insertcols!(edf,1,"pheno"=>evdf.pheno_list[row_col_indices])
+  edf
+
+end
+
+#  println("sum E submatrix: ",sum(E[row_col_indices,dest_indices]))
+#  map(i->findfirst(x->row_col_list_str[i]==x, evdf.pheno_list),1:length(row_col_list_str))
 function submatrix_count( p::Parameters, funcs::Vector{Func}, E::Matrix{Int64}, evdf::DataFrame, source_list::Union{Vector{MyInt},Vector{String}},
     dest_list::Union{Vector{MyInt},Vector{String}}  )
   tostring(x::MyInt) = MyInt==UInt16 ? @sprintf("0x%04x",x) : @sprintf("0x%04x",x)
@@ -696,3 +718,38 @@ function evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromCompl
   end
   (numfailures[],map(tt->tt[],ttry_list),map(ts->ts[],total_steps_list))
 end  
+
+# Returns list of unique phenotypes that are in the evolvability set of ph
+function evolvability_list_evolution( p::Parameters, funcs::Vector{Func}, phlist::GoalList, ncircuits::Int64, max_tries::Int64, max_steps::Int64 )
+  pheno_set = Set(Goal[])
+  for ph in phlist
+    circuits_steps_list = pheno_evolve( p, funcs, ph, ncircuits, max_tries, max_steps )
+    circuits_list = map(x->x[1], circuits_steps_list )
+    for circ in circuits_list
+      phenos = mutate_all( circ, funcs, output_outputs=true, output_circuits=false )
+      for phm in phenos
+        push!(pheno_set,phm)
+      end
+    end
+  end
+  setdiff!( pheno_set, Set([ph for ph in phlist ]) )
+  collect(pheno_set)
+end
+
+#  fit_dict = Dict{MyInt,Float64}( [(target[1],1.0)] )
+function evolvability_list_filtered( p::Parameters, funcs::Vector{Func}, ph::Goal, target::Goal, evo_list::Vector{Goal}, fit_dict::Dict{MyInt,Float64}=Dict{MyInt,Float64}(); 
+      neutral::Bool=false )
+  if length(fit_dict) == 0
+    fit_dict = Dict{MyInt,Float64}( [(target[1],1.0)] )
+  end   
+  ph_fit = get!( fit_dict, ph[1], rand() )
+  if neutral 
+    new_list = filter( x->get!( fit_dict, x[1], rand()) >= ph_fit , evo_list )
+  else
+    new_list = filter( x->get!( fit_dict, x[1], rand()) > ph_fit , evo_list )
+  end
+  if target in new_list
+    println("target ",target," found")
+  end
+  new_list
+end
