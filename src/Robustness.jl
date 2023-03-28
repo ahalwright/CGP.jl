@@ -10,6 +10,16 @@ function robustness( c::Circuit, funcs::Vector{Func} )
   return length(robust_outputs)/length(outputs)
 end   
 
+function grobustness( c::Circuit, funcs::Vector{Func} )
+  #print("robustness: c:  ")
+  #print_circuit(c,funcs)
+  c_output = output_values(c,funcs)
+  outputs = mutate_all( c, funcs, output_outputs=true )
+  #println("outputs[1]: ",outputs[1])
+  robust_outputs = filter( x->x==c_output, outputs )
+  return length(robust_outputs)/length(outputs)
+end   
+
 # Returns a list of the robustnesses of numcircuits random genotypes
 function genotype_robustness( p::Parameters, funcs::Vector{Func}, numcircuits::Int64; use_lincircuit::Bool=false )
   robust_list = Float64[]

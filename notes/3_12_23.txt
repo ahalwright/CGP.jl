@@ -1,0 +1,35 @@
+Conclusions for the whole paper.
+
+We can compute/approximate the phenotype network.
+
+Wagner evolvability is degree evolvability.  
+
+Why we are interested in low redundancy phenotypes:  discovering complexity.  Other reasons?
+
+Sampling substantially underestimates the evolvability of low redundancy phenotypes.  Evolution evolvability is much more accurate.
+
+Mutation from high to low redundancy is exponentiallly unlikely based on the difference in redundancy.  
+
+Evolution from high to low redundancy requires strong selection to overcome redundancy properties of the G$\rightarrow$P  map.
+    Epochal evolution can succeed because it has strong selection.
+
+====================================
+Computing evolvability by using a large sample.  data/1_3/
+
+Parameters:  3inputs, 6 gates, 3 lb no XOR data/1_3/run_random_walksI.jl
+findall(x->x==0,rrw_df.d_evolvability)
+42-element Vector{Int64}:   42 phenotypes with no genotypes
+
+Parameters:  3inputs, 7 gates, 4 lb no XOR data/1_3/run_random_walksK.jl
+500000 walks
+ Minimum d_evolvability = 33
+d_evolvability of 0x0000 = 254
+d_evolvability of 0x00ff = 255
+
+Parameters:  3inputs, 7 gates, 4 lb no XOR data/1_3/run_random_walksL.jl
+nwalks = 1_000_000
+steps = 10_000
+Minimum d_evolvability = 51
+findall(x->x<=100,rrw_df.d_evolvability) 146-element Vector{Int64}:
+Possible that d_evolvability is max for all or most phenotypes
+

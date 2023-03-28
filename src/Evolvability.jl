@@ -1114,6 +1114,9 @@ function mean_genotype_evolvabilities( p::Parameters, funcs::Vector{Func}, df::D
   geno_evols = pmap( x->mean(geno_evolvabilities( p, funcs, x )), circ_list )
 end
 
+# Returns the mean genotype evolvability and the average genotype evolvability of the neutral circuits produced a a mutate_all() of ch.
+# Shows that the genotype evolvability is close to theaverage genotype evolvability of neighbors.
+# Circuits are those produced by the circuits_list of a counts file.
 function run_mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, df::DataFrame )
   cints_ph = string_to_expression( df.circuits_list[ ph[1]+1 ] )
   #ch = int_to_chromosome( rand( cints_ph ), p, funcs )
@@ -1129,6 +1132,7 @@ function mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ch::Chromoso
   mutation_vs_sample_ch( p, funcs, ch )
 end
 
+# Compares the genotype evolvability of circuit ch with the average genotype evolvability of neutral circuits produced by mutate_all() of ch.
 function mutation_vs_sample_ch( p::Parameters, funcs::Vector{Func}, ch::Chromosome )
   ph = output_values( ch )
   ge_ch = genotype_evolvability( ch, funcs )
@@ -1136,33 +1140,6 @@ function mutation_vs_sample_ch( p::Parameters, funcs::Vector{Func}, ch::Chromoso
   mutall_circs = circs[findall( x->x==ph, outputs )]
   mean_ge_mutall = mean( map( x->genotype_evolvability(x,funcs), mutall_circs ) )
   (ge_ch,mean_ge_mutall)
-end
-
-# Random neutral walk for a single phenotype ph
-function mutate_walk( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, max_tries::Int64, max_steps::Int64; save_interval::Int64=10 )
-  ch = pheno_evolve(p,funcs,ph,max_tries,max_steps)[1] 
-  mutate_walk( p, funcs, ch::Chromosome, nreps::Int64; save_interval=save_interval )
-end
-
-# Random neutral walk given a starting Chromosome c
-# Returns the history of ph_set lengths
-function mutate_walk( p::Parameters, funcs::Vector{Func}, ch::Chromosome, nreps::Int64; save_interval::Int64=10 )
-  ph = output_values( ch )
-  ph_set = Set(Goal[ ph ])
-  length_history = Int64[]
-  for step = 0:nreps
-    (outputs,circs) = mutate_all(ch,funcs,output_circuits=true,output_outputs=true)
-    new_ch = rand( circs[findall( x->x==ph, outputs )] )
-    #println("new_ov: ",output_values(new_ch))
-    #println(map(x->output_values(x), circs ) )
-    ph_set = union!( ph_set, Set( outputs ) )
-    if step % save_interval == 0
-      #println("step: ",step,"  length(ph_set): ",length(ph_set))
-      push!(length_history,length(ph_set))
-    end
-    ch = new_ch
-  end
-  length_history
 end
 
 function sample_walk( p::Parameters, funcs::Vector{Func}, ch::Chromosome, nreps::Int64, df::DataFrame )
@@ -1178,10 +1155,54 @@ function sample_walk( p::Parameters, funcs::Vector{Func}, ch::Chromosome, nreps:
   ph_set
 end
 
+# Random neutral walk for a single phenotype ph
+function mutate_walk( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, max_tries::Int64, max_steps::Int64; 
+    save_geno_evolvability::Bool=false, save_interval::Int64=10 )
+  ch = pheno_evolve(p,funcs,ph,max_tries,max_steps)[1] 
+  mutate_walk( p, funcs, ch::Chromosome, nreps::Int64; save_geno_evolvability=save_geno_evolvability, save_interval=save_interval )
+end
+
+# Random neutral walk given a starting chromosome ch
+# The neutral walk is confined to the neutral set component containing ch
+# Thus, if neutral walk is short, this indicates that the size of this component is small
+# If save_geno_evolvability==false, returns the history of ph_set lengths
+# If save_geno_evolvability==true, returns the history of pairs (length(ph_set), genotype_evolvability of current new_ch)
+function mutate_walk( p::Parameters, funcs::Vector{Func}, ch::Chromosome, nreps::Int64; save_geno_evolvability::Bool=false, save_interval::Int64=10 )
+  ph = output_values( ch )
+  ph_set = Set(Goal[ ph ])
+  length_history = Int64[]
+  length_gevol_pairs_history = Tuple{Int64,Int64}[]
+  for step = 0:(nreps-1)
+    (outputs,circs) = mutate_all(ch,funcs,output_circuits=true,output_outputs=true)
+    new_ch = rand( circs[findall( x->x==ph, outputs )] )  # new_ch is a random circuit from the circuits returned by mutate_all()
+    #println("new_ov: ",output_values(new_ch))
+    #println(map(x->output_values(x), circs ) )
+    ph_set = union!( ph_set, Set( outputs ) )   # ph_set is the union of all outputs produced up to this step
+    if step % save_interval == 0
+      #println("step: ",step,"  length(ph_set): ",length(ph_set))
+      if save_geno_evolvability
+        push!(length_gevol_pairs_history,(length(ph_set),genotype_evolvability(new_ch,funcs)))
+      else
+        push!(length_history,length(ph_set))
+      end 
+    end
+    ch = new_ch
+  end
+  if save_geno_evolvability
+    length_gevol_pairs_history 
+  else
+    length_history
+  end
+end
+
+# Returns a dataframe with one row per phenotype
+# Each row contains the information returned by mutate_walk() for that phenotype.
+# If phlist contains repeats of the same phenotype, then different results indicated different sized phenotypes
 function run_mutate_walks( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nreps::Int64, max_tries::Int64, max_steps::Int64; 
-    csvfile::String="", save_interval::Int64=10, redund_params::Parameters=p)
-  length_histories = pmap( ph->mutate_walk( p, funcs, ph, nreps, max_tries, max_steps, save_interval=save_interval ), phlist )
-  df = DataFrame( :goal=>phlist, :walk_length=>map(x->x[end],length_histories), :walk_length_histories=>length_histories )
+    csvfile::String="", save_geno_evolvability::Bool=false, save_interval::Int64=10, redund_params::Parameters=p)
+  histories = pmap( ph->mutate_walk( p, funcs, ph, nreps, max_tries, max_steps, save_geno_evolvability=save_geno_evolvability,
+      save_interval=save_interval ), phlist )
+  df = DataFrame( :goal=>phlist, :walk_length=>map(x->x[end][1],histories), :histories=>histories )
   rdict = redundancy_dict( redund_params, funcs )
   if typeof(rdict) <: Dict
     insertcols!(df, 2, :lg_redund=>map( ph->lg10(rdict[ph[1]]), phlist ) )
@@ -1203,3 +1224,35 @@ function run_mutate_walks( p::Parameters, funcs::Vector{Func}, phlist::GoalList,
   end
   df
 end
+
+# Find a lower bound on the size of the neutral component that contains circuit ch.
+# Does a neutral walk starting at ch.  
+# Keeps track of the circuits encountered by using ch_set which is a set of circuit ints.
+# Returns the size of ch_set.
+# Example:  p = Parameters(3,1,7,4)
+#  ch = circuit((1,2,3), ((4,NOR,2,1), (5,NAND,1,2), (6,NAND,4,3), (7,NOR,3,4), (8,NOR,6,4), (9,NAND,7,5), (10,AND,9,6))); ch.params=p; 
+#  output_values(ch)  # 0x00e9
+#  length(simple_walk( ch, funcs, 200000 ))  # 648  # Smaller than other circuits with the same parameters and output.
+function simple_walk( ch::Chromosome, funcs::Vector{Func}, maxreps::Int64 )
+  p = ch.params
+  ph = output_values(ch)
+  ch_int = chromosome_to_int( ch, funcs )
+  ch_set = Set( Int128[ch_int] )
+  for step in 1:maxreps
+    new_ch = mutate_chromosome!( deepcopy( ch ), funcs )[1]
+    if output_values(new_ch) == ph
+      new_ch_int = chromosome_to_int( new_ch, funcs )
+      old_len = length(ch_set)
+      union!( ch_set, new_ch_int )
+      new_len = length(ch_set)
+      if old_len == new_len
+        #println("step: ",step,"  duplicate genotype")
+      #else
+        #println("step: ",step,"  new genotype")
+      end
+      ch = new_ch
+    end
+  end
+  ch_set
+end
+  

@@ -1,0 +1,48 @@
+Ideas for testing the effect of evolution evolvability being greater than sampling evolvability.
+
+1.  Run a neutral walk and keep track of genotype evolvability.  Compare to the genotype evolvability of a random sample of genotypes for that phenotype.
+
+2.  Compare the time to find a rare phenotype using a neutral walk of a not-so-neutral phenotype and a sequence of random samples.
+
+3.  Start with a rare phenotype, and look at genotype evolvability of:
+    a.  Last step before discovery genotypes.  
+    b.  Neighbors of phenotype discovered by sampling.
+
+
+Revist ideas for continuous G-P map.
+
+Define continuous versions of the gate functions.
+
+Alternatives for piecewise linear interpolations of the binary functions on the unit square [0,1] x [0,1]
+First, assign the value 1/2 to to (1/2, 1/2).  
+For the continous version CAND of AND and COR of OR applied to a single bit, let:
+CAND(0,0,p) = 0       COR(0,0,p) = p/2     CNAND(0,0,p) = 1         COR(0,0,p) = (1-p)/2   CXOR(0,0,p) = p/2
+CAND(1,0,p) = 0       COR(1,0,p) = 0       CNAND(1,0,p) = 1         COR(1,0,p) = 1         CXOR(0,0,p) = (1-p)/2
+CAND(0,1,p) = 0       COR(0,1,p) = 0       CNAND(0,1,p) = 1         COR(0,1,p) = 1         CXOR(0,1,p) = (1-p)/2
+CAND(1,1,p) = p/2     COR(1,1,p) = 0       CNAND(1,1,p) = (1-p)/2   COR(1,1,p) = 1         CXOR(0,0,p) = p/2
+
+Result needs to be a convex combination of two bit strings represented as MyInts.
+
+Define a new type which includes two MyInt bit strings and Float p.  
+Result of a gate is obtained by applying the digital gate to each bit string, and combining p1 and p2.  How?
+Question:  How to initialize the second bit string?  Bitwise complement?
+
+#=
+First, assign the value 1/2 to to (1/2, 1/2).  
+For the continous version CAND of AND and COR of OR, let
+CAND(0,0,p) = 0  COR(0,0,p) = p  CNAND(0,0,p) = 1    COR(0,0,p) = 1-p  CXOR(0,0,p) = p
+CAND(1,0,p) = 0  COR(1,0,p) = 0  CNAND(1,0,p) = 1    COR(1,0,p) = 1    CXOR(0,0,p) = 1-p
+CAND(0,1,p) = 0  COR(0,1,p) = 0  CNAND(0,1,p) = 1    COR(0,1,p) = 1    CXOR(0,1,p) = 1-p
+CAND(1,1,p) = p  COR(1,1,p) = 0  CNAND(1,1,p) = 1-p  COR(1,1,p) = 1    CXOR(0,0,p) = p
+
+Alternative
+CAND(0,0,p) = 1-p  COR(0,0,p) = p    CNAND(0,0,p) = p    COR(0,0,p) = 1-p  CXOR(0,0,p) = p
+CAND(1,0,p) = 1-p  COR(1,0,p) = 1-p  CNAND(1,0,p) = p    COR(1,0,p) = p    CXOR(0,0,p) = 1-p
+CAND(0,1,p) = 1-p  COR(0,1,p) = 1-p  CNAND(0,1,p) = p    COR(0,1,p) = p    CXOR(0,1,p) = 1-p
+CAND(1,1,p) = p    COR(1,1,p) = 1-p  CNAND(1,1,p) = 1-p  COR(1,1,p) = p    CXOR(0,0,p) = p
+=#
+
+How to use bitwise evaluation given p:
+Evaluate the circuit without p (or with p = 1).  Result A.
+Evaluate the circuit with ones-complement context.  Result B.
+Result is p*A + (1-p)*B.   Check.

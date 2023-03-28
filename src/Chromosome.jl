@@ -832,6 +832,7 @@ function print_build_chromosome( c::Chromosome )
   print_build_chromosome( Base.stdout, c)
 end          
 
+
 # Returns a Int128 integer which is unique to this chromsome.
 # The values map one-to-one onto the integers in the range from 0 to _lcount_circuits_ch(p,funcs)-1.
 # Generates a Int128 integer corresponding to chromosome ch.  The integer is unique for parameters p.  
@@ -858,7 +859,7 @@ function circuit_to_int( ch::Chromosome, funcs::Vector{Func}=default_funcs(ch.pa
   chromosome_to_int( ch, funcs, maxarity=maxarity )
 end
 
-# i is the Chromosome index of the gate as defined by getindex(ch,i)
+# i is the Chromosome index of the gate as defined by getindex(ch,i) rather than the index in ch.interiors.
 function gate_int( i::Int64, ch::Chromosome, funcs::Vector{Func} )
   interior_node = getindex(ch,i)
   #println("interior_node.func: ",interior_node.func)
@@ -885,7 +886,7 @@ function inputs_list( numgateinputs::Int64, minval::Int64, maxval::Int64 )
     return [ [i] for i = minval:maxval ]
   end
   result = inputs_list( numgateinputs-1, minval, maxval )
-  new_result = Vector{Int64}[]
+  new_result = Vector{Int64}[]  # empty list of phenotypes1
   for r in result
     for i = minval:maxval
       dcr = deepcopy(r)

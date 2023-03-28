@@ -37,7 +37,7 @@ end
 # if csvfile != "" returns a dataframe representing the approximate phenonet adjacency matrix and saves the dataframe to the
 function phenonet_matrix_sampling_approx( p::Parameters, funcs::Vector{Func}, nwalks::Int64, steps::Int64; csvfile::String="" )
   phl = collect(MyInt(0):MyInt(2^2^p.numinputs-1))
-  rrw_df = run_random_walks_parallel( p, nwalks, phl, steps, exclude_zero_rows=false, output_dict=false, save_complex=false )
+  rrw_df = run_random_walks_parallel( p, funcs, nwalks, phl, steps, exclude_zero_rows=false, output_dict=false, save_complex=false )
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f
@@ -51,10 +51,9 @@ function phenonet_matrix_sampling_approx( p::Parameters, funcs::Vector{Func}, nw
       println(f,"# steps: ",steps)
       CSV.write( f, rrw_df, append=true, writeheader=true )
     end
-    rrw_df
-  else
-    E = df_to_matrix_mt( rrw_df, 5 )  # phenonet matrix
+    #E = df_to_matrix_mt( rrw_df, 5 )  # phenonet matrix
   end
+  rrw_df
 end
 
 # Evolves evolvability, Tononi complexity, and pheno_vects for the phenotypes in ph_list using ncircuits per phenotype
@@ -413,7 +412,11 @@ end
 
 # Multi-threaded version
 function df_to_matrix_mt( df::DataFrame, startcolumn::Int64; denormalize::Bool=false )  
-  matrix = zeros(Float64,size(df)[1],size(df)[2]-startcolumn+1)
+  if typeof(df[startcolumn,1]) == Float64
+    matrix = zeros(Float64,size(df)[1],size(df)[2]-startcolumn+1)
+  else
+    matrix = zeros(Int64,size(df)[1],size(df)[2]-startcolumn+1)
+  end
   #for i = 1:size(df)[1]
   Threads.@threads for i = 1:size(df)[1]
     for j = startcolumn:size(df)[2]

@@ -1,0 +1,58 @@
+Infinite population and approximate evolvability phenonet matrix.  Eigenvalues.
+
+Additional updates in notes/3_19_23.txt
+
+# Revisions 3/21/23
+
+# Approximate sampling phenonet matrix.
+2 inputs, 3 gates, 3 lb no XOR 1000 steps 1000 walks
+data/3_14_23/run_phnet_matrixQ.jl
+data/3_14_23/phnet_matrix3_14_23Q.csv
+sdf = read_dataframe("../data/3_14_23/phnet_matrix3_14_23Q.csv")
+S = df_to_matrix( sdf, 5 )
+  
+# Approximate evolution phenonet matrix:  
+2 inputs 3 gates 3 lb suffix P
+data/3_14_23/run_phnet_matrixP.jl
+data/3_14_23/phnet_matrix3_14_23P.csv
+vdf = read_dataframe("../data/3_14_23/phnet_matrix3_14_23P.csv")
+V = df_to_matrix( vdf, 2 )
+
+# Exact phenonet matrix:  
+edf = read_dataframe("data/9_24_22/exact_phnet_matrix9_24_22H.csv")
+E = df_to_matrix(edf,5)
+
+==========================
+# Approximate evolvability phenonet matrix.
+@everywhere include("Evo_dict.jl)
+# Contains pheno_vects for 2x1 6gts 4lb no XOR with 100 evolved circuits
+bdf = include("../data/3_14_23/run_evolvable_evolvabilityB.jl")
+E = pheno_vects_to_evolvable_matrix( bdf.pheno_vects )
+gli = collect(0x0000:0x000f)
+edf = matrix_to_dataframe( E, gli ) 
+
+p = Parameters(3,1,8,4);funcs=default_funcs(p)[1:4]
+# Contains pheno_vects for 3x1 8gts 4lb no XOR with 5000 evolved circuits
+sdf = read_dataframe("../data/7_8_22/evolvable_evolvabilityCGP_3x1_8_4_7_8_22S.csv")
+E = pheno_vects_to_evolvable_matrix( sdf.pheno_vects )
+gli = collect(0x0000:0x00ff)
+edf = matrix_to_dataframe( E, gli ) 
+
+# Approximate sampling phenonet matrix.
+2 inputs, 6 gates, 4 lb no XOR 1000 steps 1000 walks
+data/3_14_23/run_phnet_matrixC.jl
+data/3_14_23/phnet_matrix3_14_23C.csv
+
+3 inputs, 8 gates, 4 lb no XOR 5000 steps 10000 walks
+data/3_14_23/run_phnet_matrixC.jl
+data/3_14_23/phnet_matrix3_14_23C.csv
+
+# Approximate Evolvability phenonet matrix:  
+3 inputs 8 gates 4 lb suffix B
+3 inputs 7 gates 4 lb two phenotypes suffix F  
+
+
+
+================================
+Eigenvalues and eigenvectors
+https://stackoverflow.com/questions/56214666/left-and-right-eigenvectors-in-julia

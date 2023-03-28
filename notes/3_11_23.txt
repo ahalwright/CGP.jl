@@ -1,0 +1,42 @@
+Comparing genotype evolvability of the circuits on a long neutral walk with those obtained from the circuit_ints of a counts file.
+
+Functions currently in src/mutate_walk.jl
+nreps,nruns,ngoals (58, 50, 50)
+
+
+Comparing genotype evolvability with the genotype evolvability of neighbors
+
+wdf = read_dataframe( "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 8, 4)
+julia> map(ph->run_mutation_vs_sample_ph(p,funcs,ph,500,wdf),sort(randgoallist(20,p)))
+20-element Vector{Tuple{Float64, Float64}}:
+ (20.508, 20.35160163604786)
+ (17.888, 17.86068913691587)
+ (25.026, 25.00674682631964)
+ (22.328, 22.290652607493406)
+ (21.664, 21.702352839149412)
+ (13.94, 13.932949499264174)
+ (22.672, 22.646399708796586)
+ (21.036, 21.08102084109089)
+ (13.044, 12.933976953784704)
+ (23.534, 23.439921228320916)
+ (15.016, 15.009120113949836)
+ (21.676, 21.68503549250458)
+ (24.466, 24.463707350583817)
+ (21.67, 21.639503411798312)
+ (14.478, 14.442523743163893)
+ (20.334, 20.358000625146445)
+ (22.56, 22.488039857823782)
+ (17.052, 16.943813903143955)
+ (17.55, 17.577532494980915)
+ (11.094, 11.129555899002654)
+
+
+# From Evolvability.jl
+# Returns the mean genotype evolvability and the average genotype evolvability of the neutral circuits produced a a mutate_all() of ch.
+# Shows that the genotype evolvability is close to theaverage genotype evolvability of neighbors.
+# Circuits are those produced by the circuits_list of a counts file.
+function run_mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, df::DataFrame )
+
+Conclusion:  Average genotype evolvability of single-mutation neighbors of a genotype are very close the the evolvability of the genotype.
+

@@ -1,0 +1,40 @@
+Infinite population and approximate evolvability phenonet matrix.
+
+# Approximate evolvability phenonet matrix.
+@everywhere include("Evo_dict.jl)
+# Contains pheno_vects for 2x1 6gts 4lb no XOR with 100 evolved circuits
+bdf = include("../data/7_8_22/run_evolvable_evolvabilityB.jl")
+E = pheno_vects_to_evolvable_matrix( bdf.pheno_vects )
+gli = collect(0x0000:0x000f)
+edf = matrix_to_dataframe( E, gli ) 
+
+p = Parameters(3,1,8,4);funcs=default_funcs(p)[1:4]
+# Contains pheno_vects for 3x1 8gts 4lb no XOR with 5000 evolved circuits
+sdf = read_dataframe("../data/7_8_22/evolvable_evolvabilityCGP_3x1_8_4_7_8_22S.csv")
+E = pheno_vects_to_evolvable_matrix( sdf.pheno_vects )
+gli = collect(0x0000:0x00ff)
+edf = matrix_to_dataframe( E, gli ) 
+
+# Infinite population
+include("InfPop.jl")
+p = Parameters(2,1,3,3);funcs=default_funcs(p)[1:4]
+hdf = read_dataframe("../data/9_24_22/exact_phnet_matrix9_24_22H.csv")
+M=df_to_matrix( hdf, 2 );
+pv = inf_pop_evolve( p, funcs, M, fill(1.0,2^2^p.numinputs), single_element_fitness(p,0x0006,0.02), 60 )
+pv[0x0006+1] # 0.0365181046095286511
+
+pv = inf_pop_evolve( p, funcs, map(Float64,E), fill(1.0,2^2^p.numinputs), single_element_fitness(p,0x0069,0.2), 3 )
+pv[0x0069+1] # 0.0003014700841034354
+ pv = inf_pop_evolve( p, funcs, map(Float64,E), fill(1.0,2^2^p.numinputs), single_element_fitness(p,0x0069,0.05), 20 )
+pv[0x0069+1] # 0.1458075320960184
+
+====================================
+
+Topics for discussion with Cheyenne:
+
+1.  We are interested in the discovery of low-redundancy phenotypes.  Why?  Complexity?
+
+2.  My writeup of conclusions.
+
+3.  Infinite population.  Allows exploration of fitnesses that are positive for many phenotypes.
+

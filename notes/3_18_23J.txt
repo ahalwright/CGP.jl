@@ -1,0 +1,12 @@
+I realized that I needed to look at the big picture of what I was doing.
+
+My overall objective is to use the exact or approximate evolvability matrix $E$ of the G-P map to understand the properties of the G-P map.  The approach that I have been using is to use $E$ as a transition matrix between phenotypes.  A "population" $P$ is a vector of frequencies of phenotypes, so $E*P$ is a new population that represents doing all possible mutations given by $E$ to the population $P$.  The $E^n*P$, the product of the $n^{\mbox{th}}$ power of $E$ and $P$ produces a sequence of populations when $n$ goes to infinity.  If these populations are normalized to sum to $1$, they will converge to a multiple of the eigenvector of $E$ corresponding to the largest eigenvalue of $E$.
+
+I can add fitness to this by assigning a fitness value to each phenotype, and then constructing a diagonal matrix $F$ whose diagonal entries are these fitnesses.  Premultiplying $E$ by $F$ scales the rows of $E according to fitness, so again $(F*E)^n*P$ is a sequence of populations that, when normalized, converges to a multiple of the eigenvector of $F*E$ corresponding to the largest eigenvalue of $F*E$.
+
+The problem with this algorithm is that there is no adaptation.  A generation does not use the result of the previous generation.  Nonetheless, one can adjust the fitness function to reward one parrticular phenotype $ph$, and look at how large the "reward" needs to be so that sequence $(F*E)^n*P$ converges to a population where the phenotype $ph$ has the largest weight, and this might be a measure of how strong the reward to $ph$ needs to be to overcome the bias of the G-P map.  But I need an independent way to verify this hypothesis.  Running a Wright-Fisher model genetic algorithm might be a way to do this.
+
+Another way to use the evolvability matrix might be to run a algorithm like epochal evolution that goes from phenotype to phenotype based on the evolvability matrix.  In other words, if $ph$ is the current phenotype, choose the next phenotype based on the row of the evolvability matrix corresponding to $ph$.  Accept if the new phenotype has greater than or equal fitness than the current phenotype.  This algorithm has adaptation, but does not use the nice matrix mathematics of the above described algorithms.
+
+
+For now, I think I should go back to trying to get the evolvability paper finished.

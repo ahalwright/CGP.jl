@@ -1,0 +1,59 @@
+Why epocal evolution doesn't work (when it doesn't).
+
+Parameters(3,1,7,4) no XOR
+Goal:  [0x0069]
+
+Modified the print_steps option for function neutral_evolution() in Evolve.jl.
+Examples.  (ch,steps) = neutral_evolution( random_chromosome(p,funcs), funcs, [0x0069], 200_000, print_steps=true );
+
+Failure example:
+step: 1510 is fitness improve. ov: UInt16[0x00f9]  new_ov: UInt16[0x00e9]  new redund: 8800  new_distance: 0.125
+neutral evolution failed with 200000 steps for goal: UInt16[0x0069]   # almost 200,000 steps fail to find [0x0069] from [0x00e9]
+
+Success example:
+step: 13501 is fitness neutral. ov: UInt16[0x0029]  new_ov: UInt16[0x00e9]  new redund: 8800  new_distance: 0.125
+step: 13566 is fitness improve. ov: UInt16[0x00e9]  new_ov: UInt16[0x0069]  new redund: 151  new_distance: 0.0
+neutral evolution succeeded at step 13566 for goal: UInt16[0x0069]    # did discover [0x0069] from [0x00e9]
+
+Note that redundancy of 0xe9 is 8800 while redundancy of 0x69 is 151.
+
+How many mutations are there from [0x00e9] to [0x0069]?
+Using sampling approximate evolability matrix:
+@time include("../data/3_14_23/run_phnet_matrixE.jl") # sampling nwalks=50000 steps=5000
+rrw_df[0x0e9+1,[1,0x0e9+5,0x069+5]]  
+ Row │ goal    0xe9   0x69
+─────┼──────────────────────
+ 234 │ 0xe9        8      0       # 8 mutations from 0xe9 to itself, no mutations from 0xe9 to 0x69
+Using evolution:
+Don't need to compute full approximate evolvability matrix.
+@time include("../data/3_14_23/run_phnet_matrixF.jl")  # ncircuits=200, only two goals:  0x68 and 0xe9
+df.pheno_vects[2][0x069+1] 
+2    # 2 mutations from 0xe9 to 0x69.  So there are mutations, but they are extremely rare as predicted by evolution from high redundancy to low redundancy.
+
+
+Example for Cheyenne:
+
+(ch,steps) = neutral_evolution( random_chromosome(p,funcs), funcs, [0x0069], 200_000, print_steps=true );
+csvfile: ../data/counts/count_outputs_ch_4funcs_3inputs_7gates_4lb_cmplxC.csv
+
+step: 89653 is fitness improve. ov: UInt16[0x00e9]  new_ov: UInt16[0x0069]  new redund: 151  new_distance: 0.0
+c:     circuit((1,2,3), ((4,OR,1,2), (5,NAND,2,1), (6,NAND,5,3), (7,AND,5,4), (8,OR,7,6), (9,NAND,7,6), (10,AND,9,8)))
+new_c: circuit((1,2,3), ((4,OR,1,2), (5,NAND,2,1), (6,NAND,3,3), (7,AND,5,4), (8,OR,7,6), (9,NAND,7,6), (10,AND,9,8)))
+neutral evolution succeeded at step 89653 for goal: UInt16[0x0069]
+
+It took several tries to find an example of a successful evolution.
+
+c maps to 0xe9  redundancy 8800
+new_c maps to 0x69 redundancy 151
+
+The mutation that changes c to new_c changes node 6 from (6,NAND,5,3) to (6,NAND,3,3).  
+But there are many circuits that map to 0x69, so it is impossible to ascribe meaning to these particular gates.
+
+Perhaps one could do the case of 2x1 3 gates 3lb without XOR where it is possible to enumerate all circuits that map to 0x0006. See Table 3 of the evolvability paper.
+There appear to be either 552 or 608 circuits that map to 0x0006.
+
+
+A real-world example:
+"Thomas Edison and his lab associates, called "Muckers," conducted thousands of experiments to develop the electric light bulb. To make it functional, each step required the invention of a new component, from vacuumed and sealed glass bulbs to switches, special types of wire and meters. Like previous efforts, the greatest challenge was coming up with a material that could serve as a long-lasting filament.  After testing thousands of materials, including over 6,000 types of plant growths, they found the best substance was carbonized cotton thread."  https://sciencing.com/important-thomas-edison-invention-light-bulb-6305.html
+
+This is an example of why evolving from lower to higher complexity is hard.

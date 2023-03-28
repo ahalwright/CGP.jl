@@ -353,7 +353,9 @@ end
 #   and the second element of the pair is a vector P so that P(i) is the phenotype mapped to by the
 #    circuit (genotype) corresponding to chromosome_int i.
 function pheno_counts_ch( p::Parameters, funcs::Vector{Func}; csvfile::String="", output_vect::Bool=false )
+  #println("pheno_counts_ch: length(funcs): ",length(funcs), "  parameters: ",p)
   counts = zeros(Int64,2^2^p.numinputs)
+  #println("counts_circuits_ch: ",count_circuits_ch( p, nfuncs=length(funcs)))
   eci = collect(0:Int64(ceil(count_circuits_ch( p, nfuncs=length(funcs))))-1 )
   if output_vect 
     P = fill(MyInt(0),length(eci))
@@ -385,7 +387,12 @@ function pheno_counts_ch( p::Parameters, funcs::Vector{Func}; csvfile::String=""
 end
 
 # If normalize, divide each row of the matrix by the redundancy of the corresponding phenotype
+# Exact matrix:
 function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize::Bool=false, csvfile::String="" )
+  println("pheno_network_matrix_df() EXACT")
+  if p.numinteriors > 5
+    error("too many gates in function pheno_network_matrix_df")
+  end
   nphenos = 2^(2^p.numinputs)
   phnet_matrix = zeros( Int64, nphenos, nphenos )
   (pdf, circ_to_phenotype) = pheno_counts_ch( p, funcs, output_vect=true )

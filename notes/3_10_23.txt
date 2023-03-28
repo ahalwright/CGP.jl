@@ -1,0 +1,19 @@
+Revisiting submission to Royal Society Interface.
+Saved the current Latex evolvability paper in pheno_network/latex/evolvability_paper3_10_23.tex.
+Then deleted shape space evolvability, entropy evolvability, and navigability methods and results sections.
+Replace all occurences of " & " with "&" which reduces the number of "words" in a table.
+
+The resulting file has 8149 words as counted by the "wc" program.  There are 767 words in the references
+for a total of 8916 words.
+
+Another method might be to extract the text from the pdf file.
+
+However, we still have the introduction preview section, the discussion section, the conclusion section, and references.
+
+The submission guidelines:  https://royalsocietypublishing.org/rsif/for-authors#question1
+
+"Research Articles
+Full research articles should contain original scientific research. Their length should be over 2500 and not exceed 8000 words 
+(this includes cover page, references and acknowledgements)."
+
+See email sent to Cheyenne on 3/11/23.

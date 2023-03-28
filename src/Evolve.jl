@@ -1,5 +1,5 @@
 # Restored to stash/Evolve12_15_22.jl on 12/19/22.  Gave up on adding robustness:  too many failures.
-using .Threads
+#using .Threads
 export components_matched, goals_matched_exact, goals_matched_hamming, next_chromosome!, mut_evolve, mut_evolve_increase_numints
 export mut_reduce_numactive
 export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, findminall_1, findmaxrand, findminrand
@@ -589,7 +589,7 @@ function run_ph_evolve( p::Parameters, funcs::Vector{Func}, phlist::GoalList, nu
     median_steps = median(steps_list)
     push!(median_steps_list,median_steps)
     max_steps = findmax(steps_list)[1]
-    push!(max_steps_list,max_steps)
+    push!(max_steps_list,mean_steps)
     std_steps = std(steps_list)
     push!(robustness_list,mean( robustness( result_list[i][j][1], funcs ) for j = 1:numcircuits ) )
     push!(std_steps_list,std_steps)
@@ -688,7 +688,6 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, max_tries
   default_funcs(p)
   #Random.seed!(2)
   #println("length(funcs): ",length(funcs))
-  global rdict = redundancy_dict(p,funcs)
   steps = 0   # establish scope
   total_steps = 0   # establish scope
   total_failures = zeros(Int64,max_tries)
@@ -993,7 +992,6 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   p = c.params
   LinCirc = typeof(c) == LinCircuit ? :true : :false
   #if LinCirc println("LGP") else println("CGP") end
-  #rdict = redundancy_dict(p,funcs);
   step_list = Int64[] # Only used if save_acomplexities==true
   status_list = String[]  # Only used if save_acomplexities==true
   acomplexity_list = Float64[]  # Only used if save_acomplexities==true
@@ -1004,7 +1002,7 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   #println("numgates: ",c.params.numinteriors)
   step = 0
   ov = output_values( c )
-  #println("g: ",g,"  redund(g): ",rdict[g[1]],"  ov: ",ov,"  redund(ov): ",rdict[ov[1]])
+  #println("ov: ",ov,"  g: ",g)
   current_distance = hamming_distance( ov, g, c.params.numinputs )
   while step < max_steps && ov != g
     step += 1
@@ -1033,7 +1031,7 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
       if save_acomplexities
         save_acomplexity( new_c, c, new_ov[1], g, step, "neutral", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
       end
-      if print_steps && step < 2
+      if print_steps && step < 500
         print("step: ",step," is pheno neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance,"  ")
         print_circuit(new_c)
       end
@@ -1042,14 +1040,14 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
       if save_acomplexities
         save_acomplexity( new_c, c, new_ov[1], g, step, "neutral", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
       end
-      if print_steps && new_ov != ov
-        println("step: ",step," is fitness neutral. ov: ",ov,"  new_ov: ",new_ov,"  new redund: ",rdict[new_ov[1]],"  new_distance: ",new_distance,"  ")
-        #print_circuit(new_c)
+      if print_steps && step < 500
+        print("step: ",step," is fitness neutral.  new_ov: ",new_ov,"  new_distance: ",new_distance,"  ")
+        print_circuit(new_c)
       end
     elseif new_distance < current_distance   # improvement
       if print_steps
-        println("step: ",step,"  new_output: ",new_ov,"  new redund: ",rdict[new_ov[1]]," distance improved from ",current_distance," to ",new_distance)
-        #print_circuit(new_c)
+        println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
+        print_circuit(new_c)
       end
       if save_acomplexities
         save_acomplexity( new_c, c, new_ov[1], g, step, "improve", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
@@ -1059,7 +1057,7 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
       current_distance = new_distance
       #println("B step: ",step," current_distance: ",current_distance)
     else
-      if print_steps && step <= 2
+      if print_steps && step <= 20
         print("step: ",step,"  new_output: ",new_ov," current distance: ",current_distance," new: ",new_distance,"  ")
         print_circuit(new_c)
       end 
@@ -1357,15 +1355,23 @@ function run_to_rand_phenos( param_list::Vector{Parameters}, funcs::Vector{Func}
   df
 end
 
+#=
 function run_to_rand_phenos_mt( param_list::Vector{Parameters}, funcs::Vector{Func}, ngoals::Int64, ngoalreps::Int64,  max_tries::Int64, max_steps::Int64;
     csvfile::String="" )
   phlist = randgoallist( ngoalreps*ngoals, param_list[1], repetitions=ngoalreps )
   println("phlist: ",phlist)
-  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[], :tries_list=>Vector{Int64}[] )
+=#
+
+function run_to_rand_phenos_mt( param_list::Vector{Parameters}, funcs::Vector{Func}, ngoals::Int64, ngoalreps::Int64,  max_tries::Int64, max_steps::Int64;
+    csvfile::String="" )
+  phlist = randgoallist( ngoalreps*ngoals, param_list[1], repetitions=ngoalreps )
+  println("phlist: ",phlist)
+  df = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :levsback=>Int64[], :ngoals=>Int64[], :ngoalreps=>Int64[],  
+      :steps=>Float64[], :tries=>Float64[], :Tcmplx=>Float64[], :robustness=>Float64[], :tries_list=>Vector{Int64}[] ) 
   for p in param_list
-    default_funcs(p)
-    ( steps, tries, Tcmplx, tries_list ) = run_evolve_to_pheno_mt( p, funcs, phlist, max_tries, max_steps )
-    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, steps, tries, Tcmplx, tries_list ))
+    default_funcs(p)  # sets the global variable Ones
+    ( steps, tries, Tcmplx, robustness, tries_list ) = run_evolve_to_pheno_mt( p, funcs, phlist, max_tries, max_steps )
+    push!(df,(p.numinputs, p.numinteriors, p.numlevelsback, ngoals, ngoalreps, steps, tries, Tcmplx, robustness, tries_list ))
   end
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
@@ -1388,6 +1394,8 @@ end
 function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64 )
   println("run_evolve_to_pheno_mt() started")
   nphenos = length(phlist)
+  println("nphenos: ",nphenos)
+  robust = 0.0
   #ttry_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
   #steps_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
   #Tcomplexity_list = [ Atomic{Float64}(0.0) for i= 1:nphenos]
@@ -1395,6 +1403,7 @@ function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::Goa
   ttries = Atomic{Int64}(0.0)
   ssteps = Atomic{Int64}(0.0)
   Tcomplexity = Atomic{Float64}(0.0)
+  zrobustness = Atomic{Float64}(0.0)
   Threads.@threads for i = 1:nphenos
     ( nc, steps, tries ) = evolve_to_pheno( p, funcs, phlist[i], max_tries, max_steps )
     Threads.atomic_add!( ssteps, steps )
@@ -1402,15 +1411,20 @@ function run_evolve_to_pheno_mt( p::Parameters, funcs::Vector{Func}, phlist::Goa
     Threads.atomic_add!( ttry_list[tries], 1 )
     Tcmplx = (p.numinteriors <= 20) ? complexity5(nc) : 0.0
     Threads.atomic_add!( Tcomplexity, Tcmplx )
+    #println("before robust computation")
+    robust =robustness(nc,funcs)
+    Threads.atomic_add!( zrobustness, robust )
+    #println("robust: ",robust)
   end  
   println("run_evolve_to_pheno_mt() finished")
-  ( ssteps[]/nphenos, ttries[]/nphenos, Tcomplexity[]/nphenos, map(tt->tt[],ttry_list) )
+  ( ssteps[]/nphenos, ttries[]/nphenos, Tcomplexity[]/nphenos, zrobustness[]/nphenos, map(tt->tt[],ttry_list) )
 end
 
 function run_evolve_to_pheno( p::Parameters, funcs::Vector{Func}, phlist::GoalList, max_tries::Int64, max_steps::Int64 )
   ttry_list = Int64[]
   steps_list = Int64[]
   Tcomplexity_list = Float64[]
+  robustness_list = Float[]
   result_list = pmap( ph->evolve_to_pheno( p, funcs, ph, max_tries, max_steps ), phlist )
   #result_list = map( ph->evolve_to_pheno( p, funcs, ph, max_tries, max_steps ), phlist )
     #(nc, ttry, steps) = evolve_to_pheno( p, funcs, ph, max_tries, max_steps )
@@ -1466,133 +1480,3 @@ function sampling_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, cdf::Data
     ph = output_values(c)  # current phenotype
   end
 end
-
-function navigability_evolution( p::Parameters, funcs::Vector{Func}, source::Circuit, target::Goal, max_ev_steps::Int64, increase_fitness::Bool=false )
-  @assert typeof(source)==Chromosome
-  fit_dict = Dict{MyInt,Float64}( [(target[1],1.0)] )
-  step = 1
-  cur_circ = source
-  cur_pheno = output_values(cur_circ)
-  cur_fit = get!( fit_dict, cur_pheno[1], rand() )
-  println("cur_fit: ",cur_fit)
-  new_better = true  
-  while step <= max_ev_steps && new_better && cur_fit < 1.0
-    #new_circ = mutate_chromosome!( deepcopy(cur_circ), funcs )[1]
-    new_phenos = mutate_all( cur_circ, funcs )[1]
-    #better_phenos = filter(x->get(fit_dict, x[1], rand ) >= cur_fit, 
-    new_fit = get!( fit_dict, new_pheno[1], rand() )
-    println("new_fit: ",new_fit)
-    new_better = increase_fitness ? (new_fit>cur_fit) : (new_fit>=cur_fit)
-    if new_better
-      cur_circ = new_circ
-      cur_pheno = new_pheno
-      cur_fit = new_fit
-      println("new better")
-    end
-    step += 1
-  end    
-  if cur_fit == 1.0
-    return "found target at step $(step)" 
-  elseif !new_better
-    return "fitness increase fail at step $(step)" 
-  elseif step > max_ev_steps
-    return "step limit fail"
-  end
-end
-
-function run_navigability( p_list::Vector{Parameters}, funcs::Vector{Func}, source_list::GoalList, target_list::GoalList, ncircuits::Int64, 
-      max_tries::Int64, max_steps::Int64, depth_limit::Int64; csvfile::String="" )
-  arg_list = Tuple{Parameters,Goal,Goal}[]
-  for p in p_list
-    for src in source_list
-      for tgt in target_list
-        for _ in 1:ncircuits
-          push!(arg_list,(p,src,tgt))
-        end
-      end
-    end
-  end
-  res = pmap( arg->length(navigability( arg[1], funcs, arg[2], arg[3], max_tries, max_steps, depth_limit )), arg_list )
-  df = DataFrame( 
-        :ninputs=>Int64[], 
-        :ngates=>Int64[],
-        :source=>Goal[],
-        :target=>Goal[],
-        :ncircuits=>Int64[],
-        :length_navigability=>Int64[]
-  )
-  for i = 1:length(res)
-    arg = arg_list[i]
-    len_navig = res[i]
-    push!( df, (arg[1].numinputs, arg[1].numinteriors, arg[2], arg[3], ncircuits, len_navig ) )
-  end
-  df
-end
-
-function navigability( p::Parameters, funcs::Vector{Func}, source::Goal, target::Goal, max_tries::Int64, max_steps::Int64, depth_limit::Int64 )
-  fitness_vector = [ rand() for _ in MyInt(0):MyInt(2^2^p.numinputs-1) ]
-  fitness_vector[target[1]+1] = 1.0
-  (circ,steps) = pheno_evolve( p, funcs, source, max_tries, max_steps )
-  geno_path = explore_navigability( 1, p, funcs, circ, target, depth_limit, fitness_vector )
-  if length(geno_path) > 0
-    println("return: ", map(x->x[2],geno_path) )
-    return map(x->x[2],geno_path)
-  end
-  println("return: []")
-  return [] 
-end
-
-function explore_navigability( depth::Int64, p::Parameters, funcs::Vector{Func}, source_geno::Circuit, target::Goal, depth_limit::Int64, fitness_vector::Vector{Float64} )
-  orig_fitness = fitness_vector[output_values(source_geno)[1]+1]
-  if depth == 1
-    println("explore_navigability with depth: ",depth," and orig_fitness: ",orig_fitness,"  ngates:: ",p.numinteriors )
-  end
-  geno_path = Tuple{Circuit,Goal}[]
-  if depth >= depth_limit
-    return geno_path
-  end
-  mut_list = mutate_all(source_geno,funcs,output_outputs=false,output_circuits=true)
-  cints_genos = unique( x->x[1], map( x->(chromosome_to_int(x,funcs),x), mut_list ) )
-  #println("cints_genos[1][1]: ",cints_genos[1][1])
-  #println("cints_genos[1][2]: ",cints_genos[1][2])
-  genos_phs_list = map( cint_geno->(cint_geno[2],output_values(cint_geno[2])), cints_genos ) 
-  target_list = filter( x->fitness_vector[x[2][1]+1]==1.0, genos_phs_list )
-  if length(target_list) > 0
-    #println("typeof(target_list[1]): ",typeof(target_list[1]))
-    return [target_list[1]]
-  end
-  genos_phenos_list = filter( x->fitness_vector[x[2][1]+1]>orig_fitness, genos_phs_list )
-  #=
-  if length(genos_phenos_list) > 0
-    #println("genos_phenos_list[1]: ",genos_phenos_list[1][2])
-  else
-    println("length(genos_phenos_list) == 0")
-  end
-  =#
-  for (geno,pheno) in genos_phenos_list
-    geno_path = explore_navigability( depth+1, p, funcs, geno, target, depth_limit, fitness_vector )
-    if length(geno_path) > 0
-      #println("typeof(geno_path): ",typeof(geno_path))
-      push!(geno_path,(source_geno,output_values(source_geno)))
-      return geno_path
-    end
-  end 
-  #println("typeof(geno_path): ",typeof(geno_path))
-  return geno_path
-end
-
-function better_genotypes( genotype::Circuit, funcs::Vector{Func}; neutral::Bool=false)
-  orig_fitness = get!(fit_dict,output_values(genotype)[1],rand())
-  println("orig_fitness: ",orig_fitness)
-  genos = unique( map( x->chromosome_to_int(x,funcs), mutate_all(genotype,funcs,output_outputs=false,output_circuits=true)))
-  println("lenth(genos): ",length(genos))
-  genos_phenos_list = map( geno->(geno,output_values(int_to_chromosome(geno,p,funcs))), genos )
-  genos_phenos_fits_list = map( x-> (x[1], x[2], get!(fit_dict,x[2][1],rand())), genos_phenos_list )
-  println("genos_phenos_fits_list[1]: ",genos_phenos_fits_list[1])
-  if neutral
-    genos_phenos_fits_filtered = filter( x->x[3] >= orig_fitness, genos_phenos_fits_list )
-  else
-    genos_phenos_fits_filtered = filter( x->x[3] > orig_fitness, genos_phenos_fits_list )
-  end
-  genos_phenos_fits_filtered
-end 

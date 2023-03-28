@@ -1,0 +1,18 @@
+Ideas for conclusions for evolvability paper.
+
+1.  The digital circuit G-P map has the ``universal" properties of biologically-oriented G-P maps.
+
+2.  We compare phenotype evolvability computed by three methods:  exact, approximation by sampling, and 
+    approximation by using an evolutionary algorithm to invert the G-P map.  These methods give different
+    relationships between evolvability and other properties like robustness.
+
+3.  Mutation from high redundancy to low redundancy is exponentially unlikely in the differences in log redundancies.
+    Figures 9 and 10 of current paper.
+
+4.  Evolution from high redundancy to low redundancy.  Figure 11 of the current paper.
+
+5.  Selection using epochal evolution can overcome the the barrier to evolution from high to low redundancy even
+    when the number of phenotypes is astronomical and the number of genotypes is hyper-astronomical.
+
+
+Question:  Do we use complexity to justify the importance of discovering low redundancy phenotypes?

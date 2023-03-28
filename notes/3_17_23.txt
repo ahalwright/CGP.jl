@@ -1,0 +1,15 @@
+Issues with infinite population model.  InfPop.jl, jupyter notebooks, Overleaf project Infinite Population model.
+
+Major problem:  the algorithm does no adaptation of the model.
+
+My current model has M as the evolvability matrix, P as the population vector, and F as the diagonal fitness matrix.
+
+1.  Then the model of P <- (M \times F)^n P does not work.  M \times F applies fitness by multiplying M[:,i] by F[i,i] 
+    which multiplies the i th column by the i th fitness.  It looks like we want F \times M instead.  Thus, the model 
+    would be  P <- (F \times M)^n P.
+
+2.  We probably want to introduce a mutation rate \mu where mutation would be  P <- (P + \mu M)/|P + \mu M| where
+    | x | is the 1 norm of x.
+
+3.  If we use the exact evolvability matrix for M, then this does not take into account the likelihood of sampling phenotypes.
+    Perhaps using the sampling approximation evolvability matrix would take this into accoumt.

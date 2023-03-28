@@ -1,0 +1,58 @@
+Estimating the size of the neutral component of a circuit using function simple_walk() in Evolvability.jl.
+
+Function simple_walk() does a neutral walk starting at circuit ch keeping track of the circuits encountered by
+using a set ch_set of circuit ints.  It returns the length of ch_set.
+
+Testing the hypothesis that neutral_evolution fails because the starting circuit is in a small neutral component.
+
+Two examples where neutral evolution succeeded:
+ch = circuit((1,2,3), ((4,NAND,2,1), (5,OR,1,2), (6,AND,3,3), (7,AND,5,4), (8,NOR,5,6), (9,AND,6,7), (10,OR,9,8))); ch.params=p; output_values(ch) # 0x0029
+length(simple_walk( ch, funcs, 200000 )) # 9909
+
+ch = circuit((1,2,3), ((4,OR,2,1), (5,NAND,2,1), (6,NAND,4,5), (7,AND,3,5), (8,AND,6,7), (9,NOR,6,7), (10,NOR,9,8))); ch.params=p; output_values(ch) # 0x00e9
+length(simple_walk( ch, funcs, 200000 )) # 1
+
+Three examples of runs of neutral evolution with 3x1 7gts 4lb goal 0x0069 where neutral evolution failed to find goal.
+
+ch=circuit((1,2,3), ((4,OR,2,1), (5,AND,1,2), (6,NAND,5,3), (7,OR,5,3), (8,OR,4,5), (9,AND,6,8), (10,AND,7,9))); ch.params=p; output_values(ch) # 0x0068
+failed evolution switches between 0x0068 and 0x0029.
+length(simple_walk( ch, funcs, 200000 )) # 10457   # hypothesis failed---but still much smaller than the values for random circuits that map to 0x0068f
+
+ch = circuit((1,2,3), ((4,NOR,2,1), (5,NAND,1,2), (6,NAND,4,3), (7,NOR,3,4), (8,NOR,6,4), (9,NAND,7,5), (10,AND,9,6))); ch.params=p; output_values(ch) # 0x00e9
+failed evolution switches between 0x00e9 and 0x0029.
+length(simple_walk( ch, funcs, 200000 )) #  646  # Hypothesis succeeds
+
+ch = circuit((1,2,3), ((4,OR,3,1), (5,AND,1,3), (6,AND,4,2), (7,AND,5,4), (8,NAND,6,5), (9,OR,6,5), (10,AND,9,8))); ch.params=p; output_values(ch) # 0x0068
+failed evolution stays with this circuit
+length(simple_walk( ch, funcs, 200000 ))  #  6973  # smaller than example 1.
+
+# Put this in context by evaluating simple_walk on random genotypes for 0x0068:
+rdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_7gates_4lb_R.csv")
+c_list = map(x->string_to_expression(x), rdf.circuits_list )
+map(x->output_values(int_to_chromosome(x,p,funcs)),c_list[0x0068+1][1:24]) #  [0x0068]
+pmap(x->length(simple_walk(int_to_chromosome(x,p,funcs),funcs,200000)),c_list[0x0068+1][1:24])
+24-element Vector{Int64}:
+ 111995
+  97695
+  98047
+  98313
+ 112078
+  98571
+  97946
+  98837
+ 112119
+  97851
+  97183
+ 111093
+  97784
+  97515
+ 112333
+ 112241
+ 111941
+ 112083
+ 112205
+  98644
+ 112627
+ 113338
+ 112519
+  98576

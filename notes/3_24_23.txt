@@ -1,0 +1,58 @@
+Ideas for testing the effect of evolution evolvability being greater than sampling evolvability.
+
+1.  Run a neutral walk and keep track of genotype evolvability.  Compare to the genotype evolvability of a random sample of genotypes for that phenotype.
+
+2.  Compare the time to find a rare phenotype using a neutral walk of a not-so-neutral phenotype and a sequence of random samples.
+
+3.  Start with a rare phenotype, and look at genotype evolvability of:
+    a.  Last step before discovery genotypes.
+    b.  Neighbors of phenotype discovered by sampling.
+
+
+# Show penultimate step
+(ch,steps) = neutral_evolution( random_chromosome(p,funcs), funcs, [0x0069], 200_000, print_steps=true );
+
+Added geno_evolvability to print_steps=true option for neutral_evolution()
+
+For item 3 above:
+geno_evolvatility consistently increases
+Example 1:
+step: 2419 is fitness neutral. ov: UInt16[0x002b]  new_ov: UInt16[0x0028]  new redund: 856950  new_distance: 0.25    geno_evolvability: 28
+step: 2451 is fitness neutral. ov: UInt16[0x0028]  new_ov: UInt16[0x002b]  new redund: 422875  new_distance: 0.25    geno_evolvability: 18
+step: 2452 is fitness improve. ov: UInt16[0x002b]  new_ov: UInt16[0x006b]  new redund: 5404  new_distance: 0.125    geno_evolvability: 28
+....
+step: 2778 is fitness neutral. ov: UInt16[0x0068]  new_ov: UInt16[0x006b]  new redund: 5404  new_distance: 0.125    geno_evolvability: 31
+step: 2819 is fitness neutral. ov: UInt16[0x006b]  new_ov: UInt16[0x00e9]  new redund: 8800  new_distance: 0.125    geno_evolvability: 35
+step: 2859 is fitness improve. ov: UInt16[0x00e9]  new_ov: UInt16[0x0069]  new redund: 151  new_distance: 0.0    geno_evolvability: 37
+c:     circuit((1,2,3), ((4,OR,2,1), (5,NAND,2,1), (6,NAND,4,5), (7,AND,3,5), (8,AND,6,7), (9,NOR,6,7), (10,NOR,9,8)))
+new_c: circuit((1,2,3), ((4,OR,2,1), (5,NAND,2,1), (6,NAND,4,5), (7,AND,3,3), (8,AND,6,7), (9,NOR,6,7), (10,NOR,9,8)))
+neutral evolution succeeded at step 2859 for goal: UInt16[0x0069]
+
+Example 2:
+step: 7091 is fitness neutral. ov: UInt16[0x00e8]  new_ov: UInt16[0x00eb]  new redund: 855922  new_distance: 0.25    geno_evolvability: 25
+step: 7097 is fitness neutral. ov: UInt16[0x00eb]  new_ov: UInt16[0x0028]  new redund: 856950  new_distance: 0.25    geno_evolvability: 21
+step: 7535 is fitness improve. ov: UInt16[0x0028]  new_ov: UInt16[0x0029]  new redund: 5231  new_distance: 0.125    geno_evolvability: 23
+...
+step: 23220 is fitness neutral. ov: UInt16[0x0029]  new_ov: UInt16[0x0068]  new redund: 8931  new_distance: 0.125    geno_evolvability: 35
+step: 23236 is fitness neutral. ov: UInt16[0x0068]  new_ov: UInt16[0x0029]  new redund: 5231  new_distance: 0.125    geno_evolvability: 33
+step: 23256 is fitness improve. ov: UInt16[0x0029]  new_ov: UInt16[0x0069]  new redund: 151  new_distance: 0.0    geno_evolvability: 35
+c:     circuit((1,2,3), ((4,NAND,2,1), (5,OR,1,2), (6,AND,3,3), (7,AND,5,4), (8,NOR,5,6), (9,AND,6,7), (10,OR,9,8)))
+new_c: circuit((1,2,3), ((4,NAND,2,1), (5,OR,1,2), (6,AND,3,3), (7,AND,5,4), (8,NOR,7,6), (9,AND,6,7), (10,OR,9,8)))
+neutral evolution succeeded at step 23256 for goal: UInt16[0x0069]
+
+zdf = read_dataframe("../data/8_15_22/count_outputs_ch_4funcs_3inputs_8gate_4lb_Z.csv")
+# geno evolvability of a random sample for phenos [0x0069] and [0x00e9] and [0x0029]
+julia> zdf.ints8_4[0x0069+1] # 72  
+julia> mean(map(x->genotype_evolvability(int_to_chromosome(x,p),funcs),string_to_expression(zdf.circuits_list[0x0069+1]))) #  11.94  
+julia> zdf.ints8_4[0x00e9+1] # 1620
+julia> mean(map(x->genotype_evolvability(int_to_chromosome(x,p),funcs),string_to_expression(zdf.circuits_list[0x00e9+1]))) #  11.30
+julia> zdf.ints8_4[0x0029+1] # 871
+julia> mean(map(x->genotype_evolvability(int_to_chromosome(x,p),funcs),string_to_expression(zdf.circuits_list[0x0029+1]))) #  11.25
+
+Conclusions:
+1.  The genotype evolvability of the last circuit before the goal circuit in an epochal evolution to phenotype [0x0069]
+    is much higher than the average genotype evolvability of the corresponding phenotype.  This is showing that the evolution
+    approximate phenotype evolvability is appropriate than the sampling approximate phenotype evolvability .
+
+2.  A likely cause of failure of epochal evolution is starting with a genotype that is in a small component of the neutral set.
+    See notes/3_25_23.txt

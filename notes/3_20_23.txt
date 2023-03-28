@@ -1,0 +1,94 @@
+The 32 circuits that map to phenotype 0x6 for 2 inputs 3 gates 3 lb no XOR.
+They are in groups of 8 which are guaranteed to have the same output because 
+circuits in the same group just reverse the order of inputs of gates,
+and all of our gate functions are commutative.  
+Thus, there are only 4 different types of circuits that map to 0x6.
+
+circuit((1,2), ((3,AND,1,2), (4,NOR,1,2), (5,NOR,3,4)))
+circuit((1,2), ((3,AND,1,2), (4,NOR,1,2), (5,NOR,4,3)))
+circuit((1,2), ((3,AND,1,2), (4,NOR,2,1), (5,NOR,3,4)))
+circuit((1,2), ((3,AND,1,2), (4,NOR,2,1), (5,NOR,4,3)))
+circuit((1,2), ((3,AND,2,1), (4,NOR,1,2), (5,NOR,3,4)))
+circuit((1,2), ((3,AND,2,1), (4,NOR,1,2), (5,NOR,4,3)))
+circuit((1,2), ((3,AND,2,1), (4,NOR,2,1), (5,NOR,3,4)))
+circuit((1,2), ((3,AND,2,1), (4,NOR,2,1), (5,NOR,4,3)))
+circuit((1,2), ((3,OR,2,1), (4,NAND,1,2), (5,AND,3,4)))
+circuit((1,2), ((3,OR,2,1), (4,NAND,1,2), (5,AND,4,3)))
+circuit((1,2), ((3,OR,2,1), (4,NAND,2,1), (5,AND,3,4)))
+circuit((1,2), ((3,OR,2,1), (4,NAND,2,1), (5,AND,4,3)))
+circuit((1,2), ((3,OR,1,2), (4,NAND,1,2), (5,AND,3,4)))
+circuit((1,2), ((3,OR,1,2), (4,NAND,1,2), (5,AND,4,3)))
+circuit((1,2), ((3,OR,1,2), (4,NAND,2,1), (5,AND,3,4)))
+circuit((1,2), ((3,OR,1,2), (4,NAND,2,1), (5,AND,4,3)))
+circuit((1,2), ((3,NAND,1,2), (4,OR,1,2), (5,AND,3,4)))
+circuit((1,2), ((3,NAND,1,2), (4,OR,1,2), (5,AND,4,3)))
+circuit((1,2), ((3,NAND,1,2), (4,OR,2,1), (5,AND,3,4)))
+circuit((1,2), ((3,NAND,1,2), (4,OR,2,1), (5,AND,4,3)))
+circuit((1,2), ((3,NAND,2,1), (4,OR,1,2), (5,AND,3,4)))
+circuit((1,2), ((3,NAND,2,1), (4,OR,1,2), (5,AND,4,3)))
+circuit((1,2), ((3,NAND,2,1), (4,OR,2,1), (5,AND,3,4)))
+circuit((1,2), ((3,NAND,2,1), (4,OR,2,1), (5,AND,4,3)))
+circuit((1,2), ((3,NOR,1,2), (4,AND,1,2), (5,NOR,3,4)))
+circuit((1,2), ((3,NOR,1,2), (4,AND,1,2), (5,NOR,4,3)))
+circuit((1,2), ((3,NOR,1,2), (4,AND,2,1), (5,NOR,3,4)))
+circuit((1,2), ((3,NOR,1,2), (4,AND,2,1), (5,NOR,4,3)))
+circuit((1,2), ((3,NOR,2,1), (4,AND,1,2), (5,NOR,3,4)))
+circuit((1,2), ((3,NOR,2,1), (4,AND,1,2), (5,NOR,4,3)))
+circuit((1,2), ((3,NOR,2,1), (4,AND,2,1), (5,NOR,3,4)))
+circuit((1,2), ((3,NOR,2,1), (4,AND,2,1), (5,NOR,4,3)))
+
+Thus, there are only 4 different types of circuits that map to 0x6.
+Inputs are in increasing order.
+circuit((1,2), ((3,AND,1,2), (4,NOR,1,2), (5,NOR,3,4)))
+circuit((1,2), ((3,OR,1,2), (4,NAND,1,2), (5,AND,3,4)))
+circuit((1,2), ((3,NAND,1,2), (4,OR,1,2), (5,AND,3,4)))
+circuit((1,2), ((3,NOR,1,2), (4,AND,1,2), (5,NOR,3,4)))
+
+julia> hdf = read_dataframe("../data/9_24_22/exact_phnet_matrix9_24_22H.csv")
+julia> H = df_to_matrix( hdf, 2 )
+julia> map( i->([MyInt(i-1)],sum(H[i,:])/19,H[i,(0x0006+1)]), 1:size(H)[1] )
+16-element Vector{Tuple{Vector{UInt16}, Float64, Float64}}:
+ ([0x0000], 2144.0, 96.0)
+ ([0x0001], 1376.0, 32.0)
+ ([0x0002], 768.0, 96.0)
+ ([0x0003], 768.0, 0.0)
+ ([0x0004], 768.0, 96.0)
+ ([0x0005], 3136.0, 16.0)
+ ([0x0006], 32.0, 0.0)
+ ([0x0007], 1376.0, 80.0)
+ ([0x0008], 1376.0, 32.0)
+ ([0x0009], 32.0, 32.0)
+ ([0x000a], 3136.0, 16.0)
+ ([0x000b], 768.0, 0.0)
+ ([0x000c], 768.0, 0.0)
+ ([0x000d], 768.0, 0.0)
+ ([0x000e], 1376.0, 80.0)
+ ([0x000f], 2144.0, 32.0)
+Thus, there are 96 circuits that map 0x2 to 0x6.  
+By the above equivalences, there are 12 essentially different circuits.
+
+Parmeters(2,1,3,3)
+(ch6,steps) = neutral_evolution( random_chromosome(p,funcs), funcs, [0x0006], 200_000, print_steps=true );
+Example:
+step: 660 is fitness improve. ov: UInt16[0x0004]  new_ov: UInt16[0x0006]  new redund: 0  new_distance: 0.0
+c:     circuit((1,2), ((3,AND,2,1), (4,NOR,3,1), (5,NOR,3,4)))
+new_c: circuit((1,2), ((3,AND,2,1), (4,NOR,2,1), (5,NOR,3,4)))
+neutral evolution succeeded at step 660 for goal: UInt16[0x0006]
+Example:
+step: 92 is fitness improve. ov: UInt16[0x0004]  new_ov: UInt16[0x0006]  new redund: 0  new_distance: 0.0
+c:     circuit((1,2), ((3,OR,1,1), (4,NAND,2,1), (5,AND,4,3)))
+new_c: circuit((1,2), ((3,OR,2,1), (4,NAND,2,1), (5,AND,4,3)))
+neutral evolution succeeded at step 92 for goal: UInt16[0x0006]
+Example:
+step: 607 is fitness improve. ov: UInt16[0x0004]  new_ov: UInt16[0x0006]  new redund: 0  new_distance: 0.0
+c:     circuit((1,2), ((3,AND,1,2), (4,NOR,1,2), (5,NOR,2,4)))
+new_c: circuit((1,2), ((3,AND,1,2), (4,NOR,1,2), (5,NOR,3,4)))
+neutral evolution succeeded at step 607 for goal: UInt16[0x0006]
+Example:
+step: 213 is fitness improve. ov: UInt16[0x0002]  new_ov: UInt16[0x0006]  new redund: 0  new_distance: 0.0
+c:     circuit((1,2), ((3,NOR,2,1), (4,AND,1,1), (5,NOR,4,3)))
+new_c: circuit((1,2), ((3,NOR,2,1), (4,AND,2,1), (5,NOR,4,3)))
+neutral evolution succeeded at step 213 for goal: UInt16[0x0006]
+
+
+

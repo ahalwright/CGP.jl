@@ -1,0 +1,12 @@
+Algorithms for chromosome_to_int() and int_to_chromosome() based on code in Chromosome.jl
+
+
+function gate_int( i::Int64, ch::Chromosome, funcs::Vector{Func} )
+  p = ch.params
+  interior_node = ch.interors[i - p.numinputs]
+  func_int = <index of gate func in funcs>
+  all_possible_inputs = <list of pairs that are possible for this interior node>
+  inputs_int = <index of interior_node.inputs in all_possible inputs>]
+  multiplier = length(all_possible_inputs)*length(func_list)
+  (inputs_int*length(func_list)+func_int, multiplier) 
+end

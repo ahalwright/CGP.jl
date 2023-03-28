@@ -392,6 +392,20 @@ These files now have suffix  _21.txt
             Word version:  OneDrive/evotech/pheno_network/complexity_paper/Comments & outline for complexity paper2_20_23.docx
 2_20_23: Properties of low and high redundancy phenotypes
 2_21_23: What is old and what is new in the evolvability paper.  Detailed review of models described by Ahnert 2017 and Manrubia 2021
+2_22_23: How can we show why evolution genotype evolvability is greater than sampling genotype evolvability? (revisit)
+2_23_23: How can we show why evolution evolvability is greater than sampling evolvability?  (revisit)
+2_24_23: Trying to confirm that evolution evolvability is greater than sampling evolvability for all 3x1 8gts 4lb 4funcs phenotypes.
+2_25_23: Summary of 2022 Greenbury Navigability paper and 2016 Greenbury Genetic Correlations paper
+2_26_23: Wrote redundancy functions in Redundancy.jl and tested in data/2_26_23/pheno_robust2_26_23.ipynb
+2_27_23: Ideas on navigability:
+2_28_23: Population evolution Wright=Fisher model.
+3_5_23: New definition of total evolvability based on symmetrizing the Boolean pheno network adjacency matrix B.
+3_7_23: Why epochal evolution "fails"---actually why it takes an extremely large number of steps.
+3_9_23: Trying to understand the effect of increasing the number of gates on number of epochal evolution steps.
+3_10_23: Revisiting submission to Royal Society Interface.
+3_11_23: Comparing genotype evolvability of the circuits on a long neutral walk with those obtained from the circuit_ints of a counts file.
+3_12_23: Conclusions for the whole paper.
+3_13_23: Infinite population and approximate evolvability phenonet matrix.
 
 
 All plots:

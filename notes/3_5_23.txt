@@ -1,4 +1,4 @@
-New definition of total evolvability.
+New definition of total evolvability based on symmetrizing the Boolean pheno network adjacency matrix B.
 
 I realized that total evolvability is just evolvability based on symmetrizing the Boolean pheno network adjacency matrix B.  
 More precisely, let B be the 2^n by 2^n matrix where B[i,j] is 1 iff there is a mutation from a genotype of phenotype i to 
