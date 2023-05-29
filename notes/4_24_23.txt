@@ -1,0 +1,54 @@
+Canalizatn
+Sleep Beauties by A. Wagner
+I discovered a new book "Sleeping beauties" by Andreas Wagner which I will attempt to summarize:
+
+I am attaching the New Scientist review that alerted me to this book.  
+evotech/papers/W/wagner_sleeping_beauties_review2023.odt
+
+He claims that innovation that can survive is extremely common and cheap.
+These innovations survive at low frequency for a very long time until the right conditions come along
+to make the frequency of the innovation grow.  Two biological examples are grasses which originated
+65 million years ago but did not become ecololgically relevant until 25 million years ago.
+Mammals are another example.  A cultural example is the wheel which he claims first appeared in
+independently in two locations 3,500 BCE, but did become common until much later.
+
+An important mechanism is promiscuity.  For example, an enzyme is promiscuous if it can catalyze 
+chemical reactions in addition to its primary biological purpose.
+
+The abilities of these innovations to survive is clearly due to the fact that they are fitness
+neutral.  In terms of genotype-phenotype maps, long tail of the redundancy vs rank plot
+(Figure 2 of evolvavility paper) represents the very many low redundancy phenotypes that may
+represent these innovations.  
+
+=====================================
+
+Canalization  The next 4 paragraphs from https://en.wikipedia.org/wiki/Canalisation_(genetics)
+"Canalisation is a measure of the ability of a population to produce the same phenotype regardless of 
+variability of its environment or genotype. It is a form of evolutionary robustness."
+
+Assimilation
+Genetic assimilation is a process described by Conrad H. Waddington by which a phenotype originally 
+produced in response to an environmental condition, such as exposure to a teratogen, later becomes 
+genetically encoded via artificial selection or natural selection.
+
+Evolutionary capacitance
+The canalisation metaphor suggests that some phenotypic traits are very robust to small perturbations, 
+for which development does not exit the canal, and rapidly returns down, with little effect on the final 
+outcome of development. But perturbations whose magnitude exceeds a certain threshold will break out of 
+the canal, moving the developmental process into uncharted territory. For instance, the study of an 
+allelic series for Fgf8, an important gene for craniofacial development, with decreasing levels of 
+gene expression demonstrated that the phenotype remains canalised as long as the expression level is 
+above 40% of the wild-type expression.[16]
+
+Strong robustness up to a limit, with little robustness beyond, is a pattern that could increase 
+evolvability in a fluctuating environment.[17] Canalisation of a large set of genotypes into a limited 
+phenotypic space has been suggested as a mechanism for the accumulation, in a neutral manner, 
+of mutations that could otherwise be deleterious.[18] Genetic canalisation could allow for evolutionary 
+capacitance, where genetic diversity accumulates in a population over time, sheltered from natural 
+selection because it does not normally affect phenotypes. This hidden diversity could then be unleashed 
+by extreme changes in the environment or by molecular switches, releasing previously cryptic genetic 
+variation that can then contribute to a rapid burst of evolution,[18] a phenomenon termed decanalisation. 
+Cycles of canalization-decanalization could explain the alternating periods of stasis, where genotypic 
+diversity accumulates without morphological changes, followed by rapid morphological changes, where 
+decanalization releases the phenotypic diversity and becomes subject to natural selection, in the fossil 
+record, thus providing a potential developmental explanation for the punctuated equilibrium.[17] 

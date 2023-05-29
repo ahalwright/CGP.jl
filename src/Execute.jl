@@ -223,3 +223,139 @@ end
 function print_count_function_summary( counts::Dict{MyFunc,Int64} )
   print_count_function_summary( f, counts )
 end
+
+function poset( ch::Chromosome, funcs::Vector{Func} )
+  p = ch.params
+  len = length(ch.inputs) + length(ch.interiors) + length(ch.outputs)
+  adj = zeros(Bool,len,len)
+  for i = 1:len
+    adj[i,i] = true
+  end
+  for i = len:-1:(len-length(ch.outputs)+1)
+    adj[ch[i].input,i] = true
+  end
+  for i = (len-length(ch.outputs)):-1:(len-length(ch.outputs)-length(ch.interiors)+1)
+    for j = 1:p.nodearity
+      adj[ch[i].inputs[j],i] = true
+    end
+  end
+  adj
+end
+
+# Warshall's algorithm
+function transitive_closure!( adj::Matrix{Bool} )
+  len = size(adj)[1]
+  for i = 1:len
+    for j = 1:len
+      for k = 1:len
+        if !adj[j,k]
+          adj[j,k] = adj[j,i] && adj[i,k]
+        end
+      end # for k
+    end # for j
+  end # for i
+end
+
+function topo_sort_all( adj::Matrix{Bool} )
+  len = size(adj)[1]
+  path_list = Vector{Int64}[]
+  topo_sort_recurse_all( adj, path_list, collect(1:len) )
+end
+
+function topo_sort_recurse_all( adj::Matrix{Bool}, path_list::Vector{Vector{Int64}}, map::Vector{Int64} )
+  len = size(adj)[1]
+  println("topo_sort_recurse: len: ",len)
+  if len == 0
+    return path
+  end
+  indegree = [ sum(adj[:,i])-1 for i = 1:len ]
+  fmin_list = findall( x->x==0, indegree )
+  if indegree[fmin_list[1]] == 0
+    r = fmin_list[1]
+    println("r: ",r,"  map: ",map)
+    push!(path_list[1],map[r])
+    deleteat!( map, r )
+    println("path_list[1]: ",path_list[1],"  map: ",map)
+    new_adj = adj[ 1:end .!= r, 1:end .!= r ]
+    topo_sort_recursei_all( new_adj, path_list, map )
+  end
+  path_list
+end
+
+function topo_sort( adj::Matrix{Bool} )
+  len = size(adj)[1]
+  path = Int64[]
+  topo_sort_recurse( adj, path, collect(1:len) )
+end
+
+function topo_sort_recurse( adj::Matrix{Bool}, path::Vector{Int64}, map::Vector{Int64} )
+  len = size(adj)[1]
+  println("topo_sort_recurse: len: ",len)
+  if len == 0
+    return path
+  end
+  indegree = [ sum(adj[:,i])-1 for i = 1:len ]
+  fmin = findmin( indegree )
+  if fmin[1] == 0
+    r = fmin[2]
+    println("r: ",r,"  map: ",map)
+    push!(path,map[r])
+    deleteat!( map, r )
+    println("path: ",path,"  map: ",map)
+    new_adj = adj[ 1:end .!= r, 1:end .!= r ]
+    topo_sort_recurse( new_adj, path, map )
+  end  
+  path
+end    
+
+function topo_sort_check( adj::Matrix{Bool} )
+  len = size(adj)[1]
+  path = topo_sort( adj )
+  chk_adj = adj[path,path]
+  for i = 2:len
+    for j = 1:(i-1)
+      #println("(i,j): ",(i,j))
+      if chk_adj[i,j] 
+        return (i,j)
+      end
+    end
+  end
+  return "pass"
+end
+#
+function remove_vertex( adj::Matrix{Bool}, r::Int64 )
+  new_adj = adj[ 1:end .!= r, 1:end .!= r ]
+end
+
+function find_topo_sorts( adj::Matrix{Bool} )
+  len = size(adj)[1]
+  indegree = [ sum(adj[:,i])-1 for i = 1:len ]
+  path = Int64[]
+  discovered = falses( len )
+  find_topo_sorts_recurse( adj, indegree, path, discovered )
+end
+    
+function find_topo_sorts_recurse( adj::Matrix{Bool}, indegree::Vector{Int64}, path::Vector{Int64}, discoverd::Vector{Bool} )
+  topo_sorts = Vector{Int64}[]
+  for v = 1:len
+    if indegree[v] == 0 && !discovered[v]
+      for u = 1:len
+        if adj[v,u] 
+          indegree[u] -= 1
+        end 
+      end
+      push!(path,v)
+      discovered[v] = true
+      find_topo_sorts_recurse( adj, indegree, path, discovered )
+      for u = 1:len
+        if adj[v,u] 
+          indegree[u] += 1
+        end 
+      end
+      pop!(path)
+      discovered[v] = false
+    end
+  end
+end
+      
+      

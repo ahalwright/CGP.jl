@@ -37,7 +37,7 @@ const GoalList = Vector{Goal}
 Ones = 0xffff
 #Ones = 0xffffffff
 
-mutable struct Parameters
+struct Parameters
     mu::Integer
     lambda::Integer
     mutrate::Real

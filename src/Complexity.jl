@@ -797,6 +797,7 @@ function kolmogorov_complexity_dict( p::Parameters, funcs::Vector{Func}=default_
 end
 
 function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), csvfile::String="" )
+  # println("redundancy_dict: p.numinputs: ",p.numinputs,"  p.numinteriors: ",p.numinteriors,"  lb: ",p.numlevelsback)
   if length(csvfile) == 0
     if p.numinputs == 3
       if p.numinteriors == 8 && p.numlevelsback == 4
@@ -834,6 +835,13 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
       elseif p.numinteriors == 12 && p.numlevelsback == 6
         if length(funcs) == 4
           csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_12gate_6lb_J.csv"
+        else
+          println("no csv file in function redundancy_dict()")
+          return nothing
+        end
+      elseif p.numinteriors == 14 && p.numlevelsback == 7
+        if length(funcs) == 4
+          csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_14gate_7lb_K.csv"
         else
           println("no csv file in function redundancy_dict()")
           return nothing

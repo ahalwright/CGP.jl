@@ -8,7 +8,7 @@ export output_values, number_active, number_active_gates, remove_inactive, deact
 export hamming_distance, ihamming_distance, hamming 
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code 
-export circuit, print_circuit
+export circuit, print_circuit, geno_distance
 export circuit_distance, remove_inactive, count_circuits_ch
 export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
@@ -1087,6 +1087,20 @@ function delete_gate!( c::Chromosome )
   inactive_interior_list = filter!(i->!c.interiors[i].active, collect(1:c.params.numinteriors))
   dg = rand(inactive_interior_list)
   return delete_gate!( c, dg )
+end
+
+# The genotype distance between two chromosomes where the distance is the number of mismatches.
+function geno_distance( ch1::Chromosome, ch2::Chromosome, funcs::Vector{Func} )
+  p1 = ch1.params
+  p2 = ch2.params
+  @assert p1 == p2
+  #gtuple1 = gate_tuple( p1, funcs, ch1.interiors )
+  #gtuple2 = gate_tuple( p2, funcs, ch2.interiors )
+  #mismatch = [ gtuple1[i] != gtuple2[i] ? 1 : 0 for i = 1:length(gtuple1) ]
+  glist1 = gate_list( p1, funcs, ch1.interiors )
+  glist2 = gate_list( p2, funcs, ch2.interiors )
+  mismatch = [ glist1[i] != glist2[i] ? 1 : 0 for i = 1:length(glist1) ]
+  reduce( +, mismatch )
 end
 
 # References the function combine_chromosomes( c1::Chromosome, c2::Chromosome ) in Chromosome.jl.

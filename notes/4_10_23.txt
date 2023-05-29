@@ -1,0 +1,15 @@
+Topics for possible lecture for 315E
+
+Implications of new generative AI models:
+
+1.  Artificial general intelligence is getting closer and closer.  It take an expert or another AI to distinguish the output of AI from the output of a person.
+
+2. Emphasis on smart results versus emphasis on helping humans.  Replacing human jobs versus making humans making humans more effective at their jobs.  https://www.technologyreview.com/2023/03/25/1070275/chatgpt-revolutionize-economy-decide-what-looks-like/ Sam Altman favors guaranteed basic income.  Is this a good idea?
+
+3. Should OpenAI open source its technology?  When OpenAI was founded in 2015, the organization said it would "freely collaborate" with other institutions and researchers by making its patents and research open to the public.  https://en.wikipedia.org/wiki/OpenAI  But if OpenAI technology made its: technology open, it would become available to bad actors as in item 5.
+
+4. Privacy problems:  What happens to the prompts that you supply to AI models?  And what happens to the results?  Could they be hacked?
+
+5. Misuse of generative AI.  Intelligent scamming and spear phishing Smart attacks to authentication systems --- Eliezer Yudkowsky.  Smart and more pervasive surveillane --- China, Russia, North Korea
+
+

@@ -1,0 +1,12 @@
+Redid computation of navigability table for evolvability paper to include robustness.
+
+The robustness column is the average robustness of the genotypes that were evolved to the target phenotypes.
+
+Function:   run_to_rand_phenos_mt() in Evolve.jl
+data/3_27_23/
+Wasted a lot of time because I had a variable robustness and also used function robustness() from Robustness.jl.
+
+Did separate runs for each number of inputs, and then combined them "by hand" into 
+run_to_rand_phenos_all_100goals_5funcs_3_27_23.csv.  Then converted into a .tex file.
+Results are very compatible with the earlier results.
+

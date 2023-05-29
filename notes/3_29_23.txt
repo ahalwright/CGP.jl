@@ -1,0 +1,71 @@
+Revising redundancy vs sampling evolvability to robustness vs sampling evolvability
+
+# @everywhere include("random_walk.jl")
+# @everywhere include("Robustness.jl")
+@everywhere include("evolvable_evolvability.jl")
+# @everywhere include("Evo_dict.jl")   # for matrix_to_dataframe()
+nwalks = 10000
+nsteps = 5000
+numinputs = 3
+ngates = 5
+lb = 3
+p5 = Parameters(numinputs,1,ngates,lb)
+ngates = 6
+lb = 3
+p6 = Parameters(numinputs,1,ngates,lb)
+ngates = 8
+lb = 4
+p8 = Parameters(numinputs,1,ngates,lb)
+ngates = 10
+lb = 5
+p10 = Parameters(numinputs,1,ngates,lb)
+ngates = 12
+lb = 6
+p12 = Parameters(numinputs,1,ngates,lb)
+ngates = 14
+lb = 7
+p14 = Parameters(numinputs,1,ngates,lb)
+ngates = 16
+lb = 8
+p16 = Parameters(numinputs,1,ngates,lb)
+p = p8  # Just for numinputs
+funcs=default_funcs(p8)[1:4]
+@everywhere include("Robustness.jl")
+@time rwdf5 = run_random_walks_parallel( p5, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );  # 147 seconds
+@time rwdf6 = run_random_walks_parallel( p6, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );  # 154 seconds
+@time rwdf8 = run_random_walks_parallel( p8, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );  # 182 seconds
+@time rwdf10 = run_random_walks_parallel( p10, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );  # 20 seconds
+@time rwdf12 = run_random_walks_parallel( p12, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps ); # 260 seconds 
+@time rwdf14 = run_random_walks_parallel( p14, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps ); # 260 seconds 
+@time rwdf16 = run_random_walks_parallel( p16, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps ); # failed
+scatter( Vector{Float64}(rwdf14.d_evolvability),Vector{Float64}(rwdf14.robustness), smooth=true, labels="14 gates", xlabel="sampling evolvability",ylabel="robustness")
+scatter!( Vector{Float64}(rwdf8.d_evolvability),Vector{Float64}(rwdf8.robustness), smooth=true, labels="8 gates", xlabel="sampling evolvability",ylabel="robustness")
+plot!(legend=:topleft)    # Universal properties paper
+julia> savefig("../data/1_30_23/robustness_vs_sampling_evol3x1_14_8gts4lb.png")
+julia> spearman_cor(rwdf.d_evolvability,rwdf.robustness)
+(0.9115470161278739, 2.548714146835382e-100)   # OUtdated.  Replaced by 8 and 14 gates
+
+Add exact plot
+Based on notes/11_8_22.txt
+phdfP = read_dataframe("../data/9_24_22/phnet_matrix9_24_22P.csv");
+phnP = df_to_matrix_mt( phdfP, 3, denormalize=false );
+bv = BitVector(map(i->!iszero(sum(phnP[i,:])),1:256));
+phl = collect(MyInt(0):MyInt(2^2^3-1));  # list of all phenos.  phl[bv] is phenos of bv
+B = map( x->x!=0 ? 1 : 0, phnP);
+Bnz = B[bv,bv]; size(Bnz);   # (166, 166)
+findall(i->Bnz[i,i]==0,1:sum(bv))   # [19,31,136,148]  There are phenotypes with zero robustness
+evo = map(i->sum(Bnz[i,:])-Bnz[i,i], 1:sum(bv))
+phnPbv = phnP[bv,bv];
+rbst = map(i->Int(phnPbv[i,i])/sum(phnPbv[i,:]),1:sum(bv));
+# 5 gates approx and exact.  Shows that they agree except for some increase variability for approx
+scatter( Vector{Float64}(rwdf5.d_evolvability),Vector{Float64}(rwdf5.robustness), smooth=true, labels="5 gates approximate", xlabel="sampling evolvability",ylabel="robustness")
+scatter!(evo,rbst,smooth=true,xlabel="sampling evolvability",ylabel="robustness",labels="5 gates exact",legend=:topleft)
+savefig("../data/5_21_23/robustness_vs_sampling_evol_exact_and_approx_5_gates.png")  # Not sure why "smooth=true" didn't work for approximate
+
+
+# Plot of approx for 8 and 12 gates and exact for 5 gates.
+scatter( Vector{Float64}(rwdf12.d_evolvability),Vector{Float64}(rwdf12.robustness), smooth=true, labels="approx 12 gates", xlabel="sampling evolvability",ylabel="robustness")
+scatter!( Vector{Float64}(rwdf8.d_evolvability),Vector{Float64}(rwdf8.robustness), smooth=true, labels="approx 8 gates", xlabel="sampling evolvability",ylabel="robustness")
+scatter!(evo,rbst,smooth=true,xlabel="degree evolvability",ylabel="robustness",labels="exact 5 gates",legend=:topleft)
+# Conclusion:  As number of gates increases, the slope of robustness vs. degree evolvability.  And exact results agree with approx results.
+

@@ -15,50 +15,39 @@ using DataFrames, CSV, Dates, Base.Threads
 #   includes robustness, d_evolvability, and s_evolvability.
 # If exclude_zero_rows is false, then results will include zero rows of goal_edge_matrix
 # If csvfile is specified, writes the dataframe to this file.
+# As of 3/31/23:  output_dict==true, save_complex==true don't work.  Consider removing them
 function run_random_walks_parallel( p::Parameters, funcs::Vector{Func}, nwalks::Int64, gl::Vector{MyInt}, steps::Int64; 
       csvfile::String="", exclude_zero_rows::Bool=false, output_dict::Bool=false, save_complex::Bool=false, use_lincircuit::Bool=false )
   nprocesses = nworkers()
-  if save_complex && !output_dict
-    error("The save_complex=true and output_dict=false options are not compatible in run_random_walks_parallel().")
+  if output_dict
+    error("The output_dict==true option is not supported as of 4/3/23 (and did not work prior to that date)")
   end
   #ngoals = 2^(2^p.numinputs)
   #gl = collect(MyInt(0):MyInt(ngoals-1))
   addvalues(x::Tuple{Int64,Float64},y::Tuple{Int64,Float64}) = (x[1]+y[1],(x[2]+y[2])/2.0)
-  if output_dict
-    goal_pair_dict = save_complex ? Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}() : Dict{Tuple{MyInt,MyInt},Int64}()
-    #goal_pair_dict = Dict{Tuple{MyInt,MyInt},Int64}()
-    dict_list = pmap( x->run_random_walks( nwalks, p, funcs, steps, output_dict=output_dict, save_complex=save_complex, use_lincircuit=use_lincircuit ), collect(1:nprocesses) )
-    #println("length(dict_list): ",length(dict_list))
-    #println("dict_list[1]: ",dict_list[1])
-    #println("typeof(goal_pair_dict): ",typeof(goal_pair_dict))
-    #for gp in dict_list
-      goal_pair_dict = save_complex ? merge(addvalues,goal_pair_dict,dict_list...) : merge(+,goal_pair_dict,dict_list...)
-      #goal_pair_dict = merge(+, goal_pair_dict, gp )
-    # end
-    #return goal_pair_dict
-    df = robust_evolvability( goal_pair_dict, gl, p, save_complex )  # The version of robust_evolvability() called depends on the type of goal_pair_dict
+  goal_edge_matrix = run_random_walks( nwalks, p, funcs, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ) 
+  @assert length(gl) <=  size(goal_edge_matrix)[1]
+  if exclude_zero_rows
+    bv = BitVector(map(i->!iszero(sum(goal_edge_matrix[i,:])),1:size(goal_edge_matrix)[1]))
   else
-    goal_edge_matrix = run_random_walks( nwalks, p, funcs, steps, output_dict=output_dict, use_lincircuit=use_lincircuit ) 
-    @assert length(gl) <=  size(goal_edge_matrix)[1]
-    if exclude_zero_rows
-      bv = BitVector(map(i->!iszero(sum(goal_edge_matrix[i,:])),1:size(goal_edge_matrix)[1]))
-    else
-      bv = BitVector(fill(1,size(goal_edge_matrix)[1]))
-    end
-    println("sum(bv): ",sum(bv))
-    #println("goal edge matrix")
-    #println(goal_edge_matrix)
-    df = matrix_to_dataframe( goal_edge_matrix[bv,bv], gl[bv], hex=true )
-    gem_bv = goal_edge_matrix[bv,bv]
-    B = map( x->(iszero(x) ? 0 : 1), gem_bv )
-    d_evolvability = map(i->sum( ( i!=j ? B[i,j] : 0) for j=1:sum(bv) ), 1:sum(bv))
-    s_evolvability = map(i->sum( ( i!=j ? gem_bv[i,j] : 0) for j=1:sum(bv) ), 1:sum(bv) )
-    t_evolvability = total_evol(goal_edge_matrix)
-    #println("min d_evo: ",findmin(d_evolvability_list),"   min s_evo: ",findmin(s_evolvability_list))
-    insertcols!(df, 2, :d_evolvability=>d_evolvability )
-    insertcols!(df, 3, :s_evolvability=>s_evolvability )
-    insertcols!(df, 4, :t_evolvability=>t_evolvability )
+    bv = BitVector(fill(1,size(goal_edge_matrix)[1]))
   end
+  println("sum(bv): ",sum(bv))
+  #println("goal edge matrix")
+  #println(goal_edge_matrix)
+  df = matrix_to_dataframe( goal_edge_matrix[bv,bv], gl[bv], hex=true )
+  gem_bv = goal_edge_matrix[bv,bv]
+  B = map( x->(iszero(x) ? 0 : 1), gem_bv )
+  d_evolvability = map(i->sum( ( i!=j ? B[i,j] : 0) for j=1:sum(bv) ), 1:sum(bv))
+  s_evolvability = map(i->sum( ( i!=j ? gem_bv[i,j] : 0) for j=1:sum(bv) ), 1:sum(bv) )
+  t_evolvability = total_evol(goal_edge_matrix)[bv]
+  phenos = map(ph->[ph], MyInt(0):MyInt(2^(2^p.numinputs)-1) )[bv]
+  robustnesses = matrix_robustness( p, funcs, goal_edge_matrix, phenos )
+  #println("min d_evo: ",findmin(d_evolvability_list),"   min s_evo: ",findmin(s_evolvability_list))
+  insertcols!(df, 2, :d_evolvability=>d_evolvability )
+  insertcols!(df, 3, :s_evolvability=>s_evolvability )
+  insertcols!(df, 4, :t_evolvability=>t_evolvability )
+  insertcols!(df, 5, :robustness=>robustnesses )
   #csvfile = ""
   if length(csvfile) > 0
     println("csvfile: ",csvfile)

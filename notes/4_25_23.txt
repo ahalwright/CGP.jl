@@ -1,0 +1,7 @@
+What would the GP map G look like for a promiscuous GP map?
+
+G(g) would be a probabilistically weighted combination of phenotypes. 
+
+Example:  If phenotypes are UInt8s, G(g) = 0.6*0x3 + 0.4*0xa
+
+G^{-1}(ph) = \frac{1}{|{\cal M}(g)|} 

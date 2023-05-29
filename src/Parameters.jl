@@ -1,6 +1,7 @@
 
 export Parameters, default_parameters, print_parameters
 
+#=
 mutable struct Parameters
     mu::Integer
     lambda::Integer
@@ -14,6 +15,7 @@ mutable struct Parameters
     numinteriors::Integer   # Number of gates. For LinCircuits, number of instructions
     numlevelsback::Integer  # For LinCircuits, number of registers
 end
+=#
 
 function Parameters(numinputs::Int64, numoutputs::Int64, numinteriors::Int64, numlevelsback::Int64 )
     nodearity = 2

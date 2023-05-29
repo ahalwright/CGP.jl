@@ -1,4 +1,4 @@
-Navigability for the evolvability paper.
+Navigability for th1e evolvability paper.
 Moved function robustness() from Chromosome.jl to Robustness.jl, and wrote a function
 genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, nreps::Int64 )
 in Robustness.jl.  Note that there is another function genotype_robustness() in ShapeSpace.jl.
@@ -7,9 +7,9 @@ in Robustness.jl.  Note that there is another function genotype_robustness() in 
 Robustness was computed foer only 1 circuit, and it should have been average of numcircuits circuits.
 
 12/16/22:
-df8 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22E.csv");
-df5 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22G.csv");
-df6 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22F.csv");
+#df8 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22E.csv");  # 16 gts 8 lb Not used no redundancies
+df5 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22G.csv");   # 10 gts 5 lb
+df6 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22F.csv");   # 12 gts 6 lb
 mean(df5.mean_steps), mean(df6.mean_steps), mean(df8.mean_steps)
 (36373.86827, 9682.37749, 10546.20 )
 mean(df5.lg_redund), mean(df6.lg_redund), mean(df8.lg_redund)
@@ -17,20 +17,33 @@ mean(df5.lg_redund), mean(df6.lg_redund), mean(df8.lg_redund)
 mean(df5.robustness), mean(df6.robustness), mean(df8.robustness)
 (0.20895779661016953, 0.28788641975308643, 0.3248741011235956)
 
+# Add plot for frequency to demonstrate neutral correlations
+p5 = Parameters(4,1,10,5); funcs=default_funcs(p5)
+p6 = Parameters(4,1,12,6); funcs=default_funcs(p6)
+rdict5 = redundancy_dict(p5,funcs);
+rdict6 = redundancy_dict(p6,funcs);
+freq5 = map( ph->rdict5[ph[1]], map(string_to_expression,df5.phlist) );
+freq6 = map( ph->rdict6[ph[1]], map(string_to_expression,df6.phlist) );
+insertcols!(df5,:freq=>freq5);   # adds as last column
+insertcols!(df6,:freq=>freq6);
+
 rb5 = Vector{Float64}(df5.robustness);
 rb6 = Vector{Float64}(df6.robustness);
-rb8 = Vector{Float64}(df8.robustness);
+#rb8 = Vector{Float64}(df8.robustness);
 rd5 = Vector{Float64}(df5.lg_redund);
 rd6 = Vector{Float64}(df6.lg_redund);
-rd8 = Vector{Float64}(df8.lg_redund);
+#rd8 = Vector{Float64}(df8.lg_redund);
 scatter(rd5,rb5,smooth=true,labels="10 gates 5 levelsback")
 scatter!(rd6,rb6,smooth=true,labels="12 gates 6 levelsback")
 #scatter!(rd8,rb8,smooth=true,labels="11_8")
-scatter!(legend=:topleft,ylabel="robustness",xlabel="log redundancy")
-#scatter!(title="lg_redund vs robust 12gts6lb 10gts5lb 200circs")
-savefig("../data/12_7_22/lg_redund_vs_robust_12gts6lb_10gts5lb_200circs.png")
+#scatter!(legend=:topleft,ylabel="robustness",xlabel="log redundancy")
+scatter!(legend=:topleft,ylabel="robustness",xlabel="log frequency")   # Used in Univeral properties paper
 
-scatter!(df5.Kcomp,df5.lg_redund,smooth=true,xlabel="K complexity",ylabel="log redundancy",legend=:none,title="lg redund vs K complex 4x1 10gts5lb 200circpespe:1")
+#scatter!(title="lg_redund vs robust 12gts6lb 10gts5lb 200circs")
+#savefig("../data/12_7_22/lg_redund_vs_robust_12gts6lb_10gts5lb_200circs.png")
+savefig("../data/12_7_22/lg_freq_vs_robust_12gts6lb_10gts5lb_200circs.png")
+
+scatter!(df5.Kcomp,df5.lg_redund,smooth=true,xlabel="K complexity",ylabel="log redundancy",legend=:none,title="lg redund vs K complex 4x1 10gts5lb 200circ")
 savefig("../data/12_7_22/"lg_redund_vs_K_complex_4x1_10gts5lb.png")
 scatter(df5.Kcomp,df5.robustness,smooth=true,xlabel="K complexity",ylabel="robustness",legend=:none,title="robustness vs K complex 4x1 10gts5lb 200circs")
 savefig("../data/12_7_22/robustness_vs_K_complex_4x1_10gts5lb_200circs")
@@ -58,10 +71,10 @@ and I will run data/5_22_22/run_geno_complexity_5funcs_5_22_22G.jl for 4x1 12gts
 
 surt2:
 df = read_dataframe("../data/5_22_22/geno_complexity_cartGP_5_22_22F.csv")
-select!(df,DataFrames.Not(:sumsteps))
-select!(df,DataFrames.Not(:sumtries))
+select!(df,DataFrames.Not(:sumsteps));
+select!(df,DataFrames.Not(:sumtries));
 cdif = read_dataframe("../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv")
-red = [lg10(cdf[cdf.goals.==df.goal[i][8:end-1],:ints10_5][1]) for i = 1:500]
+red = [lg10(cdif[cdif.goals.==df.goal[i][8:end-1],:ints10_5][1]) for i = 1:500]
 insertcols!(df,size(df)[2],:ints10_5=>red)
 scatter(df.ints10_5,df.robustness)
 plot!(xlabel="log redundancy",ylabel="robustness",title="robustness vs log redundancy 4x1 10gts5lb",legend=:none))

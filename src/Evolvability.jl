@@ -1114,11 +1114,29 @@ function mean_genotype_evolvabilities( p::Parameters, funcs::Vector{Func}, df::D
   geno_evols = pmap( x->mean(geno_evolvabilities( p, funcs, x )), circ_list )
 end
 
+function run_mean_genotype_evolvabilities( p::Parameters, funcs::Vector{Func}, df::DataFrame, field::Symbol=:circuits_list; csvfile::String="" )
+  goals = map( x->[x], MyInt(0):MyInt(2^2^p.numinputs-1))
+  geno_evols =  mean_genotype_evolvabilities( p, funcs, df, field )
+  df = DataFrame( :goals=>goals, :geno_evolvabilities=>geno_evols )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ", funcs)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
 # Returns the mean genotype evolvability and the average genotype evolvability of the neutral circuits produced a a mutate_all() of ch.
 # Shows that the genotype evolvability is close to theaverage genotype evolvability of neighbors.
 # Circuits are those produced by the circuits_list of a counts file.
 function run_mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, df::DataFrame )
   cints_ph = string_to_expression( df.circuits_list[ ph[1]+1 ] )
+
   #ch = int_to_chromosome( rand( cints_ph ), p, funcs )
   results = pmap( _->mutation_vs_sample_ch( p, funcs, int_to_chromosome( rand( cints_ph ), p, funcs ) ), 1:nreps )
   mutate_mean = mean( map( x->x[1], results ) )

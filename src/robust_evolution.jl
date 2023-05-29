@@ -236,18 +236,6 @@ function print_pop( pop::Vector{Tuple{Chromosome,Float64}} )
   end
 end
 
-function print_rlist( rlist )
-  for r in rlist
-    print("r[2]: ",r[2]," ov: ",output_values(r[1],funcs),"   ")
-    print_circuit(r[1],funcs)
-  end
-end
-
-# Compare x and y on the second component
-function my_isless( x::Tuple, y::Tuple )
-  return x[2] < y[2]
-end
-
 #=
 function mutate_circuit!( c::Circuit, funcs::Vector{Func} )
   if typeof(c) == Chromosome
@@ -258,7 +246,7 @@ function mutate_circuit!( c::Circuit, funcs::Vector{Func} )
 end
 =#    
 
-#= moved to Chromosome.jl
+#= moved to Robustness.jl
 function robustness( c::Circuit, funcs::Vector{Func} )
   #print("robustness: c:  ")
   #print_circuit(c,funcs)

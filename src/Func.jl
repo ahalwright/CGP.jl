@@ -4,7 +4,7 @@
 # Common situation:  MyInt is UInt16 and numinputs = 3.  Then Ones=0x00ff is used as a mask in the computation of Nand() and Nor().
 export Func, default_funcs, eval_func, lin_funcs
 export Ones, AND, OR, XOR, Nand, NAND, Nor, NOR, NOT, Not, Zero, ZERO, One, ONE, In1, IN1, In2, IN2
-export func_names, setup_funcs
+export func_names, setup_funcs, find_func_index
 using Main.CGP
 
 mutable struct Func
@@ -87,4 +87,14 @@ end
 
 function func_names( funcs::Vector{Func} )
   [ f.name for f in funcs ]
+end
+
+# Return the 1-based index of function func in vector funcs.
+function find_func_index( func::Func, funcs::Vector{Func} )
+  for i = 1:length(funcs)
+    if func.func == funcs[i].func
+      return i
+    end
+  end
+  error( "func: ",func.func, " not found in funcs: ", funcs, " in function find_func_index()" )
 end

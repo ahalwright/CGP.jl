@@ -1,0 +1,43 @@
+Revisiting how Schuster, Fontana, Stadler, Hofacker (1994) derived the shape space covering property.
+
+Statement of shape space covering:  (page 4):  "strong evidence for the existence of a neighborhood
+(a high dimensional ball) around every random sequence that contains sequences whose structures
+include almost all common shapes."
+
+"To verify the prediction of a characteristic neighborhood covering almost all commom shapes, we did a
+computer experiment.  A target sequence is chosen at random.  A second random sequence serves as an
+initial trial sequence, and its structure as a reference structure.  Next we search for a nearest
+neighbor of the trial sequence that folds into the reference sequence but lies closer to the target.
+If such a sequence is found, it is accepted as the new trial sequence, and the procedure is repeated
+until no further approach to the target is possible.  The final Hamming distance to the is an upper
+bound for the minimum distance between two sequences folding into the reference structure and the
+structure of the target respectively."  [See Figure 4.]  
+
+I will call the above algorithm "directed neutral evolution".  In our notation, start with a random
+target genotype and a random trial phenotype.  For each step, mutate the trial genotype in all possible ways 
+looking for a neutral genotype that is closer to the target phenotype, and if one is found, this becomes 
+the new trial genotype.  The algorithm stops when no closer neutral trial genotype is found.  The result 
+is the distance from the last trial genotype to the target genotype.  Genotype distance is defined next.
+
+Note that a genotype is a sequence of gates (interior nodes) where each gate is specified by
+a triple: (gate_function, input1, input2).  Thus, a genotype with $g$ gates is specified by 
+a $3g$-tuple, and the distance between genotypes with the same number gates is the number of 
+mismatching elements of their two tuples.
+
+Our algorithm for shape-space covering is:
+  1)  Start with a random trial genotype.
+  2)  Run directed neutral evolution with all "common" phenotypes as target phenotypes.
+  3)  The result is some statistic or statistics (such as the mean) summarizing these results.
+
+Fontana (2002) describes the result of this RNA experiment as: "In other words, given a random sequence 
+of length 100, 15 point mutations are, on average, sufficient to realize any frequent shape. This means 
+that a relatively small volume of sequence space around each random sequence realizes the entire
+statistically relevant portion of shape space."  Note that the test example for Schuster et al is
+100 base pair RNA sequences.
+
+What is small for 3-input 8-gate case?  I claim that this is roughly comparable to the 100 bp RNA
+sequence case.  There are $100^4 = 10^8$ RNA genotypes and $1.6 \times 10^14$ circuit genotypes.
+Each RNA genotype can be mutated in 300 ways and each circuit can be mutated in 70 ways.
+A:83524  S:85048
+
+http://ncra.ucd.ie/papers/complexity_measures_cec2016.pdf

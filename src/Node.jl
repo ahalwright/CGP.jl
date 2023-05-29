@@ -38,6 +38,18 @@ mutable struct OutputNode <: Node
     input::Integer
 end
 
+# returns a list of integer triples (if arity==2), one for each interior node.
+function gate_tuple( p::Parameters, funcs::Vector{Func}, node_vect::Vector{InteriorNode} )
+  gtuple = [ ( find_func_index( v.func, funcs ), v.inputs[1], v.inputs[2] ) for v in node_vect ]
+end
+
+# returns a list of values that specifies the sequnce of interior nodes given in node_vect.
+# For each gate, these are an integer specifying the gate function and the two integers specifying the inputs
+# Thus, the length of the result list is 3*length(node_vect) assumimg arity=2
+function gate_list( p::Parameters, funcs::Vector{Func}, node_vect::Vector{InteriorNode} )
+  glist = reduce( append!, map(collect, gate_tuple( p, funcs, node_vect ) ) )
+end
+
 # 
 function print_node_tuple( f::IO, node_vect::Vector{InputNode} )
   print(f,"(")

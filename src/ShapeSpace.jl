@@ -425,3 +425,23 @@ function shape_space_evolution_successes( p::Parameters, funcs::Vector{Func}, nu
   end
   ph_df
 end
+
+# Random sample of a chromosome that maps to ph
+# sample_df is a dataframe of reduncancies that contains a column :circuit_list of circuit_ints of that map to each corresponding phenotype
+# Example for 3 inputs, 8 gates, 4 lb, 4 funcs:  "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv"
+# Assumes that sample_df has a row for each phenotype so that sample_df[ph[1]+1,:] is the row corresponding to phenotype ph
+function random_sample( p::Parameters, funcs::Vector{Func}, ph::Goal, sample_df::DataFrame )
+  cint = rand(string_to_expression(sample_df[ph[1]+1,:circuits_list]))
+  int_to_chromosome( cint, p, funcs )
+end
+
+function directed_evolve_to_ph( p::Parameters, funcs::Vector{Func}, target_ph::Goal, sample_df::DataFrame )
+  rch = random_chromosome( p, funcs )
+  target_ch = random_sample( p, funcs, target_ph, sample_df )
+  directed_neutral_evolution( rch, funcs, target_ch, 100 )
+end
+
+function directed_evolve_to_ph_list( p::Parameters, funcs::Vector{Func}, target_ph_list::GoalList, sample_df::DataFrame )
+  map(target_ph->directed_evolve_to_ph( p, funcs, target_ph, sample_df ), target_ph_list )
+
+end

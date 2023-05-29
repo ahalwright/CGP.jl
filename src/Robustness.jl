@@ -1,5 +1,6 @@
 export robustness, genotype_robustness, phenotype_robustness
 
+# Computes the genotype robustness of circuit c.
 function robustness( c::Circuit, funcs::Vector{Func} )
   #print("robustness: c:  ")
   #print_circuit(c,funcs)
@@ -117,6 +118,18 @@ function phenotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}
     end
   end
   df
+end
+
+# Robustness for 1 phenotype
+function matrix_robustness( p::Parameters, funcs::Vector{Func}, E::Matrix, ph::Goal )
+  @assert 2^2^p.numinputs == size(E)[1]
+  E[ph[1]+1,ph[1]+1]/sum(E[ph[1]+1,:])
+end
+
+# Robustness for a list of phenotypes
+function matrix_robustness( p::Parameters, funcs::Vector{Func}, E::Matrix, phlist::GoalList )
+  @assert 2^2^p.numinputs == size(E)[1]
+  map( ph->matrix_robustness( p, funcs, E, ph ), phlist )
 end
 
 # Evolves numciruits circuits to map to each phenotype in phlist.

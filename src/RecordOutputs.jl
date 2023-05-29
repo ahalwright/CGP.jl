@@ -654,6 +654,89 @@ function add_complexities_to_df( p::Parameters, funcs::Vector{Func}, edf::DataFr
   edf
 end
 
+# Does a random sample of genotypes and uses redundancy_dict() to evaluate their log redundancies.  
+# Returns a dataframe with one column which can be plotted using density.
+# Maybe replaced by the next function log_freq_rand_geno_sample()
+function log_redund_rand_geno_sample( p::Parameters, funcs::Vector{Func}, nsamples::Int64; csvfile::String="" )
+  lg_redund_list = Float64[]
+  rdict = redundancy_dict( p, funcs )
+  for i = 1:nsamples
+    ch = random_chromosome( p, funcs )
+    push!( lg_redund_list, lg10(rdict[output_values(ch)[1]] ))
+  end
+  df = DataFrame( :lg_redund=>lg_redund_list )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ",funcs)
+      println(f,"# nsamples: ",nsamples)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+ 
+# Does a random sample of genotypes and uses redundancy_dict() to evaluate their log frequencies.  
+# Returns a dataframe with one column which can be plotted using density.
+# Same as previous function with redund replaced by freq
+function log_freq_rand_geno_sample( p::Parameters, funcs::Vector{Func}, nsamples::Int64; csvfile::String="" )
+  lg_freq_list = Float64[]
+  rdict = redundancy_dict( p, funcs )
+  for i = 1:nsamples
+    ch = random_chromosome( p, funcs )
+    push!( lg_freq_list, lg10(rdict[output_values(ch)[1]] ))
+  end
+  df = DataFrame( :lg_freq=>lg_freq_list )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ",funcs)
+      println(f,"# nsamples: ",nsamples)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+ 
+# Returns a vector of exact redundancies indexed over all possilbe phenotypes
+# Requires a small value of ngenos to finish in reasonable time.
+function redundancy_exact( p::Parameters, funcs::Vector{Func} )
+  default_funcs(p)   # sets the global variable Ones
+  redundancies = zeros(Int64,2^(2^p.numinputs))
+  ngenos = Int128( count_circuits_ch( p, funcs ) )
+  println("ngenos: ",ngenos)
+  for i = Int128(0):(ngenos-1)
+    ch = int_to_chromosome( i, p, funcs )
+    index = output_values(ch)[1]+1
+    redundancies[ index ] += 1
+  end
+  redundancies
+end
+
+
+function redundancy_exact_df( p::Parameters, funcs::Vector{Func}; csvfile::String="" )
+  redundancies = redundancy_exact( p, funcs )
+  df = DataFrame( :pheno=>map(x->[x], MyInt(0):MyInt(2^2^p.numinputs-1)), :redund=>redundancies )
+  if length(csvfile) > 0
+    hostname = readchomp(`hostname`)
+    open( csvfile, "w" ) do f
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      print_parameters(f,p,comment=true)
+      println(f,"# funcs: ",funcs)
+      println(f,"# ngenos: ",ngenos)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
 #=
 function check_geno_exist_for_phenotypes( p::Parameters, gl::GoalList, max_evolve_tries::Int64, max_ev_steps::Int64, outfile::String )
   funcs = default_funcs(p.numinputs)

@@ -6,6 +6,7 @@ export random_neutral_walk, match_score, findmaxall, findminall, findmaxall_1, f
 export evolve_function, mut_evolve_repeat, circuit_evolve, run_circuit_evolve, run_ph_evolve
 export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, lambda_evolution, pheno_evolve, run_pheno_evolve
 export run_evolve_to_pheno_mt, run_to_rand_phenos_mt
+export directed_neutral_evolution
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -1096,8 +1097,8 @@ end
 
 # Computes phenotype evolvability, genotype evolvability, robustness, complexity, steps
 # num_circuits is the number of circuits used to compute properties.
-function geno_circuits( g::Goal, p::Parameters, num_circuits::Integer, max_steps::Integer, max_attempts::Integer )
-  funcs = default_funcs( p.numinputs )
+function geno_circuits( g::Goal, p::Parameters, funcs::Vector{Func}, num_circuits::Integer, max_steps::Integer, max_attempts::Integer )
+  #funcs = default_funcs( p.numinputs )
   c = random_chromosome( p, funcs )
   sum_steps = 0
   circuit_list = Chromosome[]
@@ -1120,10 +1121,11 @@ function geno_circuits( g::Goal, p::Parameters, num_circuits::Integer, max_steps
   return (circuit_list, sum_steps)
 end 
 
+#=
 # Computes phenotype evolvability, genotype evolvability, robustness, complexity, steps
 # num_circuits is the number of circuits used to compute properties.
-function geno_circuits( g::Goal, p::Parameters, num_circuits::Integer, max_steps::Integer, max_attempts::Integer )
-  funcs = default_funcs( p.numinputs )
+function geno_circuits( g::Goal, p::Parameters, funcs::Vector{Func}, num_circuits::Integer, max_steps::Integer, max_attempts::Integer )
+  #funcs = default_funcs( p.numinputs )
   c = random_chromosome( p, funcs )
   sum_steps = 0
   circuit_list = Chromosome[]
@@ -1134,7 +1136,7 @@ function geno_circuits( g::Goal, p::Parameters, num_circuits::Integer, max_steps
     attempt += 1
     (nc,steps) = neutral_evolution( c, funcs, g, max_steps )
     sum_steps += steps
-    if nc != nothing
+    if steps < max_steps
       n_circuits += 1
       push!( circuit_list, nc )
     end
@@ -1145,10 +1147,12 @@ function geno_circuits( g::Goal, p::Parameters, num_circuits::Integer, max_steps
   end
   return (circuit_list, sum_steps)
 end
+=#
  
-function geno_properties( cl_ss::Tuple{Vector{Chromosome}, Int64} ) # Tuple of circuit list and sum_steps.
+# Added funcs to parameters on 4/28/23
+function geno_properties( cl_ss::Tuple{Vector{Chromosome}, Int64}, funcs::Vector{Func} ) # Tuple of circuit list and sum_steps.
   (cl, sum_steps) = cl_ss
-  funcs = default_funcs( cl[1].params.numinputs )
+  #funcs = default_funcs( cl[1].params.numinputs )
   g = output_values(cl[1])
   sum_robust = 0.0
   sum_complexity = 0.0
@@ -1156,14 +1160,21 @@ function geno_properties( cl_ss::Tuple{Vector{Chromosome}, Int64} ) # Tuple of c
   genotypes = Goal[]
   genotype_set = Set(Goal[])
   n_circuits = length(cl)
+  i = 1
   for c in cl
-    @assert output_values(c) == g
-    sum_robust += mutational_robustness( c, funcs )
+    if !(output_values(c) == g)
+      println("i: ",i,"  g: ",g,"  output_values(c): ",output_values(c),"  @assert output_values(c) == g failed in geno_properties() ")
+      print_circuit(c)
+    end
+    #@assert output_values(c) == g
+    #sum_robust += mutational_robustness( c, funcs )
+    sum_robust += robustness( c, funcs )
     sum_complexity += complexity5(c) 
     genotypes = Set(mutate_all(c,funcs,output_outputs=true,output_circuits=false))
     sum_evolvability += length(genotypes)-1
     #println("len(genotypes): ",length(genotypes),"  genotypes: ",genotypes)
     genotype_set = union( genotype_set, genotypes )
+    i += 1
   end
   (g, sum_robust/n_circuits, sum_complexity/n_circuits, sum_evolvability/n_circuits, length(genotype_set), sum_steps/n_circuits) 
 end
@@ -1174,8 +1185,10 @@ end
 #    that evolve to a goal 
 # max_steps is the maximum number of evolutionary steps done by neutral_evoluion() during 1 attempt to evolve a circuit
 #    that maps to a goal.
-function geno_list_properties( gl::GoalList, p::Parameters, num_circuits::Integer, max_steps::Integer, max_attempts::Integer;
+# Added funcs to parameters on 4/28/23
+function geno_list_properties( gl::GoalList, p::Parameters, funcs::Vector{Func}, num_circuits::Integer, max_steps::Integer, max_attempts::Integer;
     csvfile::String="" )
+  println("funcs: ",funcs)
   df = DataFrame()
   df.goal = Goal[]
   df.robustness = Float64[]
@@ -1184,7 +1197,8 @@ function geno_list_properties( gl::GoalList, p::Parameters, num_circuits::Intege
   df.p_evolvability = Float64[]
   df.steps = Float64[]
   gp_list = Vector{Tuple{Goal,Float64,Float64,Float64,Float64,Float64}}[]
-  gp_list = pmap( g->geno_properties( geno_circuits( g, p, num_circuits, max_steps, max_attempts ) ), gl )
+  gp_list = pmap( g->geno_properties( geno_circuits( g, p, funcs, num_circuits, max_steps, max_attempts ), funcs ), gl )
+  #gp_list = map( g->geno_properties( geno_circuits( g, p, funcs, num_circuits, max_steps, max_attempts ), funcs ), gl )
   for gp in gp_list
     push!(df, gp) 
   end
@@ -1193,7 +1207,7 @@ function geno_list_properties( gl::GoalList, p::Parameters, num_circuits::Intege
       hostname = readchomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
-      println(f,"# funcs: ", Main.CGP.default_funcs(p.numinputs))
+      println(f,"# funcs: ", funcs)
       print_parameters(f,p,comment=true)
       println(f,"# num_circuits: ",num_circuits)
       println(f,"# max_steps: ",max_steps)
@@ -1479,4 +1493,41 @@ function sampling_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, cdf::Data
     new_c = int_to_chromosome( cdf.circuit_ints[circ_int_counter[phi]][j+1] )
     ph = output_values(c)  # current phenotype
   end
+end
+
+# Does neutral evolution starting with Chromosome trial and goal Chromosome target.
+# Each step uses mutate_all() to look for the next Chromosome.
+# If no chromosome closer to target is found, the evolution stops.
+# Returns a list of triples where each triple is a (phenotype, chromosome, distance )
+# Seems to always reduce distance by 1.
+function directed_neutral_evolution( trial::Chromosome, funcs::Vector{Func}, target::Chromosome, max_steps::Int64 )
+  p = trial.params
+  triples_list = nothing
+  fmin = nothing
+  initial_distance = geno_distance( trial, target, funcs )
+  #println("initial distance: ",initial_distance)
+  current_distance = initial_distance
+  ch = deepcopy(trial)
+  for step = 1:max_steps
+    ch_ph = output_values(ch)
+    #println("step: ",step,"  ch_ph: ",ch_ph)
+    (outputs_list, ch_list) = mutate_all( ch, funcs, output_outputs=true, output_circuits=true )
+    pairs_list = filter(x->x[1][1]==ch_ph[1], [ (outputs_list[i],ch_list[i]) for i = 1:length(ch_list) ])
+    triples_list = [ (pairs_list[i][1], pairs_list[i][2], geno_distance( pairs_list[i][2], target, funcs )) for i = 1:length(pairs_list) ]
+    distances = map(x->x[3],triples_list)
+    new_distance = minimum(distances)
+    fmin = (new_distance, rand(findall(x->x==new_distance,distances)))
+    #println("fmin: ",fmin)
+    new_ch = pairs_list[fmin[2]][2]
+    #println("new_distance: ",new_distance,"  new_ch: ",new_ch)
+    if new_distance >= current_distance
+      current_distance = new_distance
+      break
+    else
+      current_distance = new_distance
+      ch = deepcopy(new_ch)
+    end
+  end
+  #fmin
+  findmin(map(x->x[3],triples_list))[1]
 end

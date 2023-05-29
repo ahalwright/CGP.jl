@@ -1,0 +1,20 @@
+Canalization and evolvability (and modularity and hierarchy)
+  "canalization—the propensity of genomic structures to be mutationally robust against changes in 
+  some dimensions of variation (ways in which individual or combinations of phenotypic traits can 
+  change), whereas other, possibly more adaptive dimensions of variation, are free to vary"
+  Huizinga 2018
+  "canalizations are the result of structural organization in the genotype, in the form of modularity and 
+  hierarchy, and such genomic structural organization increases the reproductive success of individuals."
+
+Kashtan 2005 shows how circuits can be modularized.
+
+Another paper:
+kounios2016resolving:Resolving the paradox of evolvability with learning theory
+
+How can a genotype-phenotype map exhibit canalization evolvavility?
+There could be a difference in the mutation distribution (mutate_all) of the genotypes that map to a phenotype.
+For example, the mutations of one genotype could give increased weight to bit A of the phenotype and 
+  decreased weight to bit B, while another genotype could do the reverse.  
+
+This seems to be a testable hypothesis.
+
