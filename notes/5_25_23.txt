@@ -1,0 +1,32 @@
+Summary of the effects of increasing gates in Universal Propoerties.
+
+Should we do both 3 and 4 inputs?
+
+Two types:  
+1.  Comparison of properties for 2 numbers of gates.
+  a.  log freq vs rank  Figure 2
+  b.  robustness vs log freq  Figure 4 (needs to include neutral correlations)
+  c.  robustness vs sampling evol Figure 6 exact, Figure 7 approx
+  d.  log freq vs sampling evol Figure 8 of current paper (should exact be included?)
+  e.  genotype evolvability notes/5_16_23
+  f.  Shape space Figures 9 and 10 could be done for different numbers of gates (TODO)
+2.  Plot of results for 5 numbers of gates
+  a.  mean sampling evolvability versus mean robustness (see below)
+
+notes/5_16_23:  shows that genotype evolvability increases with number of gates 
+
+
+=====
+Plots of mean sampling evolvability versus mean robustness for 6, 8, 10, 12, 14 gates (3 inputs)
+Based on 3_29_23.txt to compute rwdf?.d_evolvability and rwdf?.robustness.
+
+evol_list = map(x->mean(x),[mean(rwdf6.d_evolvability),mean(rwdf8.d_evolvability),mean(rwdf10.d_evolvability),mean(rwdf12.d_evolvability),mean(rwdf14.d_evolvability)])
+5-element Vector{Float64}:
+[51.296875,106.9765625,130.8046875,143.37890625,150.85546875]
+rbust_list = map(x->mean(x),[mean(rwdf6.robustness),mean(rwdf8.robustness),mean(rwdf10.robustness),mean(rwdf12.robustness),mean(rwdf14.robustness)])
+[0.23671614299334856,0.3454992948652927,0.4278361656570043,0.4880275555639645,0.533660832307611]
+# for rwdf6, mean(filter(!isnan,rwdf6.robustness)) # 0.23671614299334856
+scatter(evol_list,rbust_list,xlabel="sampling evolvability",ylabel="robustness",labels="6, 8, 10, 12, 14 gates",legend=:topleft)
+savefig("../data/5_21_23/robustness_vs_sampling_evol6_8_10_12_14gates.png")
+
+

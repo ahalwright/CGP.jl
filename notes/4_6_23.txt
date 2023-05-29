@@ -1,0 +1,28 @@
+Finished revision of introduction.
+
+Saved a version to phn/zip.  Deleting extra material like entropy evolvability.  
+Saved deleted material in evotech/pheno_network/latex/deleted_material_4_6_23.tex
+
+Compiled and saved pdf to evotech/pheno_network/pdf/Evolvability_Paper4_6_23.pdf
+
+Converted to text using https://pdftotext.com/
+
+Did word count by "wc -w":  10386
+
+Removed Navigativilty section:  text/Evol_no_navigability4_6_23.txt
+
+wc -w: 9153
+
+Remove page footers:  wc -w:   9032
+
+
+
+TODO list:
+
+Methods for counting genotypes.  Wolfgang suggests dropping or moving somewhere.  Approximately line 233.
+
+Move paragraph on mutation from high to low redundancy to results.  Line 326.
+
+Methods for computation of robustness.  Line 374
+
+Look at Dingle's method of showing redundancy vs rank.  Line 391.

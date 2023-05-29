@@ -1,0 +1,24 @@
+Promiscuous GP maps
+
+See src/Promiscuous.jl
+See OneDrive/evotech/jupyter/Promiscuous-test.ipynb
+
+
+Setting up my test example:
+Exact
+3 phenotypes 1x  2x  3x
+6 genotypes  1,2,3,4,5,6
+GP map  1->1x  2->1x  3->2x  4->2x  5->2x  6->3x
+Frequencies:  1x: 2,    2x: 3,  3x: 1
+Mutations:
+1->[1 2 3]  2->[2 4 5]  3->[1 3 6]  4->[2 4 5 6]  5->[5 2]  6->[3 4 6]
+
+Geno evolvabiltiy
+
+g=1  p=1x  geno nbrs: [1, 2, 3]  pheno nbrs: 2x  gev:  1
+g=2  p=1x  geno nbrs: [2, 4, 5]  pheno nbrs: 2x  gev:  1
+g=3  p=2x  geno nbrs: [1, 3, 5]  pheno nbrs: 1x  gev:  1
+g=4  p=2x  geno nbrs: [2, 4, 5, 6]  pheno nbrs: 1x 3x  gev:  2
+g=5  p=2x  geno nbrs: [2, 5]        pheno nbrs: 1x     gev:  1
+g=6  p=3x  geno nbrs: [3, 4, 6]     pheno nbrs: 2x     gev:  1
+

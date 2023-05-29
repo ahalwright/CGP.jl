@@ -1,0 +1,36 @@
+Additional TODOs:
+
+log_redund_vs_rank                    change label from log redundancy to log frequency  DONE modified notes/9_12_22.txt
+
+lgredund_vs_evolQ_and_samplingD plot:   remove evolution evolvability.
+
+lg_redund_vs_robust                   change label from log redundancy to log frequency
+
+log_redund_vs_evolvability_exact       change label from log redundancy to log frequency
+
+Fraction of common phenotypes plots:  remove evolution plot.  Rethink whether needed
+
+===============================
+Figures in the Universal Properties paper
+
+296:  log_redund_vs_rank_4x1_10_12gts5lb_8_15_22.png    fig:logfreq10_12_vs_rank
+298   log_freq_vs_rank_4x1_10_12gts5lb_8_15_22.png      fig:logfreq10_12_vs_rank  (modified 3/24/23)
+
+326:  pheno_geno_lg_redund_density4x1_10gtsXOR.png      fig:geno_pheno_lg_freq
+329:  pheno_geno_lg_freq_density4x1_10gtsXOR.png      fig:geno_pheno_lg_freq   (modified 3/24/23)
+
+338:  lg_redund_vs_robust_12gts6lb_10gts5lb_200circs.png    fig:lgredund_vs_robust
+
+455:  log_redund_vs_evolvability_exact_5gts_3lb_noXOR.png   fig:exact_lgredund_vs_evol_noXOR
+
+463:  robustness_vs_evolvability_exact_5gts_3lb_noXOR.png   fig:exact_rbst_vs_evol_noXOR
+
+477   robustness_vs_sampling_evol3x1_8gts4lb.png            fig:robustness_vs_sampling_evol3x1
+
+491   lgredund_vs_evolQ_and_samplingD_evolvability_exact3x1_8gts4lb4funcs.png   fig:logredund_vs_sampling_evol_evolvability
+
+516   fraction_of_common_phenotypes_that_are_observed3x1_8gts4lb_noXOR.png     fig:3x1shape-space_covering
+
+525   fraction_of_common_phenotypes_that_are_observed4x1_12gts6lbXOR.png      fig:4x1shape-space_covering
+
+

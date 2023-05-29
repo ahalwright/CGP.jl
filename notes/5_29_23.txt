@@ -1,0 +1,29 @@
+Plotting robustness by genotype and phenotype for 2 parameter settings: 4x1 10 and 12 gates
+Redo of 4_7_23
+Moved into notes/4_7_23.txt
+
+# For phenotype
+pdf10 = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv");
+pdf12 = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_12gates_6lb_H.csv");
+insertcols!(pdf10,3,:ints10_5lgsrt=>sort(map(x->lg10(x),pdf10.ints10_5),rev=true));
+insertcols!(pdf12,3,:ints12_6lgsrt=>sort(map(x->lg10(x),pdf12.ints12_6),rev=true));
+density(pdf10.ints10_5lgsrt)   # Not used---just check
+density!(pdf12.ints12_6lgsrt)
+
+# For genotype
+# Function log_freq_rand_geno_sample() is in RecordOutputs.jl
+# Runs in a few seconds
+gdf10 = include("../data/4_7_23/run_geno_sampleA.jl")
+gdf12 = include("../data/4_7_23/run_geno_sampleB.jl")
+# Runs in a few seconds
+# Alternative:  Read the CSV file
+density( gdf10.lg_freq )  # Not used---just check
+density!( gdf12.lg_freq )  # 10 and 12 appear to be identical except for some low freq genotypes
+
+For both:
+density(gdf10.lg_freq,linestyle=:dashdot,labels="random genotypes for 10 gates")
+density!(gdf12.lg_freq,linestyle=:dashdotdot,labels="random genotypes for 12 gates")
+density!(pdf10.ints10_5lgsrt,linestyle=:dot,labels="random phenotypes 10 gates")
+density!(pdf12.ints12_6lgsrt,linestyle=:dash,labels="random phenotypes 12 gates")
+plot!(xlabel="log frequency",ylabel="probability density",legend=:topleft)
+savefig("../data/4_7_23/pheno_geno_lg_freq_density4x1_10_12gtsXOR.png")

@@ -1,0 +1,33 @@
+Manrubia (2021) on artificial life and open questions.
+
+Manrubia discusses four artificial life systems in section 3.4:
+1)  Avida
+2)  Dawkins biomorphs
+3)  Lindenmayer systems, in particular 2PDOL
+4)  FPGA (circuits) of Raman and Wagner.  A special case of our systems
+    (except that their systems have 4 outputs and ours have 1).
+
+Similarities
+1)  Varying phenotype redundancies in 3 of 4 systems.  Neutral set diameter differs in the fourth.
+2)  High genotypic robustness
+3)  Probability of mutating from high redundancy to low redundancy is smaller than in the 
+    reverse direction was found for Avida and 2PDOL.
+
+Differences.
+1)  In Avida a high fraction of genotypes is inviable
+2)  Suggests consistently evaluating phenotypic robustness and evolvability, NSS (neutral
+    set size), and mean-field mutation probabilities.
+
+Comment (not based on Manrubia):
+  G-P map properties are emergent properties to various degrees.  Genotype robustness
+  is not emergent since it depends directly on properties of the genotype, while phenotype 
+  evovability is strongly emergent because it depends on the interaction of genotypes and
+  phenotypes in a nontrivial way.
+
+Manrubia section 9 "Summary and short term perspectives"
+
+Also, complete inverse folding methodologies can be used to develop computational frameworks for the study of genotype-phenotype-function relationships. (Our exact phenotype network provides "inverse folding" for our G-P map.)
+
+
+For example, phenotypic bias is known to affect evolutionary outcomes due to at least three mechanisms: the ‘survival of the flattest’ [181], the ‘arrival of the frequent’ [94], and its effect on the free fitness of phenotypes in monomorphic regime [84,158,182,190]. Despite this progress, it may still be difficult to estimate for more complex cases than the scenario studied by Schaper and Louis, how strong the ‘arrival of the frequent’ effect will be and whether phenotypic frequency or phenotypic fitness are likely to determine evolutionary outcomes. Ultimately, this knowledge will help us answer the bigger questions of whether and how we can use GP maps to predict short- and long-term trends in evolution [377–379].
+

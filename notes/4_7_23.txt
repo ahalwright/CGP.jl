@@ -1,0 +1,81 @@
+Plotting Robustness by genotype and phenotype
+
+
+Plotting robustness by genotype and phenotype for 2 parameter settings: 4x1 10 and 12 gates
+Redo of 4_7_23
+
+# For phenotype
+pdf10 = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv");
+pdf12 = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_12gates_6lb_H.csv");
+insertcols!(pdf10,3,:ints10_5lgsrt=>sort(map(x->lg10(x),pdf10.ints10_5),rev=true));
+insertcols!(pdf12,3,:ints12_6lgsrt=>sort(map(x->lg10(x),pdf12.ints12_6),rev=true));
+density(pdf10.ints10_5lgsrt)   # Not used---just check
+density!(pdf12.ints12_6lgsrt)
+
+# For genotype
+# Function log_freq_rand_geno_sample() is in RecordOutputs.jl
+# Runs in a few seconds
+gdf10 = include("../data/4_7_23/run_geno_sampleA.jl")
+gdf12 = include("../data/4_7_23/run_geno_sampleB.jl")
+# Runs in a few seconds
+# Alternative:  Read the CSV file
+density( gdf10.lg_freq )  # Not used---just check
+density!( gdf12.lg_freq )  # 10 and 12 appear to be identical except for some low freq genotypes
+
+For both:
+density(gdf10.lg_freq,linestyle=:dashdot,labels="random genotypes for 10 gates")
+density!(gdf12.lg_freq,linestyle=:dashdotdot,labels="random genotypes for 12 gates")
+density!(pdf10.ints10_5lgsrt,linestyle=:dot,labels="random phenotypes 10 gates")
+density!(pdf12.ints12_6lgsrt,linestyle=:dash,labels="random phenotypes 12 gates")
+plot!(xlabel="log frequency",ylabel="probability density",legend=:topleft)
+savefig("../data/4_7_23/pheno_geno_lg_freq_density4x1_10_12gtsXOR.png")
+
+=========================
+Previous 4_7_23.txt
+
+using StatsPlots
+
+Method 1 for by phenotype:
+cdf4 = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv")
+insertcols!(cdf4,3,:ints10_5lgsrt=>sort(map(x->lg10(x),cdf4.ints10_5),rev=true))
+density(cdf4.ints10_5lgsrt)
+
+Method 2 for by phenotype:  
+#insertcols!(cdf4,5,:geno_densty=>cdf4.ints10_5.*cdf4.lg_ints10_5)
+insertcols!(cdf4,5,:geno_densty=>cdf4.ints10_5)
+density(map(lg10,cdf4.geno_densty))
+savefig("../data/4_7_23/log_redundancy_density_4x1_10gts5lb.png")
+
+The two methods give the same result.
+
+For genotype:
+Function log_redund_rand_geno_sample() in RecordOutputs.jl
+df = include("../data/4_7_23/run_geno_sampleA.jl")
+density(df.lg_freq)
+
+For both:
+density(df.lg_freq,labels="random genotypes")
+density!(map(lg10,cdf4.geno_densty),labels="random phenotypes")
+plot!(xlabel="log frequency",ylabel="probability distributions",legend=:topleft)
+savefig("../data/4_7_23/pheno_geno_lg_freq_density4x1_10gtsXOR.png")
+
+From ChatGPT:
+Prompt:
+This question is about the Julia programming language.  I have an array of floats, and I want bin it and then do a histogram-type plot of the data.  I want control over the binning process, e. g., the number bins.  Think step by step.
+
+Answer:
+Here are the step-by-step instructions for binning an array of floats and creating a histogram-type plot:
+
+    First, load the Plots package by typing using Plots in the Julia REPL.
+
+    Next, create a vector or array of floats. For example, you could use data = randn(1000) to generate 1000 random numbers from a normal distribution.
+
+    Decide on the number of bins you want for your histogram. For example, you could have 20 equally-sized bins by setting nbins = 20.
+
+    Create the bins by using the edges function from the StatsBase package. edges takes in the array data and the number of bins nbins and returns a vector of bin edges. You can assign the output to the variable bin_edges. For example, you could use bin_edges = edges(data, nbins).
+
+    Bin the data by using the histogram function from the Plots package. histogram takes in the array data and the bin edges bin_edges and returns a histogram object. You can assign the output to the variable histogram_obj. For example, you could use histogram_obj = histogram(data, bin_edges).
+
+    Finally, plot the histogram using the plot function from the Plots package. plot takes in the histogram object histogram_obj and any additional formatting options. For example, you could use plot(histogram_obj, xlabel="Value", ylabel="Frequency", title="Histogram of Data") to create a histogram with labeled axes and a title.
+
+These six steps should give you control over the binning process and create a histogram-type plot of your data.

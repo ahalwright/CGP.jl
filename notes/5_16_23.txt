@@ -1,0 +1,19 @@
+Computing mean genotype evolvabilities as a function of the number of gates.
+
+Sampling:
+See data/5_16_23/run_geno_evolvabilitiesA.jl (3x1 8 gts 4lb)
+ mean(adf.geno_evolvabilities) 20.889421970263058
+and data/5_16_23/run_geno_evolvabilitiesB.jl (3x1 12 gts 6 lb)
+ mean(bdf.geno_evolvabilities) 24.383486586235236
+
+Evolution: 
+include("../data/5_17_23/run_geno_propertiesB.jl") (3x1 8 gts 4lb)
+mean(bdf.g_evolvability) # 20.135546875
+include("../data/5_17_23/run_geno_propertiesC.jl") (3x1 12 gts 6lb)
+mean(cdf.g_evolvability) 23.882161458333336
+
+Tentatively, sampling vs evolution makes no difference.
+
+Conclusion:  Increasing the number of gates increases genotype evolvability.  
+This is counter-intuitive because it also increases robustness.
+

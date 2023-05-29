@@ -1,0 +1,12 @@
+Revising the universal properties outline and Overleaf project.
+evotech/pheno_network/universal_properties/Outline\ of\ universal\ properties\ paper3_22_23.docx
+
+Adapted the log frequency vs rank plot to 3 inputs.
+But then decided to stick with 4 inputs for frequency, density of log frequency, and robustness vs log frequency.
+Saved a version that includes the 3-input results. 
+universal_properties/zip/Universal properties (Version 104) 5_22_23.zip
+Will then copy Evolvability paper sections back into the Universal properties project.
+
+Need to revise abstract/introduction.
+
+

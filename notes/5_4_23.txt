@@ -1,0 +1,105 @@
+Promiscuous.  I suspect Garcia-Galindo formula 6 is wrong.
+
+A sequence example:  K = 2 = alphabet size,  L = 3.  K^L = 8 genotypes.
+Use unitation as phenotypes.
+
+GC map based on unitation
+000 -> 0x
+100, 010, 001 -> 1x
+110, 101, 011 -> 2x
+111 -> 3x
+
+Single bit mutation and null mutation.  Thus, each genotype has 4 mutations.
+
+Genotype Robustness:  1/8 for all genotypes.
+
+Genotype evolvability:  
+000 -> 1            # 1x
+100, 010, 001 -> 2  # 0x and 2x
+110, 101, 011 -> 2  # 1x and 3x
+111 -> 1            # 2x
+
+Phenotype evolvability:
+0x -> 1  # 1x
+1x -> 2  # 0x and 2x
+2x -> 2  # 1x and 3x
+3x -> 1  # 2x
+
+G = 
+Rational{Int64}[
+1 0 0 0 0 0 0 0;
+0 1 1 1 0 0 0 0;
+0 0 0 0 1 1 1 0;
+0 0 0 0 0 0 0 1]
+
+N = 
+Rational{Int64}[
+1 1 1 1 0 0 0 0;
+1 1 0 0 1 1 0 0;
+1 0 1 0 1 0 1 0;
+1 0 0 1 0 1 1 0;
+0 0 1 1 1 0 0 1;
+0 1 0 1 0 1 0 1;
+0 1 1 0 0 0 1 1;
+0 0 0 0 1 1 1 1]
+
+julia> ev = map(g->geno_evolvability(G,N,g),1:8)
+8-element Vector{Rational{Int64}}:
+ 3//1 3//1 3//1 3//1 3//1 3//1 3//1 3//1
+
+Thus, evolvability for genotype 000 is incorrect.
+
+Formula:  e_g = \sum_{p' \neq p} (1 - \prod_{g' \in {\cal N}_g} (1 - \delta_{g'p'}))
+
+For g = 000, p = 0x
+Thus p' = [0x1 0x2 0x3]
+Sum:
+  p'=0x1
+    Prod: g' = [000 001 010 100]
+      g'=000
+        1 - \delta_{g'p'} = 1   # because G(g') = 0x != p'
+      g'=001
+        1 - \delta_{g'p'} = 0   # because G(g') = 1x == p'
+      g'=010
+        1 - \delta_{g'p'} = 0   # because G(g') = 1x == p'
+      g'=100
+        1 - \delta_{g'p'} = 0   # because G(g') = 1x == p'
+    product = 0
+  p'=0x2
+    Prod: g' = [000 001 010 100]
+      g'=000
+        1 - \delta_{g'p'} = 1   # because G(g') = 0x != p'
+      g'=001
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+      g'=010
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+      g'=100
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+    product = 1
+  p'=0x3
+    Prod: g' = [000 001 010 100]
+      g'=000
+        1 - \delta_{g'p'} = 1   # because G(g') = 0x != p'
+      g'=001
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+      g'=010
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+      g'=100
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+    product = 1
+  p'=0x4
+    Prod: g' = [000 001 010 100]
+      g'=000
+        1 - \delta_{g'p'} = 1   # because G(g') = 0x != p'
+      g'=001
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+      g'=010
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+      g'=100
+        1 - \delta_{g'p'} = 1   # because G(g') = 1x != p'
+    product = 1
+
+Thus, there are 3 products equal to 1, so the sum is 3.
+
+But this is incorrect because the true genotype evolvability is 1.
+ 

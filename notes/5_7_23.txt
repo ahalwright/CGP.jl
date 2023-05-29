@@ -1,0 +1,57 @@
+Promiscuous robustness according to Garcia-Galindo:
+
+Note: using LinearAlgebra enables I = identity matrix.
+Then N-I is mutation not including null mutation (which is the case for Garcia-Galindo)
+
+The following is based on my idea for the overlap between G(g1) and G(g2):  G[:,g1]^T*G[:,g2].
+Robustness of g would be sum_{gp \in {\cal N}_g} G[:,g]^T*G[:,gp]
+The following shows that Garcia-Galindo genotype robustness agrees with my idea.
+Proof of concept (but allows mutation to any unequal genotype instead of using N matrix)
+map(g->(1//((K-1)*L))*sum(GG[:,g]'*GG[:,gp]*(1-delta(g,gp)) for gp=1:size(GG)[2]), 1:size(GG)[2])
+3-element Vector{Rational{Int64}}:
+ 1//8
+ 7//32
+ 9//32
+
+
+Successfully replicated eq (3) for the G-P map of Figure 2.
+K=2 L=3 example
+G = G23_example_matrix()
+N = N23_mutation_matrix() # with null mutation
+N*my_ones(8)  # all genotypes have 4 mutations
+# correct genotype robustness assuming with null mutation
+map(g->(1//((K-1)*L))*G[:,g]'*G*(N)'[:,g], 1:size(G)[2])
+8-element Vector{Rational{Int64}}:
+ 1//3
+map(g->(1//((K-1)*L))*G[:,g]'*G*(N-I)'[:,g], 1:size(G)[2])
+8-element Vector{Rational{Int64}}:
+ 0//3
+
+K=3; L=1
+GG= garcia_example_matrix()
+4×3 Matrix{Rational{Int64}}:
+ 1//2  0//1  1//4
+ 0//1  3//4  1//2
+ 1//4  0//1  1//4
+ 1//4  1//4  0//1
+GN= garcia_mutation_matrix()   # This does not include null mutation
+ 0//1  1//1  1//1
+ 1//1  0//1  1//1
+ 1//1  1//1  0//1
+# correct genotype robustness assuming no null mutation (agrees with Figure 2 of Garcia-Galindo)
+map(g->(1//((K-1)*L))*GG[:,g]'*GG*(GN)'[:,g], 1:size(GG)[2])
+3-element Vector{Rational{Int64}}:
+ 1//8
+ 7//32
+ 9//32
+
+
+The following is based on my idea for the overlap between G(g1) and G(g2):  G[:,g1]^T*G[:,g2]
+Robustness of g would be sum_{gp \in {\cal N}_g} G[:,g]^T*G[:,gp]
+Proof of concept (but allows mutation to any unequal genotype)
+map(g->(1//((K-1)*L))*sum(GG[:,g]'*GG[:,gp]*(1-delta(g,gp)) for gp=1:size(GG)[2]), 1:size(GG)[2])
+3-element Vector{Rational{Int64}}:
+ 1//8
+ 7//32
+ 9//32
+

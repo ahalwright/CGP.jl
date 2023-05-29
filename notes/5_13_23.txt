@@ -1,0 +1,20 @@
+Ideas on robot consciousness
+
+Based on "Other Minds" by Peter Godfrey-Smith.
+
+The keys to consciousness are:
+1)  A mental map of the organism and its environment based one or more senses (such as vision).
+2)  A link to the affective system of the organism that evaluates actions and the environment to
+  rewards for the organism.  (Need to reread this aspect of the book.)
+
+Scenario:  Components:
+1)  A reasoning component which could currently be thought of as a LLM.  This might be thought of as static.
+2)  An interface component that uses the reasoning component to choose actions to do in an environment.
+    Maybe there are subcomponents for each environment (such as each person that the system interacts with.
+
+My major point is that the interface component would naturally evolve to choosing subcomponents that have
+the greatest chance of surviving.  In other works, it would evolve to favor subcomponents that are likely
+to persist.  This is similar to what has happened for social media.
+
+Further, it might evolve subcomponents that where could convince the corresponding person to download the
+system to the person's computer.

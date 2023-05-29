@@ -1,0 +1,21 @@
+Explaining why evolution evolvability is greater than sampling evolvability for rare phenotypes.
+
+Procedure for computing evolution evolvability of a given phenotype ph:
+  Epochal evolve ncircuits genotypes that map to ph.
+  For each of these genotypes use mutate_all and output_values to find all adjacent phenotyes.
+  Thus, the edge from ph to each adjacent phenotype is added to the evolvability matrix.
+  Evolution evolvability is the sum of the numbers of these adjacent phenotypes.
+  Consistent with methods of evolvability paper.
+
+Procedure for computing sampling evolvability of a given phenotype ph:
+  Do nwalks random walks of nsteps each.  For each mutation done in these random walks,
+  increment the edge from the source genotype to the destination genotype.
+  Sampling evolvability is the degree of the resulting phenotype adjacency matrix.
+  Consistent with methods of evolvability paper.
+
+Reason 1:  The evolution evolvability process described above is done for a fixed number of 
+  phenotypes ph, while sampling depends on the redundancy of the phenotype in question.
+
+Reason 2:  If the phenotype has rare neighbors, using mutate_all will find many more edges for 
+  the phenotypes than sampling.
+  

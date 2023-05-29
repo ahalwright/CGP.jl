@@ -1,0 +1,16 @@
+Compute frequencies and circuit_ints for 3 inputs, 14 gates, 7 lb.
+Use rclone to sync one drive to xps----See below
+
+data/8_15_22/run_count_outputs_ch_K.jl
+data/8_15_22/count_outputs_ch_4funcs_3inputs_14gate_7lb_K.csv
+
+Added to the definition of redundancy_dict() in Complexity.jl
+
+======
+Use rclone to sync one drive to xps
+
+https://www.fosslinux.com/24391/how-to-sync-microsoft-onedrive-from-command-line-in-linux.htm
+
+Created a new OneDrive folder on xps, and copied the old one to OneDriveOld.
+
+rclone --vfs-cache-mode writes mount "OneDrive": ~/OneDrive

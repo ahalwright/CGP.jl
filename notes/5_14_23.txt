@@ -1,0 +1,83 @@
+Comments and TODOs on evolvability paper.
+
+* Either add supplementary information document to current document or make it available to Wolfgang and Ting.
+
+* Abstract:  Mentions epochal evolution but not evolvability results.
+
+* We defined the degree of a node in the phenotype network to include the self edges.  
+  Should we mention the existence of network nodes with no self edges?
+
+* Introduction: Robustness and Evolvability.
+  = I decided to drop any mention of neutral components.  For the examples where the exact matrix
+    is computable, these are significant.  But for the examples of the rest of the paper, it appears
+    that the probability that a random genotype ends up in a small neutral component is small.
+    This probability is reduced as the number of gates increases.  Maybe we need to do more explanation
+    of increasing the number of gates.
+  = Paragraph 3:  If mutations to any of the genotypes that map to a phenotype are considered, then
+    many more novel phenotypes will be found than by just looking at mutations of a single genotype.
+
+* Including an example of an exact phenotype network is confusing because such an example must 
+  have a very limited number of gates and levelsback.  Thus, these results are not typical of the
+  results of the rest of the paper where the number of gates is larger.
+
+* What are the effects of increasing the number of gates for a given number of inputs?
+  = Increases relative redundancy of most phenotypes while decreasing the redundancy of the most frequent.
+    Figure 3 (and Figure 4 although not as obvious).
+  = Increases robustness.  Figure 4.
+  = Decreases mean evolutionary steps.  Might be a replacement for Figure 13.
+    Table 5 strongly shows this.
+  = Genotype evolvability.  increases with increasing number of gates.  See notes/5_16_23.txt
+  = Phenotype sampling evolvability:  Mean for data/1_3/robust_evo_by_walks1_3D.csv:  107.24
+    Mean for /data/1_3/robust_evo_by_walks1_3U.csv  143.37
+    Results for Figure 9 are based on suffix D.  Could redo for 10 or 12 gates.
+  = Phenotype evolution evolvability:  
+    data/7_8_22/run_evolvable_evolvability_allU.jl")  12 gates 6 lb
+    mean(udf.evolvability) 223.95703125
+    qdf = read_dataframe("../data/7_8_22/evolvable_evolvabilityCGP_3x1_8_4_7_8_22Q.csv")    # 8 gates 4 lb
+    mean(qdf.evolvability) # 176.15234375
+
+Increasing the number of gates increases all kinds of evolvability and thus enhances exploration.
+This is supported by the third item (evolutionary steps) above.
+The punctuated equilibrium model says that periods of exploration and intersperced with with breakthrough
+innovations.  Using a larger number of gates enables the discovery of increased Kolmogorov complexity.
+
+The navigability section demonstrates this.  In this section, we use a larger number of gates and the strong
+selection of epochal evolution to solve difficult optimization problems.
+
+Stabilizing selection is needed during exploration to filter out deleterious mutations.  However, 
+nearly neutral mutations may help exploration.
+
+If number gates is small: 
+  = can enumerate all genotypes for 2 and 3 inputs
+  = may be possible to compute exact phenotype network for 2 and 3 inputs 
+  = high likelihood of a random genotype being in a small neutral component
+  = some phenotypes may have zero redundancy
+  = mean evolutionary steps is high
+  = phenotypes have low robustness
+  = phenotypes have low genotype and phenotype evolvability---see notes/5_16_23.txt and 5_17_23.txt
+
+If number gates is large: 
+  = vast number of genotypes
+  = neutral components are almost never an issue
+  = most phenotypes have moderate redundancy (whatever this means)
+  = mean evolutionary steps is reduced
+  = phenotypes have both higher robustness and higher evolvability
+
+* A possilbe high-level conclusion:  Sampling properties of our G-P map tend to agree with exact properties,
+  while properties based on epochal evolution do not.
+
+* Another tentative conclusion:  given a phenotype there is no difference between the genotypes sampled
+  to map to the phenotype and the genotypes epochal evolved to map to the phenotype.  See notes/5_17_23.txt
+  for partial confirmation.
+
+Neutral corrlations: (based on Greenbury et al. 2016).
+
+* We can verify a specific version of the neutral correlations univeral property by adding the null model
+  plot to our robustness vs. log redundancy plot as in Figure 2a of the Greenbury genetic correlations (2016) paper.
+  Null model robustness of a phenotype $p$ is $\rho_p = f_p$.
+
+  "One way of characterising these neutral correlations is by comparing the phenotype robustness ρp to the random 
+  expectation $\rho_p = f_p$. The violation of this equality is a sufficient (though not necessary) condition for 
+  the existence of neutral correlations. Moreover, we define a phenotype p to have positive neutral correlations if 
+  $\rho_p > f_p$ is satisfied. This is intuitive—when robustness is greater than fp then phenotypes are closer to 
+  each other in the genotype network than would be expected by random chance."  (page 8)

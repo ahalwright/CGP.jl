@@ -1,0 +1,17 @@
+How increasing the number of gates affects evolution and sampling evolvability
+
+Evolution
+@time include("../data/7_8_22/run_evolvable_evolvability_allU.jl")  12 gates 6 lb
+udf = ans
+mean(udf.evolvability) # 223.95703125
+qdf = read_dataframe("../data/7_8_22/evolvable_evolvabilityCGP_3x1_8_4_7_8_22Q.csv")    # 8 gates 4 lb
+# Results for evolution evolvability plots for Evolvability paper.
+mean(qdf.evolvability) # 176.15234375
+Conclusion: Increasing the number of gates dramatically increases evolution evolvability.
+
+Sampling
+ddf = read_dataframe("../data/1_3/robust_evo_by_walks1_3D.csv")
+mean(ddf.d_evolvability) # 107.2578125
+@time include("../data/1_3/run_random_walksU.jl")
+ mean(uudf.d_evolvability) # 143.3671875
+Conclusion: Increasing the number of gates dramatically increases sampling evolvability.

@@ -1,0 +1,16 @@
+Responding to Ting Hu's commonts on Evolvability paper.
+
+TODOs:
+
+WJP:  Lines 55 and 57 (approximately):  Need a definition and an example of a phenotype network.
+
+Main:  line 230:  How do we handle the "count number of phenotypes" method.  Put into supp info?  Done
+
+Line 242:  Nodes of a circuit.  Put into supp info?
+
+Line 324:  Move to methods.
+
+Line 337:  Shape space methods.
+
+Line 349:  Methods for computing robustness.
+
