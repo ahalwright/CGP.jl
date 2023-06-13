@@ -4,35 +4,40 @@ Maybe based on notes/10_9_22.txt
 
 Created rwdf6 to rwdf14 as in ???
 
+include("Complexity.jl")
 include("Robustness.jl")
+include("Evo_dict.jl")
 nsteps = 5000
 nwalks = 10000
 numinputs=3; ngates=5; lb =3
-p5 = Parameters(numinputs,1,ngates,lb)   # Same for p5, p6, p8, p10, p12, p14
-# Each of the following steps takes 3 to 5 minutes multithreaded
-@time rwdf5 = run_random_walks_parallel( p5, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
-@time rwdf6 = run_random_walks_parallel( p6, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
-@time rwdf8 = run_random_walks_parallel( p8, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
-@time rwdf10 = run_random_walks_parallel( p10, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
-@time rwdf12 = run_random_walks_parallel( p12, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
-@time rwdf14 = run_random_walks_parallel( p14, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
+# p5 = Parameters(numinputs,1,ngates,lb)   # Same for p5, p6, p8, p10, p12, p14
+# # Each of the following steps takes 3 to 5 minutes multithreaded
+# @time rwdf5 = run_random_walks_parallel( p5, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
+# @time rwdf6 = run_random_walks_parallel( p6, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
+# @time rwdf8 = run_random_walks_parallel( p8, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
+# @time rwdf10 = run_random_walks_parallel( p10, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
+# @time rwdf12 = run_random_walks_parallel( p12, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
+# @time rwdf14 = run_random_walks_parallel( p14, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );
+rwdf8 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv")
+rwdf14 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23H.csv")
 
-p  # Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 8, 4)
-rdict = redundancy_dict(p,funcs);
-lg_freq = map(ph->lg10(rdict[ph]), MyInt(0x0):MyInt(2^2^p.numinputs-1) );
+p8 = Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 8, 4)
+funcs = default_funcs(p8)[1:4]
+rdict8 = redundancy_dict(p8,funcs);
+lg_freq = map(ph->lg10(rdict8[ph]), MyInt(0x0):MyInt(2^2^p8.numinputs-1) );
 insertcols!( rwdf8, 6, :lg_freq=>lg_freq );
 
 p14 = Parameters(3,1,14,7)
 Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 14, 7)
 rdict14 = redundancy_dict(p14,funcs);
-csvfile: ../data/counts/count_outputs_ch_4funcs_3inputs_14gate_7lb_K.csv
+#  csvfile: ../data/counts/count_outputs_ch_4funcs_3inputs_14gate_7lb_K.csv
 lg_freq = map(ph->lg10(rdict14[ph]), MyInt(0x0):MyInt(2^2^p.numinputs-1) );
 insertcols!( rwdf14, 6, :lg_freq=>lg_freq );
-scatter(rwdf8.d_evolvability, rwdf8.lg_freq, smooth = true, labels="8 gates approxmate",legend=:topleft)
-scatter!(  rwdf14.d_evolvability, rwdf14.lg_freq, smooth=true, labels="14 gates approxmate")
-scatter!(fill(255,256),map(x->lg10(rdict[x]),0x0000:0x00ff),labels="exact evolvability")
-plot!(xlabel = "degree evolvability", ylabel="log frequency")
-savefig("../data/5_21_23/lg_freq_vs_degree_evol_exact_8_14gates.png")
+scatter( Vector{Float64}(rwdf14.d_evolvability), Vector{Float64}(rwdf14.lg_freq), smooth=true, labels="14 gates approximate")
+scatter!(Vector{Float64}(rwdf8.d_evolvability), Vector{Float64}(rwdf8.lg_freq), smooth = true, labels="8 gates approximate",legend=:topleft)
+ (mean(rwdf8.d_evolvability),mean(rwdf14.d_evolvability)) # (121.4765625, 169.515625)
+plot!(xlabel = "approximate evolvability", ylabel="log frequency")
+savefig("../data/5_21_23/lg_freq_vs_sampling_evol_8_14gates.png")
 
 
 Topics not in paper:

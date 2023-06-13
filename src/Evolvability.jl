@@ -15,7 +15,7 @@ export run_geno_robustness, geno_robustness, evo_robust, random_neutral_walk, ru
 export run_geno_complexity, geno_complexity, pop_evolvability_robustness
 export parent_child_complexity, rand_norm, scatter_plot
 export pheno_set_rand_neutral_walks, pheno_set_rand_neutral_walk
-export genotype_evolvability, mean_genotype_evolvabilities
+export genotype_evolvability, mean_genotype_evolvabilities, run_mean_genotype_evolvabilities
 
 #=  Moved to aliases.jl so that this file can be included.
    Consider deleting since I think this is only used in functions evolvability() and evo_result() which can also be deleted.
@@ -1104,7 +1104,13 @@ end
 
 # Helper function for function mean_genotype_evolvabilities()
 function geno_evolvabilities( p::Parameters, funcs::Vector{Func}, circ_int_list::Vector{Int128} )
-  map(x->genotype_evolvability(int_to_chromosome( x, p, funcs ), funcs ), circ_int_list )
+  chromes = map(x->int_to_chromosome( x, p, funcs ), circ_int_list )
+  outputs = map( x->output_values(x), chromes )
+  if length( unique(outputs) ) > 1
+    println("function geno_evolvabilities: non-unique outputs: check that parameters ",p," agree with dataframe of circ_int_list" )
+  end
+  gevols = map(x->genotype_evolvability(x,funcs), chromes)
+  #map(x->genotype_evolvability(int_to_chromosome( x, p, funcs ), funcs ), circ_int_list )
 end
 
 # Computes the mean evolvability of all phenotypes in dataframe df based on the circuit_ints in df.field (usually df.ciruits_list)
@@ -1132,11 +1138,10 @@ function run_mean_genotype_evolvabilities( p::Parameters, funcs::Vector{Func}, d
 end
 
 # Returns the mean genotype evolvability and the average genotype evolvability of the neutral circuits produced a a mutate_all() of ch.
-# Shows that the genotype evolvability is close to theaverage genotype evolvability of neighbors.
+# Shows that the genotype evolvability is close to the average genotype evolvability of neighbors.
 # Circuits are those produced by the circuits_list of a counts file.
 function run_mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ph::Goal, nreps::Int64, df::DataFrame )
   cints_ph = string_to_expression( df.circuits_list[ ph[1]+1 ] )
-
   #ch = int_to_chromosome( rand( cints_ph ), p, funcs )
   results = pmap( _->mutation_vs_sample_ch( p, funcs, int_to_chromosome( rand( cints_ph ), p, funcs ) ), 1:nreps )
   mutate_mean = mean( map( x->x[1], results ) )
@@ -1144,7 +1149,7 @@ function run_mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ph::Goal
   (mutate_mean, sample_mean)
 end
 
-function mutation_vs_sample_ph( p::Parameters, funcs::Vector{Func}, ch::Chromosome, df::DataFrame )
+function mutation_vs_sample_ch( p::Parameters, funcs::Vector{Func}, ch::Chromosome, df::DataFrame )
   cints_ph = string_to_expression( df.circuits_list[ ph[1]+1 ] )
   ch = int_to_chromosome( rand( cints_ph ), p, funcs )
   mutation_vs_sample_ch( p, funcs, ch )

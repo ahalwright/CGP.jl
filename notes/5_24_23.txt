@@ -1,4 +1,4 @@
-Additional TODOs:
+Additional TODOs for Universal properties paper.  Figure list.
 
 log_redund_vs_rank                    change label from log redundancy to log frequency  DONE modified notes/9_12_22.txt
 

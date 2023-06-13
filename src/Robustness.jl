@@ -1,4 +1,4 @@
-export robustness, genotype_robustness, phenotype_robustness
+export robustness, genotype_robustness, phenotype_robustness, matrix_robustness
 
 # Computes the genotype robustness of circuit c.
 function robustness( c::Circuit, funcs::Vector{Func} )
@@ -31,15 +31,40 @@ function genotype_robustness( p::Parameters, funcs::Vector{Func}, numcircuits::I
   robust_list
 end
 
-# Returns a list of the robustnesses of numcircuits random genotypes with the given parameters and funcs
-# There is another function with this name below.
-function genotype_robustness( p::Parameters, funcs::Vector{Func}, pheno::Goal, numcircuits::Int64; use_lincircuit::Bool=false )
-  robust_list = Float64[]
+# If summarize==false
+#   returns a list of the (robustness,evolvability) pairs for numcircuits evolved genotypes with the given parameters and funcs
+# If summarize==true
+#   returns the (mean(robustness),mean(evolvability0) pair for numcircuits evolved genotypes with the given parameters and funcs
+function genotype_robustness_evol( p::Parameters, funcs::Vector{Func}, pheno::Goal, numcircuits::Int64, max_steps::Int64=200_000, max_tries::Int64=10; 
+      use_lincircuit::Bool=false, summarize::Bool=false )
+  robust_evo_list = Tuple{Float64,Float64}[]
   for i = 1:numcircuits
-    c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
-    push!( robust_list, robustness( c, funcs ) )
+    #c = use_lincircuit ? rand_lcircuit( p, funcs ) : random_chromosome( p, funcs )
+    c = pheno_evolve( p, funcs, pheno, max_tries, max_steps )[1]
+    if c != nothing
+      push!( robust_evo_list, ( robustness( c, funcs ), genotype_evolvability( c, funcs ) ) )
+    else
+      continue
+    end
   end
-  robust_list
+  if summarize 
+    (mean(map(x->x[1],robust_evo_list)),mean(map(x->x[2],robust_evo_list)))
+  else
+    robust_evo_list
+  end
+end
+
+function genotype_robustness_evol( p::Parameters, funcs::Vector{Func}, ph_list::GoalList, numcircuits::Int64, max_steps::Int64=200_000, max_tries::Int64=10; 
+      use_lincircuit::Bool=false, summarize::Bool=false )
+  println("function genotype_robustness_evol(): inputs: ",p.numinputs,"  gates: ",p.numinteriors )
+  df = DataFrame( :goal=>Goal[], :robust=>Float64[], :evolvability=>Float64[] )
+  #robust_list = Float64[]
+  #evolvability_list = Float64[]
+  for ph in ph_list
+    ( robust, evolvability ) = genotype_robustness_evol( p14, funcs, ph, 8, summarize=true )
+    push!( df, ( ph, robust, evolvability ) )
+  end
+  df
 end
 
 # Average robustness of numcircuits random chromosomes for a list of parameters settings

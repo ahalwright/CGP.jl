@@ -5,45 +5,20 @@ Revising redundancy vs sampling evolvability to robustness vs sampling evolvabil
 @everywhere include("evolvable_evolvability.jl")
 # @everywhere include("Evo_dict.jl")   # for matrix_to_dataframe()
 nwalks = 10000
-nsteps = 5000
+nsteps = 10000
 numinputs = 3
-ngates = 5
-lb = 3
-p5 = Parameters(numinputs,1,ngates,lb)
-ngates = 6
-lb = 3
-p6 = Parameters(numinputs,1,ngates,lb)
-ngates = 8
-lb = 4
-p8 = Parameters(numinputs,1,ngates,lb)
-ngates = 10
-lb = 5
-p10 = Parameters(numinputs,1,ngates,lb)
-ngates = 12
-lb = 6
-p12 = Parameters(numinputs,1,ngates,lb)
-ngates = 14
-lb = 7
-p14 = Parameters(numinputs,1,ngates,lb)
-ngates = 16
-lb = 8
-p16 = Parameters(numinputs,1,ngates,lb)
-p = p8  # Just for numinputs
-funcs=default_funcs(p8)[1:4]
-@everywhere include("Robustness.jl")
-@time rwdf5 = run_random_walks_parallel( p5, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );  # 147 seconds
-@time rwdf6 = run_random_walks_parallel( p6, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );  # 154 seconds
-@time rwdf8 = run_random_walks_parallel( p8, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );  # 182 seconds
-@time rwdf10 = run_random_walks_parallel( p10, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps );  # 20 seconds
-@time rwdf12 = run_random_walks_parallel( p12, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps ); # 260 seconds 
-@time rwdf14 = run_random_walks_parallel( p14, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps ); # 260 seconds 
-@time rwdf16 = run_random_walks_parallel( p16, funcs, nwalks, collect(MyInt(0):MyInt(2^(2^p.numinputs)-1)), nsteps ); # failed
-scatter( Vector{Float64}(rwdf14.d_evolvability),Vector{Float64}(rwdf14.robustness), smooth=true, labels="14 gates", xlabel="sampling evolvability",ylabel="robustness")
-scatter!( Vector{Float64}(rwdf8.d_evolvability),Vector{Float64}(rwdf8.robustness), smooth=true, labels="8 gates", xlabel="sampling evolvability",ylabel="robustness")
-plot!(legend=:topleft)    # Universal properties paper
-julia> savefig("../data/1_30_23/robustness_vs_sampling_evol3x1_14_8gts4lb.png")
-julia> spearman_cor(rwdf.d_evolvability,rwdf.robustness)
-(0.9115470161278739, 2.548714146835382e-100)   # OUtdated.  Replaced by 8 and 14 gates
+rwdf8 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv")
+rwdf14 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23H.csv");
+scatter( Vector{Float64}(rwdf14.d_evolvability),Vector{Float64}(rwdf14.robustness), smooth=true, labels="14 gates approximate")
+scatter!( Vector{Float64}(rwdf8.d_evolvability),Vector{Float64}(rwdf8.robustness), smooth=true, labels="8 gates approximate" )
+plot!(legend=:topleft,xlabel="approximate evolvability",ylabel="robustness")    # Universal properties paper
+#julia> savefig("../data/1_30_23/robustness_vs_sampling_evol3x1_14_8gts4lb.png")
+julia> savefig("../data/5_21_23/robustness_vs_sampling_evol3x1_14_8gts.png")
+julia> spearman_cor(rwdf8.d_evolvability,rwdf8.robustness)
+(0.9164489750677528, 2.5157242666632207e-103)
+julia> spearman_cor(rwdf14.d_evolvability,rwdf14.robustness)
+(0.8643870284846666, 4.17948747846976e-78)
+mean(rwdf8.d_evolvability), mean(rwdf14.d_evolvability)  # (121.4765625, 169.515625) 
 
 Add exact plot
 Based on notes/11_8_22.txt

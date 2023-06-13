@@ -12,33 +12,35 @@ phl = collect(MyInt(0):MyInt(2^2^3-1));  # list of all phenos.  phl[bv] is pheno
 B = map( x->x!=0 ? 1 : 0, phnP);
 Bnz = B[bv,bv]; size(Bnz);   # (166, 166)
 findall(i->Bnz[i,i]==0,1:sum(bv))   # [19,31,136,148]  There are phenotypes with zero robustness
-evo = map(i->sum(Bnz[i,:])-Bnz[i,i], 1:sum(bv))
+evo = map(i->sum(Bnz[i,:])-Bnz[i,i], 1:sum(bv));
 phnPbv = phnP[bv,bv];
 rbst = map(i->Int(phnPbv[i,i])/sum(phnPbv[i,:]),1:sum(bv));
-#scatter(evo,rbst,smooth=true,xlabel="degree evolvability",ylabel="robustness",title="robustness vs evolvability exact 5gts 3lb noXOR",legend=:none)
-scatter(evo,rbst,smooth=true,xlabel="degree evolvability",ylabel="robustness",legend=:none)
+#scatter(evo,rbst,smooth=true,xlabel="exact evolvability",ylabel="robustness",title="robustness vs evolvability exact 5gts 3lb noXOR",legend=:none)
+scatter(evo,rbst,smooth=true,xlabel="exact evolvability",ylabel="robustness",legend=:none)
 spearman_cor(evo,rbst) # (0.9088991913841078, 1.7329653392762514e-64)
 savefig("../data/9_24_22/robustness_vs_evolvability_exact_5gts_3lb_noXOR")   # Used in evolvability paper
 # log redundancy vs evolvability without XOR gate
-#scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="degree evolvability",ylabel="log redundancy",title="log redund vs evolvability exact 5gts 3lb noXOR",legend=:none)
-#scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="degree evolvability",ylabel="log redundancy",legend=:none)
-scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="degree evolvability",ylabel="log frequency",legend=:none)
+#scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="exact evolvability",ylabel="log redundancy",title="log redund vs evolvability exact 5gts 3lb noXOR",legend=:none)
+#scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="exact evolvability",ylabel="log redundancy",legend=:none)
+scatter(evo,map(lg10,phdfP.redund[bv]),smooth=true,xlabel="exact evolvability",ylabel="log frequency",legend=:none)
 #savefig("../data/9_24_22/log_redund_vs_evolvability_exact_5gts_3lb_noXOR")  # Used in evolvability paper
 savefig("../data/9_24_22/log_freq_vs_evolvability_exact_5gts_3lb_noXOR")  # Used in universal properties paper
 spearman_cor(evo,map(lg10,phdfP.redund[bv]))  #(0.9078117804512094, 4.380986495488303e-64)
 
-phdfQ = read_dataframe("../data/9_24_22/phnet_matrix9_24_22Q.csv")
+# results with XOR are not good
+phdfQ = read_dataframe("../data/9_24_22/phnet_matrix9_24_22Q.csv")  # includes XOR
 phnQ = df_to_matrix_mt( phdfQ, 3, denormalize=false );
 bv = BitVector(map(i->!iszero(sum(phnQ[i,:])),1:256));
 phl = collect(MyInt(0):MyInt(2^2^3-1));  # list of all phenos.  phl[bv] is phenos of bv
 B = map( x->x!=0 ? 1 : 0, phnQ);
 Bnz = B[bv,bv]; size(Bnz)   # (256, 256)
 findall(i->Bnz[i,i]==0,1:sum(bv))   # []  There are no phenotypes with zero robustness
-evo = map(i->sum(Bnz[i,:])-Bnz[i,i], 1:sum(bv))
+evo = map(i->sum(Bnz[i,:])-Bnz[i,i], 1:sum(bv));
 phnQbv = phnQ[bv,bv];
-rbst = map(i->Int(phnQbv[i,i])/sum(phnQbv[i,:]),1:sum(bv))
-scatter(evo,rbst,smooth=true,xlabel="degree evolvability",ylabel="robusness",title="robusness vs evolvability exact 5gts 3lb XOR",legend=:none)
+rbst = map(i->Int(phnQbv[i,i])/sum(phnQbv[i,:]),1:sum(bv));
+scatter(evo,rbst,smooth=true,xlabel="exact evolvability",ylabel="robusness", legend=:none)
+#title="robusness vs evolvability exact 5gts 3lb XOR",
 spearman_cor(evo,rbst) # (0.7544368655728784, 1.189553368355556e-48)
-savefig("../data/9_24_22/robusness_vs_evolvability_exact_5gts_3lb_XOR")   # Not used in evolvability paper
+savefig("../data/9_24_22/robusness_vs_evolvability_exact_5gts_3lb_XOR")   # Not used in evolvability or universal properties paper
 
 

@@ -1,4 +1,4 @@
-Navigability for th1e evolvability paper.
+Robustness versus log frequency for universal properties paper
 Moved function robustness() from Chromosome.jl to Robustness.jl, and wrote a function
 genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, nreps::Int64 )
 in Robustness.jl.  Note that there is another function genotype_robustness() in ShapeSpace.jl.
@@ -17,27 +17,41 @@ mean(df5.lg_redund), mean(df6.lg_redund), mean(df8.lg_redund)
 mean(df5.robustness), mean(df6.robustness), mean(df8.robustness)
 (0.20895779661016953, 0.28788641975308643, 0.3248741011235956)
 
-# Add plot for frequency to demonstrate neutral correlations
+# Add plot for frequency to demonstrate neutral correlations  
 p5 = Parameters(4,1,10,5); funcs=default_funcs(p5)
 p6 = Parameters(4,1,12,6); funcs=default_funcs(p6)
 rdict5 = redundancy_dict(p5,funcs);
 rdict6 = redundancy_dict(p6,funcs);
-freq5 = map( ph->rdict5[ph[1]], map(string_to_expression,df5.phlist) );
-freq6 = map( ph->rdict6[ph[1]], map(string_to_expression,df6.phlist) );
-insertcols!(df5,:freq=>freq5);   # adds as last column
-insertcols!(df6,:freq=>freq6);
+phlist5 = Vector{MyInt}(map(x->string_to_expression(x)[1],df5.phlist))
+phlist6 = Vector{MyInt}(map(x->string_to_expression(x)[1],df6.phlist))
+sum5 = sum( rdict5[ph] for ph in phlist5 )
+sum6 = sum( rdict6[ph] for ph in phlist6 )
+freq5 = map( ph->rdict5[ph[1]]/sum5, phlist5 )
+deleteat!(freq5,354)
+freq6 = map( ph->rdict6[ph[1]]/sum6, phlist6 )
+lgfreq5 = map(x->lg10(x),freq5)
+#lgfreq5 = filter(x->!iszero(x),map(x->lg10(x),freq5))
+lgfreq6 = map(x->lg10(x),freq5)
+#insertcols!(df5,:freq=>freq5);   # adds as last column
+#insertcols!(df6,:freq=>freq6);
 
 rb5 = Vector{Float64}(df5.robustness);
+findall(x->iszero(x),df5.lg_redund) # 1-element Vector{Int64}: 354
+deleteat!(rb5,354)
 rb6 = Vector{Float64}(df6.robustness);
-#rb8 = Vector{Float64}(df8.robustness);
-rd5 = Vector{Float64}(df5.lg_redund);
-rd6 = Vector{Float64}(df6.lg_redund);
-#rd8 = Vector{Float64}(df8.lg_redund);
-scatter(rd5,rb5,smooth=true,labels="10 gates 5 levelsback")
-scatter!(rd6,rb6,smooth=true,labels="12 gates 6 levelsback")
-#scatter!(rd8,rb8,smooth=true,labels="11_8")
+rd5 = map(r->r/sum5,Vector{Float64}(freq5));
+deleteat!(rd5,354)
+rd6 = map(r->r/nsamples,Vector{Float64}(df6.lg_redund));
+#rd6 = Vector{Float64}(df6.lg_redund);
+rbl5 = Vector{Float64}(map(x->lg10(x),rd5));
+rbl6 = Vector{Float64}(map(x->lg10(x),rd6));
+scatter(lgfreq5,rb5,smooth=true,labels="10 gates 5 levelsback")
+scatter!(lgfreq6,rb6,smooth=true,labels="12 gates 6 levelsback")
+#scatter!( lgfreq5,freq5,labels="null model 10 gates",legend=:topleft)  # one null model is enough
+scatter!( lgfreq6,freq6,labels="null model 12 gates",legend=:topleft)
 #scatter!(legend=:topleft,ylabel="robustness",xlabel="log redundancy")
 scatter!(legend=:topleft,ylabel="robustness",xlabel="log frequency")   # Used in Univeral properties paper
+savefig("../data/12_7_22/robustness_vs_lg_freq_null_model_10_12gates.png")
 
 #scatter!(title="lg_redund vs robust 12gts6lb 10gts5lb 200circs")
 #savefig("../data/12_7_22/lg_redund_vs_robust_12gts6lb_10gts5lb_200circs.png")

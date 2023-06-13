@@ -1,0 +1,8 @@
+Problems with count_outputs_parallel() in RecordOutputs.jl
+
+Functions count_outputs() and count_outputs_parallel() in RecordOutputs.jl depend strongly on function default_funcs() in Func.jl,
+and it is hard to change these functions in a backward-compatible way.  Therefore, I am (perhaps temporarily) suggesting that
+default_funcs() be set to use or not use XOR when calling these functions.
+
+Running "../data/8_15_22/run_count_outputs_ch_K.jl" on Mac with default_funcs() set to not use XOR.
+

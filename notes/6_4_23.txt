@@ -1,0 +1,64 @@
+Comparing genotype evolvability for 3x1 8 gates to 14 gates.
+
+@everywhere include("Evolvability.jl")  # Necessary because function run_mean_genotype_evolvabilities() is not exported
+
+# Both of the following computed 6/4/23
+@time df14 = include("../data/5_16_23/run_geno_evolvabilitiesC.jl")
+mean(df14.geno_evolvabilities)  # 25.77639450966029
+@time df8 = include("../data/5_16_23/run_geno_evolvabilitiesD.jl")
+mean(df8.geno_evolvabilities) # 20.889421970263058
+findmax(df8.geno_evolvabilities), findmax(df14.geno_evolvabilities)  # ((33.25, 151), (44.886792452830186, 106))
+
+#scatter(sort(df8.geno_evolvabilities,rev=true),sort(df14.geno_evolvabilities,rev=true),labels="sorted 14 gates vs sorted 8 gates",smooth=true)
+#plot!(xlabel="8 gates genotype evolvability",ylabel="14 gates genotype evolvability",legend=:topleft)
+#savefig("../data/6_4_23/genotype_evolvability_sorted14gates_vs_sorted8gates.png")
+
+rdict8 = redundancy_dict(p8,funcs);
+rdict14 = redundancy_dict(p14,funcs);
+freq8 = map(ph->lg10(rdict8[ph[1]]),df8.goals);
+freq14 = map(ph->lg10(rdict14[ph[1]]),df14.goals);
+mean(freq8),mean(freq14)  # (4.1526078444665435, 4.546614375333189))
+scatter(df8.geno_evolvabilities,freq8,labels="8 gates")
+scatter!(df14.geno_evolvabilities,freq14,labels="14 gates")
+plot!(xlabel="genotype evolvability",ylabel="log frequency")
+savefig("../data/6_4_23/log_freq_vs_geno_evolvability_8_14gates.png")
+
+# log freq vs geno evolvability
+scatter(freq14,df14.geno_evolvabilities,labels="14 gates")
+scatter!(freq8,df8.geno_evolvabilities,labels="8 gates")
+plot!(ylabel="genotype evolvability",xlabel="log frequency")
+savefig("../data/6_4_23/geno_evolvability_vs_log_freq_8_14gates.png")
+Conclusion:  
+For 8 gates, a strong negative relationship between genotype evolvability and log frequency.
+For  gates, a strong negative relationship between genotype evolvability and log frequency.
+
+# robustness vs geno evolvability
+rwdf8 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv")
+rwdf14 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23H.csv")
+scatter(df14.geno_evolvabilities,Vector{Float64}(rwdf14.robustness),labels="14 gates")
+scatter!(df8.geno_evolvabilities,Vector{Float64}(rwdf8.robustness),labels="8 gates")
+plot!(xlabel="genotype evolvability",ylabel="genotype robustness")
+savefig("../data/6_4_23/robustness_vs_geno_evolvability8_14gates.png")
+(mean(df8.geno_evolvabilities),mean(df14.geno_evolvabilities)) # (20.889421970263058, 25.77639450966029)
+Conclusion:  
+For 8 gates, a strong negative relationship between genotype evolvability and robustness.
+For 14 gates, a strong negative relationship between genotype evolvability and robustness.
+    Ahnert:  "Comparisons of the genotypic robustness and evolvability therefore consistently show a 
+      negative correlation between the two, as observed in regulatory network GP maps [2], RNA [22,52] 
+      and Polyominoes [22]." sect 8.4 page 8.
+    Manrubia: "Some of the commonalities documented are ... a negative correlation between genotypic evolvability and genotypic robustness" sect 4, p65 
+
+=========================
+What Cheyenne should do next:
+
+What are the alternative actions from here:
+
+1)  Continue current adjunct teaching.  Do not be involved with the CS department.  
+    Do not prepare to apply for a future lecturer position.  Do not file discrimination lawsuit.
+2)  Ask to teach CSCI 150 in preparation to apply for a future lecturer position.  Be somewhat 
+    personally involved with the CS department.  Do not file discrimination lawsuit.
+3)  File discrimination lawsuit.  Then you must assume your adjunct teaching with the CS department is finished.
+    I do not see that this will reduce discrimination in the future---rather I think it will increase it.
+    Jesse and others will be even more inclined to avoid any applicant who shows any indication of filing a discrimination lawsuit.
+    And you will also likely destroy my relationship with the CS department.
+

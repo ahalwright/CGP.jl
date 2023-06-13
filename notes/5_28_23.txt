@@ -1,10 +1,10 @@
 TODO list from meeting with Cheyenne on 5/27/23
 
 1.  Table 3 remove all but 2, 3, and 4 gates.  DONE
-2.  Extend Figure 3 to 10 and 12 gates.
-3.  Move Table 4 to after discussion of it.
-4.  Figures 5 & 6:  Change xlabel to "exact evolvability".
-5.  Figure 8:  Remove "exact evolability" vertical line.
+2.  Extend Figure 3 to 10 and 12 gates.   DONE (except possibly to use 14 gates instead of 12)
+3.  Move Table 4 to after discussion of it.  Doesn't seem to be a problem.
+4.  Figures 5 & 6:  Change xlabel to "exact evolvability". DONE
+5.  Figure 8:  Remove "exact evolability" vertical line. DONE
 6.  Figure 9:  Shape space.  Do 8 and 14 gates rather than evolution
 7.  Figure 10:  drop (we don't need to do 4 input shape space).
 8.  Figure 4:  Add neutral correlations null model.

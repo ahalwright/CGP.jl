@@ -1,0 +1,4 @@
+The redundancy count for 4 inputs, 14 gates, 7 lb finally finished on surt2 after many days.
+File on mac and surt2:  data/8_15_22/count_outputs_ch_5funcs_4inputs_14insts_7regs_L.csv
+Copied to file data/counts/count_outputs_ch_5funcs_4inputs_14gates_7lb_L.csv
+Revised function redundancy_dict() in Complexity.jl to work for 14 gates 7 lb.

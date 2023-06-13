@@ -1,0 +1,47 @@
+Ideas on genotype-phenotype maps inspired by "Faster sorting algorithms discovered by deep reinforcement learning"
+by Daniel J. Mankowitz et al. 2023 https://www.nature.com/articles/s41586-023-06004-9
+
+Genotypes:  sorting algorithms for the fixed or variable sort problems for small n, i.e., 3, 4, 5.
+
+Example:  See Figure 3 of paper for for algorithms for Sort3 and Sort4.
+
+Example:  See Figure 4 of the paper for 2 algorithms for the VarSort4 problem.
+
+Legal instructions include: mov, cmp, cmovg, cmov1
+Search for "assembly instruction cmovg".  Not clear what cmov1 does---deduce from examples.
+
+Phenotypes for fixed sorts:  (Sort n of the paper for n = 3, 4, 5).
+  The permutation produced by the algorithm for each of the n! input permuations.
+  Thus, for n=4, the phenotype is a list of 24 permutations of [0,1,2,3]
+
+Phenotypes for variable sorts:  (VarSort n of the paper for n = 3, 4, 5).
+  The permutation produced by the algorithm for each of the n!+(n-1)!+...+2! input permuations.
+  Thus, for n=4, the phenotype is a list of 24 permutations of [0,1,2,3] plus 6 permutations of [0,1,2]
+    plus 2 permutations of [0,1].
+
+Hypothesis:  These genotype maps have some or all of the universal properties.
+
+Methodology:  Write an emulator for algorithms/programs using mov, cmp, cmovg, cmov1.
+Generate random fixed algorithms for 3 inputs, and tabulate their phenotypes.
+Question:  should cmovg and cmov1 instructions always follow cmp instructions?
+
+Emulator:  Need n+1 registers for n inputs.
+mov instruction is straightforward
+cmp P R; cmovg P R;   results in R = max(A,C) = max(P,R)
+cmp P R; cmov1 P S;   results in S = min(A,C) = min(P,R)
+
+
+
+Sample run:
+julia> mutable struct Data
+         N::Int64
+         registers::Vector{Int64}
+         ZF::Bool   # Zero flag result of cmp  # see https://www.aldeid.com/wiki/X86-assembly/Instructions/cmp
+         CF::Bool   # Carry flag result of cmp
+       end
+julia> include("AssEmulator.jl")
+julia> N=3
+julia> dd = emulator_struct( N, [1,2,3] )
+#  Data(3, [1, 2, 3, 0], false, false)
+julia> P=1; Q=2; R=3; S=4;
+

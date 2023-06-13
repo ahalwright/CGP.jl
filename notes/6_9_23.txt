@@ -1,0 +1,80 @@
+Working on assembly interpreter for the paper "Faster sorting algorithms discovered using
+deep reinforcement learning" by Daniel J. Mankowitz et al. https://doi.org/10.1038/s41586-023-06004-9
+
+File:  src/AssEmulator.jl and evotech/jupyter/Assembly.ipynb
+
+Considering only Sort3, the fixed sorting problem for 3 inputs.
+
+mutable struct Data
+  N::Int64
+  registers::Vector{Int64}
+  ZF::Bool   # Zero flag result of cmp  # see https://www.aldeid.com/wiki/X86-assembly/Instructions/cmp
+  CF::Bool   # Carry flag result of cmp
+end
+
+# Assume that Data dd is defined externally
+struct Instruction
+  operation::Function
+  operand1::Int64
+  operand2::Int64
+end
+
+ddl = emulator_struct( N, [1,2,3] )
+ddg = emulator_struct( N, [3,2,1] )   #  Data(3, [3, 2, 1, 0], false, false)
+
+Implemented assembly instructions:  
+mov, cmp, cmovl, cmovg.  
+
+Figures 2b and 2c show "Original" and "AlphaDev" assemby programs for Sort3.
+
+Functions ORprog( dd::Data ) and ADprog( dd::Data ) implement these assembly programs.
+ORprog() succeeds for both ddl and ddg.  
+ADprog fails for ddg but succeeds for ddl.
+ADprog(ddg)  #  ERROR: AssertionError: dd.registers[P] == min(A, B)
+
+Thus, strong indication that emulator is working, but that the assembly program ADprog is incorrect.
+
+Could try for Sort4 Figures 2e and 2f.
+
+Need to assume emulator is correct and test for universal properties.
+  Question:  What is mutation?  Perhaps need to include insertion and deletion of gates since most
+    single-point mutations will likely be non-neutral unless instruction does not contribute to output.
+
+Results:  6/10/23:
+julia> dd = random_data(N); cv = count_vects( N, 10000, 100 )'
+count_vects(): dd: Data(3, [1, 2, 3, 2], true, true)  ff: 6
+1×27 adjoint(::Vector{Int64}) with eltype Int64:
+ 2479  2  0  0  2  0  0  0  2  1  2  0  1  5081  0  0  0  1  0  0  0  0  3  1  2  0  2423
+
+# The high occurence vectors are [1,1,1], [2,2,2], [3,3,3]
+
+N=5
+allvec5 = all_vects(5,5);
+dd = random_data(N); cv = count_vects( N, 50000, 60 )
+  # count_vects(): dd: Data(5, [2, 3, 4, 5, 1, 2], false, true)  ff: 971
+  # 3125-element Vector{Int64}:
+allvec5[findall(x->x>100,cv)]  # 43-element Vector{Vector{Int64}}:
+findmax(map(x->length(unique(x)),allvec5[findall(x->x>100,cv)]))  # (2,2)
+findmax(map(x->length(unique(x)),allvec5[findall(x->x>6,cv)]))   # (2,2)
+
+dd = random_data(N); cv = count_vects( N, 200000, 40 )
+#  count_vects(): dd: Data(5, [4, 3, 1, 5, 2, 4], false, false)  ff: 2147
+#  3125-element Vector{Int64}:
+findmax(map(x->length(unique(x)),allvec5[findall(x->x>40,cv)]))  # (3,188)
+findmax(map(x->length(unique(x)),allvec5[findall(x->x>50,cv)]))  # (2,2)
+
+Conclusion:  High count result vectors have low unique counts
+Supports binomially non-uniform frequencies  (binomial is a hypothesis)
+
+Robustness:  Deleting or replacing an instruction should often be neutral since probably most instructions are not active
+
+Question:  maybe this fits into the Linear GP framework.
+
+Results:  6/11/23:
+
+Wrote a function robustness( prog::Vector{Instruction} ) which computes the N-tuple result of running prog and compares 
+  this to running prog with each individual instruction deleted (by replacing it with the pass instruction).
+  As expected, robustnesses are high.
+  Hypothesis:  When the N-tuple result is rare (length(unique(result)) > 1), robustness will reduce.  Expect to be true.
+
+

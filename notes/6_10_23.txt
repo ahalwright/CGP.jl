@@ -1,0 +1,12 @@
+Rethinking "purpose" of complexity paper.
+Instead of "evolution of increasing complexity", relationship of complexity to other properties of GP map.
+
+Note:  Tononi complexity of a circuit, Kolmogorov complexity of a phenotype.
+
+Complxity Results:
+1) Redundancy and complexity
+2) Concordance of Tononi and Kolmogorov complexity
+2) Mutation from low to high complexity
+3) Evolution from low to high complexity
+4) Navigability in large genotype networks.  
+    Example of strong selection overcoming difficulty of evolution from low to high complexity.

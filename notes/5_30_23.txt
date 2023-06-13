@@ -1,0 +1,30 @@
+Robustness vs log relative frequency for 3 inputs 8 gates 14 gates.
+
+p8 = Parameters( 3, 1, 8, 4 ); funcs=default_funcs(p8)[1:4]
+p14 = Parameters( 3, 1, 14, 7 ); funcs=default_funcs(p14)[1:4]
+rdict8 = redundancy_dict(p8,funcs);
+rdict14 = redundancy_dict(p14,funcs);
+sum8 = sum( rdict8[r] for r in 0x0000:0x00ff )
+sum14 = sum( rdict14[r] for r in 0x0000:0x00ff )
+# relative log frequency
+lg_freq8 = map( ph->lg10(rdict8[ph]/sum8), 0x0000:0x00ff ) ;
+lg_freq14 = map( ph->lg10(rdict14[ph]/sum14), 0x0000:0x00ff );
+phdf8 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22I.csv");
+phdf14 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22K.csv");
+rbst8 = phdf8.robustness
+rbst14 = phdf14.robustness
+scatter(lg_freq8,rbst8,labels="8 gates",xlabel="log frequency",ylabel="robustness)
+freq8 = map( ph->rdict8[ph]/sum8, 0x0000:0x00ff );
+freq14 = map( ph->rdict14[ph]/sum14, 0x0000:0x00ff );
+scatter(lg_freq8,freq8,labels="8 gates null model")    # works but big gap between 0x00, 0xff and everything else
+scatter(lg_freq14,freq14,labels="14 gates null model")  # works but big gap between 0x00, 0xff and everything else
+scatter(lg_freq8,rbst8,labels="8 gates",xlabel="log frequency",ylabel="robustness")
+scatter!( lg_freq8,freq8,labels="null model 8 gates",legend=:topleft)
+scatter(lg_freq14,rbst14,labels="14 gates",xlabel="log frequency",ylabel="robustness")
+scatter!( lg_freq14,freq14,labels="null model 14 gates",legend=:topleft)
+
+
+# An experiment:
+lst = sort(rand(20));
+lglst=map(lg10,lst);
+scatter( lglst,lst)   # Gives exponential curve

@@ -608,34 +608,40 @@ function find_genotype_with_max_Tcomplexity( p::Parameters, funcs::Vector{Func},
   end
 end
 
-# 
-function run_evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromComplexity::Int64, toComplexity::Int64, nreps::AbstractRange, max_ev_tries::Int64, 
-      max_find_steps::Int64, max_evolve_steps::AbstractRange; csvfile::String="" )
+# Example run 6/12/23:  run_evolve_to_Kcomplexity_mt( p, funcs, 2, 4, 2, 10, 1000, 100_000, select_prob=0.9 )
+function run_evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromComplexity::Int64, toComplexity::Int64, nreps::IntRange, max_ev_tries::Int64, 
+      max_find_steps::Int64, max_evolve_steps::IntRange; select_prob::Union{Float64,Vector{Float64}}=1.0, csvfile::String="" )
   nreps_list = Int64[]
   max_ev_steps_list = Int64[]
   numfailures_list = Int64[]
   ttry_list_list = Vector{Int64}[]
   mean_steps_list = Float64[]
   median_steps_list = Float64[]
+  select_prob_list = Float64[]
+  select_prob = (typeof(select_prob) == Float64) ? [select_prob] : select_prob
   for nr in nreps
     for mev_steps in max_evolve_steps
-      push!(nreps_list,nr)
-      push!(max_ev_steps_list,mev_steps)
-      (numfailures, ttry_list, total_steps_list) = 
-          #evolve_to_Kcomplexity( p, funcs, fromComplexity, toComplexity, nr, max_ev_tries, max_find_steps, mev_steps )
-          evolve_to_Kcomplexity_mt( p, funcs, fromComplexity, toComplexity, nr, max_ev_tries, max_find_steps, mev_steps, useKcomplexity=true)
-      push!(numfailures_list,numfailures)
-      push!(ttry_list_list,ttry_list)
-      push!(mean_steps_list,mean(total_steps_list))
-      push!(median_steps_list,median(total_steps_list))
+      for sprob in select_prob
+        push!(nreps_list,nr)
+        push!(max_ev_steps_list,mev_steps)
+        (numfailures, ttry_list, total_steps_list) = 
+            #evolve_to_Kcomplexity( p, funcs, fromComplexity, toComplexity, nr, max_ev_tries, max_find_steps, mev_steps )
+            evolve_to_Kcomplexity_mt( p, funcs, fromComplexity, toComplexity, nr, max_ev_tries, max_find_steps, mev_steps, select_prob=sprob,  useKcomplexity=true)
+        push!(numfailures_list,numfailures)
+        push!(ttry_list_list,ttry_list)
+        push!(mean_steps_list,mean(total_steps_list))
+        push!(median_steps_list,median(total_steps_list))
+        push!(select_prob_list,sprob)
+      end
     end
   end
-  len = length(nreps)*length(max_evolve_steps)    
+  len = length(nreps)*length(max_evolve_steps)*length(select_prob)
   df = DataFrame( 
         :fromC=>fill(fromComplexity,len),
         :toC=>fill(toComplexity,len),
         :max_ev_tries=>fill(max_ev_tries,len),
         :nreps=>nreps_list,
+        :select_prob=>select_prob_list,
         :failures=>numfailures_list,
         :max_ev_steps=>max_ev_steps_list,
         :mean_steps=>mean_steps_list,
@@ -657,7 +663,8 @@ function run_evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromC
 end
 
 # Do multiple epochal evolutions ( calls to neutral_evolve() ) to evolve from a circuit of Kcomplexity fromKcomplexity to a goal of Kcomplexity toKcomplexity
-function evolve_to_Kcomplexity( p::Parameters, funcs::Vector{Func}, fromKcomplexity::Int64, toKcomplexity::Int64, nreps::Int64, max_ev_tries::Int64, max_find_steps::Int64, max_evolve_steps::Int64 )
+function evolve_to_Kcomplexity( p::Parameters, funcs::Vector{Func}, fromKcomplexity::Int64, toKcomplexity::Int64, nreps::Int64, max_ev_tries::Int64, 
+      max_find_steps::Int64, max_evolve_steps::Int64; select_prob::Float64=1.0 )
   kdict = kolmogorov_complexity_dict(p,funcs)
   ttry_list = zeros(Int64,max_ev_tries)
   total_steps_list = zeros(Int64,nreps)
@@ -669,10 +676,10 @@ function evolve_to_Kcomplexity( p::Parameters, funcs::Vector{Func}, fromKcomplex
     @assert fromKcomplexity == kdict[output_values(c)[1]]
     @assert toKcomplexity == kdict[ph]
     ttry = 1
-    (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
+    (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps, select_prob=select_prob )
     total_steps = steps
     while ttry < max_ev_tries && steps == max_evolve_steps
-      (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
+      (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps, select_prob=select_prob )
       total_steps += steps
       ttry += 1
     end
@@ -687,8 +694,8 @@ end
 
 # Do multiple epochal evolutions ( calls to neutral_evolve() ) to evolve from a circuit of complexity fromComplexity to a goal of complexity toComplexity
 # Multi-threaded version
-function evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromComplexity::Int64, toComplexity::Int64, nreps::Int64, max_ev_tries::Int64, max_find_steps::Int64, max_evolve_steps::Int64;
-    useKcomplexity::Bool=true ) # if useKcomplexity==false, this means use Tcomplexity
+function evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromComplexity::Int64, toComplexity::Int64, nreps::Int64, max_ev_tries::Int64, 
+      max_find_steps::Int64, max_evolve_steps::Int64; useKcomplexity::Bool=true, select_prob::Float64=1.0 ) # if useKcomplexity==false, this means use Tcomplexity
   kdict = useKcomplexity ? kolmogorov_complexity_dict(p,funcs) : Dict()
   ttry_list = [ Threads.Atomic{Int64}(0) for i= 1:max_ev_tries]
   total_steps_list = [ Threads.Atomic{Int64}(0) for i= 1:nreps]
@@ -706,10 +713,10 @@ function evolve_to_Kcomplexity_mt( p::Parameters, funcs::Vector{Func}, fromCompl
       ph = find_phenotype_with_min_Tcomplexity( p, funcs, toComplexity, max_find_steps )
     end
     ttry = 1
-    (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
+    (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps, select_prob=select_prob )
     total_steps = steps
     while ttry < max_ev_tries && steps == max_evolve_steps
-      (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps )
+      (nc,steps) = neutral_evolution( c, funcs, [ph], max_evolve_steps, select_prob=select_prob )
       total_steps += steps
       ttry += 1
     end

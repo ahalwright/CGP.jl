@@ -1,4 +1,4 @@
-Finished revision of introduction.
+Evolvability paper. Finished revision of introduction.
 
 Saved a version to phn/zip.  Deleting extra material like entropy evolvability.  
 Saved deleted material in evotech/pheno_network/latex/deleted_material_4_6_23.tex

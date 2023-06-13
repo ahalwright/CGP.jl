@@ -1,0 +1,20 @@
+Comments on changes to complexity paper.
+
+Current results:
+1)  Redundancy
+2)  Redundancy and complexity
+3)  Mutation from high to low complexity
+4)  Evolution from high to low complexity
+5)  Navigability in large genotype/phenotype networks 
+
+Question: Is the evolution of increasing complexity the main "purpose" of the paper?
+
+Question: Should we also include mutation/evolution from high to low redundancy?
+
+Question: How much coverage of theoretical circuit complexity?  Should review Dingle results.
+
+Possible conclusion:  Complex innovation is easy given either biological evolutionary pop sizes and time scales, 
+  or cultural human innovation.  Wagner Sleeping Beauties book.  But most such innovations will die because
+  the conditions are not right.  Thus, for the circuit model, strong selection is necessary.
+  However, maybe complex innovation must happen in incremental steps.
+  Do these incremental steps have persist enough to reproduce?

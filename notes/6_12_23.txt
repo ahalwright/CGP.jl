@@ -1,0 +1,6 @@
+Investigating the effect of increasing select_prob on number of evolutiomary steps.
+data/6_12_23/evolve_complexity_4x1_10gts_6_12_23D.csv shows a consistent decrease in mean and median steps as select_prob increases.
+However, even with select_prob==0.2, epochal evolution works almost as well as with select_prob==1.0 indicating that strong selection is not needed.
+
+Complexity and epochal evolution:
+  The reason that epochal evolution works is that neutral sets are complexly intertwined.

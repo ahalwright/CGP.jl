@@ -841,7 +841,7 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
         end
       elseif p.numinteriors == 14 && p.numlevelsback == 7
         if length(funcs) == 4
-          csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_14gate_7lb_K.csv"
+          csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_14gate_7lb_O.csv"
         else
           println("no csv file in function redundancy_dict()")
           return nothing
@@ -856,6 +856,8 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
           csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv"
         elseif p.numinteriors == 12 && p.numlevelsback == 6
           csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_12gates_6lb_H.csv"
+        elseif p.numinteriors == 14 && p.numlevelsback == 7
+          csvfile = "../data/counts/count_outputs_ch_5funcs_4inputs_14gates_7lb_L.csv"
         elseif p.numinteriors == 11 && p.numlevelsback == 8
           csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
         else

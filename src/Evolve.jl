@@ -980,9 +980,10 @@ end
 # If evolution hasn't succeeeded in max_steps, return nothing.
 # insert_gate_prob is the probability of inserting a gate on a mutation of a chromosome.
 # delete_gate_prob is similar for deleting a gate.
+# select_prob is the probabability of accepting the new chromosome when there is an reduction in distance
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
 function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false,
-      insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
+      select_prob::Float64=1.0, insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
       save_acomplexities::Bool=false ) # Save acomplexity, evolvability, robustness of phenos produced by mutate_all on every step
   #println("neutral evolution started for goal: ",g)
   #if typeof(c) == Chromosome
@@ -1001,6 +1002,7 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   intersect_list = Int64[]  # Only used if save_acomplexities==true 
   #println("LinCirc: ",LinCirc,"  Ones: ",@sprintf("0x%08x",Ones),"  CGP.Ones: ",@sprintf("0x%08x",CGP.Ones))
   #println("numgates: ",c.params.numinteriors)
+  println("select_prob: ",select_prob)
   step = 0
   ov = output_values( c )
   #println("ov: ",ov,"  g: ",g)
@@ -1046,17 +1048,24 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
         print_circuit(new_c)
       end
     elseif new_distance < current_distance   # improvement
+      rnd = rand()
       if print_steps
-        println("step: ",step,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance)
+        if rnd <= select_prob
+          println("step: ",step,"  rnd: ",rnd,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance, "  new_c accepted")
+        else
+          println("step: ",step,"  rnd: ",rnd,"  new_output: ",new_ov," distance improved from ",current_distance," to ",new_distance, "  new_c not accepted")
+        end
         print_circuit(new_c)
       end
       if save_acomplexities
         save_acomplexity( new_c, c, new_ov[1], g, step, "improve", step_list, status_list, acomplexity_list, evolvability_list, robust_list, intersect_list )
       end
-      c = new_c
-      ov = new_ov
-      current_distance = new_distance
-      #println("B step: ",step," current_distance: ",current_distance)
+      if rnd <= select_prob 
+        c = new_c
+        ov = new_ov
+        current_distance = new_distance
+        #println("B step: ",step," current_distance: ",current_distance)
+      end
     else
       if print_steps && step <= 20
         print("step: ",step,"  new_output: ",new_ov," current distance: ",current_distance," new: ",new_distance,"  ")
