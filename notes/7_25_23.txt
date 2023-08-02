@@ -1,0 +1,38 @@
+Mean number active in circuit_list sample.  Fixed bug in function random_chromosome()
+
+covdf = read_dataframe("../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv")
+insertcols!(covdf,3,:cints_list=>map(x->eval(Meta.parse(x)),covdf.circuits_list))
+P3 =  Parameters(3,1,8,4); funcs=default_funcs(P3)
+mnav = map( x->number_active(int_to_chromosome( x, P3, funcs )), covdf.cints_list[5] )
+#  2250-element Vector{Int64}:
+mnav = mean( map( x->number_active(int_to_chromosome( x, P3, funcs )), covdf.cints_list[5] ))
+#  6.309333333333333
+@time mnav = map(y->mean( map( x->number_active(int_to_chromosome( x, P3, funcs )), covdf.cints_list[y] )), 1:256 )
+#  127.262876 seconds (569.51 M allocations: 44.640 GiB, 2.68% gc time, 0.04% compilation time)
+#  256-element Vector{Float64}:
+ 5.833777777777778
+ 6.102222222222222
+ 6.115111111111111
+ 5.891111111111111
+ 6.309333333333333
+
+mean(mnav)  #  6.2244652777777791
+std(mnav)   #  0.24698821325579737   # low dispersion about the mean
+
+kdict = kolmogorov_complexity_dict(P3,funcs)
+df = DataFrame( :goal=> map(x->[x],0x0000:0x00ff), :mean_nactive=>mnav, :Kcomp=>map(x->kdict[x],0x0000:0x00ff))
+spearman_cor(df,:mean_nactive,:Kcomp) #  (0.7743229974220478, 1.0667339972747444e-52)  # surprisingly strong correlation
+
+Conclusion:  random sampling of circuits is only very weakly biased towards simplicity.  However, this conclusion
+  is very moderated by the fact that our sampling is for a fixed parameter setting, and in a more realistic evolutionary
+  setting the number of gates might vary.  function neutral_evolution() has options for inserting and deleting gates.
+
+
+Rewrite UP discussion and conclusions
+
+1)  High bias in phenotype frequencies
+2)  Robustness.  Why this is important?
+3)  Genotype evovability.  Explanation of negative relationship between robustness and genotype evolvability.
+4)  Phenotype evolvability.  How this is related to phenotypic diversity.
+5)  Genetic correlation.  Why this is important.
+6)  Shape space.

@@ -4,17 +4,20 @@ Trying out Cooper's src/heat_map_plot_with_plotly.jl
 # Procedure for generating dataframe pdf.
 p=Parameters(4,1,10,5);funcs=default_funcs(p)
 #  5-element Vector{Func}:
-k_dict = kolmogorov_complexity_dict( p, funcs )
+k_dict = kolmogorov_complexity_dict( p, funcs );
 #r_dict = redundancy_dict( p, "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv" )
-r_dict = redundancy_dict( p, funcs )
-phlist = map(x->[x],0x0000:0xffff)
-goals = map(x->x[1],phlist)
-kcomp = map(x->k_dict[x],goals)
+r_dict = redundancy_dict( p, funcs );
+phlist = map(x->[x],0x0000:0xffff);
+goals = map(x->x[1],phlist);
+kcomp = map(x->k_dict[x],goals);
 lg10(x) = x==0 ? 0.0 : log10(x)
-log_redund = map(x->lg10(r_dict[x]),goals)
+log_redund = map(x->lg10(r_dict[x]),goals);
 pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund=>log_redund )
 
+# Worked on 6_27_23
 include("heat_map_plot_with_plotly.jl")
-heatmap_density_plot( pdf.kcomp, pdf.log_redund, "../data/9_23_22/heat_map.png",xlab="log redundancy",ylab="K complexity",toShowScale=true, html_loc="../data/9_23_22/heat_map.html" )
+heatmap_density_plot( pdf.kcomp, pdf.log_redund, "../data/9_23_22/heat_map.png",ylab="log redundancy",xlab="K complexity",toShowScale=true, html_loc="../data/9_23_22/heat_mapA.html" )
 [+] HTML Plot succesfully created and saved to ../data/9_23_22/heat_map.html
 [+] Plot succesfully created and saved to ../data/9_23_22/heat_map.png
+
+heatmap_density_plot( pdf.log_redund, pdf.kcomp, "../data/9_23_22/heat_map_Kcomp_vs_lgredund.png",xlab="log redundancy",ylab="K complexity",toShowScale=true, html_loc="../data/9_23_22/heat_map.html" )

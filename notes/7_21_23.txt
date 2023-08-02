@@ -1,0 +1,37 @@
+Evolution of n-input phenotypes from (n-1)-input phenotypes.
+  See Jupyter notebook:  Evolve3input_from_2input_7_20_23
+  Latest attemps have been to append the the circuits of two 2-input phenotypes, and then append a random chromosome
+     to this circuit, and evolve allowing only mutations to the random chromosome part.  Does not work.
+
+================
+Looking into Avida.  Avida gives fitness rewards for computing the results of single logic gates.  As far as I
+  can tell, the only allowed instruction is the NAND gate.  Results are not comparable to ours because every
+  Avida program must include the framework and instructions for reproduction, and a mutation is much more likely
+  to mutate these instructions rather than the ones that are compuing the circuit.
+
+==================
+Prompt engineering:   https://www.promptingguide.ai/introduction
+
+Prompt engineering is an important skill both for engineers and students in other disciplines.  But it may the the "latest fad" and thusnot an essential part of a CS education.
+
+Prompt engineering:  https://www.computerworld.com/article/3702711/ai-skills-job-postings-jump-450-heres-what-companies-want.html
+and other sites say that prompt engineering is a crucial skill in today's job market for engineers.
+
+A growing need for engineers
+
+Bryan Powell, a “talent operating partner” at global venture capital and private equity firm Insight Partners, said more than 40% of open roles across Insight’s own portfolio of jobs are in engineering, “many of which are related to AI and Machine Learning.
+
+“We also continue to see growth in non-technical jobs referencing skills in AI,” Powell said. “In highest demand are engineers with skills and experience in prompt engineering, machine learning, natural language processing, reinforcement learning, data science, and API implementation. These skills are at the forefront of AI-product development at the world’s top tech companies.”
+
+For the foreseeable future, Powell said, engineers with these technical skills will continue to be highly sought after because of the recent push around AI. Longer term, however, AI will become democratized, and everyday employees will need to be able to utilize AI tools to continue to remain effective and competitive, he said.
+
+“As AI technology evolves, skills like prompt engineering for [large language models] will continue to be in demand, as will individuals with these skills. These proficiencies become even more important as AI models become more sophisticated, requiring users to adapt their skills to new architectures, algorithms, and frameworks,” Powell said. “Continuous learning on the latest tech trends will be vital not only for advanced AI users, but also for the average employee.”
+
+
+CS108	Intelligent Systems: Design and Ethical Challenges
+Human-Centered AI
+Artificial Intelligence technology can and must be guided by human concerns. The course examines how mental models and user models of AI systems are formed, and how that leads to user expectations. This informs a set of design guidelines for building AI systems that are trustworthy, understandable, fair, and beneficial. The course covers the impact of AI systems on the economy and everyday life, and ethical issues of collecting data and running systems, including respect for persons, beneficence, fairness and justice.
+
+Cornell
+CS 1700 - Elements of Artificial Intelligence  
+

@@ -7,6 +7,7 @@ export evolve_function, mut_evolve_repeat, circuit_evolve, run_circuit_evolve, r
 export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, lambda_evolution, pheno_evolve, run_pheno_evolve
 export run_evolve_to_pheno_mt, run_to_rand_phenos_mt
 export directed_neutral_evolution
+export epochal_evolution_fitness, run_epochal_evolution_fitness
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -975,6 +976,7 @@ function findminrand( A::AbstractVector )
   end
 end
 
+# The name of the function neutral_evolution() is a misnomer since it actually implements what we call epochal evolution.
 # Evolves a Chromsome or LinCircuit that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.
@@ -983,7 +985,7 @@ end
 # select_prob is the probabability of accepting the new chromosome when there is an reduction in distance
 # Similar to mut_evolve except that this takes a single goal instead of a goal list as an argument.
 function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps::Integer; print_steps::Bool=false,
-      select_prob::Float64=1.0, insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
+      select_prob::Float64=1.0, gate_list::Vector{Int64}=Int64[], insert_gate_prob::Float64=0.0, delete_gate_prob::Float64=0.0, 
       save_acomplexities::Bool=false ) # Save acomplexity, evolvability, robustness of phenos produced by mutate_all on every step
   #println("neutral evolution started for goal: ",g)
   #if typeof(c) == Chromosome
@@ -1002,7 +1004,7 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   intersect_list = Int64[]  # Only used if save_acomplexities==true 
   #println("LinCirc: ",LinCirc,"  Ones: ",@sprintf("0x%08x",Ones),"  CGP.Ones: ",@sprintf("0x%08x",CGP.Ones))
   #println("numgates: ",c.params.numinteriors)
-  println("select_prob: ",select_prob)
+  #println("select_prob: ",select_prob)
   step = 0
   ov = output_values( c )
   #println("ov: ",ov,"  g: ",g)
@@ -1012,7 +1014,10 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
     #println("A step: ",step," current_distance: ",current_distance)
     new_c = deepcopy(c)
     if typeof(c) == Chromosome
-      (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
+      if length(gate_list) == 0
+        (new_c,active) = mutate_chromosome!( new_c, funcs, insert_gate_prob=insert_gate_prob, delete_gate_prob=delete_gate_prob )
+      else (new_c,active) = mutate_chromosome_gates!( new_c, funcs, gate_list )
+      end  
     elseif typeof(c) == LinCircuit
       #println("c: ",c)
       new_c = mutate_circuit!( new_c, funcs )
@@ -1086,6 +1091,133 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
     @assert output_values(c) == g
     return (c, step)
   end
+end
+
+function fitfunct_from_fitness_vector( P::Parameters, fitness::Vector{Float64} )::Function
+  fitfunct(x::MyInt) = fitness[x+1]
+end 
+
+function testf( c::Circuit, fitfunct::Union{Vector{Float64},Function} )
+  P = c.params
+  println("Parameters: ",P)
+  if typeof(fitfunct) <: Vector
+    fitfunct = fitfunct_from_fitness_vector( P, fitfunct )
+  end
+  println("fitfunct(0x0004) ",fitfunct(0x0004))
+end
+   
+# Uses epochal evolution based on fitness function represented as a vector to attempt to find a fitness non-decreasing path from cicuit c to a genotype of goal.
+# Thus a requirement is that the fitness of circuit c is less than or equal to the fitness of goal.
+### fitness is a vector of fitnesses indexed over all phenotypes (which limits the number of inputs to 4).
+# fitfunct is either a vector of fitness indexed over MyInts, or a function from MyInts to Float64s.  MyInts describe single-output phenotypes
+function epochal_evolution_fitness( c::Circuit, funcs::Vector{Func}, g::Goal, fitfunct::Union{Vector{Float64},Function}, max_steps::Integer; 
+      print_steps::Bool=false )::Tuple{Union{Circuit,Nothing},Int64,Float64,Float64}
+  P = c.params
+  if typeof(fitfunct) <: Vector
+    fitfunct = fitfunct_from_fitness_vector( P, fitfunct ) 
+  end
+  src_ph = output_values( c )
+  src_fit = fitfunct( src_ph[1] )
+  dest_fit = fitfunct( g[1] )
+  println("src_ph: ",src_ph,"  src_fit: ",src_fit,"  dest_fit: ",dest_fit)
+  @assert src_fit <= dest_fit
+  step = 0
+  current_fitness = src_fit
+  while step < max_steps && current_fitness < dest_fit
+    step += 1
+    #println("A step: ",step," current_fitness: ",current_fitness)
+    new_c = deepcopy(c)
+    if typeof(c) == Chromosome
+      (new_c,active) = mutate_chromosome!( new_c, funcs )
+    elseif typeof(c) == LinCircuit
+      new_c = mutate_circuit!( new_c, funcs )
+    end
+    new_fitness = fitfunct( output_values( new_c )[1] )
+    if new_fitness > current_fitness && new_fitness <= dest_fit  # improvement
+      print_steps ? println("step: ",step,"  fitness improved from ",current_fitness," to ",new_fitness) : nothing
+      c = new_c
+      current_fitness = new_fitness
+    elseif new_fitness > current_fitness && new_fitness > dest_fit  # improvement but higher fitness than goal
+      print_steps ? println("step: ",step,"  fitness improved from ",current_fitness," to ",new_fitness," but fitness greater than goal fitness") : nothing
+    elseif new_fitness == current_fitness  # neutral
+      print_steps ? println("step: ",step,"  fitness neutral ",current_fitness) : nothing
+      c = new_c
+    else # fitness decrease
+      print_steps ? println("step: ",step,"  fitness decrease from ",current_fitness," to ",new_fitness) : nothing
+    end
+  end # while
+  if step == max_steps
+    #println("epochal evolution fitness failed with ",step," steps for goal: ",g)
+    return (nothing, step, src_fit, dest_fit )
+  else
+    #println("epochal evolution fitness succeeded at step ",step," for goal: ",g)
+    @assert fitfunct( output_values( c )[1] ) == fitfunct( g[1] )
+    return (c, step, src_fit, dest_fit )
+  end
+end
+
+# Example run: run_epochal_evolution_fitness(P3, funcs, fitness, 1000, 2 )
+function run_epochal_evolution_fitness( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, max_steps::Integer, nreps::Int64; 
+    csvfile::String="", print_steps::Bool=false )::DataFrame
+  df = DataFrame()
+  df.numinputs = Int64[]
+  df.numgates = Int64[]
+  df.lb = Int64[]
+  df.max_steps = Int64[]
+  df.nreps = Int64[]
+  df.src_fit = Float64[]
+  df.dest_fit = Float64[]
+  df.fit_diff = Float64[]
+  df.dest_freq = Int64[]
+  df.dest_Kcomp = Int64[]
+  df.steps = Int64[]
+  df.failures = Int64[]
+  rdict = redundancy_dict(P,funcs)
+  kdict = kolmogorov_complexity_dict(P,funcs)
+  for i = 1:nreps
+    (src,destgoal) = assign_src_dest( P, funcs, fitness )
+    println("destgoal: ",destgoal)
+    src_fit = fitness[ output_values(src)[1]+1 ]
+    dest_Kcomp = kdict[destgoal[1]]
+    dest_freq = rdict[destgoal[1]]
+    dest_fit = fitness[ destgoal[1] + 1 ]
+    (dch,steps) = epochal_evolution_fitness(src, funcs, [0x0000], fitness, 10_000, print_steps=true )
+    failure = (dch == nothing) ? 1 : 0
+    df_row = (P.numinputs,P.numinteriors,P.numlevelsback,max_steps,nreps,src_fit,dest_fit,dest_fit-src_fit,dest_freq,dest_Kcomp,steps,failure)
+    push!( df, df_row )
+  end
+  if length(csvfile) > 0
+    open( csvfile, "w" ) do f
+      hostname = readchomp(`hostname`)
+      println(f,"# date and time: ",Dates.now())
+      println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
+      println(f,"# funcs: ", funcs)
+      print_parameters(f,P,comment=true)
+      println(f,"# nreps: ",nreps)
+      println(f,"# max_steps: ",max_steps)
+      CSV.write( f, df, append=true, writeheader=true )
+    end
+  end
+  df
+end
+
+# Returns source chromosome and destination goal satisfying the condition fitness( src ) < fitness( destgoal )
+function assign_src_dest( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64} )
+  done = false
+  src_fit = 1.0
+  dest_fit = 0.0
+  destgoal = nothing
+  src = nothing
+  done = false
+  while !done
+    src = random_chromosome(P,funcs)
+    src_fit = fitness[ output_values(src)[1]+1 ]
+    destgoal = randgoal( P )
+    dest_fit = fitness[ destgoal[1]+1 ]
+    done = src_fit < dest_fit
+  end
+  #println("assign_src_dest: src_fit: ",src_fit,"  dest_fit: ",dest_fit)
+  (src,destgoal)
 end
 
 function save_acomplexity( new_c::Circuit, prev_c::Circuit, ov::MyInt, g::Goal, step::Int64, status::String, step_list::Vector{Int64}, 

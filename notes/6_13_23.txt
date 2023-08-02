@@ -2,3 +2,36 @@ The redundancy count for 4 inputs, 14 gates, 7 lb finally finished on surt2 afte
 File on mac and surt2:  data/8_15_22/count_outputs_ch_5funcs_4inputs_14insts_7regs_L.csv
 Copied to file data/counts/count_outputs_ch_5funcs_4inputs_14gates_7lb_L.csv
 Revised function redundancy_dict() in Complexity.jl to work for 14 gates 7 lb.
+
+
+Papers suggested by Cheyenne as references for Universal Properties paper.
+
+Evolvability in grammatical evolution by Eric Medvet https://doi.org/10.1145/3071178.3071298
+    Might be slightly relevant, but grammatical evolution is quite different from CGP.
+  I suggest that we do not try to reference grammatical evolution.  If Wolfgang thinks it is 
+    important, he will mention it.
+
+Towards Phenotypic Duplication and Inversion in Cartesian Genetic Programming, Roman Kalkreuth
+  Very relevant but not in a peer reviewed venu.  Since we don't have time to check correctness, do not reference.
+
+Populations of genetic circuits are unable to find the fittest solution in a multilevel genotype–phenotype map
+  by Pablo Catalán, Susanna Manrubia and José A. Cuesta  https://doi.org/10.1098/rsif.2019.0843 
+  Definitely reference this paper.
+
+On the relation between robustness, evolvability and phenotypic complexity: Insight from Artificial
+   Evolutionary Experiments by Nicola Milano  Ph.D. disseretation
+
+  Corresponds to 3 journal publications:
+  Milano, Nicola, and Stefano Nolfi. "Robustness to faults promotes evolvability: Insights from evolving digital
+    circuits." PloS one 11.7 (2016).
+  Milano, Nicola, Paolo Pagliuca, and Stefano Nolfi. "Robustness, evolvability and phenotypic complexity: insights from
+    evolving digital circuits." Evolutionary Intelligence 12.1 (2019): 83-95.
+  Milano, Nicola, Jônata Tyska Carvalho, and Stefano Nolfi. "Moderate environmental variation across generations
+    promotes the evolution of robust solutions." Artificial life 24.4 (2019): 277-295.
+  Each of these articles might be referenced.
+
+A Study of Direct and Indirect Encoding in Phenotype-Genotype Relationships by Clyde Meli
+  Hard to access and does not look to be very significant.  Do not reference.
+
+Approximate Multipliers Using Bio-Inspired Algorithm by K. K. Senthilkumar
+  Not easy to access, and I don't think it is very relevant.  Do not reference.

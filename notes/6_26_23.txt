@@ -1,0 +1,48 @@
+Relationbship of K complexity to other quantities  3 inputs.
+See notes/6_27_23.txt for 4 inputs.
+
+Log frequency:  Negative as shown in current complexity paper
+
+Approximate sampling evolvability:  Negative as shown below
+
+Robustness:  Negative as shown below
+
+Genotype evolvability:  Strongly positive for 8 and 14 gates as shown below
+
+
+using Plots
+p8 = Parameters(3,1,8,4); funcs=default_funcs(p8)
+p14 = Parameters(3,1,14,7);
+kdict8 = kolmogorov_complexity_dict(p8,funcs[1:4])
+kdict14 = kolmogorov_complexity_dict(p14,funcs[1:4]);
+k8 = map(ph->kdict8[ph],0x0000:0x00ff);
+k14 = map(ph->kdict14[ph],0x0000:0x00ff);
+rwdf8 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv");   # 
+rwdf14 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23H.csv");
+insertcols!(rwdf8,6,:Kcomp=>k8);
+k14 = map(ph->kdict14[ph],0x0000:0x00ff);
+insertcols!(rwdf14,6,:Kcomp=>k14);
+
+scatter(rwdf8.d_evolvability,rwdf8.Kcomp,smooth=true,labels="8 gates",xlabel="approximate degree evolvability",ylabel="K complexity")
+scatter!(rwdf14.d_evolvability,rwdf14.Kcomp,smooth=true,labels="14 gates",xlabel="approximate degree evolvability",ylabel="K complexity")
+gui()    # to show plot
+savefig("../data/6_26_23/Kcomplex_vs_approx_degree_evolvability_3inputs_8_14gates.png")
+
+scatter(rwdf14.robustness,rwdf14.Kcomp,labels="14 gates",smooth=true)
+scatter!(rwdf8.robustness,rwdf8.Kcomp,labels="8 gates",smooth=true)
+plot!(ylabel="K complexity",xlabel="robustness")
+gui()    # to show plot
+savefig("../data/6_26_23/Kcomplex_vs_robustness_3inputs_8_14gates.png")
+
+cdf = read_dataframe( "../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv");   # from 2_23_23.txt
+ddf = read_dataframe( "../data/counts/count_outputs_ch_4funcs_3inputs_14gate_7lb_O.csv");   
+funcs=funcs[1:4]
+mge = mean_genotype_evolvabilities( p8, funcs, cdf )
+mge14 = mean_genotype_evolvabilities( p14, funcs, ddf )
+
+insertcols!(rwdf8,7,:mean_geno_evol=>mge)
+insertcols!(rwdf14,7,:mean_geno_evol=>mge14)
+scatter(rwdf14.mean_geno_evol,rwdf14.Kcomp,labels="14 gates",smooth=true)
+scatter!(rwdf8.mean_geno_evol,rwdf8.Kcomp,labels="8 gates",smooth=true)
+plot!(ylabel="K complexity",xlabel="genotype evolvability")
+savefig("../data/6_26_23/Kcomplex_vs_geno_evolvability_3inputs_8_14gates.png")

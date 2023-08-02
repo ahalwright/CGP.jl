@@ -1,0 +1,8 @@
+Illustrating how Figure 2 of the UP paper 10 gates shows that the distribution is zipfian.
+
+cdf4 = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv");
+insertcols!(cdf4,3,:ints10_5srt=>sort(cdf4.ints10_5,rev=true))
+Int(round(0.05*length(cdf4.ints10_5)))  # 3277
+sum(cdf4.ints10_5srt[1:3277])/sum(cdf4.ints10_5) #  0.9838918858118453S # The top 5% of the phenotypes contain 98% of the genotypes
+ddf4 = read_dataframe("../data/counts/count_outputs_ch_5funcs_4inputs_12gates_6lb_H.csv");
+sum(ddf4.ints12_6srt[1:3277])/sum(ddf4.ints12_6)  # 0.9708180799193618

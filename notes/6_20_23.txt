@@ -1,0 +1,12 @@
+Complexity null model:
+
+Start with a G-P map where each phenotype has a frequency and a K complexity.
+For the null model, assign the K complexity to phenotypes randomly.
+
+We have a plot of K complexity vs. log freq for 10 and 12 gates:
+scatter(lgfreq5,kc5,smooth=true,labels="10 gates 5 levelsback",markershape=:dtriangle)
+scatter!(lgfreq6,kc6,smooth=true,labels="12 gates 6 levelsback",markershape=:utriangle)
+scatter!(-lgfreq6.-findmax(kc6)[1],freq6*findmax(kc6)[1]/findmax(freq6)[1],labels="null model")
+scatter!(legend=:topright,ylabel="K complexity",xlabel="log frequency")
+# Robustness vs log frequency Jupyter notebook.
+# Based on notes/6_16_23.txt

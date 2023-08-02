@@ -71,7 +71,7 @@ function run_random_walks_parallel( p::Parameters, funcs::Vector{Func}, nwalks::
   #goal_edge_matrix[bv,bv]
 end
 
-# backward compatibility version
+# backward compatibility version which uses default_funcs()
 function run_random_walks_parallel( p::Parameters, nwalks::Int64, gl::Vector{MyInt}, steps::Int64; 
       csvfile::String="", exclude_zero_rows::Bool=false, output_dict::Bool=false, save_complex::Bool=false, use_lincircuit::Bool=false )
   println("WARNING:  using default_funcs(p) for funcs")

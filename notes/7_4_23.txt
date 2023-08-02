@@ -1,0 +1,21 @@
+Does multiplexing work?
+
+Use last bit multiplexing.
+
+Let $\Omega_n$ be the space of $n$-bit strings.  Note that $\Omega_m \times \Omega_n = \Omega_{m+n}$.
+
+The bitwise-evaluation interpretation of an $n$-bit circuit is a function from $\Omega_{2^n}$ to $\Omega_1$.
+Thus, a phenotype is a function from $\Omega_{2^n}$ to $\Omega_1$ which an be interpreted as an element of $\Omega_{2^n}$.
+Thus, an $n$-input circuit defines a phenotype which is an element of $\Omega_{2^n}$.  
+
+We are given an arbitrary 3-bit phenotype.  E.g. 0xd8 in $\Omega_{2^3} = \Omega_8$.
+We evolve 2-input circuits $cha$ and $chb$ for 0xd and 0x8.  Thus, $cha(11)=1, cha(10)=1, cha(01)=0, cha(00)=1$.
+And $cha(11)=1, cha(10)=0, cha(01)=0, cha(00)=0$
+
+Need circuit $chab$ for 3-inputs for phenotype 0xd8:
+$chab( x_1 x_2 0 ) = cha( x_1 x_2 )$
+$chab( x_1 x_2 1 ) = chb( x_1 x_2 )$
+defines $chab$.
+
+So we have successfully defined a 3-input circuit from two 2-input circuits.
+

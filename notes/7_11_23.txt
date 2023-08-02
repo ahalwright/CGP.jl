@@ -1,0 +1,50 @@
+See 7_14_23.txt for an update.
+
+Given an n-input phenotype ph, split into 2 phenotypes pn1 and ph2 by functions extract_odd_even and to_binary(), 
+evolve (n-1)-input circuits that map to these phenotypes, and then combine these circuits into a circuit that map to the n-input phenotype.
+ph is an 2^n bit vector and ph1 and ph2 are 2^(n-1)-input vectors.  Use one-based indexing.
+
+Example:  ph = 0x0098 = [1,0,0,1,1,0,0,0] = "10011000", ph1 = 0x0004 = "0100" = [0,1,0,0], ph2 = 0x000a = [1,0,1,0] = "1010"
+julia> extract_odd_even(0x0098,8)  #  (0x0004, 0x000a)
+
+julia> phb1 = [0,1,0,0]; phb2=[1,0,1,0]; phb = zeros(Int64,8);
+julia> for i = 1:8 phb[i] = (i%2 == 0) ? phb1[i÷2] : phb2[i÷2+1] end; ph'   # Converts phb1 and phb2 to phb
+#  1×8 adjoint(::Vector{Int64}) with eltype Int64:
+#    1  0  0  1  1  0  0  0
+##  To type the division symbol, \div<tab>.
+
+The challenge is to do this with a circuit.
+
+Can do this for specific phenotypes phb1 and phb2 by using function interleave() to create phb.  How to do it in general?
+
+phb
+Input Output
+111   phb1[3]
+110   phb2[3]
+101   phb1[2]
+100   phb2[2]
+011   phb1[1]
+010   phb2[1]
+001   phb1[0]
+000   phb2[0]
+
+phb1
+Input Output
+11    phb1[3]
+10    phb1[2]
+01    phb1[1]
+00    phb1[0]
+
+phb2
+Input Output
+11    phb2[3]
+10    phb2[2]
+01    phb2[1]
+00    phb2[0]
+
+Problem:  the context changes between (n-1)-input circuits and n-input circuits.
+
+Example of 2-input and 3-input circuts which produce the same output.
+default_funcs(P2); ccc2 = circuit((1,2), ((3,NAND,1,2),(4,XOR,3,1))); output_values(ccc2)
+default_funcs(P3); ccc3=circuit((1,2,3), ((4,NAND,2,3), (5,XOR,4,2), (6,NAND,1,1), (7,AND,5,6)), (4,5,6,7)); output_values(ccc3)
+Note that (6,NAND,1,1) negates input 1 from 0x00f0 to 0x000f, and (7,AND,5,6)) masks the result of gate 5 to 4 bits.

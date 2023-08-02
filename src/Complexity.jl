@@ -861,7 +861,7 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
         elseif p.numinteriors == 11 && p.numlevelsback == 8
           csvfile = "../data/counts/count_out_4x1_all_ints_11_8.csv"
         else
-          println("only 10gts 5lb and 12gts 6 lb are supported at this time")
+          println("only 10gts5lb, 12gts 6lb, 14gts 7lb, 11gts 8lb are supported at this time")
           return nothing
         end
       else

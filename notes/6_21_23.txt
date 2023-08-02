@@ -1,0 +1,17 @@
+Kolmogorov complexity relationship to unitation, and K complexity of neighboring phenotypes.
+
+There is only a very weak relationship between the K complexity of a phenotype and the unitation of the phhenotype. 
+function unitation(x::MyInt)    # assumes 4 inputs
+    cnt_ones = count_ones(x)
+    result = cnt_ones<=4 ? cnt_ones : 8-cnt_ones
+end
+Jupyter notebook Unitation.ipynb
+
+The file src/Phenotype.jl has functions for mutation of phenotypes, neighbors of phenotypes and their properties.
+Jupyter notebook Unitation.ipynb
+phlist = sort(randgoallist(1000,p)); phlist[1:3]
+stat_list = map(pheno->Kcomp_neighbors_stats( pheno, kdict, p ), phlist ); stat_list[1:10]
+diff_list = map(x->x[1]-x[2],stat_list); mean(diff_list)  # -0.0120625  consistently negative.  WHY???
+Redid with phlist = map(x->[x],0x0000:0xffff); and the result was 0.0
+#  x[1]-x[2] is the Kcomp of the phenotype minus the mean Kcomp of the neighbors.
+

@@ -1,0 +1,10 @@
+Relationbship of K complexity to other quantities  4 inputs.
+See notes/6_26_23.txt for 3 inputs.
+
+p10 = Parameters(4,1,10,5); funcs=default_funcs(p10)
+if length(funcs)==4 push!(funcs,XOR) end
+p14 = Parameters(4,1,14,7);
+kdict10 = kolmogorov_complexity_dict(p10,funcs);
+kdict14 = kolmogorov_complexity_dict(p14,funcs);
+k10 = map(ph->kdict10[ph],0x0000:0xffff);
+k14 = map(ph->kdict14[ph],0x0000:0xffff);

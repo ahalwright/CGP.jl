@@ -34,7 +34,7 @@ end
 
 # random_walk sampling version
 # if csvfile == "" returns the approximate phenonet adjacency matrix
-# if csvfile != "" returns a dataframe representing the approximate phenonet adjacency matrix and saves the dataframe to the
+# if csvfile != "" returns a dataframe representing the approximate phenonet adjacency matrix and saves the dataframe to csvfile
 function phenonet_matrix_sampling_approx( p::Parameters, funcs::Vector{Func}, nwalks::Int64, steps::Int64; csvfile::String="" )
   phl = collect(MyInt(0):MyInt(2^2^p.numinputs-1))
   rrw_df = run_random_walks_parallel( p, funcs, nwalks, phl, steps, exclude_zero_rows=false, output_dict=false, save_complex=false )

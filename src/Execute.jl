@@ -1,6 +1,6 @@
 export execute_chromosome, concatenate_outputs, create_count_function_list, increment_count_function_list, print_function_list
 export evaluate_node, create_count_function_hash, increment_count_function_hash, print_count_function_hash, print_count_function_summary
-export execute_chromosome_ft, evaluate_node_ft
+export execute_chromosome_ft, evaluate_node_ft, execute_chromosome_fwd, eval_interior
 using Printf
 
 # Limits Funcs to 4 inputs
@@ -65,15 +65,16 @@ function eval_interior( node::InteriorNode, context::Vector )
     println("ei eval interior node: ",node)
     func = node.func
     args = [context[i] for i = 1:func.arity]
-    #println("args: ",args)
-    Main.CGP.apply(func.func, args)
+    val = Main.CGP.apply(func.func, args)
+    println("args: ",args,"  val: ",val)
+    val
 end
 
 function evaluate_node(c::Chromosome, node::OutputNode, context::Vector)
     index = node.input
     result = evaluate_node(c, c[index], context)
     #println("eval output node: ",node,"  index: ",index,"  result: ",result)
-    # result = evaluate_node(c, c[index], context)
+    #result = evaluate_node(c, c[index], context)
     return result
 end
 
@@ -131,6 +132,21 @@ function execute_chromosome_ft(c::Chromosome, context::Vector, perturb_index::In
     return [evaluate_node_ft(c, node, context,perturb_index) for node = c.outputs]
 end
 
+# Executes chromosome c by evaluating interior nodes in the order of the chromosome
+function execute_chromosome_fwd(c::Chromosome, context::Vector )
+  values = MyInt[]
+  for i = 1:(c.params.numinputs + c.params.numinteriors + c.params.numoutputs)
+    if i <= c.params.numinputs
+      push!(values,context[i])
+    elseif i <= c.params.numinputs + c.params.numinteriors 
+      args = map(j->values[j],c[i].inputs)
+      push!(values, eval_interior( c[i], args ) )
+      #println("i: ",i,"  values: ",values)
+    end
+  end
+  values[end]
+end
+#=
 function print_function_list( function_list::Vector{MyFunc} )
   for i = convert(MyFunc,1):length(function_list)
     if function_list[i] > 0
@@ -139,6 +155,7 @@ function print_function_list( function_list::Vector{MyFunc} )
     end
   end
 end
+=#
 
 # The purpose of the remaining functions in this file is to
 #      generate random circuits and count the logic functions that are computed.
@@ -159,7 +176,7 @@ function increment_count_function_hash( funct::MyFunc, counts::Dict{MyFunc,Int64
   counts[funct] = get!( counts, funct, 0 ) + 1
 end
 
-function concatenate_outputs( numinputs::Integer, outputs::Vector{Main.CGP.MyInt}  )
+function concatenate_outputs( numinputs::Integer, outputs::Vector{MyInt}  )
   shift = 2^numinputs
   result = convert(MyFunc,outputs[1])
   for i = 2:length(outputs)

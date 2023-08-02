@@ -1118,6 +1118,7 @@ function mean_genotype_evolvabilities( p::Parameters, funcs::Vector{Func}, df::D
   @assert String(field) in names(df)
   circ_list = pmap( x->string_to_expression(x), df[:,field] )  # convert to Julia expressions
   geno_evols = pmap( x->mean(geno_evolvabilities( p, funcs, x )), circ_list )
+  #geno_evols = map( x->mean(geno_evolvabilities( p, funcs, x )), circ_list )
 end
 
 function run_mean_genotype_evolvabilities( p::Parameters, funcs::Vector{Func}, df::DataFrame, field::Symbol=:circuits_list; csvfile::String="" )

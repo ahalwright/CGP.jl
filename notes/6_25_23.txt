@@ -1,0 +1,20 @@
+Exploring using only the NAND gate.
+
+2 inputs.
+
+Idea:  Circuits implementing other gates can be motifs or "automatically defined functions" which 
+are steps to increased complexity.  Corresponds to entities in assembly theory.
+
+output_values(circuit((1,2), ((3,XOR,1,2),)))  # [0x0006]
+gate    input
+XOR     0x6
+NAND    0x7
+NOR     0x1
+
+Evolution to find circuit outputing 0x9 failed with 4 gates, succeeded with 5 gates.
+Evolution to find circuit outputing 0x6 failed with 3 gates, succeeded with 4 gates.
+Evolution to find circuit outputing 0x1 failed with 3 gates, succeeded with 4 gates.
+Only 2 circuits outputing 0x1:
+circuit((1,2), ((3,NAND,1,1), (4,NAND,2,3), (5,NAND,4,3), (6,NAND,5,5)))
+circuit((1,2), ((3,NAND,2,2), (4,NAND,3,1), (5,NAND,3,4), (6,NAND,5,5)))
+These could be examples of motifs.  Could replace them with NOR gates.

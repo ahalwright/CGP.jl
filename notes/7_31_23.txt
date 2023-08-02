@@ -1,0 +1,43 @@
+Trying to demonstrate simplicity bias in the digital circuit GP map.
+
+How did Johnston et al. 2021 demonstrate simplicity bias in sampling and evolutionary simulations of the
+polynomial model?  Figure 1E shows a bias towards low complexity high symmetry structures in evolutionary
+simulations with a size target of 16.
+
+Problem:  for polynomials there are many polynomials (phenotypes) of different complexity (simplicity) of a given size.
+What is size for the digital circuit GP map?  Perhaps deviation of unitation from half-unitation could be used as a 
+replacement for size?
+
+# In Phenotype.jl
+# The absolute deviation of count_ones(x) from the median of possible values of count_ones(x).
+# Example with P3.numinputs == 3.  In this case, half is 4.
+#  half_unitation(0x000f, P3 ) == 0
+#  half_unitation(0x00ff, P3 ) == 4
+function half_unitation( x::MyInt, P::Parameters )
+  half = div( 2^P.numinputs, 2 )
+  abs( count_ones(x) - half )
+end
+
+3 inputs
+P3 = Parameters(3,1,8,4)
+kdict = kolmogorov_complexity_dict(P3)
+rdict = redundancy_dict(P3)
+df = DataFrame( :goal=>map(x->[x], 0x0000:0x00ff), :half_unitation=>map(y->half_unitation(y,P3),0x0000:0x00ff), :redund=>map(y->rdict[y],0x0000:0x00ff), :Kcomp=>map(y->kdict[y],0x0000:0x00ff))
+256×4 DataFrame
+ Row │ goal            half_unitation  redund    Kcomp
+     │ Array…          Int64           Int64     Int64
+─────┼─────────────────────────────────────────────────
+   1 │ UInt16[0x0000]               4  52244700      1
+
+spearman_cor(df,:half_unitation,:redund) #(0.38478999860280755, 9.232099500692222e-11)  
+spearman_cor(df,:half_unitation,:Kcomp)  # (-0.2810425923416418, 2.473082860059953e-6)
+  
+4 inputs
+P4 = Parameters(4,1,12,6)
+kdict = kolmogorov_complexity_dict(P4)
+rdict = redundancy_dict(P4)
+df = DataFrame( :goal=>map(x->[x], 0x0000:0xffff), :half_unitation=>map(y->half_unitation(y,P3),0x0000:0xffff), :redund=>map(y->rdict[y],0x0000:0xffff), :Kcomp=>map(y->kdict[y],0x0000:0xffff))
+spearman_cor(df,:half_unitation,:redund) (0.3509978739304197, 0.0)
+spearman_cor(df,:half_unitation,:Kcomp) # (-0.22213175836689886, 0.0)
+
+So we could evolve to maximize half_unitation which would show an evolutionary: simplicity bias.

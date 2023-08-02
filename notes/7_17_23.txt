@@ -1,0 +1,15 @@
+Update from 7_14_23:
+
+Started with ph = 0x0098.
+julia> extract_odd_even( 0x0098, 3 ) #  (0x000a, 0x0004)
+P2s = Parameters(2,1,2,4); funcs=default_funcs(P2s)
+ph2a = neutral_evolution(random_chromosome(P2s,funcs),funcs, [0x000a], 100_000 )[1]; print_circuit(ph2a)
+# circuit((1,2), ((3,OR,2,2), (4,OR,2,3)))
+ph24 = neutral_evolution(random_chromosome(P2s,funcs),funcs, [0x0004], 100_000 )[1]; print_circuit(ph24)
+# circuit((1,2), ((3,AND,2,1), (4,XOR,1,3)))
+
+Revised function append_chromosome( c1::Chromosome, c2::Chromosome ) so that the output is the output of c2.
+
+julia> ph2B = append_chromosome(ph2a,ph24); print_circuit(ph2B);  output_values(ph2B)
+# circuit((1,2), ((3,OR,2,2), (4,OR,2,3), (5,AND,2,1), (6,XOR,1,5)))
+# Uint16[0x0004]

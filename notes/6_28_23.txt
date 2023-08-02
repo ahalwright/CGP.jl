@@ -1,0 +1,28 @@
+Robustness methodology for both UP and complexity papers.
+
+UP paper:
+
+Figure 4 Robustness vs log frequency  4 inputs 10 & 12 gates
+  notes/12_7_22.txt  data/12_7_22/
+  df5 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22G.csv");   # 10 gts 5 lb  # based on evolution
+  df6 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22F.csv");   # 12 gts 6 lb  # based on evolution
+  rb5 = Vector{Float64}(df5.robustness);
+  findall(x->iszero(x),df5.lg_redund) # 1-element Vector{Int64}: 354
+  deleteat!(rb5,354)
+  rb6 = Vector{Float64}(df6.robustness);
+  scatter(lgfreq5,rb5,smooth=true,labels="10 gates 5 levelsback")
+  scatter!(lgfreq6,rb6,smooth=true,labels="12 gates 6 levelsback")
+Alternative:  define rb5 and rb6 using 
+  wdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_ge_W.csv")
+  rb5=sampling_pheno_robustnesses( p8, funcs, map(x->[x],0x0000:0x00ff),wdf.circuits_list)   where p8 = Parameters(3,1,8,4)
+  odf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_14gate_7lb_O.csv")
+  rb6=sampling_pheno_robustnesses( p14, funcs, map(x->[x],0x0000:0x00ff),odf.circuits_list)   where p14 = Parameters(3,1,14,7)
+  
+  
+
+Figure 5 Genotype robustness vs genotype evolvability 3 inputs 8 and 14 gates, caption needs to be revised
+   notes/9_12_22.txt
+
+Figure 6 Exact robustness vs exact evolvability 3 inputs 5 gates 3 lb
+
+

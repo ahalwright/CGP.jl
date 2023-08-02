@@ -70,6 +70,7 @@ include("Degeneracy.jl")
 include("Evo_dict.jl")
 include("Composition.jl")
 include("Robustness.jl")
+include("Phenotype.jl")
 include("Utilities.jl")
 #include("random_walk.jl")
 end

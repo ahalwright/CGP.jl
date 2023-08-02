@@ -100,19 +100,30 @@ function get_bits( v::Vector{Main.CGP.MyInt}, numinputs::Int64 )
   result
 end
 
-function to_binary( x::MyInt, numbits::Int64 )
-  result = Int64[]
+# If string_flag==false, returns vector of bit values of x interpreted as a bit vector
+# If string_flag==true, returns string of bit values of x interpreted as a bit vector
+# Example:  to_binary( 0x005c, 8, string_flag=false ) returns [0,1,0,1,1,1,0,0]'
+# Example:  to_binary( 0x005c, 8, string_flag=true ) returns "01011100"
+function to_binary( x::Unsigned, numbits::Int64; string_flag::Bool=true )
+  result_vec = Int64[]
+  result_str = ""
   shift = numbits-1
   mask = MyInt(1) << (numbits-1)
   for i = 1:numbits
-    push!(result, (mask & x)>>shift )
+    bit_value = (mask & x)>>shift
+    push!(result_vec, bit_value )
+    result_str = result_str * (bit_value==1 ? "1" : "0") 
     shift -= 1
     mask >>= 1
   end
-  result
+  string_flag ? result_str : result_vec 
 end
 
-function to_binary( X::Vector{MyInt}, numbits::Int64 )
+# Example:  to_binary(Unsigned[0x98,0x32],8)
+#  2×8 Matrix{Int64}:
+#    1  0  0  1  1  0  0  0
+#    0  0  1  1  0  0  1  0
+function to_binary( X::Vector{Unsigned}, numbits::Int64 )
   result = zeros(Int64,length(X),numbits)
   for j in 1:length(X)
     shift = numbits-1

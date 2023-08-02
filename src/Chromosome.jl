@@ -6,12 +6,13 @@ export PredType
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_gates, remove_inactive, deactivate_chromosome!
 export hamming_distance, ihamming_distance, hamming 
-export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old
+export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old, append_chromosome
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code 
 export circuit, print_circuit, geno_distance
 export circuit_distance, remove_inactive, count_circuits_ch
-export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes
+export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes, interleave_chromosomes
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
+export chromosome_add_input, chromsome_add_multiplexer
 
 PredType = Int64
 #= Commented out.  The included definition is in aliases.jl.
@@ -97,18 +98,36 @@ function random_chromosome(p::Parameters, funcs::Vector{Func}; ident::PredType=P
       c.outputs[i] = OutputNode(index)
       c[index].active = true  #  Output nodes are always active
   end
-  set_active_to_false(c)
+  set_active_to_false!(c)
   if ident != PredType(0)
     c.robustness = ident
   end
   return c
 end
 
-function set_active_to_false( c::Chromosome )
+function set_active_to_false!( c::Chromosome )
   for index = 1:(c.params.numinputs+c.params.numinteriors)
     c[index].active = false   
     c[index].cache = MyInt(0)
   end
+  c
+end
+
+# mutates chromosome c by mutating one of the gates in gate_list
+function mutate_chromosome_gates!( c::Chromosome, funcs::Vector{Func}, gate_list::Vector{Int64} )
+  p = c.params
+  len_gts = length(gate_list)
+  #func_list = deepcopy(gate_list)
+  inputs_list = Int64[]
+  for g in gate_list
+    push!( inputs_list, g )
+    push!( inputs_list, 2*g )
+    push!( inputs_list, 2*g+1 )
+  end
+  location_list = inputs_list
+  loc = rand(location_list)
+  #println("mutate_chromosome_gates!(): location_list: ",location_list,"  loc: ",loc)
+  mutate_chromosome!( c, funcs, loc )
 end
 
 # mutates chromosome c by changing a random node or function
@@ -219,14 +238,14 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
     end
   end
   #println("active: ",active)
-  set_active_to_false(c)
+  set_active_to_false!(c)
   (c,active)
 end
 
 # Mutates c in all possible ways. 
 # The result depends on the keyword arguments.
-# If !output_outputs && output_circuits (default) returns list of the chromsomes produced by mutation   
-# If output_outputs && !output_circuits returns list of the outputs of chromsomes produced by mutation   
+# If output_outputs && !output_circuits (default) returns list of the outputs of chromsomes produced by mutation   
+# If !output_outputs && output_circuits returns list of the chromsomes produced by mutation   
 # If output_outputs && output_circuits returns both the list of outputs and the list of chromosomes as a pair
 # If robustness_only==true returns the pair: (avg_robustness, evolvability)
 # Deterministic if all functions in default_funcs() have the same arity
@@ -420,7 +439,7 @@ function print_chromosome( c::Chromosome )
   for i = 1:(c.params.numinputs + c.params.numinteriors + c.params.numoutputs)
     println("i: ",i,"  ",c[i])
   end
-  check_recursive(c)
+  #check_recursive(c)
 end
 
 function check_recursive( c::Chromosome )
@@ -435,24 +454,8 @@ function check_recursive( c::Chromosome )
   end
 end
 
-#=
-function number_active_old( c::Chromosome )
-  num_active = 0
-  for i = 1:c.params.numinputs
-    if c.inputs[i].active
-      num_active += 1
-    end
-  end
-  for i = 1:c.params.numinteriors
-    if c.interiors[i].active
-      num_active += 1
-    end
-  end
-  num_active
-end
-=#
-
 # Counts number active nodes which includes inputs
+#= Overwritten by another version below
 function number_active( c::Chromosome )
   if !c[c.outputs[1].input].active   # if chromosome has not been executed
   #if length(c.outputs)==0 || !c[c.outputs[1].input].active   # if chromosome has not been executed # Possible fix for rare bug
@@ -463,6 +466,7 @@ function number_active( c::Chromosome )
   num_act_int =  reduce(+,[c.interiors[i].active for i = 1:length(c.interiors)])
   num_act_in + num_act_int
 end
+=#
 
 # Counts number active gates which does not include inputs
 function number_active_gates( c::Chromosome )
@@ -691,6 +695,63 @@ end
 #    node_input1:  an integer in the range from 1 to the index of the node minus 1
 #    node_input2:  an integer in the range from 1 to the index of the node minus 1
 # Assumes nodearity==2 and numoutputs == 1
+# Creates a Chromosome (circuit) from the concise format.
+# Example:
+# julia>circuit((1,2,3), ((4,OR,1,2), (5,AND,2,3), (6,XOR,4,5)),levsback=3)
+#    creates a circuit with 3 input nodes and 3 gate nodes and 1 implicit output node.
+#  The levsback keyword parameter is necessary to set the circuit parameters correctly.
+# gate nodes have 4 fields:
+#    node_index:  should be the index of the node.  Not used in construcing the circuit, but checked for correctness
+#    node_function:  See Func.jl for options
+#    node_input1:  an integer in the range from 1 to the index of the node minus 1
+#    node_input2:  an integer in the range from 1 to the index of the node minus 1
+# Example:
+# julia>circuit((1,2,3), ((4,OR,1,2), (5,AND,2,3), (6,XOR,4,5)),levsback=3)
+#    creates a circuit with 3 input nodes and 3 gate nodes and 1 implicit output node.
+#  The levsback keyword parameter may be necessary to set the circuit parameters correctly.
+# Example:
+# julia>circuit((1,2,3), ((4,OR,1,2), (5,AND,2,3), (6,XOR,4,5)), (5,6), levsback=3)
+#    creates a circuit with 3 input nodes and 3 gate nodes and output nodes 5 and 6
+#  The levsback keyword parameter may be necessary to set the circuit parameters correctly.
+# Assumes nodearity==2 and numoutputs == 1
+function circuit( inputs::Tuple, gates::Tuple, outputs::Tuple=(); levsback::Int64=length(inputs)+length(gates))
+  if outputs == ()
+    outputs= (OutputNode( length(inputs)+length(gates )),)
+    println("outputs: ",outputs)
+    println("typeof outputs: ",typeof(outputs))
+  else
+    outputs = Tuple(OutputNode(i) for i in outputs)
+  end
+  numinputs = length(inputs)
+  errors = false
+  for i = 1:length(gates)
+    if gates[i][1] != i+numinputs
+      println("index of gate ",i," not correct: it should be: ",i+numinputs)
+      errors = true
+    end
+  end
+  for i = 1:length(gates)
+    if !((1 <= gates[i][3])  && (gates[i][3] < numinputs+i))
+      error("illegal first gate input for gate: ",i)
+    end
+  end
+  for i = 1:length(gates)
+    if !((1 <= gates[i][4])  && (gates[i][4] < numinputs+i))
+      error("illegal second gate input for gate: ",i)
+    end
+  end
+  p = Parameters( numinputs=length(inputs), numoutputs=length(outputs), numinteriors=length(gates), numlevelsback=levsback )
+  in_nodes = [InputNode(i) for i in inputs]
+  gate_nodes = [InteriorNode(g[2], [g[3],g[4]] ) for g in gates ]
+  out_nodes = [OutputNode(i.input) for i in outputs ]
+  c = Chromosome( p, in_nodes, gate_nodes, out_nodes, 0.0, 0.0 )
+  if errors
+    println("correct input to this function should have been: ")
+    print_circuit(c)
+  end
+  c
+end
+#=
 function circuit( inputs::Tuple, gates::Tuple;
     levsback::Int64=length(inputs)+length(gates))
   numinputs = length(inputs)
@@ -722,6 +783,7 @@ function circuit( inputs::Tuple, gates::Tuple;
   end
   c
 end
+=#
   
 # Outputs the concise format of Chromosome (circuit) c to IO stream f
 # print_node_tuple() and gate_tuple() are defined in Node.jl
@@ -734,6 +796,7 @@ function print_circuit( f::IO, c::Chromosome; include_fitness::Bool=false, inclu
   print(f,",")
   gate_tuple(f, c.interiors, c.params.numinputs )
   if c.params.numoutputs>1
+    print(f,",")
     print_node_tuple(f, c.outputs )
   end
   if include_fitness
@@ -1050,7 +1113,7 @@ function insert_gate!( c::Chromosome )
   end
   # Modify one of the inputs of interiors[new_gate_index+1] to point to the new gate
   c.interiors[new_gate_index+1].inputs[input_index] = p.numinputs + new_gate_index
-  set_active_to_false(c)
+  set_active_to_false!(c)
   #println("insert_gate!  new interiors: ",c.params.numinteriors)
   c
 end
@@ -1155,10 +1218,14 @@ function combine_chromosomes( c1::Chromosome, c2::Chromosome )
   @assert c1.params.numinputs == c2.params.numinputs
   p = Parameters( c1.params.numinputs, c1.params.numoutputs+c2.params.numoutputs, c1.params.numinteriors+c2.params.numinteriors, c1.params.numinteriors+c2.params.numinteriors+1 )
   inputs = deepcopy(c1.inputs)
-  interiors = deepcopy(c1.interiors)
+  interiors1 = deepcopy(c1.interiors)
+  interiors2 = deepcopy(c2.interiors)
+  new_interiors = InteriorNode[]
   for i = 1:length(c2.interiors)
-    new_interior = deepcopy(c2.interiors[i])
-    new_interior.active = false
+    new_interior1 = deepcopy(c1.interiors[i])
+    new_interior2 = deepcopy(c2.interiors[i])
+    new_interior1.active = false
+    new_interior2.active = false
     for j = 1:length(new_interior.inputs)
       inc = new_interior.inputs[j] > p.numinputs ? c1.params.numinteriors : 0  # increment inputs that don't point to input nodes
       new_interior.inputs[j] += inc
@@ -1172,6 +1239,125 @@ function combine_chromosomes( c1::Chromosome, c2::Chromosome )
   new_outputs = vcat(new_output2,deepcopy(c1.outputs))
   Chromosome( p, inputs, interiors, new_outputs, 0.0, 0.0 )
 end
+
+# Append the gates of chromosome c2 to those of chtomosome c1 and adjust parameters appropriately
+# Gates of the second chromosone that refer to previous gates in that chromosome are adjusted appropriately
+function append_chromosome( c1::Chromosome, c2::Chromosome )
+  @assert c1.params.numinputs == c2.params.numinputs
+  c2 = deepcopy(c2)
+  p = Parameters( c1.params.numinputs, c2.params.numoutputs, c1.params.numinteriors+c2.params.numinteriors, c1.params.numinteriors+c2.params.numinteriors+1 )
+  inputs = deepcopy(c1.inputs)
+  set_active_to_false!( c1 )
+  set_active_to_false!( c2 )
+  new_interiors = deepcopy(c1.interiors)
+  for i = 1:length(c2.interiors)
+    println("i: ",i,"  c2.interiors[i]: ",c2.interiors[i])
+    for j = 1:p.nodearity
+      if c2.interiors[i].inputs[j] > c2.params.numinputs
+        c2.interiors[i].inputs[j] += c1.params.numinteriors
+      end
+    end
+    push!(new_interiors,deepcopy(c2.interiors[i]))
+  end
+  new_outputs = deepcopy(c2.outputs)
+  for newout in new_outputs
+    newout.input = newout.input+c1.params.numinteriors
+  end
+  Chromosome( p, inputs, new_interiors, new_outputs, 0.0, 0.0 )
+end
+
+function interleave_chromosomes( c1::Chromosome, c2::Chromosome )
+  function increment_input( i::Int64, odd::Bool )
+    if i > c1.params.numinputs
+      #2*(i-c1.params.numinputs) + (odd ? 0 : 1) + c1.params.numinputs
+      2*i - c1.params.numinputs + (odd ? 0 : 1) - 1
+    else
+      i
+    end
+  end
+  @assert length(c1.interiors) == length(c2.interiors)
+  new_interiors = InteriorNode[]
+  for i = 1:length(c1.interiors)
+    new_inputs = map( i->increment_input(i,true), c1.interiors[i].inputs )  
+    new_interior = deepcopy(c1.interiors[i])  
+    new_interior.inputs = new_inputs
+    new_interior.active = false
+    new_interior.cache = MyInt(0)
+    push!( new_interiors, new_interior )
+    new_inputs = map( i->increment_input(i, false), c2.interiors[i].inputs )  
+    new_interior = deepcopy(c2.interiors[i])  
+    new_interior.inputs = new_inputs
+    new_interior.active = false
+    new_interior.cache = MyInt(0)
+    push!( new_interiors, new_interior )
+  end
+  cnew = deepcopy(c1)
+  cnew.interiors = new_interiors
+  ninputs = c1.params.numinputs
+  cnew.params = Parameters( c1.params.numinputs, 2, c1.params.numinteriors+c2.params.numinteriors, c1.params.numlevelsback+c2.params.numlevelsback )  # increase numoutputs to 2
+  cnew.outputs = OutputNode[ OutputNode(ninputs+2*length(c1.interiors)-1), OutputNode(ninputs+2*length(c1.interiors)) ]
+  cnew
+end
+
+# Creates a chromosome whose interiors are concatenation of the interiors of c1 and c2
+function chromosome_cat( c1::Chromosome, c2::Chromosome )
+  @assert c1.params.numinputs == c2.params.numinputs
+  @assert c1.params.numoutputs == c2.params.numoutputs == 1
+  cnew = deepcopy(c1)
+  cnew.params = Parameters( c1.params.numinputs, c1.params.numoutputs, 
+      c1.params.numinteriors+c2.params.numinteriors, c1.params.numlevelsback+c2.params.numlevelsback )
+  cnew.interiors = append!(cnew.interiors,c2.interiors)
+  cnew.outputs = OutputNode[ OutputNode( cnew.params.numinputs + cnew.params.numinteriors ) ]
+  cnew
+end 
+
+# Creates a new chromosome which is the same as ch except that it has another input---which does not contribute to the output
+# However, the output changes mostly because the context changes.
+function chromosome_add_input( ch::Chromosome )
+  cnew = deepcopy( ch )
+  set_active_to_false!(cnew)
+  cnew.params = Parameters( ch.params.numinputs+1, ch.params.numoutputs, ch.params.numinteriors, ch.params.numlevelsback )
+  cnew.inputs = push!( cnew.inputs, InputNode( cnew.params.numinputs ) )
+  # adjust interior nodes to not refer to the new input node
+  for intnode in cnew.interiors
+    for i = 1:length(intnode.inputs)
+      if intnode.inputs[i] > length(cnew.inputs)
+        intnode.inputs[i] += 1
+      end
+    end
+  end
+  cnew.outputs = [ OutputNode( cnew.outputs[i].input+1 ) for i = 1:length(cnew.outputs) ]
+  cnew
+end
+
+# adds a multiplexer at the end of an interleaved chromosome
+function chromosome_add_multiplexer( ch::Chromosome )
+  @assert ch.params.numinputs == 2
+  @assert ch.params.numoutputs == 2
+  x = ch.params.numinteriors
+  println("x: ",x)
+  output_gates = map( x->x.input, ch.outputs )
+  cnew = chromosome_add_input( ch )
+  mux = circuit((1,2,3), ((4,XOR,1,2), (5,AND,4,3), (6,XOR,2,5)))
+  push!(cnew.interiors,InteriorNode(XOR,[output_gates[1],output_gates[2]]))
+  push!(cnew.interiors,InteriorNode(AND,[3,length(cnew.interiors)+2]))
+  push!(cnew.interiors,InteriorNode(XOR,[output_gates[2],length(cnew.interiors)+2]))
+  cnew.outputs=OutputNode[OutputNode(length(cnew.interiors)+2)] 
+  cnew.params = Parameters( ch.params.numinputs, 1, ch.params.numinteriors+3, ch.params.numlevelsback+3 )
+  cnew
+end
+#=
+function chromosome_add_multiplexer( ch::Chromosome )
+  @assert ch.params.numinputs == 2
+  x = length(ch.params.numinteriors)
+  c1 = chromosome_add_input( ch )
+  mux = circuit((1,2,3), ((4,XOR,1,2), (5,AND,4,3), (6,XOR,2,5)))
+  push!(c1.interiors,InteriorNode(XOR,[x-1,x]))
+  push!(c1.interiors,InteriorNode(AND,[3,x+1]))
+  push!(c1.interiors,InteriorNode(XOR,[x,x+2]))
+  c1
+end
+=#
 
 # find the average relatioship between the number of one bits in a phenotype and its log redundancy, K complexity
 # Written on 12/23/22.  Results were disappointing
@@ -1196,3 +1382,4 @@ function redundancy_density( p::Parameters, funcs::Vector{Func}, nsamples::Int64
   gdf = read_dataframe( "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv" )
   glogredund = map( r->lg10(r), gdf.ints10_5 )
 end
+

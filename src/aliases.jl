@@ -66,10 +66,15 @@ mutable struct InteriorNode <: Node
     active::Bool
     cache::MyInt
 end
+#mutable struct IOutputNode <: Node
 mutable struct OutputNode <: Node
-#struct OutputNode <: Node
     input::Integer
 end
+#=
+struct IOutputNode <: Node
+    input::Integer
+end
+=#
 PredType = Int64
 mutable struct Chromosome
     params::Parameters
@@ -78,6 +83,12 @@ mutable struct Chromosome
     outputs::Vector{OutputNode}
     fitness::Float64
     robustness::Union{Float64,PredType}
+end
+struct IChromosome
+    params::Parameters
+    inputs::Vector{InputNode}
+    interiors::Vector{InteriorNode}
+    outputs::Vector{OutputNode}
 end
 mutable struct LinCircuit
     # Here, numinteriors represents number of gates, numlevelsback represents number of computational registers

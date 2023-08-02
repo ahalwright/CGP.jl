@@ -1,0 +1,65 @@
+Procedure for going from n-1 input circuits to n input circuits.
+
+Given an n-input phenotype which is a 2^n bit string:
+  Generate 2 (n-1)-input phenotypes by either:  
+    Using the odd and even bits.  See function extract_odd( p::Parameters, ph::MyInt ) in Phenotype.jl
+    Using the first 2^(n-1) bits and the last 2^(n-1) bits. (Alternate)
+  Evolve circuits for each of these phenotypes.
+  Concatenate these 2 circuits into an n-input circuit that doesn't use the last bit.
+  Append a 2-input mulitiplexor circuit to the end of this circuit that uses the last bit as the selector bit.
+
+Needed utilities:
+* Concatenate two circuits to produce a circuit with the same number of inputs: vcat the lists of interior nodes.
+    function chromosome_cat( c1::Chromosome, c2::Chromosome )   in Chromsome.jl
+* Convert an (n-1)-input circuit into an n-input circuit.  Just add an input node and adjust the parameters.
+* Add multiplexor.  
+
+How do we define a multiplexor.  
+  Assume that we have two 2-input circuits A and B.  We want to define a 3-input circuit which has values for all 3-bit strings.
+  Here is our table of outputs where C is the selector bit.
+  A   B   C   out
+  1   1   1   1
+  1   1   0   1
+  1   0   1   1
+  1   0   0   0
+  0   1   1   0
+  0   1   0   1
+  0   0   1   0
+  0   0   0   0
+So out in hex is 0xe4
+circuit((1,2,3), ((4,XOR,1,2), (5,AND,3,4), (6,XOR,2,5)))
+Multiplexor ciruit is circuit((x-1,x,3), ((x+1,XOR,x-1,x), (x+2,AND,3,x+1), (x+3,XOR,x,x+2)))
+  
+Scenario:  Given a 3-input phenotype D (an 8 bit string)
+  Extract two 2-input phenotypes A and B by odd and even bits.
+      function extract_odd_even() in Phenotype.jl does this.
+  Objective:  assume that we have chromosomes that map to A and to B
+        outputs A11, B11, A10, B10, . . . 
+    Construct a chromosome that maps to D using these two chromosomes.
+    Approach:  Alternate these two chromosomes and a multiplexor.  
+      Alternation means that the multiplexor selects from the next-to-last and last gates of the alternated chromosome.
+      
+    input:  1   2   3   A   B   D
+            1   1   1   A11 B11 A11
+            1   1   0   A11 B11 B11
+            1   0   1   A10 B10 A10
+            1   0   0   A10 B10 B10
+            0   1   1   A01 B01 A01
+            0   1   0   A01 B01 B01
+            0   0   1   A00 B00 A00
+            0   0   0   A00 B00 B00
+         
+  
+  #Evolve circuits A and B to map to these phenotypes.
+  
+
+Assume that we have a 2-ouput circuit with n-1 inputs.  We want an n-input circuit that uses the nth output to 
+  select between the outputs.
+
+Temporarily assume that we have two 2-input circuits.  
+  Objective:  Given a 3-input phenotype, return the output of one of these depending on the value of the selector input.
+  
+
+Convert to a 3-input circuit where the first output is the odd bits, and the second output is the even bits.  
+
+

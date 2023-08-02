@@ -1,6 +1,6 @@
 Comparing genotype evolvability for 3x1 8 gates to 14 gates.
 
-@everywhere include("Evolvability.jl")  # Necessary because function run_mean_genotype_evolvabilities() is not exported
+#@everywhere include("Evolvability.jl")  # Necessary because function run_mean_genotype_evolvabilities() is not exported # fixed 
 
 # Both of the following computed 6/4/23
 @time df14 = include("../data/5_16_23/run_geno_evolvabilitiesC.jl")

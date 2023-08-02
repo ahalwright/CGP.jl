@@ -1,0 +1,7 @@
+Update on evolving n-input circuits from previously evolved (n-1)-input circuits.
+
+Given an n-input phenotype ph, we can split it into two (n-1)-input phenotypes by using function extract_odd_even() in Phenotype.jl.
+Then we can neutral evolve chromosomes to map to each of these phenotypes and combine these circuits into single circuit.
+May need to change inputs to chromosome by increasing each input by 1.  Then do neutral evolution with a specified gate list that
+holds the above circuit fixed and evolves a chromosome that maps to ph.  To test:  is this usually easy?
+

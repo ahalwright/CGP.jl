@@ -1,0 +1,21 @@
+Navigability by epochal evolution.
+
+Wrote epochal_evolution_fitness( c::Circuit, funcs::Vector{Func}, g::Goal, fitness::Vector{Float64}, max_steps::Integer ) 
+in Evolve.jl which uses epochal evolution based on fitness function represented as a vector to attempt to find a fitness 
+non-decreasing path from cicuit c to a genotype of goal g.  In all current applications, fitness is a random float vector.
+
+In epochal evolution, if the fitness of mutated circuit is greater than the fitness of goal g, then then mutated circuit
+is rejected---not saved as the current circuit.
+
+Also added :dest_freq and :dest_Kcomp to dataframe.  However based on 100 reps, data/7_29_23/run_navigabilityB.jl:
+spearman_cor(df,:dest_freq,:failures) # (-0.19770606619939904, 0.024321232309828376)
+spearman_cor(df,:dest_Kcomp,:failures) # (0.1261392119168339, 0.10555208774929964)
+
+Results for 3 inputs, 8 gates, 4 lb 10_000 max_steps for 100 reps are 57 successes out of 100.  There is very weak dependence
+on the differences between the fitness of the goal and the fitness of the src.  
+
+Results for 4 inputs, 12 gates, 6 lb, 100_000 max_steps 5 successes out of 100.
+
+
+To determine phenotype navigability, we need to do many genotypes for the same phenotype.  
+Are results from one phenotype consistently different from another?
