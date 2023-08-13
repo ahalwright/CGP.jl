@@ -1,0 +1,51 @@
+Navigability results by evolution with random fitnesses.
+
+We currently have:
+max_steps = 10000
+nreps = 20
+run_epochal_evolution_fitness(P3, funcs, fitness, max_steps, nreps )
+
+# output_values(dch) # [ax00cc]
+(ach, steps, src_fit, dest_fit, Kcomp_deviations ) = epochal_evolution_fitness( sch, funcs, output_values(dch), fitness, max_steps )
+ 
+Random.seed!(1) # TaskLocalRNG()
+fitness = map( x->rand(), 1:2^2^P3.numinputs )
+# Objective:  Fix both the source and output goals.  Must satisfy requirement that src_fit < dest_fit.
+
+srcgoal = randgoal(P3); srcgoal, fitness[srcgoal[1]+1] #  (UInt16[0x0072], 0.18889359451560428)
+destgoal = randgoal(P3); destgoal, fitness[destgoal[1]+1] #  (UInt16[0x0007], 0.6702639583444937)
+vdf = read_dataframe("../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv")
+vdf[0x0072+1,:]  # 115 │ 0x0072    122617  Int128[653548156078587, 70811902…
+cints_list = string_to_expression( vdf[0x0072+1,:circuits_list] )
+#  2250-element Vector{Int128}:
+#   653548156078587
+#   708119029978424
+output_values( int_to_chromosome( cints_list[1], P3, funcs ) ) # [0x0072]
+
+(ach, steps, src_fit, dest_fit, Kcomp_deviations ) =epochal_evolution_fitness( int_to_chromosome( cints_list[1], P3, funcs ), funcs, output_values(dch), fitness, max_steps )
+
+function eef( cint::Int128, funcs::Vector{Func}, dch::Chromosome, fitness::Vector{Float64}, max_steps::Int64 )::Int64
+  (ach, steps, src_fit, dest_fit, Kcomp_deviations ) = epochal_evolution_fitness( int_to_chromosome( cint, P3, funcs ), funcs, output_values(dch), fitness, max_steps )
+  steps
+end
+
+res = map( cint->eef( cint, funcs, dch, fitness, max_steps ), cints_list )
+
+@time step_list = map( cint->eef( cint, funcs, dch, fitness, max_steps ), cints_list ); mean(step_list)
+#  51.068433 seconds (152.16 M allocations: 7.226 GiB, 1.44% gc time, 0.20% compilation time)
+#  325.5057777777778
+
+
+
+(ach, steps, src_fit, dest_fit, Kcomp_deviations ) =epochal_evolution_fitness( int_to_chromosome( cints_list[1], P, funcs), funcs, destgoal, fitness, max_steps )
+src_ph: UInt16[0x0072]  src_fit: 0.6693386034572555  dest_fit: 0.7805192636751863
+(Chromosome(Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 8, 4), InputNode[InputNode(1, false, 0x0000), InputNode(2, false, 0x0000), InputNode(3, false, 0x0000)], InteriorNode[InteriorNode(Func(|, 2, "OR"), Integer[3, 1], true, 0x00fa), InteriorNode(Func(|, 2, "OR"), Integer[1, 2], true, 0x00fc), InteriorNode(Func(Main.CGP.Nand, 2, "NAND"), Integer[5, 4], true, 0x0007), InteriorNode(Func(&, 2, "AND"), Integer[5, 4], false, 0x0000), InteriorNode(Func(Main.CGP.Nor, 2, "NOR"), Integer[6, 6], true, 0x00f8), InteriorNode(Func(xor, 2, "XOR"), Integer[8, 6], false, 0x0000), InteriorNode(Func(&, 2, "AND"), Integer[6, 7], false, 0x0000), InteriorNode(Func(Main.CGP.Nand, 2, "NAND"), Integer[8, 8], true, 0x0007)], OutputNode[OutputNode(11)], 0.0, 0.0), 83, 0.6693386034572555, 0.7805192636751863, 0.0)
+
+function eef( cint::Int128, funcs::Vector{Func}, destgoal::Goal, fitness::Vector{Float64}, max_steps::Int64 )::Int64
+         (ach, steps, src_fit, dest_fit, Kcomp_deviations ) = epochal_evolution_fitness( int_to_chromosome( cint, P, funcs ), funcs, destgoal, fitness, max_steps )
+         steps
+       end
+eef (generic function with 1 method)
+
+steps_list = map( cint->eef( cint, funcs, destgoal, fitness, max_steps ), cints_list[1:10] )
+#[1021,256,909,289,10000,955,116,286,10000,156]

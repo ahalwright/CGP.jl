@@ -1,0 +1,15 @@
+Navigability results in data/8_11_23/
+
+mdf = include("../data/8_11_23/run_navigabilityM.jl")  # 100 runs for 4x1 12 gts 6 lb 200,000 max_steps, 20 circuits.
+findall(x->x==200000.0,ndf.mean_steps) # 60-element Vector{Int64}: # 40 successes
+
+nfailures=map( x->x[1], mdf.failures );
+insertcols!( mdf, 10, :nfailures=>nfailures )
+
+julia> spearman_cor(mdf,:nfailures,:srcK) # (-0.29225476170275994, 0.0015862642695477847)
+
+julia> spearman_cor(mdf,:nfailures,:destK) # (0.5376887487408929, 3.998510174547747e-9)
+
+julia> spearman_cor(mdf,:nfailures,:srcfreq) # (0.26055459431972744, 0.0044200658535923495)
+
+julia> spearman_cor(mdf,:nfailures,:destfreq) # (-0.6412562784327047, 3.3053524122634415e-13)

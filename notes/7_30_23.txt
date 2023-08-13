@@ -1,4 +1,5 @@
 Navigability by epochal evolution.
+Note:  See 2_25_23.txt for summary of Greenbury 2022 paper, and 2_26_23.txt and 2_27_23.txt.
 
 Wrote epochal_evolution_fitness( c::Circuit, funcs::Vector{Func}, g::Goal, fitness::Vector{Float64}, max_steps::Integer ) 
 in Evolve.jl which uses epochal evolution based on fitness function represented as a vector to attempt to find a fitness 
@@ -11,11 +12,12 @@ Also added :dest_freq and :dest_Kcomp to dataframe.  However based on 100 reps, 
 spearman_cor(df,:dest_freq,:failures) # (-0.19770606619939904, 0.024321232309828376)
 spearman_cor(df,:dest_Kcomp,:failures) # (0.1261392119168339, 0.10555208774929964)
 
-Results for 3 inputs, 8 gates, 4 lb 10_000 max_steps for 100 reps are 57 successes out of 100.  There is very weak dependence
-on the differences between the fitness of the goal and the fitness of the src.  
+Results for 3 inputs, 8 gates, 4 lb 10_000 max_steps for 100 reps are 57 successes out of 100 for random fitness.
+There is very weak dependence on the differences between the fitness of the goal and the fitness of the src.  
 
 Results for 4 inputs, 12 gates, 6 lb, 100_000 max_steps 5 successes out of 100.
 
-
 To determine phenotype navigability, we need to do many genotypes for the same phenotype.  
 Are results from one phenotype consistently different from another?
+
+Could do for all genotypes in the circuit_list for the parameter settings.  Attepting 8/4/23.

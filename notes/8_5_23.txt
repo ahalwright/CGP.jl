@@ -1,0 +1,44 @@
+Testing navigability for 4-input goals.
+
+Navigability notes:
+
+The objective of navigability is to find a fitness non-decreasing mutational path from a source phenotype to a destination phenotype.
+Such a path demonstrates that there is a path that avoids fitness valleys.
+Fitnesses are assigned randomly, but consistently in all of the results discussed here.
+
+
+
+surt2
+P = Parameters(4,1,10,5); funcs=default_funcs(P)
+Random.seed!(1)
+include("Navigate.jl")
+fitness = map( x->rand(), 1:2^2^P.numinputs );
+max_steps=1_000_000
+@time res = pmap( _->navigate(P,funcs,fitness,randgoal(P),randgoal(P),max_steps), 1:100 )
+4181.001443 seconds
+findall(x->x<1.0e6,res)
+34-element Vector{Int64}:    # 34 elements did not have 100 failures out of 100
+
+
+P = Parameters(4,1,12,6); funcs=default_funcs(P)
+@time res = pmap( _->navigate(P,funcs,fitness,randgoal(P),randgoal(P),max_steps), 1:100 )
+4594.388640 seconds
+findall(x->x<1.0e6,res)
+44-element Vector{Int64}:    # As expected, increasing the number of gates increased the navigability
+
+
+src_dest_pairs = [
+([0x5d57],[0xf5e8]), # succeeded 1 in 8 with max_steps = 800_000
+([0x23d7],[0x71c0]),
+([0xdca8],[0x12f3]), # succeeded 1 in 8 with max_steps = 800_000
+([0x5732],[0x2285]),   # succeeded 1 in 4 with max_steps = 800_000
+([0xa847],[0x9423]),
+([0x6f7c],[0xa43e]),
+([0x83e3],[0xd39d])]
+
+steps_mean_list = Int64[]
+for sdp in src_dest_pairs
+  push!(steps_mean_list,navigate(P,funcs,fitness,sdp[1],sdp[2],800_000,num_circuits=8,suffix="H",use_pmap=true))
+end
+steps_mean_list
+

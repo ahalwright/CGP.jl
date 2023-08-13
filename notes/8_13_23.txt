@@ -1,0 +1,23 @@
+Parallelizing navigability.
+
+Added pmap to function run_navigate_epoch() in Navigate.jl.
+
+Problems with setting the global variable Ones in worker processes.
+Had to change "run" files in data/8_11_23/ to add @everywhere when parameters and funcs are set.
+
+
+Big picture issues:
+
+I continue think that the most important references are Manrubia (2021) and Ahnert (2017)
+(especially Manrubia) because these directly address the significance of GP maps.
+
+From our point of view, neutrality is the most important property of GP maps with the
+universal properties.  "Circuits computing the same function form large connected networks"
+(Raman and Wagner 2011).  Furthermore, as one follows a neutral network, the phenotypes
+encountered keep changing.
+
+This means that neutral evolution is very effective at exploring both genotype and phenotype 
+space, and the epochal evolution is very effective at finding a genotype that maps to a given 
+phenotype.
+
+

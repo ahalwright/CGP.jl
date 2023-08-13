@@ -30,6 +30,7 @@ Pkg.add("PyPlot")
 Pkg.add("SciPy")
 Pkg.add("StatsPlots")
 Pkg.add("PlotlyJS")
+Pkg.add("BenchmarkTools")
 #Pkg.add("Revise")
 using Distributed
 using DataFrames

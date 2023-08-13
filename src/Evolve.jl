@@ -1093,9 +1093,9 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
   end
 end
 
-function fitfunct_from_fitness_vector( P::Parameters, fitness::Vector{Float64} )::Function
-  fitfunct(x::MyInt) = fitness[x+1]
-end 
+#function fitfunct_from_fitness_vector( P::Parameters, fitness::Vector{Float64} )::Function
+#  fitfunct(x::MyInt) = fitness[x+1]
+#end 
 
 function testf( c::Circuit, fitfunct::Union{Vector{Float64},Function} )
   P = c.params
@@ -1110,8 +1110,12 @@ end
 # Thus a requirement is that the fitness of circuit c is less than or equal to the fitness of goal.
 ### fitness is a vector of fitnesses indexed over all phenotypes (which limits the number of inputs to 4).
 # fitfunct is either a vector of fitness indexed over MyInts, or a function from MyInts to Float64s.  MyInts describe single-output phenotypes
+using GLM
 function epochal_evolution_fitness( c::Circuit, funcs::Vector{Func}, g::Goal, fitfunct::Union{Vector{Float64},Function}, max_steps::Integer; 
-      print_steps::Bool=false )::Tuple{Union{Circuit,Nothing},Int64,Float64,Float64}
+      test_simplicity::Bool=false, print_steps::Bool=false )::Tuple{Union{Circuit,Nothing},Int64,Float64,Float64,Float64}
+  function fitfunct_from_fitness_vector( P::Parameters, fitness::Vector{Float64} )::Function
+    fitfunct(x::MyInt) = fitness[x+1]
+  end 
   P = c.params
   if typeof(fitfunct) <: Vector
     fitfunct = fitfunct_from_fitness_vector( P, fitfunct ) 
@@ -1119,8 +1123,19 @@ function epochal_evolution_fitness( c::Circuit, funcs::Vector{Func}, g::Goal, fi
   src_ph = output_values( c )
   src_fit = fitfunct( src_ph[1] )
   dest_fit = fitfunct( g[1] )
-  println("src_ph: ",src_ph,"  src_fit: ",src_fit,"  dest_fit: ",dest_fit)
+  #println("src_ph: ",src_ph,"  src_fit: ",src_fit,"  dest_fit: ",dest_fit)
   @assert src_fit <= dest_fit
+  kdict = test_simplicity ? kolmogorov_compexity_dict(P,funcs) : nothing
+  local intercept_slope
+  local predicted_Kcomp
+  if test_simplicity
+    pheno_range = MyInt(0):MyInt(2^2^P.numinputs-1)
+    df = DataFrame(:goal=>map(x->[x],pheno_range),:Kcomp=>map(x->kdict[x],pheno_range), :half_unitation=>map(x->half_unitation(x,P),pheno_range))
+    reg = GLM.lm(GLM.@formula(Kcomp ~ half_unitation), df)
+    intercept_slope = GLM.coef(reg)
+    predicted_Kcomp(half_unitation::Int64) = intercept_slope[1] + intercept_slope[2]*half_unitation  # Local function
+    Kcomp_deviations = Float64[]
+  end
   step = 0
   current_fitness = src_fit
   while step < max_steps && current_fitness < dest_fit
@@ -1132,7 +1147,10 @@ function epochal_evolution_fitness( c::Circuit, funcs::Vector{Func}, g::Goal, fi
     elseif typeof(c) == LinCircuit
       new_c = mutate_circuit!( new_c, funcs )
     end
+    #println("output_values(new_c): ",output_values(new_c))
+    #println("new_c params: ",new_c.params)
     new_fitness = fitfunct( output_values( new_c )[1] )
+    #println("new_fitness: ",new_fitness)
     if new_fitness > current_fitness && new_fitness <= dest_fit  # improvement
       print_steps ? println("step: ",step,"  fitness improved from ",current_fitness," to ",new_fitness) : nothing
       c = new_c
@@ -1145,20 +1163,32 @@ function epochal_evolution_fitness( c::Circuit, funcs::Vector{Func}, g::Goal, fi
     else # fitness decrease
       print_steps ? println("step: ",step,"  fitness decrease from ",current_fitness," to ",new_fitness) : nothing
     end
+    if test_simplicity
+      ov = output_values(c)[1]
+      push!(Kcomp_deviations, kdict[ov] - predicted_Kcomp( half_unitation( ov, P ) ) )
+      #println("step: ",step,"  Kcomp_deviations[end]: ",Kcomp_deviations[end])
+    end
   end # while
   if step == max_steps
     #println("epochal evolution fitness failed with ",step," steps for goal: ",g)
-    return (nothing, step, src_fit, dest_fit )
+    return (nothing, step, src_fit, dest_fit, 0.0 )
   else
     #println("epochal evolution fitness succeeded at step ",step," for goal: ",g)
     @assert fitfunct( output_values( c )[1] ) == fitfunct( g[1] )
-    return (c, step, src_fit, dest_fit )
+    if test_simplicity
+      return (c, step, src_fit, dest_fit, mean(Kcomp_deviations) )
+    else
+      return (c, step, src_fit, dest_fit, 0.0 )
+    end
   end
 end
 
 # Example run: run_epochal_evolution_fitness(P3, funcs, fitness, 1000, 2 )
-function run_epochal_evolution_fitness( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, max_steps::Integer, nreps::Int64; 
+function run_epochal_evolution_fitness( P::Parameters, funcs::Vector{Func}, fitfunct::Union{Vector{Float64},Function}, max_steps::Integer, nreps::Int64; 
     csvfile::String="", print_steps::Bool=false )::DataFrame
+  if typeof(fitfunct) <: Vector
+    fitfunct = fitfunct_from_fitness_vector( P, fitfunct )
+  end
   df = DataFrame()
   df.numinputs = Int64[]
   df.numgates = Int64[]
@@ -1175,13 +1205,14 @@ function run_epochal_evolution_fitness( P::Parameters, funcs::Vector{Func}, fitn
   rdict = redundancy_dict(P,funcs)
   kdict = kolmogorov_complexity_dict(P,funcs)
   for i = 1:nreps
-    (src,destgoal) = assign_src_dest( P, funcs, fitness )
+    (src,destgoal) = assign_src_dest( P, funcs, fitfunct )
     println("destgoal: ",destgoal)
-    src_fit = fitness[ output_values(src)[1]+1 ]
+    src_fit = fitfunct( output_values(src)[1] )
     dest_Kcomp = kdict[destgoal[1]]
     dest_freq = rdict[destgoal[1]]
-    dest_fit = fitness[ destgoal[1] + 1 ]
-    (dch,steps) = epochal_evolution_fitness(src, funcs, [0x0000], fitness, 10_000, print_steps=true )
+    dest_fit = fitfunct( destgoal[1] )
+    #println("src_fit: ",src_fit,"  dest_fit: ",dest_fit)
+    (dch,steps) = epochal_evolution_fitness(src, funcs, destgoal, fitfunct, max_steps, print_steps=false )
     failure = (dch == nothing) ? 1 : 0
     df_row = (P.numinputs,P.numinteriors,P.numlevelsback,max_steps,nreps,src_fit,dest_fit,dest_fit-src_fit,dest_freq,dest_Kcomp,steps,failure)
     push!( df, df_row )
@@ -1202,7 +1233,7 @@ function run_epochal_evolution_fitness( P::Parameters, funcs::Vector{Func}, fitn
 end
 
 # Returns source chromosome and destination goal satisfying the condition fitness( src ) < fitness( destgoal )
-function assign_src_dest( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64} )
+function assign_src_dest( P::Parameters, funcs::Vector{Func}, fitfunct::Union{Vector{Float64},Function} )
   done = false
   src_fit = 1.0
   dest_fit = 0.0
@@ -1211,9 +1242,11 @@ function assign_src_dest( P::Parameters, funcs::Vector{Func}, fitness::Vector{Fl
   done = false
   while !done
     src = random_chromosome(P,funcs)
-    src_fit = fitness[ output_values(src)[1]+1 ]
+    #src_fit = fitness[ output_values(src)[1]+1 ]
+    src_fit = fitfunct( output_values(src)[1] )
     destgoal = randgoal( P )
-    dest_fit = fitness[ destgoal[1]+1 ]
+    #dest_fit = fitness[ destgoal[1]+1 ]
+    dest_fit = fitfunct( destgoal[1] )
     done = src_fit < dest_fit
   end
   #println("assign_src_dest: src_fit: ",src_fit,"  dest_fit: ",dest_fit)

@@ -873,7 +873,7 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
       return nothing
     end
   end
-  println("csvfile: ",csvfile)
+  println("rdict csvfile: ",csvfile)
   df = read_dataframe( csvfile )
   dict = Dict{ MyInt, Int64 }()
   pheno_name = Symbol(names(df)[1])

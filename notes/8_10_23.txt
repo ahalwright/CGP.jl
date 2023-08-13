@@ -1,0 +1,17 @@
+Navigability
+
+2-input example:
+P2 = Parameters(2,1,4,3);funcs=default_funcs(P2)[1:4]
+sch = int_to_chromosome(Int128(100_000),P2,funcs); print_circuit(sch) # circuit((1,2), ((3,NAND,1,1), (4,OR,1,2), (5,OR,2,3), (6,AND,5,4)))
+output_values(sch)   # [0x000a]
+fitness[0x000a+1]    # 0.5710874493423871
+unique(sort(map( mch->output_values(mch)[1], mutate_all(sch, funcs, output_outputs=false, output_circuits=true ))))
+12-element Vector{UInt16}:
+ 0x0000 0x0001 0x0002 0x0003 0x0004 0x0005 0x0008 0x000a 0x000b 0x000c 0x000e 0x000f
+
+navigate_bfs( P3, funcs, Int128(24822004809505), fitness, [0x001c],max_reps=500 )
+3-element Vector{Tuple{Int128, Float64}}:
+ (23511284822305, 0.8667711192602672)
+ (24822004822305, 0.49045165212590114)
+ (24822004809505, 0.19280811624587546)
+

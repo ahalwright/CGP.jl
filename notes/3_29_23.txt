@@ -11,7 +11,8 @@ rwdf8 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv")
 rwdf14 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23H.csv");
 scatter( Vector{Float64}(rwdf14.d_evolvability),Vector{Float64}(rwdf14.robustness), smooth=true, labels="14 gates approximate")
 scatter!( Vector{Float64}(rwdf8.d_evolvability),Vector{Float64}(rwdf8.robustness), smooth=true, labels="8 gates approximate" )
-plot!(legend=:topleft,xlabel="approximate evolvability",ylabel="robustness")    # Universal properties paper
+plot!(legend=:topleft,xlabel="phenotype evolvability",ylabel="robustness")    # Universal properties paper
+gui()
 #julia> savefig("../data/1_30_23/robustness_vs_sampling_evol3x1_14_8gts4lb.png")
 julia> savefig("../data/5_21_23/robustness_vs_sampling_evol3x1_14_8gts.png")
 julia> spearman_cor(rwdf8.d_evolvability,rwdf8.robustness)
