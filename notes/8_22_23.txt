@@ -1,0 +1,30 @@
+Testing the hypothesis that evolving in a changing environment increases commplexity.
+
+Two versions:  
+1)  Evolving genotypes to increase Tononi complexity.
+2)  Evolving phenotypes to increase K complexity.
+
+1)  Evaluate by the number of steps needed to evolve to a new phenotype.
+    The new phenotype might be a fixed Hamming distance from the genotype's phenotype and
+    have the same K complexity as the genotype's phenotype.
+
+2)  Evaluate several phenotypes by ????
+
+Experiment:
+
+Generate a sequence of phenotypes with the same K complexity and a fixed Hamming distance apart.
+
+Then try to epochal evolve genotypes to sequentially map to these phenotypes.  
+
+Relate the success rate of the genotypes in following the sequences.  How is success related to Tononi complexity?
+
+What about success rate as a fitness function?
+
+See function neutral_evolution_glist( c::Circuit, funcs::Vector{Func}, gl::GoalList, max_steps::Integer; print_steps::Bool=false, select_prob::Float64=1.0 )
+in Evolve.jl.
+
+File:  src/increasing_complexity.jl
+
+Conclusion:  hypotheses failed.
+
+

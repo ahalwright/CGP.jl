@@ -1,0 +1,19 @@
+Trying to show that a varying environment increases Tononi complexity.  Conclusion:  no confirmation of this hypothesis.
+
+P = Parameters(3,1,8,4)
+c = random_chromosome( P, funcs);
+num_goals=8; Kcomp=3; hdist=1; nreps=24 # 24
+run_neutral_evolution_glist( c, funcs, num_goals, Kcomp, hdist, max_steps, nreps )
+(3746.5, 0.0, [3.681898803056729, 3.655685585169983, 3.550278928523561, 3.8020119541347515, 3.5860745963078227, 3.6189199340414486, 3.4601939958548105, 3.5701448707883867])
+
+gdf = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv")
+edict = Dict{MyInt,Int64}()   # Dict{UInt16, Int64}()
+for i = MyInt(0):0x00ff edict[i] = gdf.d_evolvability[i+1] end
+
+num_goals = 40
+(steps, failures, Tlist, p_evol_list) = run_neutral_evolution_glist( c, funcs, num_goals, Kcomp, hdist, 10_000, nreps, edict ); p_evol_list'
+
+These are the average pheno evolvability after i generations where i=1:num_goals.
+140.4  132.7  136.45  133.95  136.35  130.35  136.85  134.45  141.9  134.6  140.65  130.6  131.2  …  143.65  130.35  135.8  127.15  133.45  133.65  135.35  132.3  136.75  134.55  135.75  135.6
+
+No evidence that pheno evolvability is increasing.

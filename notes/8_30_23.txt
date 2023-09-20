@@ -1,0 +1,17 @@
+Complexity is related to information.
+
+Revisit Adami complexity.  
+The conplexity of a phenotype is measured by the amount of information it contains about its environment.
+This is measured by the reduction in entropy of a population adatpted to an environment in conparison
+to the entropy of a population not adapted to the population.
+
+Example:  There is a 0-1 variable X that individuals have.  For individuals outside of the environment,
+X is random (like a coin toss).  Thus entropy is -2*(1/2 log_2 1/2) = 1 bit.  For individuals adapted 
+to the environment, the entropy might be 0 because the value of X is fixed at some value (it doesn't 
+matter what this value is).  Thus, the complexity would be 1 bit.
+
+Suppose with have a digital circuit genotype with m gates.  What happens to the complexity when we add a gate?
+Look at entropy in terms of the space of genotypes.  Assume that there are M genotypes with m gates and N
+ways to add another gate so that there are M*N genotypes with m+1 gates.  So the number of outcomes with m
+gates is M, and with m+1 gates it is M*N.
+

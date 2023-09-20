@@ -1,0 +1,98 @@
+rying to predict the probability of inactive nodes analytically.
+A key is computing inactive probability rather than active probability
+
+=================
+Not used below:
+comb(n,r) = n!/r!/(n-r)! = n*(n-1)* ... *(n-r+1)/(n-r)*(n-r-1)* ... *1
+comb(n,2) = n*(n-1)* ... * (n-2+1) = n*(n-1)
+
+comb(n,r) = prod( n-k for k = 0:(r-1) )//factorial(r)
+combf(n,r) = factorial(n)//factorial(n-r)//factorial(r)
+combf(12,5), comb(12,5) #  (792//1, 792//1)
+
+m=4;n=7; length(inputs_list(2,m,n)) == (n-m+1)^2 # true 
+=================
+
+# The pairs produced by inputs_list are not ordered.
+inputs_list(2,2,4)
+9-element Vector{Vector{Int64}}:
+#  [[2,2], [2,3], [2,4], [3,2], [3,3], [3,4], [4,2], [4,3], [4,4]]
+If list correspond to max=n, min=n, then count of any given value is in the list is 2(n-m)+1.
+Above example n=4,m=2, 2(n-m)+1 = 5.
+If list correspond to max=n, min=n, then count of any given value is not in the list is (n-m)^2.
+Above example 2(n-m) = 4.  
+
+for m = 1:3 for n = m:(m+3) @assert length(inputs_list(2,m,n)))== (n-m+1)^2 end end
+for m = 1:3 for n = m:(m+3) @assert length(findall(dbl->(m in dbl), inputs_list(2,m,n)))== (n-m+1)+(n-m) end end
+for m = 1:3 for n = m:(m+3) @assert length(findall(dbl->(!(m in dbl)), inputs_list(2,m,n)))== (n-m)^2 end end
+
+Working backward from last interior node indexed over chromosome): prob_active 1
+Suppose there are n possibiliies for each of the inputs for node k.
+there are n^2 possibilties for the pair of inputs to node k, 
+and 2*n+1 of these include any particular predecessor j of k.
+
+If either of these inputs is k, then increase the probability that k is active.
+
+Example:  2 inputs, 2 gates, 2 levelsback
+k=4
+[[2,2],[2,3],[3,2],[3,3]  n^2=4
+2=>3/4  3=>3/4  so prob that 3 is active is 3/4, prob that 2 is active first round is 3/4, prob inactive = 1/4
+k=3
+For second round, we must have not active first round (i. e. [3,3])
+[[1,1],[1,2],[2,1],[2,2]] 
+We must have [1,2],[2,1],[2,2] second round
+Thus, probability must be (1/4)*(3/4) = 3/16 second round for a total of 3/4 + 3/16 = 15/16 = 0.9375 agrees with simulation
+Prob inactive = 1/4*1/4 = 1/16
+
+Example:  2 inputs, 3 gates, levelsback=2 
+[3,3],[3,4],[4,3],[4,4]  4 active prob 3/4, 3 active prob 3/4, first round
+Assume 3 inactive meaning [4,4] first round, prob inactive = 1/4
+[[2,2],[2,3],[3,2],[3,3]  
+Must have [2,3],[3,2],[3,3] second roumd  prob (1/4)*(3/4) = 3/16 second round same as above.
+Prob inactive = 1/4*1/4 = 1/16
+
+Example:  2 inputs, 3 gates, levelsback=3 
+#  [[2,2], [2,3], [2,4], [3,2], [3,3], [3,4], [4,2], [4,3], [4,4]]
+First round:  4 prob 5/9, 3 prob 5/9, 2 prob 5/9
+For 3: assume 3 inactive [2,2],[2,4],[4,2],[4,4]  prob 4/9
+For 2: assume 2 inactive [3,3],[3,4],[4,3],[4,4]  prob 4/9
+Second round
+#  [[1,1],[1,2],[1,3],[2,1],[2,2],[2,3],[3,1],[3,2],[3,3]]
+For 3, inactive prob 4/9
+for 2, inactive prob 4/9
+Third round
+#  [[1,1],[1,2],[2,1],[2,2]
+for 2, inactive prob 1/4
+All rounds:  multiply
+For 4: 4/9
+For 3: 4/9*4/9 = 16/81
+For 2: 4/9*4/9*1/4 = 4/81
+
+
+k=5  [[2,2],[2,3],[2,4],[3,2],[3,3],[3,4],[4,2],[4,3],[4,4]]  count = n^2 = 9
+2=>(2*2+1) = 5/9, 3=>5/9, 4=>5/9    Thus, 2, 3, 4 are all prob active first round = 5/9, prob inactive 4/9 
+
+k=4  [[1,1],[1,2],[1,3],[2,1],[2,2],[2,3],[3,1],[3,2],[3,3]]
+prob active:  2=>5/9, 3=>5/9    prob inactive:  2=>4/9, 3=>4/9
+added to previous probabilities
+1=>5/9, 2=>5/9+(4/9)^2=61/81, 3=>5/9+(5/9)^2, 4=>5/9
+inactive
+1=>4/9, 2=>4/9*4/9=>16/81, 3=>4/9*4/9=>16/81, 4=>4/9
+
+k=3  [[1,1],[1,2],[2,1],[2,2]]
+1=>5/9+5/92=>30/81+30/81*(3/4)
+1=>2/3, 2=>2/3
+added to previous probabilities
+1=>1/2+(1/2)*(2/3) = 5/6
+2=>3/4+(3/4)*(2/3) = (3/4)+(1/6) = 11/12
+inactive
+1=>1/4*4/9=1/9, 
+2=>1/4*4/9*4/9=4/81, 
+
+inactive all total
+4=>4/9
+3=>16/81
+2=>4/81
+1=>1/9
+
+Example:  2 inputs, 4 interiors, levelsback=3, n = 4

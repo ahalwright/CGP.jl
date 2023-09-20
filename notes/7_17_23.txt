@@ -1,4 +1,4 @@
-Update from 7_14_23:
+Update from 7_14_23:  extract_odd_even()
 
 Started with ph = 0x0098.
 julia> extract_odd_even( 0x0098, 3 ) #  (0x000a, 0x0004)

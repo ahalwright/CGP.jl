@@ -20,6 +20,7 @@ function apply( f::Function,args)
 end
 
 function evaluate_node(c::Chromosome, node::InputNode, context::Vector)
+    node.active = true
     #println("eval input node: ",node)
     #print("context[node.index]:")
     #Printf.@printf("0x0%4x\n",context[node.index]) 
@@ -27,7 +28,6 @@ function evaluate_node(c::Chromosome, node::InputNode, context::Vector)
     if node.active
       return node.cache
     end
-    node.active = true
     node.cache = context[node.index]
     =#
     return context[node.index]
@@ -78,7 +78,8 @@ function evaluate_node(c::Chromosome, node::OutputNode, context::Vector)
     return result
 end
 
-# Execute chromosme using context for the inputs and return outputs
+# Execute chromosme c using context for the inputs and return outputs
+# c is modified in that the active and cache fields are set
 function execute_chromosome(c::Chromosome, context::Vector; permute_context::Bool=false )
     #println("Executing chromosome")
     #print_chromosome(c)

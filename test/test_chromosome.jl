@@ -1,4 +1,4 @@
-# Recreated 1/13/23
+# Recreated 1/13/23, works 9/9/23
 
 # So far, tests only arity 2 gates and with maxarity=2
 using Test

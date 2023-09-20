@@ -4,6 +4,7 @@ We currently have:
 max_steps = 10000
 nreps = 20
 run_epochal_evolution_fitness(P3, funcs, fitness, max_steps, nreps )
+# Returns a 20 row dataframe with 20 destgoals.  Each row either a failure or a success.:1
 
 # output_values(dch) # [ax00cc]
 (ach, steps, src_fit, dest_fit, Kcomp_deviations ) = epochal_evolution_fitness( sch, funcs, output_values(dch), fitness, max_steps )

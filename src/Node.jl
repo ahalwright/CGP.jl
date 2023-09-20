@@ -34,7 +34,6 @@ function InteriorNode(func::Func, inputs::Vector{Integer})
 end
 
 mutable struct OutputNode <: Node
-#struct OutputNode <: Node
     input::Integer
 end
 

@@ -1,0 +1,34 @@
+Neoj4 instance01 password:  lf-Bn26YJ_NGVkE97RLQhR-PqZgF8P9siA2Z7Q0WUcw
+
+# Wait 60 seconds before connecting using these details, or login to https://console.neo4j.io to validate the Aura Instance is available
+NEO4J_URI=neo4j+s://428d4a6d.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=lf-Bn26YJ_NGVkE97RLQhR-PqZgF8P9siA2Z7Q0WUcw
+AURA_INSTANCEID=428d4a6dunique_coms = np.unique(list(comms.values()))
+cmap = {
+    0 : 'maroon',
+    1 : 'teal',
+    2 : 'black', 
+    3 : 'orange',
+    4 : 'green',
+    5 : 'yellow'
+}
+
+node_cmap = [cmap[v] for _,v in comms.items()]
+
+pos = nx.spring_layout(G)
+nx.draw(G, pos, node_size = 75, alpha = 0.8, node_color=node_cmap)
+plt.show()
+AURA_INSTANCENAME=Instance01
+
+============================================================
+Louvain commumity detection
+One option is neoj4.  I have an account
+  
+Python Louvain
+https://towardsdatascience.com/louvains-algorithm-for-community-detection-in-python-95ff7f675306  
+One needs to install the networkX package and the louvain package.
+pip install networkx[default]
+pip install python-louvain
+
+Then steps are given in the above website.

@@ -1,0 +1,61 @@
+Degeneracy in the complexity paper.
+
+In biological and cultural evolution, degeneracy is defined as the ability of structurally different elements to 
+perform the same function or yield the same output \cite{edelman2001degeneracy}.  Evolved system tend to achieve 
+fault tolerance through degeneracy while human-designed systems tend to achiave fault tolerance through 
+redundancy---using identical systems to perform the same function.  Clearly, a degenerate system is more
+complex than a redundant system because a system with non-identical parts is more complex than a system with
+equivalent identical parts.
+
+
+How to incorporate degeneracy into our digital circuit GP map:
+Assume that a 1 result corresponds to the ability perform a task.  Then we make the output gate of the circuit
+an OR gate.  The inputs to the OR gate subnetworks (different but possibly overlapping) and the output of the 
+circuit is 1 if either of these subnetworks outputs a 1.
+
+
+Possilble hypothesis to test:  (See the Milano paper that includes complexity in the title.)
+If one does evolution in a moderately changing environment, does this lead to increasing
+Tononi complexity?  One would want to keep keep the changing goals with constant K complexity
+since Tononi (genotype) complexity is closely related to K (phenotype) complexity.
+Should we do epochal evolution, some kind of evolutionary computation evolution, or 
+Wright-Fisher evolution?  Note that Milano is in a range where solutions are inexact.
+
+
+Summary of Milano results:
+
+Note that Milano et al. uses Raman & Wagner circuits with 4 inputs, 256 CGP gates in 16 layers of 16 gates.
+Thus, circuits will tend to have a high proportion of non-functional gates.
+
+Robustness to Faults Promotes Evolvability: Insights from Evolving Digital Circuits 2016
+milano2016robustness
+
+In absence of faults, evolution tends to select circuits that are small and have low phenotypic variability and evolvability. 
+The need to face operation faults, instead, drives evolution toward the selection of larger circuits that are truly 
+robust with respect to genetic variations and that have a greater level of phenotypic variability and evolvability.
+Overall our results indicate that the need to cope with operation faults leads to the selection of circuits that have a 
+greater probability to generate better circuits as a result of genetic variation with respect to a control condition in which 
+circuits are not subjected to faults.
+
+
+Moderate Environmental Variation Across Generations Promotes the Evolution of Robust Solutions 2019
+milano2019moderate
+
+Here we demonstrate how agents evolved in environments that vary across generations outperform agents evolved in environments 
+that remain fixed. Moreover, we demonstrate that best performance is obtained when the environment varies at a moderate rate 
+across generations, that is, when the environment does not vary every generation but every N generations.
+
+
+Robustness, evolvability and phenotypic complexity: insights from evolving digital circuits 2019
+milano2019robustness
+
+We demonstrate that whether robustness to mutations enhances or diminishes phenotypic variability and evolvability depends on 
+whether robustness is achieved through the development of parsimonious (phenotypically simple) solutions, that minimize the 
+number of genes playing functional roles, or through phenotypically more complex solutions, capable of buffering the effect 
+of mutations. We show that the characteristics of the selection process strongly influence the robustness and the performance 
+of the evolving candidate solutions. 
+
+Evolving Robust Solutions for Stochastically Varying Problems  {Carvalho, J{\^o}nata Tyska and Milano, Nicola and Nolfi, Stefano}
+
+We demonstrate how evaluating candidate solutions in a limited number of stochastically varying conditions that vary over 
+kjgenerations at a moderate rate is an effective method for developing high quality robust solutions. 

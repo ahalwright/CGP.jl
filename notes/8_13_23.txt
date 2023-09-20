@@ -20,4 +20,24 @@ This means that neutral evolution is very effective at exploring both genotype a
 space, and the epochal evolution is very effective at finding a genotype that maps to a given 
 phenotype.
 
+Most important references:
+Hu 2020
+Manrubia 2021
+Ahnert 2017
+Wagner 2008
+Milano 2016 and 2019
+Schaper and Louis 2014
+Vassilev 2000
+Wei 2017
+Greenbury 2016 and 2022 
+
+Navigability:
+
+The crucial paper is Greenbury 2022.
+
+
+
+
+
+
 

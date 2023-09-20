@@ -13,7 +13,9 @@ export circuit_distance, remove_inactive, count_circuits_ch
 export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes, interleave_chromosomes
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
 export chromosome_add_input, chromsome_add_multiplexer
-
+export normalize_chromosome, normalize_chromosome!, count_circuits_ch_normalize
+export inputs_list
+  
 PredType = Int64
 #= Commented out.  The included definition is in aliases.jl.
 mutable struct Chromosome
@@ -717,8 +719,8 @@ end
 function circuit( inputs::Tuple, gates::Tuple, outputs::Tuple=(); levsback::Int64=length(inputs)+length(gates))
   if outputs == ()
     outputs= (OutputNode( length(inputs)+length(gates )),)
-    println("outputs: ",outputs)
-    println("typeof outputs: ",typeof(outputs))
+    #println("outputs: ",outputs)
+    #println("typeof outputs: ",typeof(outputs))
   else
     outputs = Tuple(OutputNode(i) for i in outputs)
   end
@@ -897,7 +899,7 @@ end
 
 
 # Returns a Int128 integer which is unique to this chromsome.
-# The values map one-to-one onto the integers in the range from 0 to _lcount_circuits_ch(p,funcs)-1.
+# The values map one-to-one onto the integers in the range from 0 to count_circuits_ch(p,funcs)-1.
 # Generates a Int128 integer corresponding to chromosome ch.  The integer is unique for parameters p.  
 # Assumes that outputs come from the last numoutputs interior nodes and thus don't affect the number of chromosomes.
 # See test/testChromosome.jl for a test----but only where all gates have arity maxarity.
@@ -911,7 +913,7 @@ function chromosome_to_int( ch::Chromosome, funcs::Vector{Func}=default_funcs(ch
   for i = 1:length(ch.interiors)
     (gint,multiplier) = gate_int( i+p.numinputs, ch, funcs )
     result = result*multiplier+gint
-    #println("i: ",i,"  gate_int: ",gate_int( i, ch, funcs ),"  multiplier: ",multiplier, "  result: ",result)
+    #println("i: ",i,"  gate_int: ",gate_int( i+p.numinputs, ch, funcs ),"  multiplier: ",multiplier, "  result: ",result)
   end
   #println("ch_to_int result: ",result)
   result
@@ -1029,6 +1031,21 @@ function circuit_distance( c1::Chromosome, c2::Chromosome )
   diff_count/length(code1)
 end
 
+# Returns an equivalent chromosome where the inputs to every gate are in increasing order
+function normalize_chromosome( ch::Chromosome )
+  normalize_chromosome!(deepcopy(ch))
+end
+
+# Modifies chromosome ch so that the inputs to every gate are in increasing order
+function normalize_chromosome!( ch::Chromosome )
+  for i in ch.interiors
+    if i.inputs[1] > i.inputs[2]
+      tmp = i.inputs[1]; i.inputs[1] = i.inputs[2]; i.inputs[2] = tmp
+    end
+  end
+  ch
+end
+
 # Return the number of circuits for parameters p and funcs 
 function count_circuits_ch( p::Parameters, funcs::Vector{Func} )
   count_circuits_ch( p, nfuncs=length(funcs) )
@@ -1067,9 +1084,69 @@ function count_circuits_ch( p::Parameters; nfuncs::Int64=5 )
     end
     =#
   end
+  multiplier^p.numoutputs
+end
+
+# Return the number of normalized circuits for parameters p and funcs 
+function count_circuits_ch_normalize( p::Parameters, funcs::Vector{Func} )
+  count_circuits_ch_normalize( p, nfuncs=length(funcs) )
+end
+
+# Return the number of normalized circuits for parameters p and number of funcs nfuncs 
+function count_circuits_ch_normalize( p::Parameters, nfuncs::Int64 )
+  count_circuits_ch_normalize( p, nfuncs=nfuncs )
+end
+
+# Return the number of normalized circuits for parameters p and number of funcs nfuncs if nfuncs>0
+# If nfuncs==0, nfuncs is reset to be length(default_funcs(p.numinputs))
+function count_circuits_ch_normalize( p::Parameters; nfuncs::Int64=0 )
+  @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
+  nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
+  multiplier = 1.0
+  for i = 1:p.numinteriors
+    n_inputs = min(p.numlevelsback,i-1+p.numinputs)  # Number of possible values for inputs to this interior node
+    mult = (n_inputs+1)*n_inputs/2
+    multiplier *= mult*nfuncs
+    println("i: ",i,"  n_inputs: ",n_inputs,"  mult: ",mult,"  multiplier: ",multiplier)
+  end
+  multiplier
+end
+    
+#=  Previous versions, should be deleted
+function count_circuits_ch_normalize( p::Parameters; nfuncs::Int64=5 )
+  @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
+  nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
+  multiplier = BigFloat(1)
+  mij = 0
+  for i = 1:p.numinteriors
+    mf = nfuncs
+    multiplier *= mf
+    mult = min(p.numlevelsback,i-1+p.numinputs)
+    multiplier *= mult
+    println("i: ",i,"  mult: ",mult,"  multiplier: ",multiplier)
+    mult -= mult==1 ? 0 : 1
+    multiplier *= mult
+    println("i: ",i,"  mult: ",mult,"  multiplier: ",multiplier)
+    exp = trunc(log10(multiplier))
+    fract = 10^(log10(multiplier)-exp)
+  end
   #UInt128(multiplier^p.numoutputs)
   multiplier^p.numoutputs
 end
+function count_circuits_ch_normalize( p::Parameters; nfuncs::Int64=5 )
+  @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
+  nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
+  multiplier = BigFloat(1)
+  for i = 1:p.numinteriors
+    n_inputs = min(p.numlevelsback,i-1+p.numinputs)  # Number of possible values for inputs to this interior node
+    mult = 2*n_inputs - 1
+    multiplier *= mult
+    println("i: ",i,"  mult: ",mult,"  multiplier: ",multiplier)
+  end
+  multiplier^p.numoutputs
+end
+=#
+
 
 # Mutates chromosome c by inserting a gate or deleting a gate
 function mutate_num_gates!( c::Chromosome; prob_insert::Float64=0.5 )

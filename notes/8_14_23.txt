@@ -1,0 +1,31 @@
+Universal properties of an Avida model.  Dropped navigability from UP paper. 
+
+Work on why the Avida model and the Fortuna model do not have the universal properties.
+
+Avida:  What is the phenotype?  
+
+Most relevant paper:  Fortuna_offria_genotype_phenotype_map_digital_organisms2017.pdf
+
+Phenotypes:  The subset of the 9 possible Boolean functions that the organism can compute.
+Thus, there are 2^9 = 512 phenotypes.
+
+A logic function's complexity is the number of NAND instructions needed to compute it.
+
+A phenotype's complexity is the sum of the complexity of the logic functions that the
+phenotype can compute.
+
+
+Universal properties:
+
+* Bias and frequency: yes, but complicated
+* Robustness proportional to log of frequency.  NO.
+  Robustness weakly positively related to frequency.  YES.  Figure 4.
+* Genotype evolvability negatively related to robustness.  
+  "phenotypic complexity comes at the price of lower phenotypic robustness."
+  "This genotypic evolvability increases with phenotypic complexity".
+  Combines to give a negative relationship between genotype evolvability and robustness.
+* Phenotype evolvability positively related to phenotype robustness.
+  "Fig 4 shows that evolvability increases with robustness for the 13 phenotypes 
+  for which we have frequency data" page 10
+  "phenotypic complexity comes at the price of lower phenotypic robustness. Page 7.
+* Genetic correlation.

@@ -1,0 +1,26 @@
+Trying to get understandable versions of int_to_circuit() and circuit_to_int()
+
+Implemented an alternate version of int_to_chromosome which uses function circuit() in Chromosome.jl 
+
+File universal_properties/supp_info/chromosome_to_int.jl
+
+Example:
+P2 = Parameters( 2,1,3,4); funcs=default_funcs(P2)
+rch = random_chromosome(P2,funcs); print_circuit(rch)
+#  circuit((1,2), ((3,XOR,1,1), (4,AND,1,2), (5,NOR,1,4))) 
+circuit_to_int(rch,funcs)
+#  14818
+chromosome_to_int(rch,funcs)
+#  14818
+print_circuit(int_to_circuit( 14818, P2, funcs ))
+#  circuit((1,2), ((3,XOR,1,1), (4,AND,1,2), (5,NOR,1,4)))
+
+function int_to_circuit() uses function inputs_list().
+
+function circuit_to_int() uses function gate_int()
+function chromosome_to_int() uses function gate_int()
+function gate_int() uses function inputs_list()
+
+function gate_int() is not easy to understand
+
+Including test_chromosome.jl works.

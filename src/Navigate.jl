@@ -4,13 +4,20 @@
 #    for the 3-input 8-gates case, which proves perfect navigability.
 using DataStructures
 
-# Note: If navigate() is called in a pmap(), use_map must be false because nesting pmaps does not work.
+# fitness is a given vector over phenotypes with values in the interval [0,1].
+# goal1 and goal2 are phenotypes which are Vectors of MyInts (one MyInt per output).
+# If fitness of goal1 is greater than fitness of goal2, then goal1 and goal2 are switched
+# df is a "counts" dataframe with a :circuits_list column (usually in data/counts/)
+# This function calls function epochal_evolution_fitness() on each circuit corresponding to each circuit_int for srcgoal in dataframe df.
+# Returns the pair of the mean number of steps (including for unsuccessful runs) and the number of failed runs of epochal_evolution_fitness().
+# Note: If navigate() is called in a pmap(), use_pmap must be false because nesting pmaps does not work.
 function navigate( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, goal1::Goal, goal2::Goal, max_steps::Int64, df::DataFrame; 
       num_circuits::Int64=10, suffix::String="EG", use_pmap::Bool=false )::Union{Tuple{Float64, Tuple{Int64, Int64}},Nothing}
   function stepsf( cint::Int128, funcs::Vector{Func}, destgoal::Goal, fitness::Vector{Float64}, max_steps::Int64 )::Int64
     (ach, steps, src_fit, dest_fit ) = epochal_evolution_fitness( int_to_chromosome( cint, P, funcs ), funcs, destgoal, fitness, max_steps, print_steps=false )
     steps
   end
+  @assert P.numoutputs == 1
   println("goal1: ",goal1,"  fitness(goal1): ",fitness[goal1[1]+1], "  goal2: ",goal2,"  fitness(goal2): ",fitness[goal2[1]+1] )
   #=
   df_name = "count_outputs_ch_$(length(funcs))funcs_$(P.numinputs)inputs_$(P.numinteriors)gates_$(P.numlevelsback)lb_$(suffix).csv"
@@ -32,7 +39,7 @@ function navigate( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64},
   if length(cints_list) > 0
     ov1 = output_values(int_to_chromosome(cints_list[1],P,funcs))
     #println("ov1: ",ov1,"  use_pmap: ",use_pmap)
-    @assert ov1==srcgoal
+    @assert ov1==srcgoal   # If this assertion fails, then the parameters P doesn't agree with the parameters for dataframe df.
     if use_pmap
       steps_list = pmap( cint->stepsf( cint, funcs, destgoal, fitness, max_steps ), cints_list[1:min(num_circuits,length(cints_list))] )
     else
@@ -48,6 +55,10 @@ function navigate( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64},
   end
 end
 
+# "epoch" means "epochal evolution"
+# Creates a dataframe with frequency and K complexity properties of runs of function epochal_evolution_fitness().  
+# If csvfile is a legitimate filename, writes this dataframe to this file.
+# function run_navigate_helper() is pmap called ngoals times.
 function run_navigate_epoch( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, ngoals::Int64, max_steps::Int64;
     num_circuits::Int64=10, use_pmap::Bool=false, use_goal_pmap::Bool=false, suffix::String="X", csvfile::String="" )
   #if use_goal_pmap use_pmap=false end   # Nesting pmaps is bad
@@ -64,6 +75,8 @@ function run_navigate_epoch( P::Parameters, funcs::Vector{Func}, fitness::Vector
   for row in row_list
     push!( rdf, row )
   end
+  count_failures = length(findall( x->x==Float64(max_steps),rdf.mean_steps))
+  println("count_failures: ",count_failures)
   # push!( rdf, ( P.numinputs, P.numinteriors, fitfunct(srcgoal), kdict[srcgoal[1]], rdict[srcgoal[1]], fitfunct(destgoal), kdict[destgoal[1]], rdict[destgoal[1]], failures, msteps ) )
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)
@@ -75,12 +88,15 @@ function run_navigate_epoch( P::Parameters, funcs::Vector{Func}, fitness::Vector
       println(f,"# max_steps: ",max_steps)
       println(f,"# num_circuits: ",num_circuits)
       println(f,"# ngoals: ",ngoals)
+      println(f,"# count failures: ",count_failures)
       CSV.write( f, rdf, append=true, writeheader=true )
     end
   end
   rdf
 end
 
+# Chooses a random destgoal and then chooses a random srcgoal with smaller fitness than destgoal.
+# Returns a tuple which becomes a row of the dataframe defined in function run_navigate_epoch().
 function run_navigate_helper( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, kdict::Dict{MyInt,Int64}, rdict::Dict{MyInt,Int64}, 
         df::DataFrame, num_circuits::Int64,  max_steps::Int64 )
     fitfunct( g::Goal ) = fitness[ g[1]+1 ]
@@ -94,7 +110,7 @@ function run_navigate_helper( P::Parameters, funcs::Vector{Func}, fitness::Vecto
       srcgoal = randgoal(P)
     end
     println("srcgoal: ",srcgoal,"  destgoal: ",destgoal)
-    src_circuits = string_to_expression( df.circuits_list[srcgoal[1]+1] )
+    # src_circuits = string_to_expression( df.circuits_list[srcgoal[1]+1] )  # commented out 9/20/23.
     ( msteps, failures ) = navigate( P, funcs, fitness, srcgoal, destgoal, max_steps, df, num_circuits=num_circuits, use_pmap=false )
     println("(msteps,failures): ",(msteps,failures))
     return ( P.numinputs, P.numinteriors, fitfunct(srcgoal), kdict[srcgoal[1]], rdict[srcgoal[1]], fitfunct(destgoal), kdict[destgoal[1]], rdict[destgoal[1]], failures, msteps )

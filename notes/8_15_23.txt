@@ -1,0 +1,46 @@
+What is the big picture goal for the UP paper?
+
+An evolving system based on a GP map with the universal properties has both exploration and exploitation.
+High robustness implies the neutrality that enables the system to widely explore the neutral set of
+the initial genotype for single-individual evolution, or the neutral sets of the genotypes of the current
+population of population-based evolution.  Simultaneously, the high evolvability implies that this
+exploration will traverse an increasingly diverse set of phenotypes. 
+
+Based on this, I think we should include navigability results because they imply that fitness valleys
+are rare and are unlikely to impede evolutionary exploration with the caveat that the neutral evolution
+to find high-dimensional bypasses may take a long time or a large population size.  Greenbury's (2022) 
+navigability results and my navigability results are based on uncorrelated fitness which means that the 
+fitness of a non-neutral mutation is not correlated with the fitness of the mutated genotype.  Greenbury 
+claims that correlated fitness increases navigability.  This is where it would be somewhat difficult
+to replicate the Greenbury results and I have not done so.
+
+My navigability results are heavily based on the first method of sampling.  
+
+This also argues for including neutral and epochal evolution in the paper.
+
+This would mean adding more to the paper, but this is where my thinking on the "big picture" leads.
+
+Yesterday I claimed that the Fortuna 2017 Avida based paper has some of the universal properties.
+I am not sure whether we should include this claim.
+
+Some time ago I changed the Overleaf version to make you the first author of the UP paper.
+
+You were going to send me a current draft.  We are scheduled to meet at 3.
+
+================================================
+
+3 inputs:
+md20 = read_dataframe("../data/8_11_23/navigability_3x1_8gts_8_11_23C.csv")
+insertcols!(md20, 9, :fails=>map(x->string_to_expression(x)[1],md20.failures)); names(md20)
+conv(x) = Vector{Int64}(x)  # Convert from Pooled arrays
+scatter(map(x->lg(x),conv(md20.destfreq)),conv(md20.fails),smooth=true,labels="failures vs log frequency")
+plot!(xlabel="log frequency",ylabel="failures")
+plot!(title="3 inputs 8 gates 20 circuits" )
+gui()
+savefig("../data/8_11_23/successes_vs_log_freq_3inputs_8gates_20circuits.png")
+
+4 inputs:
+The above is not going to work for 4 inputs because of the high failure rate and the limited number of circuit ints
+saved in the frequency files (58).  Rerunning seems to take almost a day on surt2.
+
+However, I can give my spreadsheet table in universal_properties/navigability_results_summary.xlsx.

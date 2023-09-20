@@ -1,0 +1,10 @@
+Wrote test/test_interleave_extract.jl
+to test that function interleave() and extract_odd_even() in Phenotype.jl are really inverses of each other.
+
+Overall objective is to show how the output of two 2-input circuits can be combined to output a given 3-input phenotype.
+
+Hypothesis:  Given a 3-input phenotype ph, break it into two 2-imput phenotypes ph1 and ph2 using extract_odd_even(),
+evolve circuits rch1 and rch2 to map to these phenotypes.  Now given a 3-input context, we need to produce two 
+2-input contexts, map them to phenotypes using rch1 and rch2, and combine the resulting phenotypes to get ph.
+Hopefully, we don't need to use anything but the standard contexts.
+

@@ -1,0 +1,8 @@
+Normalizing genotypes
+
+A gate can be normalized without changing its function by reordering the inputs into numerical order.
+Example:  (3,NAND,4,2) ==> (3,NAND,2,4).
+A genotype can be normalized by normalizing all of its gates.
+
+This will substantially reduce the number of genotypes. However, considering only normalized genotypes
+biases gates to those whose inputs are the same.  Thus, such genotypes now have higher relative frequencies.

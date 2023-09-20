@@ -330,6 +330,32 @@ function active_list( circuit::CGP.CC )
   input_indices = sort([i for i in input_set])
 end
 
+function active_list( cc::Chromosome )
+  p = cc.params
+  output_values(cc)  # Execute chromosome to set nodes to active
+  active_lst = zeros(Int64,p.numinputs+p.numinteriors)
+  for i = 1:(p.numinputs+p.numinteriors)
+    active_lst[i] = cc[i].active ? 1 : 0
+  end
+  active_lst
+end
+
+function active_list_random( p::Parameters, funcs::Vector{Func}, nreps::Int64 )
+  active_lst = zeros(Int64,p.numinputs+p.numinteriors)
+  for i = 1:nreps
+    cc = random_chromosome( p, funcs )
+    active_lst .+= active_list(cc)
+  end
+  active_lst
+end
+
+function active_list_random_df( p::Parameters, funcs::Vector{Func}, nreps::Int64 )
+  active_list = active_list_random( p, funcs, nreps )
+  inactive_list = nreps .- active_list
+  df = DataFrame( :node=>collect(1:(p.numinputs+p.numinteriors)), :active=>active_list, :inactive=>inactive_list )
+  df
+end
+
 # Convert a chromsome to a CompCircuit
 # The inputs of the CompCircuit are always [1,2....]
 function chromosome_to_circuit( ch::Chromosome )

@@ -1,4 +1,4 @@
-Evolution of n-input phenotypes from (n-1)-input phenotypes.
+Evolution of n-input phenotypes from (n-1)-input phenotypes.  Prompt engineering.
   See Jupyter notebook:  Evolve3input_from_2input_7_20_23
   Latest attemps have been to append the the circuits of two 2-input phenotypes, and then append a random chromosome
      to this circuit, and evolve allowing only mutations to the random chromosome part.  Does not work.

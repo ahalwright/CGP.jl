@@ -8,6 +8,7 @@ export neutral_evolution, geno_circuits, geno_properties, geno_list_properties, 
 export run_evolve_to_pheno_mt, run_to_rand_phenos_mt
 export directed_neutral_evolution
 export epochal_evolution_fitness, run_epochal_evolution_fitness
+export rand_bit_word
 
 # 5/21: To test:
 # ni = 2; nc = 4
@@ -1091,6 +1092,72 @@ function neutral_evolution( c::Circuit, funcs::Vector{Func}, g::Goal, max_steps:
     @assert output_values(c) == g
     return (c, step)
   end
+end
+
+# Example to compute evodict:    
+# gdf = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv")   # for Parameters(3,1,8,4)
+# edict = Dict{MyInt,Int64}()   # Dict{UInt16, Int64}()
+# for i = MyInt(0):0x00ff edict[i] = gdf.d_evolvability[i+1] end
+# Does a sequence of epochal evolutions (calls of neutral_evolution()) with each evolution starting from the result of the previous evolution
+function neutral_evolution_glist( c::Circuit, funcs::Vector{Func}, gl::GoalList, max_steps::Integer, evodict::Dict{MyInt,Int64}=Dict{MyInt,Int64}(); 
+      print_steps::Bool=false, select_prob::Float64=1.0 )
+  P = c.params
+  kdict = kolmogorov_complexity_dict( P, funcs )
+  #println("neutral evolution started for goal: ",g)
+  total_steps = 0
+  failures = 0
+  Tcomplexity_list = Float64[]
+  p_evol_list = Float64[]
+  cur_ch = deepcopy(c)
+  for g in gl
+    ( cur_ch, step ) = neutral_evolution( cur_ch, funcs, g, max_steps )
+    total_steps += step
+    result = (step == max_steps) ? "failed" : "succeeded"
+    failures += (step == max_steps) ? 1 : 0
+    Tcomplexity = complexity5(cur_ch)
+    pheno = output_values( cur_ch )
+    push!(Tcomplexity_list,Tcomplexity)
+    p_evol = get( evodict, pheno[1], 0 )
+    push!(p_evol_list,p_evol)
+    println( "evolution $(result) for goal: ", g, "  Tononi complexity: ",@sprintf("%4.2f",Tcomplexity),"  K complexity: ", kdict[ output_values(cur_ch)[1] ],"  p_evolvability: ", p_evol )
+  end
+  ( total_steps, failures, Tcomplexity_list, p_evol_list )
+end
+
+function run_neutral_evolution_glist( c::Circuit, funcs::Vector{Func}, num_goals::Int64, Kcomp::Int64, hdist::Int64, max_steps::Integer, nreps::Int64, evodict::Dict{MyInt,Int64}=Dict{MyInt,Int64}(); 
+      print_steps::Bool=false, select_prob::Float64=1.0 )
+  mean_total_steps = 0.0
+  mean_failures = 0.0
+  mean_Tcomplexity_list = zeros(Float64, num_goals )
+  mean_p_evol_list = zeros(Float64, num_goals )
+  for i = 1:nreps
+    plist = generate_phenotypes( P, funcs, Kcomp, hdist, num_goals )
+    (total_steps, failures, Tcomplexity_list, p_evol_list ) = neutral_evolution_glist( random_chromosome(P,funcs), funcs, map(x->[x],plist), max_steps, evodict )
+    mean_total_steps += total_steps
+    mean_failures += failures
+    mean_Tcomplexity_list .+= Tcomplexity_list
+    mean_p_evol_list .+= p_evol_list
+  end
+  mean_total_steps /= nreps
+  mean_failures /= nreps
+  mean_Tcomplexity_list ./= nreps
+  mean_p_evol_list ./= nreps
+  ( mean_total_steps, mean_failures, mean_Tcomplexity_list, mean_p_evol_list )
+end
+
+# Returns a MyInt with nbits set to 1
+# The bits set to 1 are in the sub-unsigned-integer corresponding to P.numinputs
+# For example, if MyInt == UInt16 and P.numinputs == 3, then only bit chosen from bits 0 to 7 can be set to 1.
+function rand_bit_word( P::Parameters, nbits::Int64=1 )
+  total_nbits = 2^P.numinputs
+  result = MyInt(0)
+  for i = 1:nbits
+    shift = rand(0:(total_nbits-1))
+    #println("i: ",i,"  shift: ",shift)
+    rand_bit_word = MyInt(1) << shift
+    result = xor( result, rand_bit_word )
+  end
+  result
 end
 
 #function fitfunct_from_fitness_vector( P::Parameters, fitness::Vector{Float64} )::Function

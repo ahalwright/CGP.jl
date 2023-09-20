@@ -1,6 +1,6 @@
 # Functions (like mutate) that operate on phenotypes as bit strings (or Unts).
 export extract_odd_even
-export half_unitation
+export half_unitation, interleave
 
 function mutate_phenotype!( pheno::Goal, p::Parameters )
   nbits = 2^p.numinputs
@@ -73,6 +73,7 @@ end
 # And extract_odd_even(8,0x00b0) returns (0x0004, 0x000c)
 # Test1:  ph1 = rand(0x0000:0x000f); ph2 = rand(0x0000:0x000f); phi = interleave(4,ph1,ph2); pp=extract_odd_even(8,phi); (ph1,ph2,phi,pp)
 # Test2:  pp = rand(0x0000:0x00ff);(ph1,ph2)=extract_odd_even(8,pp);phi=interleave(4,ph1,ph2); (pp,ph1,ph2,phi)
+# As of 9/4/23, Test1 and Test2 don't work. Look at test/test_interleave_extract.jl.
 function interleave( numbits::Int64, ph1::Unsigned, ph2::Unsigned )
   MInt = typeof(ph1)
   @assert MInt == typeof(ph2)

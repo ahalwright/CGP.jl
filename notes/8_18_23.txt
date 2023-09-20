@@ -1,0 +1,36 @@
+Ideas on Complexity
+
+Most of the measures of genotype complexity for genetic programming are based on the use of genetic programming
+for machine learning.  There is extensive literature on the complexity of machine learning models.  The paper
+Le et al. (2016) has a good review.  
+
+How do we interpret our model as a machine learning model?  Suppose that we are given two samples of phenotypes,
+and we want to find a model that classifies phenotypes?  A simple model is better to reduce over-fitting.
+
+Can we define a distance between phenotypes based on mutation rather than Hamming distance?  Maybe not, but
+maybe the failure will be instructive.
+
+Procedure:  For each phenotype, use circuit ints to get a sample of genotypes that map to the phenotype.
+For each of these genotypes, do mutate_all, and try to classify the resulting phenotypes.  
+
+This is essentially the phenotype network.
+
+Record:
+  * Hamming distance to starting phenotype
+  * Frequency
+  * K complexity
+
+Look at Hu 2020 communities.
+
+Idea:  Look for communities in the subnetwork of nodes with K complexities greater than some constant.
+
+Counts of the K complexities of 4-input phenotypes:
+
+1   46
+2   280
+3  1612
+4  6564
+5 20710
+6 27412
+7  8706
+8   206

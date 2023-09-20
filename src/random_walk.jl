@@ -411,3 +411,33 @@ function total_evol( goal_edge_matrix::Matrix )
   B = map( to_bool, goal_edge_matrix )
   map( x->sum( B[x,:] .|| B[:,x] ) - to_binary( B[x,x] ), 1:size(goal_edge_matrix)[1] )
 end  
+
+# Generates random chromosomes, mutates them, and checks if neutral mutations are mutating inactive nodes
+function active_neutral_mutations( p::Parameters, funcs::Vector{Func}, nreps::Int64 )
+  neutral_count = 0
+  neutral_active_count = 0
+  for i = 1:nreps
+    rch = random_chromosome(p,funcs)
+    rov = output_values(rch)
+    (mch,active) = mutate_chromosome!(deepcopy(rch),funcs)  # active==true if rch is active
+    mov = output_values(mch)
+    if rov == mov  # neutral
+      neutral_count += 1
+      if active
+        neutral_active_count += 1
+      end
+    end
+  end
+  (nreps, neutral_count, neutral_active_count)
+end
+    
+function active_neutral_mutations_df( pfv::Vector{Tuple{Parameters,Vector{Func}}}, nreps::Int64 )
+  df = DataFrame( :numinuputs=>Int64[], :numgates=>Int64[], :levelsback=>Int64[], :nreps=>Int64[], :mean_neutral_count=>Float64[], 
+      :mean_neutral_active_count=>Float64[], :fraction_neutral_active_count=>Float64[] )
+  for (p,funcs) in pfv
+    println("(p,funcs): ",(p,funcs))
+    (nreps, neutral_count, neutral_active_count) = active_neutral_mutations( p, funcs, nreps )
+    push!(df, (p.numinputs, p.numinteriors, p.numlevelsback, nreps, neutral_count, neutral_active_count, neutral_active_count/neutral_count ) )
+  end
+  df
+end

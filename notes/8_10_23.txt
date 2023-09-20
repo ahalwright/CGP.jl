@@ -1,4 +1,5 @@
-Navigability
+Navigability BFS
+Less efficient than the evolvability method
 
 2-input example:
 P2 = Parameters(2,1,4,3);funcs=default_funcs(P2)[1:4]

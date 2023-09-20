@@ -13,3 +13,5 @@ julia> spearman_cor(mdf,:nfailures,:destK) # (0.5376887487408929, 3.998510174547
 julia> spearman_cor(mdf,:nfailures,:srcfreq) # (0.26055459431972744, 0.0044200658535923495)
 
 julia> spearman_cor(mdf,:nfailures,:destfreq) # (-0.6412562784327047, 3.3053524122634415e-13)
+
+See pheno_network/universal_properties/navigability_results_summary.xlsx for summary of some results

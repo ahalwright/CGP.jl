@@ -1,5 +1,6 @@
+Objective:  robustness versus K complexity  versus log frequency for complexity paper
 Copied from 12_7_22.txt
-Objective:  K complexity  versus log frequency for complexity paper
+Data in data/12_7_22 and 5_22_22
 
 12/16/22:
 df5 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22G.csv");   # 10 gts 5 lb

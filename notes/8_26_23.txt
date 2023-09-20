@@ -1,0 +1,56 @@
+Complexity measured by information.
+
+I read American Scientist article on assembly theory by Sara Walker and Lee Cronin.
+
+They use mass spectroscopy to assess the assembly index of molecules.  The assembly index is the number combination 
+steps needed to build the molecule.  Mass spectroscopy breaks the molecule into components and measures the masses 
+of the components.  They find that assembly index 15 or greater molecules are created only by
+biology or technology.  "We found that only living systems produce abundant molecules with an experimentally
+determined value of 15 [or more] steps."  They include technologically created molecules as created by living systems.
+
+The crucial aspect of living systems is that they are created by Darwinian evolution.  This includes the evolution
+of humans.  The status of cultural evolution is uncertain.
+
+The most similar circuit simulation is that of Arther and Polack 2006 since they use only combination to build circuits. 
+
+Hypothesis:  The complexity of an object is measured by the amount of information needed to construct it.
+
+Examples:  The Kolmogorov complexity of a string is the size of the smallest universal Turing machine needed to 
+construct it, or maybe to describe it.  The size of the smallest universal Turing machine is a measure of information.
+
+The descriptional complexity (what we call the Kolmogorov complexity) of a circuit phenotype is minimum size
+of a genotype that maps to it under the GP map.
+
+One quickly gets into hierarchy problems:  If the object is constructed from subobjects, do we count the information
+needed to construct these subobjects?  Assembly theory tries to measure the depth of the subobject hierarchy.
+However, one should be cautious about applying assembly theory to entities other than molecules.
+In our modern technology-oriented society, this hierarchy is both deep and wide.  Thus looking at archeology
+and ethology results is useful.
+
+Example:  Taj Mahal model made from Lego bricks pictured in the Walker-Cronin article.  The complexity is the 
+length, or information content, of the plan needed to construct it.
+
+Biologically constructed objects have deep hierarchy.  "Biological" means objects constructed by an evolutionary 
+process.  Biologically constructed objects, including cells, have many complex subcomponents which in turn have 
+many complex subcomponents, so they have a deep hierarchy and a high assembly number.  
+
+Roughly speaking, the information needed to construct a cell is contained in its DNA, and the genomes of even the 
+simplest cells have many genes and thus are complex because of the high amount of information in their genome.  
+Viruses are simpler because they have smaller genomes.  (This ignores the problem that the amount of information 
+stored in a genome is not very well approximated by its length.)
+
+We can use this idea to intuitivly explain why mutating from less complex to more complex is unlikely.  Such a 
+mutation must discover the additional information of the more complex object by random guessing.
+
+Hypothesis:  The complexity of a procedure is the amount of information needed to specify the procedure.  
+Haidle 2010 gives many detailed examples.
+
+For a simple very primitive object, the complexity is the number of steps needed to construct it.  See below for measuring
+the complexity of a procedure.
+
+Aside:
+
+Entropy and information:  The negentropy of a system is the amount of information needed to build the system from
+a maximum entropy state.  Example:  the number of Maxwell's demon steps could be a measure of this information.
+This is the basis for what we call Adami complexity which measures the reduction in entropy due to subjecting
+an evolving system to additional constraints.
