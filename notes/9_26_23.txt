@@ -1,0 +1,33 @@
+Navigability for random fitness.
+
+Excellent result data/9_25_23/navigability_rand_fitness_4x1_14gts_9_25_23O.csv:
+4 inputs 14 gates ngoals=20, max_steps=50_000, num_circuits=1000, run 4.8 hours: 1 failure out of 20
+
+Idea:  As soon as one gets a successful run for a goal, that is sufficient to demonstrate navigability.
+Record the number of circuits for the successful run.
+
+Introduced the keyword argument one_success which terminates the iterations over circuits with one success.
+This does not work with running ../data/9_25_23/run_navigabilityB.jl with and without this keyword.
+With one_success:  12 failurs out of 20, 3.6 seconds.
+Without one_success:  1 failure out of 20, 5 minutes.
+
+9/27/23:
+Did more runs.
+fgrep "count failures:" *.csv
+navigability_rand_fitness_3x1_14gts_9_25_23D.csv:14:# count failures: 2
+navigability_rand_fitness_3x1_8gts_9_25_23A.csv:14:# count failures: 1
+navigability_rand_fitness_3x1_8gts_9_25_23AA.csv:13:# count failures: 1
+navigability_rand_fitness_3x1_8gts_9_25_23B.csv:14:# count failures: 2
+navigability_rand_fitness_3x1_8gts_9_25_23BB.csv:14:# count failures: 0
+navigability_rand_fitness_3x1_8gts_9_25_23C.csv:15:# count failures: 7
+navigability_rand_fitness_4x1_12gts_9_25_23R.csv:15:# count failures: 3
+navigability_rand_fitness_4x1_14gts_9_25_23M.csv:14:# count failures: 3
+navigability_rand_fitness_4x1_14gts_9_25_23N.csv:14:# count failures: 4
+navigability_rand_fitness_4x1_14gts_9_25_23O.csv:14:# count failures: 1
+navigability_rand_fitness_4x1_14gts_9_25_23P.csv:14:# count failures: 1
+navigability_rand_fitness_4x1_14gts_9_25_23Q.csv:15:# count failures: 4
+
+C and D change only the number of gates: 8 for C, 14 for D.  Failures reduced from 7 to 2 suggesting that navigability is inversely related to the number of gates.
+Q and R change only the number of gates: 14 for Q, 12 for R.  Failures reduced from 4 to 3 suggesting (weakly) that navigability is inversely related to the number of gates.
+
+10/2/23:  Reran R and got 16 failures.

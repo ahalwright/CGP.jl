@@ -1,0 +1,12 @@
+function run_navigate_bfs()
+
+See data/9_30_23/navigability_bfs_3x1_8gts_9_30_23C.csv.
+
+11 out of 50 runs did not succeed with 200_000 reps.  4 funcs no XOR.  8749 seconds
+
+Running D with 5 funcs with XOR.  All of 50 runs succeeded.  Maximum reps now 90320.  2081 seconds
+Running E with 5 funcs with XOR.  98 of 100 runs succeeded.  seconds
+
+Thus, including XOR makes a tremendous difference.  100% navigability with XOR, much less without it.
+
+Idea:  The same bfs algorithm can be used to enumerate all circuits in a component.

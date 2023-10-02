@@ -1,0 +1,53 @@
+Verifying that function navigate_bfs() does work for 3 inputs.
+
+Seems to usually succeed
+
+Example:
+ch = circuit((1,2,3), ((4,AND,1,1), (5,AND,1,1), (6,AND,2,5), (7,XOR,6,5), (8,OR,7,5), (9,NAND,6,7), (10,OR,9,7), (11,AND,9,7)))
+ch.params = P3:   Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 8, 4)
+julia> fitness[output_values(ch)[1]+1]  # 0.07336635446929285
+destgoal: 1-element Vector{UInt16}: 0x0047
+fitness[destgoal[1]+1]: 0.7968313251885976
+@time navigate_bfs( P3, funcs, ch, fitness, destgoal, max_reps = 100000 )  # 1209.809217 seconds
+(src_fit,dest_fit): (0.07336635446929285, 0.7968313251885976)
+queue: Queue{Int128}(Deque [Int128[52217042120]])
+
+navigate_bfs( P3, funcs, ch, fitness, destgoal, max_reps = 100000 )
+found phdest
+( prev_int, prev_plength ): (104909817042124, 3)
+cnt increased
+( prev_int, prev_plength ): (52217042124, 2)
+cnt increased
+( prev_int, prev_plength ): (52217042120, 1)
+cnt increased
+(52074, Tuple{Int128, Float64}[(734055212242124, 0.7968313251885976), (734055417042124, 0.4041982181417415), (104909817042124, 0.4041982181417415), (52217042124, 0.4041982181417415), (52217042120, 0.07336635446929285)])
+# the previous line is the reverse fitness non-dereasing path.
+
+julia> destgoal = randgoal(P3); fitness[destgoal[1]+1]
+0.3068254585338671
+julia> @time navigate_bfs( P3, funcs, ch, fitness, destgoal, max_reps = 100000 )
+output_values circ_int: UInt16[0x0000]
+(src_fit,dest_fit): (0.07336635446929285, 0.3068254585338671)
+queue: Queue{Int128}(Deque [Int128[52217042120]])
+found phdest
+( prev_int, prev_plength ): (58770642120, 2)
+cnt increased
+( prev_int, prev_plength ): (52217042120, 1)
+cnt increased
+ 11.916660 seconds (43.69 M allocations: 3.350 GiB, 2.14% gc time)
+(515, Tuple{Int128, Float64}[(2680210654920, 0.3068254585338671), (2680210642120, 0.07336635446929285), (58770642120, 0.07336635446929285), (52217042120, 0.07336635446929285)])
+
+julia> ch = random_chromosome(P3,funcs); print_circuit(ch); output_values(ch), fitness[output_values(ch)[1]+1]
+circuit((1,2,3), ((4,OR,3,3), (5,OR,3,4), (6,OR,4,3), (7,OR,6,5), (8,NOR,4,7), (9,AND,8,6), (10,OR,8,9), (11,OR,8,8)))
+(UInt16[0x0005], 0.19280811624587546)
+julia> @time navigate_bfs( P3, funcs, ch, fitness, destgoal, max_reps = 100000 )
+output_values circ_int: UInt16[0x0005]
+(src_fit,dest_fit): (0.19280811624587546, 0.3068254585338671)
+queue: Queue{Int128}(Deque [Int128[874666034596506]])
+found phdest
+( prev_int, prev_plength ): (853694514596506, 2)
+cnt increased
+( prev_int, prev_plength ): (874666034596506, 1)
+cnt increased
+  1.723165 seconds (6.28 M allocations: 488.847 MiB, 2.35% gc time)
+(74, Tuple{Int128, Float64}[(643979313060506, 0.3068254585338671), (643979314596506, 0.19280811624587546), (853694514596506, 0.19280811624587546), (874666034596506, 0.19280811624587546)])

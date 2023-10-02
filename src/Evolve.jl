@@ -1237,10 +1237,10 @@ function epochal_evolution_fitness( c::Circuit, funcs::Vector{Func}, g::Goal, fi
     end
   end # while
   if step == max_steps
-    #println("epochal evolution fitness failed with ",step," steps for goal: ",g)
+    println("epochal evolution fitness failed with ",step," steps for goal: ",g)
     return (nothing, step, src_fit, dest_fit, 0.0 )
   else
-    #println("epochal evolution fitness succeeded at step ",step," for goal: ",g)
+    println("epochal evolution fitness succeeded at step ",step," for goal: ",g)
     @assert fitfunct( output_values( c )[1] ) == fitfunct( g[1] )
     if test_simplicity
       return (c, step, src_fit, dest_fit, mean(Kcomp_deviations) )

@@ -1,0 +1,35 @@
+Manrubia (2021) on artificial life and open questions.
+
+Objectives of this document:
+Suggestions for references and justification for evolvability paper.
+Suggestions for new work. 
+
+Manrubia discusses four artificial life systems in section 3.4:
+Avida
+Dawkins biomorphs
+Lindenmayer systems, in particular 2PDOL
+FPGA (circuits) of Raman and Wagner.  A special case of our systems  (except that their systems have 4 outputs and ours have 1).
+
+Similarities
+Varying phenotype redundancies in 3 of 4 systems.  Neutral set diameter differs in the fourth.
+High genotypic robustness
+Probability of mutating from high redundancy to low redundancy is smaller than in the reverse direction was found for Avida and 2PDOL.
+
+Differences.
+In Avida a high fraction of genotypes is inviable
+Suggests consistently evaluating phenotypic robustness and evolvability, NSS (neutral set size), and mean-field mutation probabilities.
+
+Comment (not based on Manrubia):  G-P map properties are emergent properties to various degrees.  Genotype robustness is not emergent since it depends directly on properties of the genotype, while phenotype evolvability is strongly emergent because it depends on the interaction of genotypes and phenotypes in a nontrivial way.
+
+Manrubia section 9 "Summary and short term perspectives"
+
+“Also, complete inverse folding methodologies can be used to develop computational frameworks for the study of genotype-phenotype-function relationships.”  (Our exact phenotype network provides "inverse folding" for our G-P map.)
+
+9.1. Towards an improved understanding of GP map architecture: Is it universal?
+
+“Explanations for the striking similarities detected among dissimilar GP maps: a part of the genotype is more constrained than the rest, …”  For our model the genotype is less constrained as the number of gates increaes.
+
+“In the context of mathematical models of GP maps, it would also be desirable to further develop the existing models to explain more complex and biologically relevant situations, and to find out whether generic structural properties of genotype spaces are maintained under those circumstances. More realistic models should include mutations other than point mutations, such as deletions, duplications or insertions (there are just a few examples where the genome size is variable, among them that described in Section 6.2), and recombination (see Section 5.1). Extension to many-to-many GP maps by allowing multiple and semi-optimal phenotypes for a genotype—as it is the case for RNA sequences, for which there can exist multiple secondary structures with quite similar free energies—seems essential to fully understand adaptability [39,40].”  (For us, this is mostly suggestions for further work rather than motivation for what we have already done,)
+
+“For example, phenotypic bias is known to affect evolutionary outcomes due to at least three mechanisms: the ‘survival of the flattest’ [181], the ‘arrival of the frequent’ [94], and its effect on the free fitness of phenotypes in monomorphic regime [84,158,182,190]. Despite this progress, it may still be difficult to estimate for more complex cases than the scenario studied by Schaper and Louis, how strong the ‘arrival of the frequent’ effect will be and whether phenotypic frequency or phenotypic fitness are likely to determine evolutionary outcomes. Ultimately, this knowledge will help us answer the bigger questions of whether and how we can use GP maps to predict short- and long-term trends in evolution [377–379].  (Our navigability results are an illustration of selection overcoming the arrival of the frequent effect.   But they are not a an investigation of the arrival of the frequent effect.)
+

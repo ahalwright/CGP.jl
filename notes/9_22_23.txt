@@ -1,0 +1,6 @@
+Trying to read "Algorithmically probable mutations reproduce aspects of evolution, such as convergence rate, genetic memory and modularity"
+by Hern{\'a}ndez-Orozco, Santiago and Kiani, Narsis A and Zenil, Hector 2018.  I think the idea is that one should choose mutations with
+high K complexity, but this may be all wrong.
+
+
+https://calendar.google.com/calendar/u/0?cid=Y2JjZDU0NDc4ZTllNmE5YTRkOWE5MTc0NjYyNDFkZjM3MWYwN2RhNWM0NGQyNjg1MzIyMjRhMzZjY2NiYWFhNUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t

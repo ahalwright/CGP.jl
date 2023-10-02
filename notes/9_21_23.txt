@@ -1,0 +1,32 @@
+Summary of "Three trends in the history of life: an evolutionary syndrome" \cite{mcshea2016three} by Daniel McShea.
+
+Three trends:  
+1)  rise in complexity in the sense of hierarchy.
+2)  the increase in complexity in the sense of differentiation.
+3)  the loss of differentiation at the lowest levels in organisms.
+
+1) Increasing Hierarchy:
+
+Hierarchy is levels of nestedness, levels of parts within wholes, and Trend 1 is the 
+addition of successive levels over time
+
+There is no implication that higher-level objects are better adapted or more sophisticated.
+
+The trend is only in the maximum. 
+
+Levels of hierarchy:  prokaryote, eukaryote, multicellular, colony.
+
+2) Increasing complexity:
+
+A second trend is the rise in number of part types or degree of differentiation among parts. 
+
+The clearest instance of this trend is the rise in number of cell types over the past 540 million 
+years within the animals, the metazoans.
+
+3) The Complexity Drain
+
+The parts themselves are getting simpler. As the cells of multicellular
+organisms are becoming more and more different from each other, the cells are losing part types 
+
+
+
