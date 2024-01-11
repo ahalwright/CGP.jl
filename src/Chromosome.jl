@@ -753,6 +753,7 @@ function circuit( inputs::Tuple, gates::Tuple, outputs::Tuple=(); levsback::Int6
   end
   c
 end
+
 #=
 function circuit( inputs::Tuple, gates::Tuple;
     levsback::Int64=length(inputs)+length(gates))

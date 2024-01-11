@@ -1,0 +1,67 @@
+Constructing a genotype that maps to any given phenotype ph by AND of bit strings with a single zero bit.
+
+I am going to use the Julia functions for bitwise operations.
+These include ~ for negation:  e. g. ~11110000 = 00001111, ~11001100 = 00110011, etc.
+And they include & for bitwise AND and | for bitwise OR.  This makes it easy for me to check results using Julia.
+Note that negation of a bit string i can be implemented with either NAND(i,i) or NOR(i,i)
+
+Our genotypes are digital logic gate circuits.  The logic gates do bitwise logical operations on unsigned integers.
+
+The genotype-phenotype map applied to a genotype evaluates evaluates the logic gate circuit of the genotype applied
+to the standard context.
+
+The standard context for n = number inputs = 2 is [0xc, 0xa] = [1100, 1010], and the standard context for n = 3 is
+[0xf0, 0xcc, 0xaa] = [11110000, 11001100, 10101010].  These are denoted by [ctx1, ctx2] and [ctx1, ctx2, ctx3] respectively.
+They are computed by function construct_context( n::Int64 ).
+
+Thus, for n = 2,
+ctx1 = 0xc = 1100
+ctx2 = 0xa = 1010 
+For n = 3:
+ctx1 = 0xf0 = 11110000
+ctx2 = 0xcc = 11001100
+ctx3 = 0xaa = 10101010
+
+global Ones = 0x000f
+
+We can construct what I will call the unit zero bit strings:
+Note that for n = 2: 
+z1 =  ( ctx1 |  ctx2) & Ones  #= 0xe = 1110
+z2 =  ( ctx1 | ~ctx2) & Ones  #= 0xd = 1101
+z3 =  (~ctx1 |  ctx2) & Ones  #= 0xb = 1011
+z4 =  (~ctx1 | ~ctx2) & Ones  #= 0x7 = 0111
+
+And for n = 3:
+global Ones = 0x00ff
+
+z1 = (ctx1 | ctx2 | ctx3)   & Ones   # 0xfe
+z2 = (ctx1 | ctx2 | ~ctx3)   & Ones  # 0xfd
+z3 = (ctx1 | ~ctx2 | ctx3)   & Ones  # 0xfb
+z4 = (ctx1 | ~ctx2 | ~ctx3)   & Ones # 0xf7
+z5 = (~ctx1 | ctx2 |  ctx3)   & Ones # 0xef
+z6 = (~ctx1 | ctx2 | ~ctx3)   & Ones # 0xdf
+z7 = (~ctx1 | ~ctx2 | ctx3)   & Ones # 0xbf
+z8 = (~ctx1 | ~ctx2 | ~ctx3)  & Ones # 0x7f
+
+Now we can construct any phenotype by combining the appropriate unit zero bit strings with &.
+
+Example:  11011001 = 0xd9 = z2 & z3 & z6
+
+The above shows how the phenotype can be constructed by applying standard logic operations
+applied to the standard context.  In other words, it shows how a genotype can be constructed to
+map to any phenotype.
+
+Example n = 2.  Let the phenotype ph be 0xa = 1010.
+Then ph = u1 | u3  because ph has one bits in positions 1 and 3.
+
+Example n = 3.  Let the phenotype ph be 0x92 = 10010010.
+ph = u1 | u4 | u7  because ph has one bits in positions 1, 4, and 7.
+
+While these examples are for 2 and 3 inputs, clearly they generalize to any number of inputs.
+I should write this up as a proof for any number of inputs.
+
+Since there is a genotype for every phenotype, Kolmogorov complexity is always defined.
+(We did not know this.  We only knew that we found that epochal evolution always worked.)
+The above construction puts an upper bound on the K complexity of any phenotype.
+This upper bound might be able to be tweaked to sometimes give a better upper bound than
+we previously found by running simulations.

@@ -73,7 +73,7 @@ scatter!(ylims=(0,7.6),ylabel="log redundancy",xlabel="degree evolvability",lege
 # Debugging entropy_evolvability() in the 2x1 2gts2lb4gates case
 # Comparing to the function multiset_phenotype_evolvability() which is now in evolvable_evolvability.jl (moved from p_evolve.jl)
 # The multiset version turned out to be correct.  
-# The entropy_evolvability version used StatsBase.entropy which is not equivalent to CGP.evolvabilty. 
+# The entropy_evolvability version used StatsBase.entropy which is not equivalent to CGP.entropy.
 phenotype 0x0002
 Exact E
  32   8  16   0  16   24  0   0   8  0   24   4   0   4   0  24

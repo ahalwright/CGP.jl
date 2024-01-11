@@ -104,3 +104,77 @@ function half_unitation( x::MyInt, P::Parameters )
   half = div( 2^P.numinputs, 2 )
   abs( count_ones(x) - half )
 end
+
+# Replace by find_sub_bitstring --- obsolete
+# Given an unsigned integer ph where numbits are significant, find the positions of the bit pair 10 in ph
+#=
+function transitions10( ph::Unsigned, numbits::Int64 )
+  println("ph:       ",to_binary(ph,16))
+  mask = typeof(ph)(3)   # two bits
+  println("mask:     ",to_binary(mask,16))
+  to_find = typeof(ph)(3)
+  println("to_find:  ",to_binary(to_find,16))
+  positions = Int64[]
+  i = 0
+  while i < numbits
+    println("i: ",i,"  ph: ",to_binary(ph,16))
+    if mask & ph == to_find
+      push!( positions, i )
+    end
+    ph >>= 1
+    i += 1
+  end
+  positions
+end
+=#
+
+# Given an unsigned integer ph where numbits are significant, find the positions of the sub_bitstring  to_find  in ph.
+#   bitstrings are stored as contiguous parts of unsigned integers.
+# Consistent with Julia, positions are 1-based where 1 is the first (leftmost) position
+# Examples:
+#   julia> find_sub_bitstring( 0x8623, 2, 0x0002 )
+#     3-element Vector{Int64}:
+#      5
+#      9
+#     15
+#   julia> find_sub_bitstring( 0x8673, 3, 0x0007 )
+#     1-element Vector{Int64}:
+#      5
+function find_sub_bitstring( ph::Unsigned, mask_bits::Int64, to_find::Unsigned; numbits::Int64=16 )
+  my_type = typeof(ph)
+  @assert typeof(to_find) == my_type
+  #println("ph:         ",to_binary(ph,numbits))
+  mask = typeof(ph)(2^mask_bits-1) 
+  #println("mask:       ",to_binary(mask,numbits))
+  to_find = typeof(ph)(to_find)
+  #println("to_find:  ",to_binary(to_find,numbits))
+  positions = Int64[]
+  i = 1
+  while i <= numbits-mask_bits+1
+    #println("i: ",i,"  ph: ",to_binary(ph,numbits))
+    if mask & ph == to_find
+      push!( positions, i )
+    end
+    ph >>= 1
+    i += 1
+  end
+  positions
+end
+
+# Number of instances of the sub_bitstrings "01" and "10" in ph
+function number_transitions( ph::Unsigned; numbits::Int64=16 )
+  length(find_sub_bitstring( ph, 2, typeof(ph)(1), numbits=numbits ) ) + 
+      length(find_sub_bitstring( ph, 2, typeof(ph)(2), numbits=numbits ) )
+end
+
+# Creates a dataframe with one row per phenotype and columns for ntransitions and half_unitation
+function ntransitions_kdict( p::Parameters, funcs::Vector{Func}; numbits=16 )
+  kdict = kolmogorov_complexity_dict(p,funcs)
+  df = DataFrame( :pheno=>MyInt[], :Kcomp=>Int64[], :ntransitions=>Int64[], :half_unitation=>Int64[] )
+  for ph = MyInt(0):MyInt(2^2^p.numinputs-1)
+    #df_row = ( ph, kdict[ph], number_transitions( ph, 2^2^p.numinputs, numbits=2^p.numinputs ) )
+    df_row = ( ph, kdict[ph], number_transitions( ph, numbits=2^p.numinputs ), half_unitation(ph,p) )
+    push!(df,df_row)
+  end
+  df
+end

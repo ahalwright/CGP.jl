@@ -1,0 +1,38 @@
+Email to Cheyenne:
+
+I am in favor of including evolution evolvability in the UP paper if it doesn't overly delay getting the paper to Wolfgang and Ting.
+
+I think the results are interesting.  
+
+I think that the 3-input results suggest that evolution evolvability is computable for 4-input phenotypes.  This could be verified by trying it with varying numbers of circuits evolved to the given phenotype.  (See below for the procedure for computing evolution evolvability.)  Clearly, this is going to work best for low redundancy phenotypes.
+
+Another hypothesis that I might test:  Phenotype evolvability (computed by various methods) correlates with the number of epochal evolution steps to evolve to a random phenotype.  And it also correlates with the number of steps to epochal evolve the given phenotype starting with a random genotype.  These are general properties of evolvability rather than the specific number defined by Wagner.
+
+The argument against including evolution evolvability seems to be that it doesn't contribute to showing the universal property that concerns phenotype evolvability.  "The evolvability of a phenotype $\epsilon_p$ is the number of unique phenotypes in the mutational neighborhood of the phenotype  \cite{Wagner2008}.  In other words, it is the number of unique phenotypes in the union of the mutational neighborhoods of all of the genotypes that map to the phenotype.  In terms of the unweighted phenotype network, it is the degree of the phenotype.  For many G$\rightarrow$P maps phenotype evolvability has been found to be positively related to phenotype robustness."
+
+Maybe an alternative would be a separate paper on evolvability.
+
+Notes from July 14, 2023:
+
+Explaining why evolution evolvability is greater than sampling evolvability for rare phenotypes.
+
+Procedure for computing evolution evolvability of a given phenotype ph:
+  Epochal evolve ncircuits genotypes that map to ph.
+  For each of these genotypes use mutate_all and output_values to find all adjacent phenotypes.
+  Thus, the edge from ph to each adjacent phenotype is added to the evolvability matrix.
+  Evolution evolvability is the sum of the numbers of these adjacent phenotypes.
+  Consistent with methods of evolvability paper.
+
+Procedure for computing sampling evolvability of a given phenotype ph:
+  Do nwalks random walks of nsteps each.  For each mutation done in these random walks,
+  increment the edge from the source genotype to the destination genotype.
+  Sampling evolvability is the degree of the resulting phenotype adjacency matrix.
+  Consistent with methods of evolvability paper.
+
+Reason 1:  The evolution evolvability process described above is done for a fixed number of
+  phenotypes ph, while sampling depends on the redundancy of the phenotype in question.
+
+Reason 2:  If the phenotype has rare neighbors, using mutate_all will find many more edges for
+  the phenotypes than sampling.
+
+Alden H. Wright, Emeritus Professor, Department of Computer Science

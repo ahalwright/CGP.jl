@@ -2,7 +2,7 @@ Explaining why evolution evolvability is greater than sampling evolvability for 
 
 Procedure for computing evolution evolvability of a given phenotype ph:
   Epochal evolve ncircuits genotypes that map to ph.
-  For each of these genotypes use mutate_all and output_values to find all adjacent phenotyes.
+  For each of these genotypes use mutate_all and output_values to find all adjacent phenotypes.
   Thus, the edge from ph to each adjacent phenotype is added to the evolvability matrix.
   Evolution evolvability is the sum of the numbers of these adjacent phenotypes.
   Consistent with methods of evolvability paper.

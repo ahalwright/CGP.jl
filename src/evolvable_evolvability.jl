@@ -3,6 +3,26 @@
 # Produce a dataframe with phenotypes in ph_list as rows and phenotypes mapped to by mutational neighbors of the circuits.
 using Base.Threads
 
+#  Procedure for computing evolution evolvability of a given phenotype ph:
+#    Epochal evolve ncircuits genotypes that map to ph.
+#    For each of these genotypes use mutate_all and output_values to find all adjacent phenotypes.
+#    Thus, the edge from ph to each adjacent phenotype is added to the evolvability matrix.
+#    Evolution evolvability is the sum of the numbers of these adjacent phenotypes.
+#    Consistent with methods of evolvability paper.
+function evolution_evolvability( p::Parameters, funcs::Vector{Func}, ph::Goal, ncircuits::Int64, max_tries::Int64, max_steps::Int64 )
+  # Your code here
+  circuit_list = compute_circuit_list( p, funcs, ph, ncircuits, max_tries, max_steps, circ_int_list=Int128[], use_lincircuit=false)
+  println("circuit_list: ",circuit_list)
+  for ch in circuit_list
+    println("ch: ",ch)
+    pheno_list = mutate_all( ch, funcs, output_outputs=true, output_circuits=false )
+    println("pheno_list: ",pheno_list)
+    for pheno in pheno_list
+      println("pheno: ",pheno)
+    end
+  end
+end
+
 # epochal evolution version
 # if csvfile == "" returns the approximate phenonet adjacency matrix
 # if csvfile != "" returns a dataframe representing the approximate phenonet adjacency matrix and saves the dataframe to the
@@ -28,8 +48,10 @@ function phenonet_matrix_evol_approx( p::Parameters, funcs::Vector{Func}, ncircu
       println(f,"# max_steps: ",max_steps)
       CSV.write( f, df, append=true, writeheader=true )
     end
+    return df
+  else
+    return E
   end
-  df
 end
 
 # random_walk sampling version

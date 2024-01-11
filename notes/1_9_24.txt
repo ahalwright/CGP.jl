@@ -1,0 +1,17 @@
+Ideas on biological adaptation.
+
+An organism is adapted to an environoment if it responds "correctly" for most environmental conditions.
+The "correct" response is that which maximizes the organism's likelihood of propagating its genes.
+
+Note that the time scale of this process varies widely.  For a fly evading a predator, the time scale 
+is considerably less than 1 second.  For a plant, it might even be months or years.
+
+There are two aspects to this.
+
+One is given an an environmental state (or maybe a preceived environmental state), predicting future
+environmental states.  Second is choosing an adaptive (correct) response.
+
+This relates to LLM (large language models).  Think of the environment as the previous text, and the
+response as the 
+
+

@@ -1,0 +1,58 @@
+Adami complexity and entropy for the digital circuit GP  map:
+
+(Identical to the Obsidian version as of 2023-12-2.)
+
+Paper:
+Adami2002complexity,
+  title={What is complexity?},
+
+Let $X$ be a population of sequences of  $L$.
+
+$H_{max(X)} = \sum_{i=1}^N (1/N) \log(1/N) = \log(N)S$  (equation 2 of paper)
+
+Let $D$ be the size of the alphabet for the sequences.
+
+$N = D^L$      (3)
+
+Let logarithms be to the base $D$.
+
+Unconditional entropy $H_{max(X)} = L$    (4)
+
+Let $E$ be the environment in which the population evolves.
+
+The amount of information (mutual information) that $X$ stores about $E$:
+
+$I(X : E) = H_{max} - H(X|E) = L + \sum_{i=1}^N p_i \log p_i$    (5)
+
+In general, $I(X : E) = H(X) - H(X|E)$        (Cover 2.39)
+
+The probabilities $p_i$ that go into the calculation of the
+conditional entropy in (5) are in fact conditional probabilities,
+because the probability of finding genotype i in environment $E$
+is not equal to the probability of finding the same sequence in,
+say, environment $E0$.
+
+I(X : E) is the physical complexity which is the mutual information between X and E.
+
+The $p_i$ are conditional probabilities where the conditioning is on environment $E$.
+
+He ignores epistasis between the $p_i$.
+
+For our purposes, we can just define the physical complexity as $I(X : E)$.
+But to do this, we need $H(X|E)$.  But if $X \subseteq E$, $H(X|E) = H(X)$,
+and $I(X : E) = 0$.
+
+Maybe our X can be the genotype.  However, Adami's X is a population.
+But the entropy of a single genotype does not make sense.
+
+Thus, $X% can be the phenotype.  If entropy is the capability of storing information,
+then entropy might correspond to Kolmogorov complexity which is the minimum number of
+gates needed to encode $X$.  What quantities correspond to the $p_i$?  Maybe these are
+the probabilities of genotypes that map to $X$?
+
+The question is "what is $E$?".  Perhaps it is the goal phenotype, or perhaps a set of goal
+phenotypes.  But if the former, we will end up with $X=E$. This argues for $E$ being a set
+of phenotypes.  The logical set of phenotypes is phenotype neighborhood of $X$ in in the
+phenotype network (assuming that $X$ is the goal phenotype).
+
+How does this relate to Kolmogorov complexity?

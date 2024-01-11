@@ -774,6 +774,34 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, goal::Goal, num_circu
   circuits_steps_list
 end
 
+# Starting with a chromosome c, epochal evolve numcircuits chromosomes that map to the phenotypes in phlist
+function from_evolve( c::Chromosome, funcs::Vector{Func}, numcircuits::Int64, phlist::GoalList, max_tries::Int64, max_steps::Int64;
+    use_mut_evolve::Bool=false, print_steps::Bool=false )::Tuple{Goal,Chromosome,Int64}    # The 3rd element of the tuple is steps
+  result = Tuple{Goal,Chromosome,Int64}[]
+  steps = nothing  # establish scope
+  p = c.params
+  for i = 1:numcircuits
+    for ph in phlist
+      for ttry = 1:max_tries
+        if !use_mut_evolve
+          (nc,steps) = neutral_evolution( c, funcs, ph, max_steps, print_steps=print_steps )
+        else
+          (nc,steps,worse,same,better,output,matched_goals,matched_goals_list) = mut_evolve( c, ph, funcs, max_steps ) 
+        end
+        if steps < max_steps
+          push!(result,(ph,nc,steps))
+          break  # from for ttry loop
+        else  
+          println("epochal evolution failed for phenotype ",ph," on ttry ",ttry)
+        end
+      end
+    end
+  end
+  result
+end
+      
+      
+
 # Given a goal, for each iteraion of numiterations,
 #    evolve two chromosomes that map to it, and try to find a distance nondecreasing path from one to the other
 # TODO:  What happens when mut_evolve to find c1 or c2 fails?  Retry?  How many times?

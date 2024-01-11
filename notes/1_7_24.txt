@@ -1,0 +1,13 @@
+Running phnet_matrix results in data/3_14_23/ using 6 rather than 8 gates and sometimes with XOR (previous results were without XOR).
+Suffixes R, S, T, U.
+U shows that total phenotype evolvability is maximum for all phenotypes for 6 gates, 4 lb, with XOR.  See below.
+
+Thus, if XOR is used, exact evolvability should always be maximum as in data/10_8_22/lgredund_vs_evolQ_and_samplingE_evolvability3x1_8gts4lb4funcs.png
+
+@time udf6= include("../data/3_14_23/run_phnet_matrixU.jl")  # 69559.560712 seconds
+julia> findmin(udf6.t_evolvability) #  (255, 1)
+findall(x->x<255,udf6.d_evolvability) # Unfortunately, not all 255
+18-element Vector{Int64}:
+  39 54 78 79 84 115 132 135 140 152 179 181 186 217 219 220 221 229
+
+In the phenotype matrix, there are 17 zero entries.  Consistent with the 18 above.

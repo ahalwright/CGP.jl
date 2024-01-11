@@ -1,0 +1,37 @@
+Hypotheses:
+(1)  Does higher phenotype evolvability correlate with fewer epochal evolution steps to start from phenotype to evolve other phenotypes?
+
+(2)  Does higher phenotype evolvability correlate with fewer epochal evolution steps to evolve the given phenotype to evolve other phenotypes?
+
+For hypothesis (1):
+See notes/1_1_24.txt for details on from_evolve() in Evolve.jl.
+
+Can use from_evolve() to find the number of epochal evolution steps to evolve other phenotypes from the given phenotype.
+However, function needs to be rewritten to be efficient for all phenotypes.
+
+True exact degree evolvability appears to be maximum even for 6 gates, 4 lb, XOR
+
+Alternative:  Use strength evolvability instead.  data/3_14_23/
+
+For hypothesis (2):
+
+data/11_15_22/  has results on mean_steps plus Kcomp, robustness, lg_redund
+data/3_14_23/  has results on degree, strength, and total evolvability
+
+Thus, we can make a scatter plot from these two sources.
+
+Try this for 6 gates, 4 lb, with XOR.
+
+julia> mdf = include("../data/11_15_22/run_ph_evolveM.jl")  # for 6 gates, 4 lb, XOR.  Could only run with nprocs()==1.
+julia> mean(mdf.mean_steps) #  556.635546875
+julia> findmax(mdf.mean_steps)  #  (6173.0, 125)  # an outlier
+julia> findmax(mdf.median_steps) # (1334.0, 135)
+julia> udf6 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23U.csv")
+
+julia> scatter(mdf.median_steps, map(lg10,udf6.s_evolvability),smooth=true)
+julia> scatter!(ylabel="log strength evolvability",xlabel="median evolve steps",title="3 inputs 6 gates 4 levelsback with XOR")
+julia> savefig("../data/1_8_24/lg_strengh_evo_vs_median_steps_3_inputs6gts4lb_XOR.png")
+# Plot shows a concave up curve with a strong negative correlation
+# Hypothesis 2 is confirmed.
+
+

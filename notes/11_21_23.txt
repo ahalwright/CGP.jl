@@ -1,0 +1,39 @@
+Adami Entropy and complexity:
+
+@article{Adami2002complexity,
+  title={What is complexity?},
+  author={Adami, Christoph},
+  journal={BioEssays},
+  volume={24},
+  number={12},
+  pages={1085--1094},
+  year={2002},
+  publisher={Wiley Online Library}
+}
+
+At this juncture, it is sufficient to think of the physical complexity of a sequence as 
+the amount of information that is coded in the genomes of an adapting population, about 
+the environment to which it is adapting. 
+
+Tentatively, the environment is the GP map.  The GP map is a sequnce of phenotypes indexed 
+by genotypes.  
+
+Adami's population is a population of N genotypes.
+
+Let P be the number of phenotypes, and let G be the number of genotypes.  
+Thus, the sequence length is G and the alphabet size is P.
+
+Thus, the entropy of an unspecified GP map is:
+
+H(GP) = - \sum_{i=1}^G (1/P) log (1/P) = G 1/P log P 
+
+Specifying the GP map is like selection in the paper.  Thus, the GP map is E, the environment.
+
+Thus, specifying the phenotype of one genotype will reduce the entropy by 1/P log P.
+
+Specifying that the phenotype of a genotype has a K complexity of at least k says that
+the phenotype is selected from those phenotypes whose K complexity is at least k.
+Let Q be the number of such phenotypes.  Thus, the entropy for this genotype will be 
+reduced to 1/Q log Q.
+
+

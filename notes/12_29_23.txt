@@ -1,0 +1,18 @@
+Found that evolution evolvability is not included in the Overleaf version of the UP paper.
+
+And it doesn't appear to be in the saved versions in evotech/pheno_network/universal_properties/tex/
+
+Crucial plots are in data/10_8_22 including lgredund_vs_evolQ_and_samplingD_evolvability3x1_8gts4lb4funcs.png
+
+Code is in src/evolvable_evolvability.jl.  Notes are in notes/10_8_22.txt.
+
+Relevant notes.
+
+5_17_23.txt   Explaining why evolution evolvability is greater than sampling evolvability for rare phenotypes.
+
+Two ideas:
+
+Evolvability can be approximated for 4-input phenotypes using evolution evolvability.  Do this for some example phenotypes.
+Compare to redundancy and maybe K complexity.
+
+Does the evolvability of a starting phenotype positively relate to the number of steps needed to evolve a random phenotype from the starting genotype?

@@ -1,0 +1,9 @@
+More 3-input random fitness navigability runs:
+
+suffix I fluda 3 inputs 14 gates 7 lb 400 goals 0 failures
+suffix II fluda 3 inputs 14 gates 7 lb 400 goals 0 failures
+
+suffix G surt2 3 inputs 8 gates 4 lb 500 goals 8 failures:  renamed to GG.
+   running with 300 goals.  4 failures
+   Total failures for 800 goals:  12
+

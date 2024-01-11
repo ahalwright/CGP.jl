@@ -1,4 +1,4 @@
-rying to predict the probability of inactive nodes analytically.
+Trying to predict the probability of inactive nodes analytically.
 A key is computing inactive probability rather than active probability
 
 =================

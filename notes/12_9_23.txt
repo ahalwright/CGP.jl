@@ -1,0 +1,40 @@
+Idea for a measure of phenotype complexity: The number of transitions "01" and "10" in the bitstring of a phenotype.
+
+So I wrote the following functions in Phenotype.jl:
+find_sub_bitstring( ph::Unsigned, mask_bits::Int64, to_find::Unsigned; numbits::Int64=16 o)
+number_transitions( ph::Unsigned; numbits::Int64=16 )
+ntransitions_kdict( p::Parameters, funcs::Vector{Func}; numbits::Int64=16 )
+
+I found a weak positive relationship between K complexity and the number of transitions 
+julia> spearman_cor(df, :ntransitions, :Kcomp )
+(0.18526483931562945, 0.0)
+
+See data/12_9_23/  for a plot with a smooth line.
+Kcomp_vs_bitstring_transitions_4_inputs_12gts_5funcs.png
+
+Then it occured to me that I had already investigated half unitation which might give equivalent
+results.  The unitation of the phenotype is the number of 1 bits (defined by the function count_ones). 
+Possible values range from 0 to 2^p.numinputs-1 where p is the parameters.
+Half uniation is the absolute value of the difference between the unitation and 
+the middle value of unitation:
+
+# The absolute deviation of count_ones(x) from the median of possible values of count_ones(x).
+# Example with P3.numinputs == 3.  In this case, half is 4.
+#  half_unitation(0x000f, P3 ) == 0
+#  half_unitation(0x00ff, P3 ) == 4
+function half_unitation( x::MyInt, P::Parameters )
+  half = div( 2^P.numinputs, 2 )
+  abs( count_ones(x) - half )
+end
+
+julia> spearman_cor(df, :half_unitation, :Kcomp )
+(-0.22213175836689886, 0.0)
+
+See data/12_9_23/  for a plot with a smooth line.
+Kcomp_vs_half_unitation_4_inputs_12gts_5funcs.png
+
+So these two methods of measuring complexity are approximately equivalent.
+This makes sense because the order of bits in the phenotype is not very relevant.
+
+
+

@@ -1,7 +1,7 @@
 # Contains functions that are useful in many contexts
 export evolvability, run_evolvability, evo_result, test_evo, evo_result_type, run_evolve_g_pairs 
 export lg10, set_to_list, write_df_to_csv, MyInt_to_string, string_to_MyInt
-export string_to_expression
+export string_to_expression, binomial_prob, binomial_p_value
 
 lg10(x) = iszero(x) ? 0.0 : log10(x)
 
@@ -165,4 +165,18 @@ function pheno_evolve( p::Parameters, funcs::Vector{Func}, start_ph::Goal, targe
     count += 1
   end
   history
+end
+  
+# binomial distribution probability for n trials
+# Example:  binomial_prob( 10, 0.125, 4, 10 ):  0.02746405079960823 which agrees with https://stattrek.com/online-calculator/binomial
+function binomial_prob( n::Int64, p::Float64, lower_bound::Int64, upper_bound::Int64 )
+  @assert 0 <= lower_bound <= upper_bound <= n
+  sum( k->binomial(n,k) * p^k * (1-p)^(n-k), lower_bound:upper_bound )
+end
+
+# One-sided p-value for the one-sided hypothesis that prob <= prob0 where n is the number of trials
+# See https://en.wikipedia.org/wiki/Binomial_test
+function binomial_p_value( n::Int64, p::Float64, prob0::Float64 )
+  k = Int(floor( n*prob0 ))
+  binomial_prob( n, p, 0, k )
 end

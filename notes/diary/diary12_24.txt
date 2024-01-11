@@ -1,0 +1,15 @@
+Found a paper that studies the GP map of  3-input 1-output circuits using the linear genetic programming representation of circuits. 
+HU, T., TOMASSINI, M. and BANZHAF, W., 2020. A network perspective on genotype–phenotype mapping in genetic programming. Genetic Programming and Evolvable Machines, , pp. 1-23
+
+The get strong correlations between degree evolvability (Wagner's definition) and robustness.  See Figure 5a.
+And even stronger correlation between strength evolvability and robustness.
+
+So to better understand I did runs for 3-input 1-output circuits/goals.  All run files and data are in data/12_21.
+I kept reducing the number of gates and inputs.  Results get weaker, but continue to hold even down to 5 gates, 3lb.
+
+This parameter setting has 1.84 x 10^8 circuits, so enumerating all circuits may be possible if I have a way of
+going from circuit int to circuit code to circuit.  This suggests that I could duplicate their phenotype network
+results.
+
+
+

@@ -31,3 +31,25 @@ C and D change only the number of gates: 8 for C, 14 for D.  Failures reduced fr
 Q and R change only the number of gates: 14 for Q, 12 for R.  Failures reduced from 4 to 3 suggesting (weakly) that navigability is inversely related to the number of gates.
 
 10/2/23:  Reran R and got 16 failures.
+
+10/5/23:  More R runs
+[aw167054e@surt2 9_25_23]$ fgrep "count failures" *R.csv
+navigability_rand_fitness_4x1_12gts_9_25_23R.csv:15:# count failures: 16
+navigability_rand_fitness_4x1_12gts_9_25_23RR.csv:15:# count failures: 3
+navigability_rand_fitness_4x1_12gts_9_25_23RRR.csv:14:# count failures: 7
+navigability_rand_fitness_4x1_12gts_9_25_23RRRR.csv:14:# count failures: 9
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRR.csv:14:# count failures: 14
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRRR.csv:14:# count failures: 14
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRR.csv:14:# count failures: 13
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRRR.csv:14:# count failures: 15
+
+10/6/23:  More S runs
+(base) oldmtnbiker@MacBook-Pro-33:~/OneDrive/evotech/CGP.jl/data/9_25_23$ grep "count failures" *23S*\.csv
+navigability_rand_fitness_4x1_14gts_9_25_23S.csv:14:# count failures: 9:  mac
+navigability_rand_fitness_4x1_14gts_9_25_23SS.csv:15:# count failures: 3:  fluda
+navigability_rand_fitness_4x1_14gts_9_25_23SSS.csv:14:# count failures: 7:  fluda
+navigability_rand_fitness_4x1_14gts_9_25_23SSSS.csv:14:# count failures: 12:  fluda
+navigability_rand_fitness_4x1_14gts_9_25_23SSSSS.csv:15:# count failures: 5:  fluda
+navigability_rand_fitness_4x1_14gts_9_25_23SSSSSS.csv:15:# count failures: 12:  surt2
+navigability_rand_fitness_4x1_14gts_9_25_23SSSSSSS.csv:15:# count failures: 10:  mac
+navigability_rand_fitness_4x1_14gts_9_25_23SSSSSSSS.csv:15:# count failures: 9:  surt2

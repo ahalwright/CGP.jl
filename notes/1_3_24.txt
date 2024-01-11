@@ -1,0 +1,49 @@
+See notes1_2_24:
+New ideas on 1/2/24:
+
+My definition:
+
+Genetic (or genomic) plasticity:  The ability of a population to adapt to new conditions
+in a few generations.  Perhaps it is important that these "new conditions" are conditions in the
+recent history of the population.  (This is one definition of evolvavbility.)
+
+Analogy from John N. Thompson, The Geographic Mosaic of Selection  (I can't find the page).
+A boat loosely tethered to a pier.  Because it is tethered, is it longer term stable. 
+Because it is loosely tethered, it can adapt to short term changes without giving up longer
+term stability.
+
+Relationship to Wagner's definition of evolvability:  Maybe should be population evolvability rather 
+than phenotyipe evolvability.  Population can reach many recent phenotypes by either existing diversity
+or by single mutations.
+
+References:
+
+https://www.quantamagazine.org/evolution-fast-or-slow-lizards-help-resolve-a-paradox-20240102/?mc_cid=f72344261d&mc_eid=1246e05f1b
+
+https://www.pnas.org/doi/10.1073/pnas.2222071120   #whole paper not available
+
+Significance
+
+Stabilizing selection has been widely invoked to explain why many species’ phenotypes experience little to no change through time. However, 
+microevolutionary field studies have revealed that stabilizing selection is very rarely detected in natural populations. Here, we show that 
+species’ phenotypes can be maintained through time in the absence of consistent stabilizing selection that continually favors a central 
+optimal phenotype. Instead, species are maintained on fitness peaks through the accumulation of selection that fluctuates in form, 
+strength, direction, or existence through many independent time periods. In multispecies communities, this accumulation of selection 
+creates a rugged community-wide fitness landscape on which different species occupy divergent adaptive peaks separated by fitness valleys 
+that reinforce species distinctness through time.
+
+Abstract
+
+Species’ phenotypic characteristics often remain unchanged over long stretches of geological time. Stabilizing selection—in which fitness 
+is highest for intermediate phenotypes and lowest for the extremes—has been widely invoked as responsible for this pattern. At the 
+community level, such stabilizing selection acting individually on co-occurring species is expected to produce a rugged fitness landscape 
+on which different species occupy distinct fitness peaks. However, even with an explosion of microevolutionary field studies over the past 
+four decades, evidence for persistent stabilizing selection driving long-term stasis is lacking. Nonetheless, biologists continue to invoke 
+stabilizing selection as a major factor explaining macroevolutionary patterns. Here, by directly measuring natural selection in the wild, 
+we identified a complex community-wide fitness surface in which four Anolis lizard species each occupy a distinct fitness peak close to 
+their mean phenotype. The presence of local fitness optima within species, and fitness valleys between species, presents a barrier to 
+adaptive evolutionary change and acts to maintain species differences through time. However, instead of continuously operating stabilizing 
+selection, we found that species were maintained on these peaks by the combination of many independent periods among which selection 
+fluctuated in form, strength, direction, or existence and in which stabilizing selection rarely occurred. Our results suggest that lack of 
+substantial phenotypic evolutionary change through time may be the result of selection, but not persistent stabilizing selection as 
+classically envisioned.

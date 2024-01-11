@@ -1,0 +1,24 @@
+Trying to make sense out of the different versions of evolvability.
+In particular: degree, strength, entropy, and evolution.
+
+I am guessing that these are all computed from the weighted and unweighted phenotype adjacency matrices.
+
+Except that 
+function evolution_evolvability( p::Parameters, funcs::Vector{Func}, ph::Goal, ncircuits::Int64, max_tries::Int64, max_steps::Int64 )
+(newly written) computes evolution evolvality from scratch.
+
+These matrices can be computed either by evolution or sampling.
+
+Degree evolvability would be the number of adjacent phenotypes in the unweighted phenotype adjacency matrix.
+
+Strength evolvability would be the number of adjacent phenotypes in the weighted phenotype adjacency matrix.
+
+Entropy evolvability is the entropy of the row of the phenotype in weighted phenotype adjacency matrix.
+
+CSV files that show sampling evolvability results:
+
+data/3_13_23/phnet_matrix3_14_23E.csv  for 3 inputs, 7 gates, 4 lb random walk sampling.
+
+1/3/24:  Testing the hypothesis that higher phenotype evolvability implies that a small number of steps to
+evolve from the phenotype.
+

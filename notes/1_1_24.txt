@@ -1,0 +1,36 @@
+Does higher phenotype evolvability correlate with fewer epochal evolution steps?
+
+Looking for results on the number of evolutionary steps.
+data/11_15_22/ contains results on log mean evolutionary steps versus log redund including plots:
+This is the number of steps to evolve each phenotype from a random chromosome rather than
+the number of steps to evolve random (or all) phenotypes from all phenotypes.
+
+A problem:  we have shown that for 3x1 8 gates all phenotypes have maximum phenotype evolvability.
+
+However, for 5 gates, exact evolvability is less as shown in Figures 9 and 10 of UP paper.
+
+Tentatively, we could test the above hypothesis using 5 (or 6 or 7) gates and the code used in data/11_15_22.
+
+Wrote (in Evolve.jl): 
+function from_evolve( c::Chromosome, funcs::Vector{Func}, numcircuits::Int64, phlist::GoalList, max_tries::Int64, max_steps::Int64;
+    use_mut_evolve::Bool=false, print_steps::Bool=false )::Tuple{Goal,Chromosome,Int64}    # The 3rd element of the tuple is steps
+
+
+Example:  
+julia> p
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 6, 4)
+julia> c = random_chromosome( p, funcs )
+julia> phlist = [[0x0049],[0x00b6]]
+2-element Vector{Vector{UInt16}}:
+ [0x0049]
+ [0x00b6]
+julia> max_tries=3; max_steps=20_000; numcircuits = 2
+julia> res = from_evolve( c, funcs, numcircuits, phlist, max_tries, max_steps);  [ res[i][3] for i = 1:numcircuits*length(phlist) ]
+4-element Vector{Int64}:
+ 2283
+ 2781
+ 4687
+ 1327
+
+data/1_1_24/neutral_evolve_record_3x1_6gts_XOR_1_1_24C.csv has mean_steps and other statistics for 6 gates 4lb with XOR.
+data/1_1_24 has additional results on mean_steps for other numbers of gates.jl

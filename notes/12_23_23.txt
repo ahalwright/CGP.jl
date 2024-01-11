@@ -1,0 +1,61 @@
+Producing given phenotype as the output of a genotype.  The value of the genotype is the circuit evaluated on the standard context.
+
+Using 1-based indexing for unit vectors u1, u2, . . .  since that is what I use for contexts
+
+Example for n = 2 = number inputs
+
+The best we can do is a recipe for creating a circuit that produces given phenotype ph starting with the standard context.
+
+Let - denote negation
+Let   cx1 = 1100,  cx2 = 1010   # Standard context
+Then -cx1 = 0011, -cx2 = 0101
+Then
+  u1 = 1000 = AND(cx1,cx2)
+  u2 = 0100 = AND(cx1,-cx2)
+  u3 = 0010 = AND(-cx1,cx2)
+  u4 = 0001 = AND(-cx1,-cx2)
+
+# This is the recipe for ph
+OR( 
+  IF AND(u0,ph) THEN u0
+  IF AND(u1,ph) THEN u1 
+  IF AND(u2,ph) THEN u2
+  IF AND(u3,ph) THEN u3 
+)
+
+Example:  ph=1010
+  OR(u0,u2)
+
+tch = circuit((1,2),(
+(3,NAND,1,1),         # -cx1
+(4,NAND,2,2),         # -cx2
+(5,AND,1,2),          # u1
+(6,AND,1,4),          # u2   # not needed
+(7,AND,3,2),          # u3
+(8,AND,3,4),          # u4   # not needed
+(9,OR,5,7)            # OR(u1,u3)
+))
+  
+to_binary(output_values(tch)[1],4)   # "1010"
+
+Another example:  ph = 0110
+OR( u2, u3 ) = OR( 0100, 0010 ) = 0110
+
+n = 3
+ph = 10010010
+OR( u1, u4, u7 )
+tch = circuit((1,2,3),(
+   (4,AND,1,2),          # AND(cx1,cx2)
+   (5,AND,4,3),          # u1 = AND(cx1,cx2,cx3)
+   (6,NAND,1,1),         # -cx1
+   (7,NAND,2,2),         # -cx2
+   (8,NAND,3,3),         # -cx3
+   (9,AND,1,7),          # AND( cx1,-cx2 )
+   (10,AND,9,8),         # u4 = AND( cx1,-cx2,-cx3)
+   (11,AND,6,7),         # AND( -cx1, -cx2 )
+   (12,AND,11,3),        # u7 = AND( -cx1, -cx2, cx3 ) = AND(AND(-cx1,-cx2),cx3)
+   (13,OR,5,10),         # OR(u1,u4)
+   (14,OR,12,13),        # OR(u1,u4,u7)
+))
+
+to_binary(output_values(tch)[1],8)    #  "10010010"

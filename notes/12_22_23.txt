@@ -1,0 +1,10 @@
+Revised Func.jl.  Attempted to add type constraints to functions like And.
+
+Found a 2-gate function that computes [0x0096] with Parameters(3,1,2,3).
+nch = Chromosome(Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 2, 3), InputNode[InputNode(1, true, 0x0000), InputNode(2, true, 0x0000), InputNode(3, true, 0x0000)], InteriorNode[InteriorNode(Func(Main.CGP.Xor, 2, "XOR"), Integer[2, 1], true, 0x003c), InteriorNode(Func(Main.CGP.Xor, 2, "XOR"), Integer[3, 4], true, 0x0096)], OutputNode[OutputNode(5)], 0.0, 0.0)
+julia> print_circuit(nch)
+circuit((1,2,3), ((4,XOR,2,1), (5,XOR,3,4)))
+
+But attemps to neutral evolve a chromosome that does this always seem to fail.
+
+julia> count_circuits_ch( p, funcs ) # 2025.0

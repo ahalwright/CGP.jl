@@ -1,0 +1,10 @@
+Consistency of multiple runs of run_navigate_epochal() for 4 inputs, 12 gates, 6lb, 5 funcs.
+
+navigability_rand_fitness_4x1_12gts_9_25_23R.csv  mac  9/27/23  100 goals 16 failures
+navigability_rand_fitness_4x1_12gts_9_25_23RR.csv  mac  9/27/23  50 goals  3 failures
+navigability_rand_fitness_4x1_12gts_9_25_23RRR.csv surt2  10/2/23 100 goals  7 failures
+navigability_rand_fitness_4x1_12gts_9_25_23RRRR.csv surt2  10/2/23 100 goals  9 failures
+
+navigability_rand_fitness_4x1_12gts_9_25_23PQS.csv  fluda  9/27/23  100 goals 5 failures
+navigability_rand_fitness_4x1_12gts_9_25_23SS.csv  fluda  9/27/23  8340 sec. 100 goals 3 failures
+navigability_rand_fitness_4x1_12gts_9_25_23SSS.csv  fluda  9/27/23  8340 sec. 100 goals 7 failures

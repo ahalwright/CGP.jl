@@ -1,6 +1,7 @@
 Redo total evolvability results and plot for 8 gates 4 levelsback based on notes/7_16_22.txt and data/7_8_22
 Include exact evolvability
 For more results based on data/7_8_22 see notes/5_15_23.txt
+Redo: 1/7/24: move legend to topleft in data/10_8_22/lgredund_vs_evolQ_and_samplingD_evolvability3x1_8gts4lb4funcs.png")
 
 # the total evolvability plot in the evolvability paper
 qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability3x1_8_4_7_8_22Q.csv")  # Suffixes P, Q have ncircuits=2000, S has ncircuits=5000
@@ -40,5 +41,5 @@ insertcols!(qpdf,3,:t_evolvability=>total_evol(qpdf))
 Plots.scatter([qpdf.e_evolvability,qpdf.t_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "total evolvability"],msize=6,shape=[:star6 :rtriangle])
 scatter!(legend=:bottomleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs",ylabel="log redundancy",xlabel="evolvability count")
 scatter!(fill(255,256),map(x->lg10(rdict[x]),0x0000:0x00ff),labels="exact evolvability")
-scatter!(legend=:bottomleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs",ylabel="log redundancy",xlabel="evolvability count")
+scatter!(legend=:topleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs",ylabel="log redundancy",xlabel="evolvability count")
 savefig("../data/10_8_22/lgredund_vs_evol_and_total_evolvability3x1_8gts4lb4funcs.png")  # used in evolvability paper

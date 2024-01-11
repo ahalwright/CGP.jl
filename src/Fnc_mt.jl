@@ -582,6 +582,7 @@ function strength_evolvability( phmatrix::Matrix; include_self_edges::Bool=false
   evolvability_list 
 end
 
+# The entropy evolvability of a phenotype is the entropy of corresponding row of phmatrix normalized by dividing by the strength evolvability
 # The include_self_edges keyword argument is true, then self edges are included in the computation of the normalizing divisor for rows.
 # This reduces entropy evolvability, especially for high-robustness phenotypes.
 # include_self_edges==true works much better.  See notes/10_13_22.txt

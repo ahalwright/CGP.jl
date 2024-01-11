@@ -1,0 +1,19 @@
+Complexity:  McShea: Three types of complexity.
+
+See "Three Trends in the History of Life: An Evolutionary Syndrome" by Daniel W. McShea (2016)
+
+"three large-scale trends in complexity: (1) the rise in
+complexity in the sense of hierarchy, in other words, an
+increase in the number of levels of organization within
+organisms; (2) the increase in complexity in the sense of
+differentiation, that is, a rise in the number of different part
+types at the level just below the whole; and (3) a downward
+trend, the loss of differentiation at the lowest levels in
+organisms, a kind of complexity drain within the parts."
+
+Idea:  perhaps the NAND gate representation is one level of the hierarchy, the AND, OR, NAND, NOR
+gate representation, and the AND, OR, NAND, NOR, XOR gate representation is another.
+
+Idea:  The outputs of a multi-output circuit correspond to the different parts of the circuit.
+It is easy to generate additional outputs of a circuit by duplicating previous outputs with either
+all of the code separated or part of the code separated.  Then these outputs can evolve separately.

@@ -33,6 +33,13 @@ function construct_ones( numinputs::Integer )
   Ones
 end
 
+# Example:  
+#  julia> construct_contexts(4)
+#   4-element Vector{Vector{UInt16}}:
+#    [0x0002]
+#    [0x000c, 0x000a]
+#    [0x00f0, 0x00cc, 0x00aa]
+#    [0xff00, 0xf0f0, 0xcccc, 0xaaaa]
 function construct_contexts( numinputs::Integer )
   Ones = construct_ones( numinputs )
   Contexts = [ zeros( MyInt, i ) for i = 1:numinputs ]
@@ -49,6 +56,23 @@ end
 
 function construct_context( numinputs::Integer )
   construct_contexts( numinputs )[numinputs]
+end
+
+# The context as a matrix rather than as a sequence of bit strings 
+# All possible Boolean vectors are included as columns
+# Example:
+# julia> matrix_context(3)
+#   3×8 Matrix{Int64}:
+#    1  1  1  1  0  0  0  0
+#    1  1  0  0  1  1  0  0
+#    1  0  1  0  1  0  1  0
+function matrix_context( numinputs::Int64 )
+  if numinputs==1
+    return [ 1 0 ]   # 1 by 2 matrix
+  end
+  mc = matrix_context( numinputs-1)
+  return vcat( hcat( ones(Int64, 1, 2^(numinputs-1)), zeros(Int64, 1, 2^(numinputs-1))),  # the first row
+               hcat( mc, mc ))  # remaining rows are the horizontal cat of two matrix contexts for numinputs-1
 end
 
 # v is a vector of outputs from a subset of a circuit

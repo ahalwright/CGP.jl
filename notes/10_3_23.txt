@@ -1,0 +1,4 @@
+Problem:  Widely varying results for random fitness navigability.
+
+Solution:  Automate multiple runs with a smaller (100 or 200) value for num_ciruits.
+
