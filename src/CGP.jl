@@ -74,6 +74,9 @@ include("Phenotype.jl")
 include("Utilities.jl")
 include("random_walk.jl")
 include("Evo_dict.jl")
+include("Fnc_mt.jl")
+include("random_walk.jl")
+include("evolvable_evolvability.jl")
 end
 using Main.CGP
 MyInt=Main.CGP.MyInt

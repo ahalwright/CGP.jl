@@ -1,0 +1,25 @@
+Objective:  See how degree evolvability depends on nwalks.
+Plots of log redundancy vs evolvability count.  (Could reverse axes.)
+
+
+Plots of log redundancy vs sampling evolvability 3 input 8 gts4lb noXOR.
+
+run files are in data/1_11_24
+CSV files are in data/1_11_24
+
+julia -t auto -p auto -L CGP.jl
+@time edf = include("../data/1_11_24/run_random_walksE.jl") # 4632.906965 seconds
+
+adf = read_dataframe("../data/1_11_24/robust_evo_by_walks1_11_24A.csv")
+bdf = read_dataframe("../data/1_11_24/robust_evo_by_walks1_11_24B.csv")
+cdf = read_dataframe("../data/1_11_24/robust_evo_by_walks1_11_24C.csv")
+ddf = read_dataframe("../data/1_11_24/robust_evo_by_walks1_11_24D.csv")
+edf = read_dataframe("../data/1_11_24/robust_evo_by_walks1_11_24E.csv")
+
+scatter([(adf.d_evolvability),cdf.d_evolvability,edf.d_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["5000 walks" "20000 walks" "100000 walks"],msize=3)
+Plot{Plots.GRBackend() n=3}
+scatter!(xlabel="Evolvability count",ylabel="log redundancy",title="log redund versus evo count 3 input 8 gates 4 lb no XOR")
+Plot{Plots.GRBackend() n=3}
+# To visualize, run "gui()".
+
+savefig("../data/1_11_24/lg_redund_evo_cnt_3input_8gts4lb_noXOR.png")

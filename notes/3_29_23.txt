@@ -7,8 +7,8 @@ Revising redundancy vs sampling evolvability to robustness vs sampling evolvabil
 nwalks = 10000
 nsteps = 10000
 numinputs = 3
-rwdf8 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv")
-rwdf14 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23H.csv");
+rwdf8 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23G.csv")   # no XOR
+rwdf14 = read_dataframe("../data/3_14_23/phnet_matrix3_14_23H.csv"); # no XOR
 scatter( Vector{Float64}(rwdf14.d_evolvability),Vector{Float64}(rwdf14.robustness), smooth=true, labels="14 gates approximate")
 scatter!( Vector{Float64}(rwdf8.d_evolvability),Vector{Float64}(rwdf8.robustness), smooth=true, labels="8 gates approximate" )
 plot!(legend=:topleft,xlabel="phenotype evolvability",ylabel="robustness")    # Universal properties paper

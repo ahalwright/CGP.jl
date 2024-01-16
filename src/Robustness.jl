@@ -112,9 +112,11 @@ function phenotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}
   q10_rbst_list = Float64[]
   q90_rbst_list = Float64[]
   rlist_list = Vector{Float64}[]
+  funcs = nothing  # establish scope
   for (ni, ng, lb) in ni_ng_lb_triples
     p = Parameters( ni, 1, ng, lb )
     funcs = default_funcs( p )
+    println("funcs: ",funcs)
     phlist = sort(randgoallist(ngoals,p))
     rdf = run_pheno_evolve_rbst( p, funcs, phlist, numcircuits, max_tries, max_steps )
     push!( ni_list, ni )
@@ -125,8 +127,8 @@ function phenotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}
     push!( q10_rbst_list, mean( rdf.q10_rbst ) )
     push!( q90_rbst_list, mean( rdf.q90_rbst ) )
   end
-  df = DataFrame( :ninteriors=>ni_list, :ngates=>ng_list, :lb=>lb_list, :numcircuits=>fill(numcircuits,length(ni_ng_lb_triples)), :ngoals=>fill(ngoals,length(ni_ng_lb_triples)), 
-        :mean_robust=>mean_rbst_list, :std_robust=>std_rbst_list, :q10_robust=>q10_rbst_list, :q90_robust=>q90_rbst_list )
+  df = DataFrame( :numinputs=>ni_list, :ngates=>ng_list, :lb=>lb_list, :nfuncs=>length(funcs), :numcircuits=>fill(numcircuits,length(ni_ng_lb_triples)), 
+        :ngoals=>fill(ngoals,length(ni_ng_lb_triples)), :mean_robust=>mean_rbst_list, :std_robust=>std_rbst_list, :q10_robust=>q10_rbst_list, :q90_robust=>q90_rbst_list )
   if length(csvfile) > 0
     hostname = readchomp(`hostname`)
     open( csvfile, "w" ) do f

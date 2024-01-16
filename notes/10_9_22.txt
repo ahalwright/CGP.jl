@@ -5,6 +5,7 @@ Redo: 1/7/24: move legend to topleft in data/10_8_22/lgredund_vs_evolQ_and_sampl
 
 # the total evolvability plot in the evolvability paper
 qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability3x1_8_4_7_8_22Q.csv")  # Suffixes P, Q have ncircuits=2000, S has ncircuits=5000
+# Q is with XOR, P and S are without XOR.
 rename!(qpdf,:evolvability=>:e_evolvability)
 insertcols!(qpdf,3,:t_evolvability=>total_evol(qpdf))  # total_evol() is in evolvable_evolvability.jl
 cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")  # 10^8 samples minimum redundancy 8
@@ -28,6 +29,7 @@ savefig("../data/10_8_22/lgredund_vs_evol_and_total_evolvability3x1_8gts4lb4func
 p = Parameters(3,1,8,4); funcs=default_funcs(p)[1:4]  
 rdict=redundancy_dict(p,funcs);
 qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability3x1_8_4_7_8_22Q.csv")  # Suffixes P, Q have ncircuits=2000, S has ncircuits=5000
+# Q is with XOR, P and S are without XOR.
 rename!(qpdf,:evolvability=>:e_evolvability)
 # Note that d_evolvability is the sampling evolvability column
 scatter([qpdf.e_evolvability,Vector{Int64}(rwdf.d_evolvability)],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "sampling evolvability"],msize=6,shape=[:star6 :rtriangle])
@@ -35,11 +37,13 @@ scatter!(fill(255,256),map(x->lg10(rdict[x]),0x0000:0x00ff),labels="exact evolva
 #scatter!(legend=:topleft,title="lgredund vs evol & sampling evolvability3x1 8gts4lb4funcs",ylabel="log redundancy",xlabel="evolvability count")
 scatter!(legend=:topleft,ylabel="log redundancy",xlabel="evolvability count")
 savefig("../data/10_8_22/lgredund_vs_evolQ_and_samplingD_evolvability3x1_8gts4lb4funcs.png") # This plot is in the evolvability paper.
-exact evolvability based on data/1_3/robust_evo_by_walks1_3H.csv with 2_000_000 walks of 10_000 steps each.
+# The savefig filename is incorrect because this dataframe uses XOR (5 funcs).
+# Renamed file to data/10_8_22/lgredund_vs_evolQ_and_samplingD_evolvability3x1_8gts4lb5funcs.png") # This plot is in the evolvability paper.
+#exact evolvability based on data/1_3/robust_evo_by_walks1_3HX.csv with 2_000_000 walks of 10_000 steps each.
 
 insertcols!(qpdf,3,:t_evolvability=>total_evol(qpdf))
 Plots.scatter([qpdf.e_evolvability,qpdf.t_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "total evolvability"],msize=6,shape=[:star6 :rtriangle])
 scatter!(legend=:bottomleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs",ylabel="log redundancy",xlabel="evolvability count")
-scatter!(fill(255,256),map(x->lg10(rdict[x]),0x0000:0x00ff),labels="exact evolvability")
+scatter!(fill(255,256),map(x->lg10(rdict[x]),0x0000:0x00ff),labels="exact evolvability" 
 scatter!(legend=:topleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs",ylabel="log redundancy",xlabel="evolvability count")
 savefig("../data/10_8_22/lgredund_vs_evol_and_total_evolvability3x1_8gts4lb4funcs.png")  # used in evolvability paper

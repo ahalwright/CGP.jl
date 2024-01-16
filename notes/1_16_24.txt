@@ -1,0 +1,11 @@
+Added to CGP.jl:
+
+include("random_walk.jl")
+include("Evo_dict.jl")
+include("Fnc_mt.jl")
+include("random_walk.jl")
+include("evolvable_evolvability.jl")
+
+Proposed plan for UP paper:
+
+

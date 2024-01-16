@@ -419,12 +419,12 @@ function df_to_matrix( df::DataFrame, startcolumn::Int64; denormalize::Bool=fals
     end
   end
   if denormalize
-    if !("redund" in names(phdf))
+    if !("redund" in names(df))
       println("dataframe must include a column :redund in function df_to_matrix")
     else
       for i = 1:size(matrix)[1]
-        if !isnan(phdf.redund[i])
-          matrix[i,:] *= phdf.redund[i]
+        if !isnan(df.redund[i])
+          matrix[i,:] *= df.redund[i]
         end
       end
     end

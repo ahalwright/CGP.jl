@@ -1,0 +1,77 @@
+Consistency, especially with regards to using XOR.
+Met with Cheyenne and she got me back on track.
+
+Task:  Redo all UP results using XOR.
+
+Table 3:  Number of phenotypes and genotypes for parameter and gate function settings
+nfuncs is a column of the table.  For 2 and 3 inputs, nfuncs is always 4.
+REDO
+
+Figure 2:  Sampled phenotype log frequency.  Uses 4 inputs XOR.
+%% plots data/9_12_22/  data from 8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv 2x10^10 samples. 
+%% data/counts/count_outputs_ch_5funcs_4inputs_12gates_6lb_H.csv")
+%% plot notes 9_12_22.txt
+OK
+
+Figure 3:  Density of log frequency for random genotypes.  Uses 4 inputs XOR.
+%% notes/4_7_23.txt
+OK
+
+Figure 4:  Robustness vs log frequency
+4 inputs 10 gates and 12 gates with 200 circuits per phenotype
+%% from notes/12_7_22.txt and data/12_7_22
+OK---added nfuncs to output dataframe
+
+Figure 5:  Genotype robustness versus genotype evolvability
+3 inputs, 8 and 14 gates
+XOR was used 
+%% plots data/9_12_22/  data from 8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv 2x10^10 samples. 
+%% data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv"
+%% data/counts/count_outputs_ch_4funcs_3inputs_10gate_5lb_I.csv")
+%% counts files are from data/8_15_22/
+%% data/8_15_22/count_outputs_ch_5funcs_3inputs_14gate_7lb_K.csv
+%% data/8_15_22/count_outputs_ch_5funcs_3inputs_5gate_3lb_M.csv
+count_outputs_ch_5funcs_3inputs_8gates_4lb_U.csv
+count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv
+%%plot notes 9_12_22.txt
+OK
+
+Figure 6:  Robustness  ̃ρp versus approximate phenotype evolvability  ̃εp for 3 inputs, 8 and 14 gates
+Not clear whether XOR was used  
+%% notes/3_29_23.txt  plot data/5_21_23/
+%% data/3_14_23/phnet_matrix3_14_23G.csv"  # no XOR  8 gates
+%% data/3_14_23/phnet_matrix3_14_23H.csv"  # no XOR 14 gates
+%% data/3_14_23/phnet_matrix3_14_23V.csv"  # XOR  8 gates  50_000 walks 10_000 steps
+%% data/3_14_23/phnet_matrix3_14_23W.csv"  # XOR 14 gates  50_000 walks 10_000 steps
+REDONE except for Overleaf
+
+Figure 7:  Log frequency $\log f_p$ versus approximate phenotype evolvability 
+%% from notes/5_27_23.txt, data/5_21_23/ 
+Same files as Figure 6.  
+REDO
+
+Table 5:  Random fitness navigability successes and failures.
+notes/9_29_23
+notes/10_2_23
+3 inputs without XOR.
+4 inputs with XOR.
+REDO to all with XOR
+
+Figure 8:  Shape-space covering using 2 mutations for different definitions of common phenotypes
+%% from data/12_29_22
+Evolution:  with XOR
+Sampling:   with XOR
+OK
+
+Table 6:  Exact phenotype adjacency matrix for 2 inputs, 3 gates, 3 levelsback, without XOR gate
+REDO
+
+Figure 9:  Exact robustness $\rho_p$ vs. exact evolvability $\epsilon_p$ for 3 inputs, 5 gates, 3 levelsback, and without XOR.
+%% notes/11_8_22.txt  plot data/9_24_22/
+Results without XOR:  data/9_24_22/phnet_matrix9_24_22P.csv
+Results with XOR:     data/9_24_22/phnet_matrix9_24_22Q.csv"   
+REDONE except methods
+
+Figure 10:  Log frequency $\log f_p$ vs. exact phenotype evolvability $\epsilon_p$ for 3 inputs, 5 gates, 3 levelsback, without XOR.
+REDO
+
