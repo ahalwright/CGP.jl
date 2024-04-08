@@ -1,0 +1,54 @@
+Neutral Components:
+
+CGP:
+p = Parameters( 3, 1, 4, 3 )  # 5 funcs
+phl = [0x000a]
+@time (df,cdf) = component_properties( p, phl, use_lincircuit=false )  # 159 seconds
+length(ecl): 4100625
+length(chp_list): 26328
+ordered_keys: [1, 4, 6, 24, 32, 48, 512, 4544, 4816, 6840, 9200]  # Very large number of connected components
+
+LGP:
+# Conclusion:  LGP phenotypes tend to have multiple connected components, but one large component plus smaller components.
+# The following shows that LGP genotypes can have interesting and significant connected components.
+# Seems to be computationally infeasible to investigate a change in parameters.
+p = Parameters( 3, 1, 3, 2)   # 3 instructions 2 registers
+funcs=default_funcs(p)[1:4]
+(df, cdf) = component_properties(p, [0x0002], use_lincircuit=true );   # a less common phenotype
+length(ecl): 15625000
+length(chp_list): 6192
+ordered_keys: [1, 10, 12, 60, 64, 5104]
+df:
+(6×14 DataFrame
+ Row │ len      count    pheno   numinputs  ninstr   nregs    nwalks_set  walk_length  nwalks_circ  avg_robust  avg_evo   avg_walk  sum_ma_walk  avg_nactive
+     │ Float64  Float64  String  Float64    Float64  Float64  Float64     Float64      Float64      Float64     Float64   Float64   Float64      Float64
+─────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │     1.0     48.0  0x0002        3.0      3.0      2.0         1.0          5.0         10.0   0.0        0.512821  0.1         0.0220833       3.0
+   2 │    10.0     16.0  0x0002        3.0      3.0      2.0         1.0          5.0         10.0   0.107692   0.437179  0.44375     0.074375        3.0
+   3 │    12.0     32.0  0x0002        3.0      3.0      2.0         1.0          5.0         10.0   0.0982906  0.424145  0.390625    0.078125        3.0
+   4 │    60.0      4.0  0x0002        3.0      3.0      2.0         1.0          5.0         10.0   0.0769231  0.446154  0.325       0.08            3.0
+   5 │    64.0      4.0  0x0002        3.0      3.0      2.0         1.0          5.0         10.0   0.0817308  0.440705  0.4         0.0575          3.0
+   6 │  5104.0      1.0  0x0002        3.0      3.0      2.0         1.0          5.0         10.0   0.281247   0.426212  0.8         0.16            2.2163
+cdf:
+ Row │ pheno   count    ncomps  walklen  nwlkset  nwlkcirc  rbst      rbstp     evo        evop      cplx     cplxp    walk     walkp    mawlk     mawlkp     nactive    nactivep
+     │ String  Float64  Int64   Float64  Float64  Float64   Float64   Float64   Float64    Float64   Float64  Float64  Float64  Float64  Float64   Float64    Float64    Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ 0x0002   6192.0       6      5.0      1.0      10.0  0.485714  0.164362  -0.371429  0.234239      0.0      0.0      0.6    0.104  0.657143  0.0780875  -0.654654  0.0791512)kk
+
+@time component_properties(p, [0x0003], use_lincircuit=true ) # 3819.896162 seconds   # a more common phenotype
+walk params: (1, 5, 10)
+length(ecl): 15625000
+length(chp_list): 295934
+ordered_keys: [1, 10, 12, 295254]
+(4×14 DataFrame
+ Row │ len       count    pheno   numinputs  ninstr   nregs    nwalks_set  walk_length  nwalks_circ  avg_robust  avg_evo   avg_walk  sum_ma_walk  avg_nactive
+     │ Float64   Float64  String  Float64    Float64  Float64  Float64     Float64      Float64      Float64     Float64   Float64   Float64      Float64
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │      1.0     56.0  0x0003        3.0      3.0      2.0         1.0          5.0         10.0   0.0        0.531136  0.1          0.258393      3.0
+   2 │     10.0     24.0  0x0003        3.0      3.0      2.0         1.0          5.0         10.0   0.0769231  0.435897  0.341667     0.54875       3.0
+   3 │     12.0     32.0  0x0003        3.0      3.0      2.0         1.0          5.0         10.0   0.0555556  0.497863  0.290625     0.424063      3.0
+   4 │ 295254.0      1.0  0x0003        3.0      3.0      2.0         1.0          5.0         10.0   0.593991   0.293683  2.0          0.73          1.30824, 1×18 DataFrame
+ Row │ pheno   count     ncomps  walklen  nwlkset  nwlkcirc  rbst     rbstp    evo      evop     cplx     cplxp    walk     walkp    mawlk    mawlkp   nactive    nactivep
+     │ String  Float64   Int64   Float64  Float64  Float64   Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64    Float64
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ 0x0003  295934.0       4      5.0      1.0      10.0      0.8      0.1     -0.8      0.1      0.0      0.0      0.8      0.1      0.8      0.1  -0.774597  0.112702)
