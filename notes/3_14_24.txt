@@ -1,0 +1,28 @@
+Neutral components hypotheses:  3/14/24.  Emailed to Cheyenne.
+
+Definition:  A set of genotypes is (path) connected if given any 2 genotypes 
+in the set, there is a mutational path of genotypes in the set between the genotypes.
+
+Given a phenotype ph, the neutral set of ph is the set of genotypes that map to ph.
+The neutral set is partitioned into a collection of connected components.
+
+Definition:  The relative fraction of components of a phenotype is the is the number 
+of components of the neutral set of the phenotype divided by the size of the neutral set.
+
+Hypothesis:  Assume that the number of inputs is fixed.  Then the relative fraction
+of components decreases as the number of gates increases.  We could either assume
+that the levelback parameter is the number of gates, or is some fixed fraction such
+as 1/2 of the number of gates.
+
+Hypothesis:  The relative fraction of conponents is negatively related to random
+fitness navigability.
+
+Hypothesis:  The number of epochal evolution steps to find  a genotype that maps 
+to a given phenotype increases with the relative fraction of components of the
+phenotype.
+
+Note that we already have results (Table 5 of UP paper) that show that random fitness
+navigability increases as the number of gates increases.
+
+
+

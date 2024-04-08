@@ -1,0 +1,65 @@
+Quanta Magazine:biologists-rethink-the-logic-behind-cells-molecular-signals.
+
+Conversely, if all the interactions between the molecular components are very finely tuned, “it’s very
+
+https://www.quantamagazine.org/biologists-rethink-the-logic-behind-cells-molecular-signals-20210916/
+
+Back in 2000, when Michael Elowitz of the California Institute of Technology was still a grad student 
+at Princeton University, he accomplished a remarkable feat in the young field of synthetic biology: He 
+became one of the first to design and demonstrate a kind of functioning “circuit” in living cells. He 
+and his mentor, Stanislas Leibler, inserted a suite of genes into Escherichia coli bacteria that 
+induced controlled swings in the cells’ production of a fluorescent protein, like an oscillator in 
+electronic circuitry.
+
+It was a brilliant illustration of what the biologist and Nobel laureate François Jacob called the 
+“logic of life”: a tightly controlled flow of information from genes to the traits that cells and other 
+organisms exhibit.
+
+Biologists thought that the regulatory systems in cells might obey something like the simple binary 
+logic of electronic circuits. Then experiments showed that the versatility of the real “logic of life” 
+lies in its graded complexity.
+
+Recently, by looking closely at the protein interactions within one key developmental pathway that 
+shapes the embryos of humans and other complex animals, Elowitz and his co-workers have caught a 
+glimpse of what the logic of complex life is really like. This pathway is a riot of molecular 
+promiscuity that would make a libertine blush, where the component molecules can unite in many 
+different combinations. It might seem futile to hope that this chaotic dance could convey any coherent 
+signal to direct the fate of a cell. Yet this sort of helter-skelter coupling among biomolecules may be 
+the norm, not some weird exception. In fact, it may be why multicellular life works at all.
+
+[Note the dramatic change in results from prokaryotes to multi-cellular eukaryotes.] 
+
+“Biological systems are generally much more robust than we imagine,” said Meng Zhu, a developmental 
+biologist at Harvard Medical School.
+
+Zhu thinks that promiscuous, highly interconnected protein networks might also promote the ability of 
+organisms to acquire useful new capacities through evolution. “A system that has higher connectivity 
+tends to evolve new functions more easily,” she said, because it can better tolerate deleterious 
+mutations in its component parts.
+
+Conversely, if all the interactions between the molecular components are very finely tuned, “it’s very 
+hard to do something new,” said Ard Louis, a physicist who works on problems of biological complexity 
+at the University of Oxford. Any change in those components, even one that seems advantageous, is 
+likely to disrupt some existing, possibly vital function.
+
+Promiscuous binding that allows one protein to substitute for another might therefore enable the 
+network to acquire new functions without losing the old ones. [Andreas] Wagner, working with Joshua 
+Payne at the Swiss Federal Institute of Technology Zurich, has found support for this idea: They have 
+shown that the promiscuous binding of transcription factors can promote both robustness to mutations 
+and the ability to evolve new functions.
+
+=================================
+
+Lessons for us:
+
+Suppose we are looking at ways for genotypes to map to a given phenotype.  If the parameters are such 
+that the number of gates is close to the K complexity of the phenotype, then there is relatively little 
+flexibility in how the logic gates of the genotype combine to compute the phenotype.  But if the number 
+of gates is considerably larger than the K complexity of the phenotype, there are many ways that a 
+circuit can map to the phenotype.  There can be inactive gates which provide additional flexibility in 
+the evolution of the genotype such as in neutral evolution.
+
+A specific example is in the UP paper.  Table 5 shows that in the 4-input case, increasing the number 
+of gates drammatically increases the success of fitness epochal evolution.  We might be able to restate 
+these results to show that the success rate for fitness epochal evolution is extremely low in the 
+4-input 10-gate case.

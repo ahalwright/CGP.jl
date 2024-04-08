@@ -1,0 +1,60 @@
+Idea for visualization of a random collection goals.
+
+Resource:  http://juliaplots.org/Makie.jl/latest/examples-scatter.html#%22Marker-sizes-Marker-colors%22-1
+
+julia> gl = randgoallist( 200, p.numinputs, p.numoutputs )
+julia> gcdf = goal_complexity_frequency_dataframe( p, gl )  
+julia> gcdf.crf = map(x->x^(1/4)/2,gcdf.ints11_8)
+julia> sort!(gcdf, order(:crf, rev=true))  
+julia> rp= Random.shuffle!(collect(1:size(gcdf)[1]))   # random permutation of indices
+julia> Plots.scatter(rp, gcdf.complexity, markersize=gcdf.crf, label="", grid="none",xticks=[],xshowaxis=false,ylabel="complexity") 
+
+Steps written into function complexity_freq_scatter_plot() in complexity_distribution.jl.
+
+==============================================================
+
+Redoing the counts file for the Raman 4x1 case.
+
+Note that the file data/consolidate/geno_pheno_raman_df_epi_10_2.csv has a :complex field
+for all goals.  Also has counts fields, but only one 11ints field.  Should make sure all
+all counts fields are included with names ints11_8 etc. as in count_out_4x1_all_ints_10_10.csv.
+Used the add_counts_to_dataframe() function in RecordOutputs.jl to add :ints8_5, :ints9_5,
+:ints10_5, :ints11_5, and :ints11_i to dataframe.  Deleted columns :gb_complexity,
+:counts8ints, :counts9ints, :counts10ints, :counts11ints from dataframe.  Note:
+:counts8ints, :counts9ints, :counts10ints agreed with :ints8_5, :ints9_5, :ints10_5,
+but :counts11ints did not.  Example:
+julia> select!( df, DataFrames.Not([:counts8ints,:counts9ints])) 
+julia> write_dataframe_with_comments(df,"../data/counts/count_out_4x1_all_ints_10_10.csv","../data/counts/count_out_4x1_all_ints_11_8.csv")
+
+==============================================================
+
+Constructing binned data for count_by_goals and count_by_circuit.
+
+Functions bin_value(), bin_data(), bin_counts() are all in complexity_distribution.jl.
+julia> bdg = bin_data(map(x->Float64(x),df.complex), bin_fract_denom )
+julia> bdc = bin_counts( map(x->Float64(x),df.complex), map(x->Float64(x),df.ints11_8), bin_fract_denom )
+julia> bdgn = bdg/sum(bdg)
+julia> bdcn = bdc/sum(bdc)
+julia> bindf = DataFrame()
+julia> df.bin_by_goal = nbdf
+julia> bindf.bin_by_circuit11_8 = bdcn
+julia> write_dataframe(bindf,"../data/11_8/bin_complexities_by_goal_circuit.csv")
+
+Adding columns :bin_by_circuit8_5,:bin_by_circuit9_5, :bin_by_circuit10_5,:bin_by_circuit11_5
+was done in the same way.  Then used permutecols!() to reorder to pug :bin_by_circuit11_8 last.
+
+Windows:
+julia> bindf = read_dataframe("11_8/bin_complexities_by_goal_circuit.csv")
+julia> Plots.scatter( bindf.complexities, [bindf.bin_by_goal, bindf.bin_by_circuit11_8],labels=["bin_by_goal" "bin_by_circuit11_8"],xlabel="Complexity",ylabel="Fraction with complexity",title="Fractions of goals/circuts with given complexity")
+julia> savefig("11_8/fraction_goals_circuits_given_complexity.png")
+
+=======================================================
+Idea was to show that explore_complexity() wouldn't work if only complex goals were available.
+
+Wrote a function:
+function filter_goallist_by_complexity( p::Parameters, gl_init::GoalList, gl_final_length::Int64 )
+which adds goals and complexity (read from a dataframe file) to a dataframe,
+sorts the dataframe by complexity, and returns the highest complexity gl_final_length goals.
+
+So far, the idea didn't pan out.
+

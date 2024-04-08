@@ -1,0 +1,58 @@
+Copied from  notes/9_23_22.txt
+# Procedure for generating dataframe pdf.
+p=Parameters(4,1,10,5);funcs=default_funcs(p)
+#  5-element Vector{Func}:
+k_dict = kolmogorov_complexity_dict( p, funcs );
+#r_dict = redundancy_dict( p, "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv" )
+r_dict = redundancy_dict( p, funcs );
+phlist = map(x->[x],0x0000:0xffff);
+goals = map(x->x[1],phlist);
+kcomp = map(x->k_dict[x],goals);
+lg10(x) = x==0 ? 0.0 : log10(x)
+log_redund = map(x->lg10(r_dict[x]),goals);
+pdf = DataFrame( :goal=>map(x->@sprintf("0x%04x",x),goals), :kcomp=>kcomp, :log_redund=>log_redund )
+
+New 2_20_24:
+julia> map(i->length(findall(x->x==i,pdf.kcomp)),1:8)
+8-element Vector{Int64}:
+    46
+   280
+  1612
+  6564
+ 20710
+ 27412
+  8706
+   206
+
+Seems to contradict the LGP results of hu2023phenotype and 
+
+
+
+
+Summary of UP paper 2/20/24
+
+Abstract:  First 2 1/2 sentences are background, last 1 1/2 sentences are new results.
+
+Introduction:
+  Sections:
+    Genotypes and phenotypes
+    Structural properties table
+    Fitness landscapes
+    Phenotype and genotype networks
+    Epochal evolution
+    Robustness and evolvability
+    Genetic correlations
+
+Discussion
+    Sentence recapitulating results
+    Arrival of the frequent
+    Survival of the flattest
+    Claim that these hold for additional forms of evolution
+    Summary of the effect of increasing the number of gates
+
+Conclusions
+    Genetic correlations and neutral evolution
+    Seven universal properties conclusions.
+
+Question:  What is the role of the exact results?
+    Supplementary information or main paper?

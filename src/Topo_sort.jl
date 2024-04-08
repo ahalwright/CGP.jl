@@ -44,7 +44,7 @@ end
 
 function topo_sort_recurse( adj::Matrix{Bool}, path::Vector{Int64}, map::Vector{Int64} )
   len = size(adj)[1]
-  println("topo_sort_recurse: len: ",len)
+  #println("topo_sort_recurse: len: ",len)
   if len == 0
     return path
   end
@@ -52,10 +52,10 @@ function topo_sort_recurse( adj::Matrix{Bool}, path::Vector{Int64}, map::Vector{
   fmin = findmin( indegree )
   if fmin[1] == 0
     r = fmin[2]
-    println("r: ",r,"  map: ",map)
+    #println("r: ",r,"  map: ",map)
     push!(path,map[r])
     deleteat!( map, r )
-    println("path: ",path,"  map: ",map)
+    #println("path: ",path,"  map: ",map)
     new_adj = adj[ 1:end .!= r, 1:end .!= r ]  # Remove row r and column r from adj
     topo_sort_recurse( new_adj, path, map )
   end  

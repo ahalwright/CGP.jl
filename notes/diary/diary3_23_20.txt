@@ -1,0 +1,21 @@
+3/18/20 and after
+
+Worked on Hypothesis 1 proposed in Research update 3_18_20.docx.
+Hypothesis 1:  Selecting chromosomes (logic circuits) for mutational robustness will result in 
+increasing chromosome complexity as measured by the number of active gates in the chromosome.
+
+As I coded for testing this hypothesis, I realized that mutating inactive genes will of
+course not change the result.  So it seems to make sense that selecting for mutational robustness
+will select for an increased number of inactive genes which would select for decreasing 
+complexity.  Thus, I did not expect tests for this hypothesis to be positive.
+
+So an alternative hypothesis was to measure mutational robustness in terms of mutation
+only at active nodes.  I had a number of bugs in my code to test this hypothesis.
+I used "julia test/robust_active.jl" to test and correct my code (after uncommenting
+print statements in function avg_mutational_robustness of Experments.jl).
+
+My code is in test/runexperiments.jl and src/Experiments.jl
+
+The test involves computing the correlation of mutational_robustness_list and
+fract_active_list both of which are indexed over iterations.  For both hypotheses, correlations
+are always negative.

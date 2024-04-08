@@ -1,0 +1,37 @@
+Neutral components:
+
+Relating the size of neutral components to random fitness navigability and to neutral walks.
+
+Estimating size of neutral components by the number of repeated points in a random walk.
+
+include("Neutral_walk.jl")
+function neutral_walk( c::Chromosome, steps::Int64, maxsteps::Int64, maxtries::Int64 )
+
+neutral_walk( rch, 20, 5000, 3 )
+i: 20  length(circuit_ints): 166  length(unique(circuit_ints)): 68
+68-element Vector{Int64}:
+ 26033
+ 25223
+
+p4 = Parameters(1, 4, 0.05, 0.0, 2, 1, 2, 4, 4)
+rch4 = random_chromosome(p4,funcs)
+i: 1  length(circuit_ints): 5  length(unique(circuit_ints)): 4
+i: 2  length(circuit_ints): 9  length(unique(circuit_ints)): 8
+i: 3  length(circuit_ints): 13  length(unique(circuit_ints)): 10
+i: 4  length(circuit_ints): 17  length(unique(circuit_ints)): 10
+i: 5  length(circuit_ints): 21  length(unique(circuit_ints)): 10
+21-element Vector{Int64}:
+ 17083
+  4933
+
+neutral_walk( rch4, 5, 5000, 3 )
+mut_evolve finished in 21 steps for goal UInt16[0x0003] with fitness: 1.0
+complexity(c): 0.963032551857972
+i: 1  length(circuit_ints): 11  length(unique(circuit_ints)): 10
+i: 2  length(circuit_ints): 18  length(unique(circuit_ints)): 16
+i: 3  length(circuit_ints): 28  length(unique(circuit_ints)): 16
+i: 4  length(circuit_ints): 35  length(unique(circuit_ints)): 21
+i: 5  length(circuit_ints): 42  length(unique(circuit_ints)): 26
+26-element Vector{Int64}:
+ 241349
+ 561349

@@ -1,0 +1,4 @@
+Programming Kolmogorov complexity.
+
+Functions kolmogorov_complexity, run_kolmogorov_complexity in Complexity.jl
+Function remove_inactive() in Chromosome.jl.  Debugged.

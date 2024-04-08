@@ -1,0 +1,31 @@
+UP paper:  who is our audience?
+
+I have looked at the paper "On the Nature of the Phenotype in Tree Genetic 
+Programming" by Wolfgang and Illya Bakurov.  What is important is not the
+details, but their approach to genotypes and phenotypes.
+
+Our UP paper is based on papers by Andreas Wagner, Sebastian Ahnert, Ard 
+Louis, Sam Greenbury.  These are biologists and biophysicists rather than 
+genetic programming specialists, and their approach is quite different.  
+
+We are currently planning to submit to Royal Society Interface which is not 
+typically read by evolutionary computation researchers.  However, if 
+Wolfgang is a co-author, this will help to have it noticed by genetic 
+programming researchers.  
+
+A weakness of our paper from a genetic programming point of view is that
+our phenotypes have no practical purpose.  There are real-world problems
+of finding circuits to achieve specifications, but our results seem to 
+be too small to solve these problems.  Wagner and Raman's paper was oriented
+around designing FPGAs, but my impression that current FPGAs are too 
+large/complicated for our results to be useful in this context.
+
+Our intended audience seems to be biologists and biophysicists rather 
+than genetic programming researchers.  Do we have enough background to make 
+the paper interesting to and readable by genetic programming researchers?
+
+In the interest of getting the current paper finished, maybe we should write a 
+separate paper whose intended audience is genetic programming researchers?
+When we send the paper to Wolfgang and Ting, we could ask for their advice.
+
+

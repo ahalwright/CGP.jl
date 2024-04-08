@@ -1,0 +1,20 @@
+Currently running experiments.
+Discovered that the main computational bottleneck is computing degeneracy and sdegeneracy via mutual information.
+Complexity is also very slow, but redundancy is OK.
+Trying to do current simulation with numints=20 and nreps=100, and it isn't working.
+Testing the NAND func versus the Raman func set.  
+Evolution always succeded with inputs=2:3, outputs=2:2:6, ngoals=2:4:10. Version E
+With inputs=4, outputs=1, evolution was very fast.
+However, with inputs=4, outputs=2 or greater, numints=22, evolution was almost never successful even with 1000 or 2000 or 5000 goals.
+Specifically, with inputs=4, outputs=2, numints=22, numgoals=8000, only 1 out of 6 was able to achieve 2 goals.  Version G.
+
+Moved 5_20 data and .jl files from data/may2020 to data/5_20.
+
+Possibilities for the next step:
+Rewrite Complexity to better describe objectives.
+What can I get out of the current simulations?
+Parallelize using the technique developed in spatial. Runs with numints=20 are not practical without doing this
+Add hamming distance to fitness.
+Write options for how to add selection for environmental robustness.
+Clean up the two versions of entropy.jl
+

@@ -1,0 +1,24 @@
+Count cicuits
+
+3x1 4 gates 4 levsback
+4 input options for each input of each gate.  num circuits = 5^4 * 4^8  (5 gate types),  4 gates with 8 options each
+
+3x1 4 gates 3 levsback 
+3 input options for each input of each gate.  num circuits = 5^4 * 3^8  (5 gate types),  4 gates with 3 options each
+
+julia> L10(x::Int64) = x > 0 ? log10(x) : 0.0
+julia> s8log = map(L10,df.ints8_5) 
+julia> s11_5log = map(L10,df.ints11_5) 
+julia> s11_8log = map(L10,df.ints11_8) 
+
+On Windows
+julia> spdf = DataFrame()
+julia> spdf.s11_5log = s11log;
+julia> spdf.s8_5log = s8log;
+julia> spdf.s11_8log=s11_8log;
+julia> pwd()
+"C:\\Users\\oldmtnbiker\\Dropbox\\evotech\\complexity\\data\\10_18"
+julia> write_dataframe(spdf,"scatter_data_logfreq_vs_goal_rank.csv")
+"scatter_data_logfreq_vs_goal_rank.csv"
+
+julia> scatter( collect(1:65536), [sort(s8log,rev=true),sort(s11log,rev=true),sort(s11_8log,rev=true)], title="Goal frequency vs. goal rank", ylabel="log(goal frequency)", xlabel="goal rank", label=["8 gates 5 levsback" "11 gates 5 levsback" "11 gates 8 levsback"],markershape=[:star4, :xcross])

@@ -3,9 +3,8 @@ using Test
 
 # Tests the results of doing all mutations on a simple chromosome.
 funcs = default_funcs(2)
-c = circuit((1,2), ((3,XOR,2,1), (4,AND,2,2)))
-@test mutate_all(c,funcs) == map(x->[MyInt(x)],
-  [0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x00, 0x05, 0x05, 0x0a, 0x0a, 0x08, 0x02, 0x08, 0x02])
+c = circuit((1,2), ((3,CGP.XOR,2,1), (4,CGP.AND,2,2)))
+@test mutate_all(c,funcs) == [[0x000a],[0x000a],[0x000a],[0x000a],[0x000a],[0x0005],[0x0005],[0x0000],[0x000a],[0x000a],[0x0008],[0x0002],[0x0008],[0x0002]]
 
 # Tests when insert_gate_prob==1.0 and delete_gate_prob==1.0
 p = Parameters(2,1,3,2)
@@ -24,7 +23,7 @@ new_c = mutate_chromosome!(deepcopy(c),funcs,delete_gate_prob=1.0)[1]
 function test_mutate( )
   p = Parameters(2,1,2,2)
   funcs = default_funcs(p.numinputs)
-  c = circuit((1,2), ((3,XOR,2,1), (4,AND,2,2))) 
+  c = circuit((1,2), ((3,CGP.XOR,2,1), (4,CGP.AND,2,2))) 
   @test num_mutate_locations(c,funcs) == 6
   print_circuit(c);
   for i = 1:num_mutate_locations( c, funcs )

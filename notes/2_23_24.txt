@@ -1,0 +1,8 @@
+Recall that for LinCircuits, 
+# When Parameters are used, numinteriors specifies numinstructions.
+# When Parameters are used, numlevelsback specifies numregisters.
+
+Question:  Does the actual number of instructions of a LinCircuit lc need to agree with lc.params.numinteriors?
+Can we reduce the number of instructions without changing the parameters? 
+Can we do remove_inactive() without changing the parameters?
+Answer should be yes.

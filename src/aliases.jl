@@ -75,7 +75,7 @@ struct IOutputNode <: Node
     input::Integer
 end
 =#
-PredType = Int64
+PredType = Int64  # Also defined in Chromosome.jl
 mutable struct Chromosome
     params::Parameters
     inputs::Vector{InputNode}

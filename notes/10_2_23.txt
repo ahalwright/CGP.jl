@@ -1,4 +1,5 @@
-Consistency of multiple runs of run_navigate_epochal() for 4 inputs, 12 gates, 6lb, 5 funcs.
+Consistency of failures for multiple runs of run_navigate_epochal() for 4 inputs, 12 gates, 6lb, 5 funcs.
+data/9_25_23/
 
 navigability_rand_fitness_4x1_12gts_9_25_23R.csv  mac  9/27/23  100 goals 16 failures
 navigability_rand_fitness_4x1_12gts_9_25_23RR.csv  mac  9/27/23  50 goals  3 failures

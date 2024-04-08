@@ -37,9 +37,9 @@ println(f,"num_iterations: ",num_iterations)
 print_parameters(f,p)
 counts = create_count_function_hash( p.numinputs, p.numoutputs )
 for _ = 1:num_iterations
-    c = random_chromosome(p, funcs)
-    #print_chromosome( c )
-    outputs = execute_chromosome(c, context)
+    rc = random_chromosome(p, funcs)
+    #print_chromosome( rc )
+    outputs = execute_chromosome(rc, context)
     if num_iterations <= 50  
       print(f,"outputs: ",outputs)
       if length(outputs) > 1

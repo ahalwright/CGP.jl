@@ -1,0 +1,3 @@
+See 9_12_22.txt for an update on recent results on UP paper.
+
+savefig("../data/9_12_22/log_redund_vs_rank_3x1_8_14gts.png")   # 3 input version for UP paper

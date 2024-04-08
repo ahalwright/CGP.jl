@@ -15,6 +15,7 @@ using Statistics, Printf
 # Returns circuit_code_list of neutral circuits discovered on the neutral walk.
 # Includes both walk circuits and neutral neighbors of walk circuits.
 # Note that sometimes the function fails when the neutral walk cannot be extended.
+# There is another neutral_walk() function with the same signature in neutral_walk.jl
 function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, maxtries::Int64 )
   @assert p.numoutputs == 1
   funcs = default_funcs( p.numinputs )
@@ -447,7 +448,6 @@ function circuit_distance_to_list( c_code::Vector{Int64}, c_code_list::Vector{Ve
   distance/length(c_code)
 end
 
-#=  temporarily in file fnc.jl
 # Added started in 12/17/21.  See notes/12_17_21.txt
 # Use enumerate_circuits() in Chromosome.jl to get the list of Chromosomes (circuits)
 function find_neutral_components( ch_list::Vector{Chromosome} )
@@ -469,5 +469,4 @@ function find_neutral_components( ch_list::Vector{Chromosome} )
   end
   S
 end
-=#
 

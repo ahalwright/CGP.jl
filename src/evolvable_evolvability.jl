@@ -3,6 +3,9 @@
 # Produce a dataframe with phenotypes in ph_list as rows and phenotypes mapped to by mutational neighbors of the circuits.
 using Base.Threads
 
+export evolution_evolvability, phenonet_matrix_evol_approx, phenonet_matrix_sampling_approx, evolvable_pheno_df, evolvable_pheno_dict, compute_circuit_list, evolvable_pheno_count!
+export run_multiset_evolvability
+
 #  Procedure for computing evolution evolvability of a given phenotype ph:
 #    Epochal evolve ncircuits genotypes that map to ph.
 #    For each of these genotypes use mutate_all and output_values to find all adjacent phenotypes.

@@ -2,6 +2,7 @@ Consistency, especially with regards to using XOR.
 Met with Cheyenne and she got me back on track.
 
 Task:  Redo all UP results using XOR.
+Task:  Redo all UP results for the exact parameters.
 
 Table 3:  Number of phenotypes and genotypes for parameter and gate function settings
 nfuncs is a column of the table.  For 2 and 3 inputs, nfuncs is always 4.

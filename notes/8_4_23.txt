@@ -25,6 +25,7 @@ output_values( int_to_chromosome( cints_list[1], P3, funcs ) ) # [0x0072]
 
 (ach, steps, src_fit, dest_fit, Kcomp_deviations ) =epochal_evolution_fitness( int_to_chromosome( cints_list[1], P3, funcs ), funcs, output_values(dch), fitness, max_steps )
 
+# runs epochal_evolution_fitness() and returns the number of steps
 function eef( cint::Int128, funcs::Vector{Func}, dch::Chromosome, fitness::Vector{Float64}, max_steps::Int64 )::Int64
   (ach, steps, src_fit, dest_fit, Kcomp_deviations ) = epochal_evolution_fitness( int_to_chromosome( cint, P3, funcs ), funcs, output_values(dch), fitness, max_steps )
   steps

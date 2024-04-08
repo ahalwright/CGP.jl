@@ -1,0 +1,18 @@
+Added epistasis1, epistasis1, epistasis1, epistasis1, total_epistasis columns to the 4x1 all goal dataframe,
+and saved to data/consolidate/geno_pheno_raman_df_epi_9_24.csv.
+
+Computed correlations of evolvability with complexity and epistasis:
+	            complexity	epistasis2	epistasis3	epistasis4	total_epistasis
+Spearman_cor	0.869	      0.129	      0.412	      0.294	      0.373
+
+
+
+
+Compared evolvability and robustness computed data/consolidate/geno_pheno_4x1_raman8_31full.csv
+  and  data/consolidate/geno_pheno_raman_df_all_9_13.csv with that computed by geno_robustness() 
+  in Evolvability.jl.
+
+julia> df = read_dataframe("../data/consolidate/geno_pheno_raman_df_all_9_13.csv");
+julia> redf = include("../data/9_24/run_geno_robustB.jl")
+julia> all_df = test_robustness_evolvability( df, redf )
+julia> write_dataframe(all_df,"../data/9_24/compare_robust_evolability.csv")

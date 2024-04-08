@@ -1,0 +1,37 @@
+Procedure for reading a research paper (and evaluating how well it is written).
+
+Abstract:  
+  Usually has 2 parts:  background and new results
+
+Introduction:
+  
+Conclusion:
+  Does the conclusion summarize the new results promised in the abstract and introduction.
+
+
+Apply to UP paper:
+Abstract:  First 2 1/2 sentences are background, last 1 1/2 sentences are new results.
+
+Introduction:
+  Sections:
+    Genotypes and phenotypes
+    Structural properties table
+    Fitness landscapes
+    Phenotype and genotype networks
+    Epochal evolution
+    Robustness and evolvability
+    Genetic correlations
+
+Discussion
+    Sentence recapitulating results
+    Arrival of the frequent
+    Survival of the flattest
+    Claim that these hold for additional forms of evolution
+    Summary of the effect of increasing the number of gates
+
+Conclusions
+    Genetic correlations and neutral evolution
+    Seven universal properties conclusions.
+
+Question:  What is the role of the exact results?
+    Supplementary information or main paper?

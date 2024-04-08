@@ -1,0 +1,29 @@
+Plotting K complexity versus phenotype frequency.
+See data/2_21_24/run_Kcomp_frequencyB.jl
+  
+Reading evotech/papers/B/banzhaf_neutral_spaces2024.pdf
+
+It seems to be that an instruction of a program is neutral iff it is not effective,
+  i. e., the output contributes to the output of the program.
+  An any mutation to an effective instruction modifies the output. 
+  Thus, a mutation is neutral iff it is to an ineffective instruction.
+
+Page 75:  
+Fig. 4.3.  These seem to be pictures of genotypes, not phenotypes.
+  And later in the page they reference phenotype A and phenotype B.
+
+"These are counteracting tendencies that are
+able to explain why evolution in the longer run (when neutrality dominates) prefers
+low complexity solutions, while in the shorter run (when fitness effects dominate) it
+prefers to access solutions with higher complexity."
+
+Not clear what this means.  Can this statement be empirically verified?
+
+Question 1:  is the neutral set of a phenotype connected?  Is there a path of
+neutral mutations between any two genotypes that map to the phenotype?
+Consider the case where the number of instructions in the genotype is the
+number of instructions set in the parameters.
+
+Question 2:  is it possible adaptive walks to fail?  Is it possible to reach
+a genotype (or maybe start at a genotype) where there is no mutational path
+to a genotype of the target phenotype?

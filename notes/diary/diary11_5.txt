@@ -1,0 +1,20 @@
+Working on the document "Exploring complexity11_5.docx".
+
+Running data/11_4/run_explore_complexity*.jl to see how well the explore_complexity() functions
+    in complexity_distributions.jl work.
+
+Checking whether the values of cumm_unique_goals of over 500 in explore_complexity11_4D.csv are plausible.
+Note that the "nruns" parameter should really be "ngens".  The code now restarts the simulation if 
+length(circuits_list) goes to zero.  When nruns is set to be 50 as in run_explore_complexityD.jl,
+many simulations fail, and so this is about the upper limit.  I added a printout of the value of
+length(redued_goallist) at the end of a simulation, and values are substantially under 100 when
+nruns=50, so this seems to be reasonable.  So the plausibility check succeeds, and the method of
+run_explore_compexity() is finding nearly all "desirble" goals.
+
+Value of cumm_unique_goals for generation 50:  548.125
+Values for length(redued_goallist) in the run of run_explore_complexityF.jl:
+57 46 43 92 31 47 44 76 39 42 76 37 60 51 39 79 46 64 32 64 43
+[Scrollback buffer ran out.]   mean(v) = 52.8, so very consistent.
+
+
+

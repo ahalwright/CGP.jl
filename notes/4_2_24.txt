@@ -1,0 +1,25 @@
+Revised function neutral_walk() in Neutral_walk.jl so that
+neutral_walk() generates at most the number of circuits returned by neutral_compnent().
+
+Note that exactly what function neutral_walk() does.  Possible revision.
+
+Below I show (by example) that the set of circuits returned by neutral_walk() is a subset of neutral_component()
+
+p = Parameters(1, 4, 0.05, 0.0, 2, 1, 2, 3, 3)
+julia> funcs # 5-element Vector{Func}:
+print_circuit(rch3) # circuit((1,2), ((3,NAND,1,2), (4,NOR,3,3), (5,AND,4,4)))
+length(neutral_component(rch3,funcs)) # 80
+@time length(neutral_walk( rch3, 50_000, 100, 100 )) # 80
+ 64.359408 seconds (197.85 M allocations: 10.627 GiB, 1.42% gc time, 0.02% compilation time)
+
+p4 = Parameters(2,1,4,4)
+rch4 = random_chromosome(p4,funcs)
+print_circuit(rch4) # circuit((1,2), ((3,XOR,1,1), (4,NOR,1,2), (5,XOR,4,3), (6,OR,3,2)))
+nc4 = neutral_component(rch4,funcs); length(nc4)      # 626288  vector of Int128
+@time length(neutral_walk( rch4, 200_000, 100, 100 )) # 594334
+655.589893 seconds (2.38 G allocations: 162.808 GiB, 1.80% gc time)
+
+@time nw4 = neutral_walk( rch4, 200_000, 100, 100 ) # 594954-element Vector{Int64}:
+653.134287 seconds (2.38 G allocations: 162.407 GiB, 1.85% gc time)
+snw4 = Set( map(x->Int128(x),nw4) )
+issubset( snw4, nc4 ) # true   # neutral walk is a subset of neutral component

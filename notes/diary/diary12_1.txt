@@ -1,0 +1,36 @@
+New version of neutral_walk_connectivity.jl
+which uses circuit_int() which extends circuit_code() in Chromosome.jl.
+Also uses sets rather than lists in run_neutral_walk().
+Note that sometimes the function fails when the neutral walk cannot be extended.  
+Dramatically faster.
+
+julia> include("circuit_code.jl")   # not needed---copied into Chromosome.jl
+julia> include("neutral_walk.jl")
+julia> p = Parameters(3,1,6,4)
+julia> g = [0x0029]
+julia> @time run_neutral_walk( g, p, 100, 1200, 50000, 30)
+w: 100  length(circuit_int_list) after add: 37  lengths circuit_int_list: [2672783, 37136, 2304, 37178, 26278, 34320, 47391, 420, 2304, 46985, 416, 26481, 325, 49358, 39872, 37813, 24681, 113, 28833, 30547, 28484, 50127, 36255, 1568, 6110, 19988, 1218, 19596, 113, 113, 25383, 14829, 17829, 38099, 9753, 22255, 7616]
+785.098403 seconds (1.52 G allocations: 202.509 GiB, 1.46% gc time)
+37-element Array{Int64,1}:
+
+w: 100  length(circuit_int_list) after add: 46  lengths circuit_int_list: [1978192, 39700, 28990, 15364, 40265, 30296, 283210, 49356, 127212, 52708, 31773, 58485, 420, 15557, 8638, 3116, 113, 6272, 325, 218, 75689, 24816, 3430, 113, 25965, 420, 6090, 113, 5279, 2714, 6242, 6477, 29742, 33017, 420, 30548, 25183, 33890, 24361, 13092, 16909, 216, 28864, 12093, 27564, 12734]
+837.870474 seconds (1.54 G allocations: 197.486 GiB, 1.49% gc time)
+46-element Array{Int64,1}:
+
+w: 100  length(circuit_int_list) after add: 25  lengths circuit_int_list: [167, 3874, 2388579, 216, 475777, 181074,
+31215, 23647, 38726, 51184, 35804, 113, 30906, 325, 77744, 325, 620, 47705, 29335, 25428, 1192, 5165, 2536, 35073, 36378]
+789.904398 seconds (1.52 G allocations: 206.690 GiB, 1.47% gc time)
+25-element Array{Int64,1}:
+
+
+# Note: bug discovered in circuit_code() in neutral_walk_connectivity.jl which is not fixed in the stash version.
+julia> include("stash/neutral_walk_connectivity11_23_20.jl")
+w: 100  walk_list after add: [1, 3, 10, 12, 14, 17, 18, 19, 23, 29, 33, 34, 41, 43, 47, 57, 59, 60, 66, 75, 81, 84]
+w: 100  length(circuit_code_list) after add: 22  lengths circuit_code_list: [2595244, 529, 218, 23654, 21006, 754779, 113, 113, 194464, 8482, 49717, 12542, 218, 37349, 6704, 15223, 26002, 42497, 24042, 25167, 31941, 733]
+8494.599208 seconds (935.71 M allocations: 352.646 GiB, 0.19% gc time)
+22-element Array{Int64,1}:
+w: 100  walk_list after add: [1, 2, 3, 4, 8, 9, 12, 16, 19, 21, 22, 23, 32, 33, 34, 38, 42, 44, 49, 52, 53, 57, 64,
+65, 68, 72, 74, 76, 78, 80, 84, 85, 88, 89, 90, 98, 99]
+w: 100  length(circuit_code_list) after add: 37  lengths circuit_code_list: [2288222, 25143, 42486, 361947, 45374, 15434, 24694, 218, 218, 115060, 46233, 34629, 29063, 11165, 4598, 16237, 18812, 216, 844, 38102, 54200, 32440, 1616, 216, 1204, 13172, 1615, 44561, 27588, 25710, 820, 113, 40851, 216, 43670, 20332, 2714]
+8137.488068 seconds (966.28 M allocations: 342.077 GiB, 0.21% gc time)
+37-element Array{Int64,1}:

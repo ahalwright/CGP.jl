@@ -1,0 +1,100 @@
+Summarizing random fitness navigability results.
+
+Overview:  Random fitness navigability works well except in the 4-input 10 gate case.  Runs in the 4-input 10-gate case
+take a long time, and I have been “wasting” a lot of time on these runs.
+
+Fitness epochal evolution is like epochal evolution except that it only accepts steps where the phenotype of the step
+is greater than or equal to the fitness of the previous step, and where the phenotype of the next step is less than or 
+equal to the fitness of the destination phenotype.
+
+Here is my procedure for testing random fitness navigability:
+1). Choose a random fitness function over phenotypes
+2). Choose a random destination phenotype that has fitness at least as high as the 0.1 quantile of the fitness distribution.
+3). Choose a random source phenotype subject to the condition that its fitness is less than the fitness of the destination phenotype.
+4). The usual setting of max_tries is 10.
+5). for i =  1:num_circuits
+      Do up to max_tries attempts of epochal evolution to find a genotype that maps to the source phenotype.  This usually succeeds.
+      An nfailure is where all attempts fail.
+      Attempt fitness epochal evolution to evolve a monotone non-decreasing path from this genoitype to the destination phenotype.  
+      An efailure is where this attempt fails.
+    end for
+6). A failure is where all of these num_circuits attempts fail, i. e., when the number of efailures is num_circuits.
+7). The output of the run reports "count failures" as the number of failures as defined in the previous step.
+
+The above description does not agrees with the corresponding method in the UP paper.  The UP paper method is better, but it is hard to change
+it now.  So I have to change the paper method to what is actually implemented in Julia.
+
+Results:  (updated 2/7/24)
+\begin{tabular}{cccccccc}
+    numinputs& gates& levelsback & max\_steps& numcircuits& phenotype pairs& successes& failures\\
+    3& 8&  4& 20,000& 1000& 800& 800& 0 \\  %% suffix G
+    3& 14& 7& 20,000& 1000& 800& 800& 0 \\  %% suffix I
+    4& 10& 5& 50,000& 1000& 800& 566& 234 \\  %% suffix U, UU, etc.
+    4& 12& 6& 50,000& 1000& 800& 709& 91 \\  %% suffix R, RR, etc.
+    4& 14& 7& 50,000& 1000& 800& 733& 67 \\  %% suffix S, SS, etc.
+\end{tabular
+
+Note that if the 10 gate case had 800 phenotype pairs instead of 400, the expected number of failures
+would be 246.
+
+The number of failures is a measure of the difficulty of finding monotone non-descreasing paths between
+pairs of phenotypes.  Thus, it is a measure of the ruggedness of the fitnss landscape.
+As you can see, the failure rate dramatically increases for 4 inputs, 10 gates compared to 12 and 14 gates.
+
+This suggests that the ruggedness of the random fitness landscape substantially increases as the number of 
+gates decreases.
+
+===============================
+Measuring the ruggedness of a fitness landscape.
+
+Hypothesis:  The ruggedness of the random fitness landscape decreases with the number of gates.
+
+Siliang Song, Jianzhi Zhang, Unbiased inference of the fitness landscape ruggedness from imprecise fitness estimates, 
+    Evolution, Volume 75, Issue 11, 1 November 2021, Pages 2658–2671, https://doi.org/10.1111/evo.14363
+https://academic.oup.com/evolut/article/75/11/2658/6705354   
+
+"Four measures of landscape ruggedness are now commonly used. [Third paragraph of introduction.]
+"The first is the number of maxima (Nmax), which is the number of fitness peaks in a landscape (Weinberger 1991; Durrett and Limic 2003; Limic and Pemantle 2004). 
+    [We could measure this for the exact parameters and maybe estimate it more generally.  Start with random genotypes, and hill climb to the corresponding peak.
+    How often are different peaks found.]
+"The second is the fraction of pairs of sites exhibiting reciprocal sign epistasis (Frse)
+    [Not useful for us.]
+"The third measure is the roughness to slope ratio (r/s), which quantifies the extent to which the landscape cannot be described by a 
+    linear model where mutations additively determine fitness
+    [I think we can measure this.]
+"The fourth is the fraction of pathways that are blocked (Fbp) (Weinreich et al. 2006; Poelwijk et al. 2007; Franke et al. 2011; Lobkovsky et al. 2011). 
+    Here, a pathway from genotype i to genotype j through single-mutation steps is considered blocked if the fitness is decreased in any of the steps. 
+    [This is what we are trying to measure.]"
+
+=============================
+4 inputs
+12 gates
+wc -l *12gts*.csv
+     115 navigability_rand_fitness_4x1_12gts_9_25_23R.csv
+      66 navigability_rand_fitness_4x1_12gts_9_25_23RR.csv
+     116 navigability_rand_fitness_4x1_12gts_9_25_23RRR.csv
+     115 navigability_rand_fitness_4x1_12gts_9_25_23RRRR.csv
+     115 navigability_rand_fitness_4x1_12gts_9_25_23RRRRR.csv
+     115 navigability_rand_fitness_4x1_12gts_9_25_23RRRRRR.csv
+     115 navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRR.csv
+     115 navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRRR.csv
+     116 navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRRRR.csv
+     988 total
+fgrep "count failures:" *12gts*.csv
+navigability_rand_fitness_4x1_12gts_9_25_23R.csv:14:# count failures: 12
+navigability_rand_fitness_4x1_12gts_9_25_23RR.csv:15:# count failures: 3
+navigability_rand_fitness_4x1_12gts_9_25_23RRR.csv:15:# count failures: 7
+navigability_rand_fitness_4x1_12gts_9_25_23RRRR.csv:14:# count failures: 9
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRR.csv:14:# count failures: 14
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRRR.csv:14:# count failures: 14
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRR.csv:14:# count failures: 13
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRRR.csv:14:# count failures: 15
+navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRRRR.csv:15:# count failures: 16
+
+10 gates
+wc -l *10gts*.csv
+  116 navigability_rand_fitness_4x1_10gts_9_25_23UU.csv
+   25 navigability_rand_fitness_4x1_10gts_9_25_23UUUUUUUUU.csv
+fgrep "count failures:" *10gts*.csv
+navigability_rand_fitness_4x1_10gts_9_25_23U.csv:15:# count failures: 32
+navigability_rand_fitness_4x1_10gts_9_25_23UUUUUUUUU.csv:14:# count failures: 8

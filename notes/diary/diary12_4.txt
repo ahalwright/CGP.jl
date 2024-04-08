@@ -1,0 +1,48 @@
+Generated 10 plots from data file geno_complexity10_27FMNccons.csv which was created on 10/30.
+These plot files are in data/10_27 and all begin with gc10_27FMN_.        
+Example:
+gcdf = read_dataframe("10_27/geno_complexity10_27FMNccons.csv")
+
+edf = read_dataframe("..data/2020/10_27/geno_complexity10_27FMNccons.csv")
+sdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3B.csv")   
+
+Rerunnng determining evolvability by repeated sampling for a large number of goals.
+
+Goal: [0x0603]  common
+With 8 gates, 5 lb:  182 seconds
+julia> transpose(adf.evo_count)
+1×100 LinearAlgebra.Transpose{Int64,Array{Int64,1}}:
+ 211  337  396  429  495  541  568  612  664  700  765  805  829  839  880  …  1850  1862  1870  1878  1887  1890  1891  1897  1903  1915  1930
+With 11 gates, 8 lb:  133 seconds
+julia> transpose(bdf.evo_count)
+1×100 LinearAlgebra.Transpose{Int64,Array{Int64,1}}:
+ 284  434  585  671  750  917  970  1042  1095  1200  1280  1336  1428  1512  …  3958  3989  3999  4006  4036  4084  4104  4162  4165  4189  4191
+
+For 11 gates 8 lb: 
+10 minutes/processor for 1000 steps.
+2560 minutes/processor for 256000 steps.
+100 minutes for 256000 steps on surt2.
+
+Goal: [0x6b18] rare
+"data/12_4/run_geno_complexityE.jl" and "data/12_4/geno_complexity12_4E.csv"
+16 hours on surt2 with 28 processors
+Discovered that evo_count of common goal is catching up with evo_count of rare goal
+implying a different distribution of phenotype frequencies.
+Reinforces the results of the 3x1 plot of 11/27.
+
+julia> scatter(collect(1:100:256000),[edf.evo_count,cdf.evo_count],title="evolvability count vs number samples 11 gates 8lb",xlabel="sample size",ylabel="evolvability_count", labels=["goal function [0x6b18] count 3" "goal function [0x0603] count 64524"], legend=:bottomright,markerstrokecolor=[:blue :orange])
+julia> savefig("12_4/evo_count_vs_samples_rare_common_goal_11gates_8lb.png") 
+
+julia> scatter(logsteps,[edf.log_ev_count,cdf.log_ev_count],title="log evocount vs log steps for two  goals 11 gates 8lb",xlabel="log(steps)",ylabel="log(evolvability_count)", labels=["goal function [0x6b18] count 3" "goal function [0x0603] count 64524"], legend=:bottomright,markerstrokecolor=[:blue :orange])
+julia> savefig("12_4/log_ev_count vs logsteps rare common goal 11gts 8 lb.png")
+
+The following didn't work:
+Revisiting evolvability count vs steps for goal [0x0603] with 11 gates 8 lb.
+Try regression
+julia> r = cor(logsteps,gcdf.log_ev_diff) 
+julia> m = r*std(gcdf.log_ev_diff)/std(logsteps)
+julia> b = mean(gcdf.log_ev_diff)-m*mean(logsteps)
+julia> gcdf.reg_eq = [b+m*logsteps[i] for i = 1:size(gcdf)[1]] 
+julia> regdiff=[gcdf.reg_eq[i]-gcdf.log_ev_diff[i] for i = 1:size(gcdf)[1]]  # very positive for small i
+This doesn't work very well.
+

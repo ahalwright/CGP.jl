@@ -1,0 +1,22 @@
+Agenda:
+
+Neutral components:  systematically compute neutral components relative to phenotype frequency.
+
+Start with p = Parameters(2,1,3,3)
+rch = random_chromosome(p,funcs);
+chl = Chromosome[]
+for i = 0:15
+  push!(chl, neutral_evolution( rch, funcs, [MyInt(i)], 10_000 )[1])
+end
+ncl = map( ch->length(neutral_component( ch, funcs)), chl )
+ 27 12 19 20 10 26 21 22 14 14 21 6 20 20 22 20
+ 29 17 19 25 15 11 21 18 24 12 23 19 18 9 5 14
+p = Parameters(2,1,4,4)
+rch = random_chromosome(p,funcs);
+chl = Chromosome[]
+for i = 0:15
+  push!(chl, neutral_evolution( rch, funcs, [MyInt(i)], 10_000 )[1])
+end
+ncl = map( ch->length(neutral_component( ch, funcs)), chl )
+14 7 15 12 17 23 4 12 18 18 21 13 10 18 8 24
+

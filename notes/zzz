@@ -1,0 +1,23 @@
+
+And I am going to use ~ for negation:  e. g. ~ctx1 = 00001111, ~ctx2 = 00110011, etc.
+Note that ~ is the Julia symbol for bitwise negation (0->1, 1->0), & is bitwise AND, | is bitwise OR.
+
+Note that: 
+u1 = ctx1 & ctx2 & ctx3    = 0x80 = 1000000
+u2 = ctx1 & ctx2 & ~ctx3   = 0x40 = 1000000
+u3 = ctx1 & ~ctx2 & ctx3   = 0x20 = 0100000
+u4 = ctx1 & ~ctx2 & ~ctx3  = 0x10 = 0010000
+u5 = ~ctx1 & ctx2 &  ctx3  = 0x08 = 0001000
+u6 = ~ctx1 & ctx2 & ~ctx3  = 0x04 = 0000100
+u7 = ~ctx1 & ~ctx2 & ctx3  = 0x02 = 0000010
+u8 = ~ctx1 & ~ctx2 & ~ctx3 = 0x01 = 0000001
+
+Now we can construct any phenotype by combining the appropriate unit vectors with OR.
+
+Example.  Let the phenotype ph be 0x92 = 10010010.
+ph = u1 | u4 | u7  because ph has one bits in positions 1, 4, and 7.
+
+While this example is for 3 inputs, clearly it generalizes to any number of inputs.
+
+Since there is a genotype for every phenotype, Kolmogorov complexity is always defined
+and the above construction puts an upper bound on the K complexity of any phenotype.

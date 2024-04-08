@@ -516,6 +516,7 @@ These files now have suffix  _21.txt
 12_24_23:  Constructing a genotype that maps to any given phenotype ph by OR of unit bit strings.
 12_28_23:  Constructing a genotype that maps to any given phenotype ph by AND of unit zero bit strings.
 12_29_23:  Found that evolution evolvability is not included in the Overleaf version of the UP paper.
+2_2_24:    Summarizing random fitness navigability results.
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

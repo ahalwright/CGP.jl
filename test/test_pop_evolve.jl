@@ -1,11 +1,10 @@
 # Test the mut_evolve_subgoal() function from src/Evolve.jl
 
 #include("../src/CGP.jl")
-include("../src/Pop_evolution.jl")
+#include("../src/PopEvolve.jl")
 using Main.CGP
 MyInt = Main.CGP.MyInt
 
-#=
 # This is a test function but is included here for convenience
 function test_pop_evolve(p::Parameters,popsize,funcs,max_pop_steps::Int64,max_indiv_steps::Int64,ngoals::Int64; 
     robust_sel::Bool=false)
@@ -14,7 +13,6 @@ function test_pop_evolve(p::Parameters,popsize,funcs,max_pop_steps::Int64,max_in
   gl = randgoallist(ngoals,p.numinputs,p.numoutputs)
   (max_fit_all_gens, pop) = pop_evolve( p, popsize, max_pop_steps, max_indiv_steps, gl, funcs, robust_sel=robust_sel)
 end       
-=#
 
 numinputs = 2
 numoutputs = 2

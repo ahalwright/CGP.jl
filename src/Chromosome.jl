@@ -1,8 +1,8 @@
 using DataFrames
 using CSV
 import Base.getindex
+export PredType   # defined below to be Int64
 export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all, mutate_all_neutral
-export PredType
 export num_mutate_locations, set_active_to_false, fraction_active, check_recursive, node_values
 export output_values, number_active, number_active_gates, remove_inactive, deactivate_chromosome!
 export hamming_distance, ihamming_distance, hamming 
@@ -15,8 +15,9 @@ export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to
 export chromosome_add_input, chromsome_add_multiplexer
 export normalize_chromosome, normalize_chromosome!, count_circuits_ch_normalize
 export inputs_list
+#export neutral_component_ints!
   
-PredType = Int64
+PredType = Int64   # Also defined in aliases.jl
 #= Commented out.  The included definition is in aliases.jl.
 mutable struct Chromosome
   params::Parameters
@@ -244,6 +245,25 @@ function mutate_chromosome!( c::Chromosome, funcs::Vector{Func}, mutate_location
   (c,active)
 end
 
+#= returns the component of the neutral set of the phenotype output_values(circuit) that contains circuit.
+# This function is now defined in Neutral_component.jl
+function neutral_component( circuit::Chromosome, funcs::Vector{Func}, component::Set=Set([]) )::Set
+  ov = output_values(circuit)
+  component = Set([])
+  stack = Int64[]  # create a stack with Int64 elements
+  chi = chromosome_to_int( circuit, funcs )
+  push!( stack, chi )
+  push!( component, chi )
+  while length(stack) > 0
+    cci = pop!(stack)
+    cch = int_to_chromosome( cci, circuit.params, funcs )
+    mcn = filter(cch->ov==output_values(cch), mutate_all( circuit, funcs, output_outputs=false, output_circuits=true ))
+    mcn_pairs = map( c->(c,chromosome_to_int( c, funcs )), mcn )
+    for ci_pair in mcn_pairs
+      if !(ci_pair[2] in component)
+        push!(component,ci_pair[2])
+=#
+
 # Mutates c in all possible ways. 
 # The result depends on the keyword arguments.
 # If output_outputs && !output_circuits (default) returns list of the outputs of chromsomes produced by mutation   
@@ -272,10 +292,12 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
   context = construct_context(c.params.numinputs)
   orig_output = output_values(c)
   num_mutate_locs = num_mutate_locations( c, funcs )
+  #println("num_mutate_locs: ",num_mutate_locs)
   interiors_inputs_list = [ c.interiors[i].inputs for i = 1:c.params.numinteriors ]
   num_inputs_list = map(length, interiors_inputs_list)
   num_funcs_to_mutate = length(funcs) > 1 ? c.params.numinteriors : 0
   for mutate_location = 1:num_mutate_locs
+    #println("mutate location: ",mutate_location)
     new_c = output_circuits ? deepcopy(c) : c
     if mutate_location <= num_funcs_to_mutate   # mutate a func
       #println("mutate a func ml:",mutate_location,"  node: ",c.interiors[mutate_location])
@@ -393,6 +415,7 @@ function mutate_all( c::Chromosome, funcs::Vector{Func};
         push!(result,new_c)
       end
     end
+    #println("length result: ",length(result))
   end
   if robustness_only
     (robustness_sum/robustness_count, length(unique(result))/length(result)) # pair of avg robustenss and evolvability
@@ -410,6 +433,8 @@ function mutate_all_neutral( c::Chromosome, funcs::Vector{Func} )
   ch_list[findall(x->x[1]==ph[1],outputs_list)];
 end
 
+# Supposed to return the number of ways to mutate c
+# However, mutate_all returns more than this number of mutations.
 function num_mutate_locations( c::Chromosome, funcs::Vector{Func} )
   if length(c.interiors) == 0
     return 0
@@ -1044,7 +1069,36 @@ function normalize_chromosome!( ch::Chromosome )
       tmp = i.inputs[1]; i.inputs[1] = i.inputs[2]; i.inputs[2] = tmp
     end
   end
-  ch
+  cah
+end
+
+# Returns the number of genotypes mapping to each phenotype for the parameters/funcs setting.
+# This is for Chromosomes.
+function count_genotypes_ch( p::Parameters, funcs::Vector{Func}=default_funcs(p) )
+  num_circuits = Int(count_circuits_ch( p ))
+  genotype_counts = zeros( Int64, 2^2^p.numinputs )
+  for i = 1:num_circuits
+    ov = output_values( int_to_chromosome(i,p,funcs) )[1]
+    if ov+1 > 2^2^p.numinputs
+      println("i: ",i,"  ov: ",ov)
+    end
+    genotype_counts[ov+1] += 1
+  end
+  #genotype_counts
+  count_genotypes_table( p, funcs, genotype_counts )
+end
+
+# Returns the number of genotypes mapping to each phenotype for the parameters/funcs setting.
+# This is for Chromosomes.
+function count_genotypes_ch_mt( p::Parameters, funcs::Vector{Func}=default_funcs(p) )
+  genotype_counts = [ Threads.Atomic{Int64}(0) for i= 1:2^2^p.numinputs ]
+  num_circuits = Int(count_circuits_ch( p ))
+  Threads.@threads for i = 1:num_circuits
+    ov = output_values( int_to_chromosome(i,p,funcs))[1]
+    Threads.atomic_add!( genotype_counts[ov+1], 1 )
+  end
+  gc = map( ph->ph[], genotype_counts )
+  count_genotypes_table( p, funcs, gc )
 end
 
 # Return the number of circuits for parameters p and funcs 
@@ -1059,6 +1113,7 @@ end
 
 # Return the number of circuits for parameters p and number of funcs nfuncs if nfuncs>0
 # If nfuncs==0, nfuncs is reset to be length(default_funcs(p.numinputs))
+# There is a multithreaded version
 function count_circuits_ch( p::Parameters; nfuncs::Int64=5 )
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
@@ -1088,6 +1143,13 @@ function count_circuits_ch( p::Parameters; nfuncs::Int64=5 )
   multiplier^p.numoutputs
 end
 
+function count_genotypes_table( p::Parameters, funcs::Vector{Func}, genotype_counts::Vector )
+  df = DataFrame(
+    :phenotype=>map( ph->[MyInt(ph)], 0:(2^2^p.numinputs-1)),
+    :count=>genotype_counts
+  )
+end
+
 # Return the number of normalized circuits for parameters p and funcs 
 function count_circuits_ch_normalize( p::Parameters, funcs::Vector{Func} )
   count_circuits_ch_normalize( p, nfuncs=length(funcs) )
@@ -1112,42 +1174,6 @@ function count_circuits_ch_normalize( p::Parameters; nfuncs::Int64=0 )
   end
   multiplier
 end
-    
-#=  Previous versions, should be deleted
-function count_circuits_ch_normalize( p::Parameters; nfuncs::Int64=5 )
-  @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
-  nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
-  multiplier = BigFloat(1)
-  mij = 0
-  for i = 1:p.numinteriors
-    mf = nfuncs
-    multiplier *= mf
-    mult = min(p.numlevelsback,i-1+p.numinputs)
-    multiplier *= mult
-    println("i: ",i,"  mult: ",mult,"  multiplier: ",multiplier)
-    mult -= mult==1 ? 0 : 1
-    multiplier *= mult
-    println("i: ",i,"  mult: ",mult,"  multiplier: ",multiplier)
-    exp = trunc(log10(multiplier))
-    fract = 10^(log10(multiplier)-exp)
-  end
-  #UInt128(multiplier^p.numoutputs)
-  multiplier^p.numoutputs
-end
-function count_circuits_ch_normalize( p::Parameters; nfuncs::Int64=5 )
-  @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
-  nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
-  multiplier = BigFloat(1)
-  for i = 1:p.numinteriors
-    n_inputs = min(p.numlevelsback,i-1+p.numinputs)  # Number of possible values for inputs to this interior node
-    mult = 2*n_inputs - 1
-    multiplier *= mult
-    println("i: ",i,"  mult: ",mult,"  multiplier: ",multiplier)
-  end
-  multiplier^p.numoutputs
-end
-=#
-
 
 # Mutates chromosome c by inserting a gate or deleting a gate
 function mutate_num_gates!( c::Chromosome; prob_insert::Float64=0.5 )
@@ -1238,8 +1264,10 @@ function geno_distance( ch1::Chromosome, ch2::Chromosome, funcs::Vector{Func} )
   #gtuple1 = gate_tuple( p1, funcs, ch1.interiors )
   #gtuple2 = gate_tuple( p2, funcs, ch2.interiors )
   #mismatch = [ gtuple1[i] != gtuple2[i] ? 1 : 0 for i = 1:length(gtuple1) ]
-  glist1 = gate_list( p1, funcs, ch1.interiors )
-  glist2 = gate_list( p2, funcs, ch2.interiors )
+  #glist1 = gate_list( p1, funcs, ch1.interiors )
+  #glist2 = gate_list( p2, funcs, ch2.interiors )
+  glist1 = gate_list( funcs, ch1.interiors )
+  glist2 = gate_list( funcs, ch2.interiors )
   mismatch = [ glist1[i] != glist2[i] ? 1 : 0 for i = 1:length(glist1) ]
   reduce( +, mismatch )
 end
@@ -1453,11 +1481,12 @@ function count_ones_properties( p::Parameters, funcs::Vector{Func} )
   DataFrame( :pheno=>pheno_list, :count_ones=>count_ones_list, :log_redund=>lg_redund_list, :k_complexity=>k_complexity_list )
 end
 
-# Not correct or finished
+#= Not correct or finished
 function redundancy_density( p::Parameters, funcs::Vector{Func}, nsamples::Int64 )
   rdict = redundancy_dict( p, funcs )
   kdict = kolmogorov_complexity_dict( p, funcs )
   gdf = read_dataframe( "../data/counts/count_outputs_ch_5funcs_4inputs_10gates_5lb_EG.csv" )
   glogredund = map( r->lg10(r), gdf.ints10_5 )
 end
+=#
 

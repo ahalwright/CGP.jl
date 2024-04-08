@@ -1,0 +1,9 @@
+Algorithm for neutral components:
+
+Given a phenotype ph
+  From the possible circuit ints for the parameter settings
+    Generate a list phl of those that map to ph
+      Construct an array pha that maps phl to circuit ints
+      For each circuit int chi in phl
+        Find the circuit ints of the neutral neighbors of chi
+        Map chi to the minimum of these: pha[i] = min( neutral neighbors of chi)

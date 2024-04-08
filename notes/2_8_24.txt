@@ -1,0 +1,33 @@
+Hypotheses and experiments on hill climbing.
+
+# Given a genotype ch, does up to max_iterations where each iteration replaces ch with a higher fitness mutation
+# Iterations continue until no higher fitness mutation is found or max_iterations are done.
+# Returns the highest fitenss genotype found.
+function hill_climb( fitness::Vector{Float64}, ch::Chromosome, funcs::Vector{Func}, max_iterations::Int64)::Tuple{Chromosome,Float64,Goal}
+
+Currently in hill_climbing.jl, but will be put at the end of Chromosome.jl.
+
+Hypotheses:  
+Assume a random fitness on phnotypes by fitness = map(_->rand(),2^2^numinputs).
+num_inputs is fixed.  numinteriors is the number of gates.
+levelsback is half the number of gates (or ceil(numinteriors/2.0)).
+
+fitness = map(_->rand(),1:2^2^P.numinputs)   # P is the parameters, perhaps set a random seed.
+fitfunct( ch::Circuit ) = fitfunct( output_values(ch) )::Float64  # fitness of a genotype
+fitfunct( g::Goal ) = fitness[ g[1]+1 ]::Float64   # fitness of a phenotype
+
+julia> rch=random_chromosome(P3,funcs);  
+julia> hill_climb( fitness, deepcopy(rch), funcs, 4 )[2:3]
+best_fitness: 0.7963726840668643
+i: 1  best_fitness: 0.7963726840668643
+i: 1  current_fitness: 0.967909368604796
+i: 1  new best_fitness: 0.967909368604796
+i: 2  best_fitness: 0.967909368604796
+i: 2  current_fitness: 0.967909368604796
+break:  current_fitness: 0.967909368604796  best_fitness: 0.967909368604796
+(0.967909368604796, UInt16[0x0002])
+
+Hypotheses:
+1)  As numinteriors increases, the average fitness from hill_climb() increases.  
+2)  As numinteriors increases, the probability that hill_climb() finds the optimum fitness increases.
+3)  Over random fitness functions, the probability that hill_climb() finds the optimum fitness increases as the frequency of the optimum fitness increase.

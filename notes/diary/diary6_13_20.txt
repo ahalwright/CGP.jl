@@ -1,0 +1,20 @@
+Multiple misguided revisions of randgoal() and randgoallist() in Evolve.jl
+For a while, I thought that using repeated goals greatly sped up evoution, but
+this was due to randgoallist() and randgoal() not returning the right goallist.
+
+Objective:  Circuits should have multiple groups of output components that correspond to
+multiple groups of goal components.
+
+A simple example: 
+Start with with numinputs=2, numoutputs=2, gl_repetitions = 1
+If goal = [0x03, 0x0e]  output = [0x0e, 0x03], these match.
+
+Now we want to change this to gl_repetitions = 2.
+We need to multiply numoutputs by gl_repetitions, so numoutputs=4
+Then goal = [0x03, 0x0e, 0x03, 0x0e].  The groups of goal components are [0x03,0x0e] and [0x03,0x0e].
+If output = [0x03, 0x0e, 0x02, 0x0e], the groups of output components are [0x03,0x0e] and [0x02,0x0e]. 
+So there is a partial match of goal components to output components, 
+Namely the first components match and the second components partially match.
+
+Implementing this will require a substantial rewrite of components_matched(),
+goals_matched_exact() and goals_matched_hamming() and randgoal() and randgoallist().

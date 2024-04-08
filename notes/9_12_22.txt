@@ -1,4 +1,4 @@
-Log redundancy vs rank and log rank
+Log redundancy vs rank and log rank  includes 1/26/24 results.
 using Plots
 
 4x1:
@@ -9,8 +9,7 @@ Plots.scatter(0:(2^2^4-1),cdf4.ints10_5lgsrt,markerstrokecolor=:blue,markercolor
 Plots.scatter!(xlabel="rank",ylabel="log redundancy",legend=:none)
 savefig("../data/9_12_22/log_redund_vs_rank_4x1_10gts5lb_8_15_22.png")
 
-3_9_23:
-3_24_23:  Change label from log redundancy to log frequency
+3_24_23:  4x1: 10 and 12 gates
 ddf4 = read_dataframe("../data/counts/count_outputs_ch_5funcs_4inputs_12gates_6lb_H.csv")
 insertcols!(ddf4,3,:ints12_6lgsrt=>sort(map(x->lg10(x),ddf4.ints12_6),rev=true))
 Plots.scatter(0:(2^2^4-1),ddf4.ints12_6lgsrt,markerstrokecolor=:orange,markercolor=:orange,labels="12 gates 6 levelsback")
@@ -20,11 +19,24 @@ Plots.scatter!(0:(2^2^4-1),cdf4.ints10_5lgsrt,markerstrokecolor=:blue,markercolo
 Plots.scatter!(xlabel="rank",ylabel="log frequency")
 savefig("../data/9_12_22/log_freq_vs_rank_4x1_10_12gts5lb_8_15_22.png")
 
+#Log redund vs log rank.   Not currently in UP paper
 Plots.scatter(map(lg10,1:2^2^4),cdf4.ints10_5lgsrt,markerstrokecolor=:blue)
 Plots.scatter!(xlabel="log rank",ylabel="log redundancy",title="log redundancy vs log rank 4x1 10gts5lb_8_15_22",legend=:none)
 savefig("../data/9_12_22/log_redund_vs_log_rank_4x1_10gts5lb_8_15_22.png")
 
-3x1:
+1/25/24:  3x1:  14 and 8 gates
+vdf = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_3inputs_8gate_4lb_V.csv");
+wdf = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_3inputs_14gate_7lb_W.csv");
+insertcols!(vdf,3,:ints8_4lgsrt=>sort(map(x->lg10(x),vdf.ints8_4),rev=true))
+insertcols!(wdf,3,:ints14_7lgsrt=>sort(map(x->lg10(x),wdf.ints14_7),rev=true))
+Plots.scatter(1:2^2^3,vdf.ints8_4lgsrt,labels="8 gates")   # log vs rank  
+Plots.scatter(1:2^2^3,wdf.ints14_7lgsrt,labels="14 gates")   # log vs rank
+# 3 input version of "Sampled phenotype log frequency vs rank for UP paper
+Plots.scatter(1:2^2^3,[wdf.ints14_7lgsrt,vdf.ints8_4lgsrt],labels=["14 gates 7 levelsback" "8 gates 4 levelsback"])  # both 14 and 8 gates
+plot!(xlabel="rank",ylabel="log frequency")
+savefig("../data/9_12_22/log_redund_vs_rank_3x1_8_14gts.png")   # 3 input version for UP paper
+
+3x1:  8 and 10 gates.  Obsolete
 cdf3_8 = read_dataframe("../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv")
 cdf3_10 = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_10gate_5lb_I.csv")
 insertcols!(cdf3_8,3,:ints8_4lgsrt=>sort(map(x->lg10(x),cdf3_8.ints8_4),rev=true))

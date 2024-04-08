@@ -1,0 +1,8 @@
+Ran @time ol = count_outputs_parallel( 10^10, 4, 1, 9, 5);  where count_outputs_parallel() is in RecordFunctions.jl.
+surt2 with 28 processes
+Time:  16478 seconds = 4.6 hours
+output files:  data/9_9/count_out_9ints_10_10hex.csv and data/9_9/count_out_9ints_10_10dec.csv
+julia> show_outputs_list( ol, 0, show_small=true, count_only=true )
+count of shown elements: 560
+write_to_file(ol,"../data/9_9/count_out_9ints_10_10hex.csv","reps = 10^10, 4x1, 9 interiors, 5 levsback 16478 seconds on surt2 with 28 processes",hex=true)
+write_to_file(ol,"../data/9_9/count_out_9ints_10_10hex.csv","reps = 10^10, 4x1, 9 interiors, 5 levsback 16478 seconds on surt2 with 28 processes",hex=false)

@@ -1,0 +1,4 @@
+Ran @time ol = count_outputs_parallel( 10^10, 4, 1, 9, 5);  where count_outputs_parallel() is in RecordFunctions.jl.
+surt2 with 28 processes
+Time:  15222 secons = 4.3 hours
+1388 zero counts

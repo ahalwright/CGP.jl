@@ -1,0 +1,13 @@
+Counting tbe number of genotypes that map to each phenotype.
+
+Note:  p3 = Parameters(3,1,4,4)
+@time count_genotypes_ch_mt( p3, funcs )
+395.141675 seconds (11.22 G allocations: 864.474 GiB, 19.05% gc time)
+256-element Vector{Int64}:
+ 3231192
+  166728
+  107400
+  246232
+
+Crucial that CGP.Ones (and maybe global Ones) is set appropriately.
+

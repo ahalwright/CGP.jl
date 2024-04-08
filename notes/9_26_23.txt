@@ -12,6 +12,8 @@ With one_success:  12 failurs out of 20, 3.6 seconds.
 Without one_success:  1 failure out of 20, 5 minutes.
 
 9/27/23:
+Suffixes M, N, O, P, Q, R, S with XOR
+
 Did more runs.
 fgrep "count failures:" *.csv
 navigability_rand_fitness_3x1_14gts_9_25_23D.csv:14:# count failures: 2
@@ -42,6 +44,7 @@ navigability_rand_fitness_4x1_12gts_9_25_23RRRRR.csv:14:# count failures: 14
 navigability_rand_fitness_4x1_12gts_9_25_23RRRRRR.csv:14:# count failures: 14
 navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRR.csv:14:# count failures: 13
 navigability_rand_fitness_4x1_12gts_9_25_23RRRRRRRR.csv:14:# count failures: 15
+sum: 91
 
 10/6/23:  More S runs
 (base) oldmtnbiker@MacBook-Pro-33:~/OneDrive/evotech/CGP.jl/data/9_25_23$ grep "count failures" *23S*\.csv
@@ -53,3 +56,4 @@ navigability_rand_fitness_4x1_14gts_9_25_23SSSSS.csv:15:# count failures: 5:  fl
 navigability_rand_fitness_4x1_14gts_9_25_23SSSSSS.csv:15:# count failures: 12:  surt2
 navigability_rand_fitness_4x1_14gts_9_25_23SSSSSSS.csv:15:# count failures: 10:  mac
 navigability_rand_fitness_4x1_14gts_9_25_23SSSSSSSS.csv:15:# count failures: 9:  surt2
+sum: 67

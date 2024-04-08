@@ -9,19 +9,24 @@ using DataStructures
 # If csvfile is a legitimate filename, writes this dataframe to this file.
 # function dataframe_row() is pmap called ngoals times.  dataframe_row() calls function navigate().
 function run_navigate_epochal( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, ngoals::Int64, max_steps::Int64, num_circuits::Int64; 
-      use_pmap::Bool=false, one_success::Bool=false, csvfile::String="" )
+      max_tries::Int64=10, use_pmap::Bool=false, one_success::Bool=false, csvfile::String="" )::DataFrame
+  println("run_navigate_epochal: max_tries: ",max_tries)
   rdict = redundancy_dict(P,funcs)
   kdict = kolmogorov_complexity_dict(P,funcs)
-  rdf = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :srcfit=>Float64[], :srcK=>Int64[], :srcfreq=>Int64[], 
-      :destfit=>Float64[], :destK=>Int64[], :destfreq=>Int64[], :mean_steps=>Float64[], :num_circuits=>Int64[], :ncircuits=>Int64[], :failures=>Int64[]  )
+  rdf = DataFrame( :numinputs=>Int64[], :numgates=>Int64[], :srcgoal=>Vector{Vector{MyInt}}, :srcfit=>Float64[], :srcK=>Int64[], :srcfreq=>Int64[], 
+      :destgoal=>Vector{Vector{MyInt}}, :destfit=>Float64[], :destK=>Int64[], :destfreq=>Int64[], :mean_steps=>Float64[], :num_circuits=>Int64[], 
+      :ncircuits=>Int64[], :nfailures=>Int64[], :efailures=>Int64[]  )
+  println("length(names(rdf)): ",length(names(rdf)))
   if use_pmap
-    row_list = pmap( _->dataframe_row( P, funcs, fitness, kdict, rdict, num_circuits, max_steps, one_success=one_success ), 1:ngoals )
+    row_list = pmap( _->dataframe_row( P, funcs, fitness, kdict, rdict, num_circuits, max_steps, max_tries=max_tries, one_success=one_success ), 1:ngoals )
   else
-    row_list = map( _->dataframe_row( P, funcs, fitness, kdict, rdict, num_circuits, max_steps, one_success=one_success ), 1:ngoals )
+    row_list = map( _->dataframe_row( P, funcs, fitness, kdict, rdict, num_circuits, max_steps, max_tries=max_tries, one_success=one_success ), 1:ngoals )
   end
+  println("length row: ",length(row_list[1]))
   for row in row_list
-    push!( rdf, row )
+    push!( rdf, row, promote=true )
   end
+  println("names(rdf): ",names(rdf))
   count_failures = length(findall( x->x==Float64(max_steps),rdf.mean_steps))
   println("count_failures: ",count_failures)
   if length(csvfile) > 0
@@ -45,9 +50,9 @@ end
 # Chooses a random destgoal and then chooses a random srcgoal with smaller fitness than destgoal.
 # Returns a tuple which becomes a row of the dataframe defined in function run_navigate_epoch().
 function dataframe_row( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, kdict::Dict{MyInt,Int64}, rdict::Dict{MyInt,Int64},
-        num_circuits::Int64,  max_steps::Int64; one_success::Bool=false )
-  #( msteps, failures ) = navigate( P, funcs, fitness, srcgoal, destgoal, max_steps, num_circuits=num_circuits, use_pmap=false )
+        num_circuits::Int64,  max_steps::Int64; max_tries::Int64=10, one_success::Bool=false )
   fitfunct( g::Goal ) = fitness[ g[1]+1 ]
+  #=
   quantile_min = 0.1
   destgoal = randgoal(P)
   while fitfunct( destgoal ) < quantile(fitness,quantile_min)
@@ -57,25 +62,49 @@ function dataframe_row( P::Parameters, funcs::Vector{Func}, fitness::Vector{Floa
   while fitfunct( srcgoal ) > fitfunct( destgoal )  # Choose srcgoal to have fitness less than or equal to destgoal
     srcgoal = randgoal(P)
   end
-  println("srcgoal: ",srcgoal,"  destgoal: ",destgoal)
-  ( msteps, failures, ncircuits ) = navigate( P, funcs, fitness, srcgoal, destgoal, max_steps, num_circuits=num_circuits, one_success=one_success, use_pmap=false )
-  println("(msteps,failures): ",(msteps,failures))
-  return ( P.numinputs, P.numinteriors, fitfunct(srcgoal), kdict[srcgoal[1]], rdict[srcgoal[1]], fitfunct(destgoal), kdict[destgoal[1]], rdict[destgoal[1]], msteps, num_circuits, ncircuits, failures  )
+  =#
+  srcgoal = randgoal(P)
+  destgoal = randgoal(P)
+  #=
+  while fitfunct( srcgoal ) == fitfunct( destgoal )  # Assure that srcgoal and destgoal are different
+    destgoal = randgoal(P)
+  end
+  =# 
+  if fitfunct( srcgoal ) > fitfunct( destgoal )  # Choose srcgoal to have fitness less than or equal to destgoal
+    tempgoal = deepcopy(srcgoal)
+    srcgoal = deepcopy(destgoal)
+    destgoal = tempgoal
+  end
+  println("srcgoal: ",srcgoal,"  fitness(srcgoal): ",fitfunct(srcgoal),"  destgoal: ",destgoal,"  fitness(destgoal): ",fitfunct(destgoal))
+  @assert fitfunct(srcgoal) <= fitfunct(destgoal)
+  ( msteps, nfailures, efailures, ncircuits ) = navigate( P, funcs, fitness, srcgoal, destgoal, max_steps, num_circuits=num_circuits, one_success=one_success, use_pmap=false, max_tries=max_tries )
+  println("(msteps,nfailures,efailures): ",(msteps,nfailures,efailures))
+  println("tuple: ",(srcgoal,destgoal))
+  return ( P.numinputs, P.numinteriors, srcgoal, fitfunct(srcgoal), kdict[srcgoal[1]], rdict[srcgoal[1]], destgoal, fitfunct(destgoal), kdict[destgoal[1]], rdict[destgoal[1]], 
+      msteps, num_circuits, ncircuits, nfailures, efailures )
 end
 
 # fitness is a given vector over phenotypes with values in the interval [0,1].
 # goal1 and goal2 are phenotypes which are Vectors of MyInts (one MyInt per output).
 # If fitness of goal1 is greater than fitness of goal2, then goal1 and goal2 are switched. Then srcgoal is goal1, destgoal is goal2.
 # Then srcgaol is the lower fitness goal and destgoal is the higher fitness goal.
-# Circuits that map to srcgoal are found by calling neutral_evolution() (which is really epochal_evolution).
+# Circuits that map to srcgoal are by calling neutral_evolution() (which is really epochal_evolution).
+# ncircuits is the n
 # This function calls function epochal_evolution_fitness() on num_circuits circuits evolved to map to srcgoal.
-# Returns the pair of the mean number of steps (including for unsuccessful runs) and the number of failed runs of epochal_evolution_fitness().
+# Successes are printed, failures are not.
+# ncircuits is the number of random circuits used to evolve a circuit that maps to srcgoal
+# Returns the triple of:
+#  1)  the mean number of steps (including for unsuccessful runs) 
+#  2)  nfailures, the number of failed runs of neutral_evolution to evolve a circuit that maps to srcgoal
+#  3)  efailures, the number of failed runs of epochal_evolution_fitness() to evolve from srcgoal to destgaol
+#  4)  ncircuits
+#### If nciruits == num_circuits then evolution of a circuit to map to srcgoal has failed.
 # Note: If navigate() is called in a pmap(), use_pmap must be false because nesting pmaps does not work.
 function navigate( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, goal1::Goal, goal2::Goal, max_steps::Int64;
-      num_circuits::Int64, one_success::Bool=false, use_pmap::Bool=false )::Union{Tuple{Float64, Int64, Int64},Nothing}
+     num_circuits::Int64, max_tries::Int64=10,  one_success::Bool=false, use_pmap::Bool=false )::Tuple{Float64, Int64, Int64, Int64 }
   println("function navigate.  one_success: ", one_success )
   ncircuits = num_circuits
-  max_tries = 10
+  nfailures = 0
   srcgoal = goal1
   destgoal = goal2
   if fitness[ srcgoal[1]+1 ] > fitness[destgoal[1]+1]
@@ -83,33 +112,44 @@ function navigate( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64},
     destgoal = deepcopy(srcgoal)
     srcgoal = tmpgoal
   end
-  println("srcgoal: ",srcgoal,"  fitness(srcgoal): ",fitness[srcgoal[1]+1], "  destgoal: ",destgoal,"  fitness(destgoal): ",fitness[destgoal[1]+1] )
+  println("navigate: srcgoal: ",srcgoal,"  fitness(srcgoal): ",fitness[srcgoal[1]+1], "  destgoal: ",destgoal,"  fitness(destgoal): ",fitness[destgoal[1]+1] )
   steps_list = Int64[]
+  println("function navigate() num_circuits: ",num_circuits)
   for i = 1:num_circuits
+    if i % 10 == 0
+      println("function navigate() i: ",i)
+    end
     rch = random_chromosome( P, funcs )
     (cch, step) = neutral_evolution( rch, funcs, srcgoal, max_steps, print_steps=false )
     ttry = 0
+    # use epochal evolution to find a circuit (genotype) that maps to srcgoal
     while ttry < max_tries &&  step==max_steps
       (cch, step) = neutral_evolution( rch, funcs, srcgoal, max_steps, print_steps=false )
       ttry += 1
     end
     if step == max_steps
-      println("neutral evolution failed in function navigate().  i: ",i)
-      return nothing
+      println(max_tries," attempts of neutral evolution failed to evolve srcgoal in function navigate() starting from random circuit ",i)
+      println("continue i loop")
+      nfailures += 1  # failures to neutral evolve srcgoal
+      continue
     end
-    (ach, steps, src_fit, dest_fit ) = epochal_evolution_fitness( cch, funcs, destgoal, fitness, max_steps, print_steps=false )
-    println("i: ",i,"  epochal_evol_fitness: steps: ",steps)
+    ( ach, steps, src_fit, dest_fit ) = epochal_evolution_fitness( cch, funcs, destgoal, fitness, max_steps, print_steps=false )
+    if steps < max_steps
+      println("i: ",i,"  epochal_evol_fitness succeeded: steps: ",steps)
+    #else
+      #println("i: ",i,"  epochal_evol_fitness failed: steps: ",steps)
+    end
     push!(steps_list,steps)
     if one_success && steps < max_steps
       ncircuits = i
       println("one_success break.  ncircuits: ",ncircuits)
       break   # exit for i = 1:num_circuits loop
     end
+    # if ncircuits < max_steps then epochal_evol_fitness succeeded
   end  
-  failures = length( findall(x->x==max_steps,steps_list))
-  return ( mean( steps_list ), failures, ncircuits )
+  efailures = length( findall(x->x==max_steps,steps_list))  # failures of epochal evolution fitness
+  return ( mean( steps_list ), nfailures, efailures, ncircuits )
 end
-
 
 #= obsolete
 function run_navigate_both( P::Parameters, funcs::Vector{Func}, fitness::Vector{Float64}, ngoals::Int64, max_steps::Int64, max_reps::Int64;
@@ -273,6 +313,10 @@ function navigate_bfs( P::Parameters, funcs::Vector{Func}, ch::Chromosome, fitne
   println("function navigate_bfs() finished with an empty queue.")
   return (reps,nothing)
 end
+
+#=
+function hill_climb( P::Parameters, funcs::Vector{Func},
+=#
   
 #=
 function navigate_bfs( P::Parameters, funcs::Vector{Func}, circ_int::Int128, fitness::Vector{Float64}, phdest::Vector{MyInt} )

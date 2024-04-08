@@ -24,16 +24,20 @@
 #   3.  A Int128 integer which is an encoding of the integers of step 3.
 # See notes/3_24.txt for outline
 # See test/testLinCircuit.jl for tests.
+#=
 export LinCircuit, output_values
-export execute_lcircuit, instruction_vect_to_instruction_int, instruction_int_to_instruction_vect, lincomplexity
+export execute_lcircuit, instruction_vect_to_instruction_int, instruction_int_to_instruction_vect, lincomplexity, print_lcircuit 
 export vect_to_int, int_to_vect, rand_ivect, execute_random_circuit, degeneracy, recover_phenotype
 export num_instructions # This is the total number of possible instructions for a parameter setting
 export rand_lcircuit, mutate_circuit!, mutate_instruction, mutate_circuit_all, mutate_all, print_circuit
 export instruction_vects_to_instruction_ints, instruction_ints_to_instruction_vects
 export instruction_ints_to_circuit_int, circuit_int_to_instruction_ints
 export circuit_int_to_circuit, circuit_to_circuit_int, enumerate_circuits_lc, count_circuits_lc
+export count_genotypes_lc, count_genotypes_lc_mt
 export number_active, remove_inactive
+=#
 OutputType = Int64
+LinCircuit = CGP.LinCircuit
 
 #=
 mutable struct LinCircuit
@@ -44,6 +48,21 @@ mutable struct LinCircuit
 end
 =#
 
+# Print an LinCircuit in the format used in Hu and Banzhaf papers.
+function print_lcircuit( lc::LinCircuit, funcs::Vector{Func}=Func[] )
+  if length(funcs) == 0
+    funcs = lin_funcs( lc.params.numinputs )
+  end
+  println("funcs: ",funcs)
+  p = lc.params
+  c = lc.circuit_vects
+  #for i = 1:p.numinteriors  # p.numinteriors is the number of instructions
+  for i = 1:length(lc.circuit_vects)  
+    println( "R$(c[i][2]) = R$(c[i][3]) $(funcs[[c[i][1]]][1].name) R$(c[i][4])")
+  end
+end
+
+# Returns the phenotype (Goal) computed by c
 function output_values( c::LinCircuit, funcs::Vector{Func}=Func[] )
   if length(funcs) == 0
     funcs = default_funcs( c.params.numinputs )
@@ -58,7 +77,7 @@ function output_values( cv::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{
 end
 
 # ci is a circuit_int
-function output_values( ci::Int128, p::Parameters, funcs::Vector{Func} )
+function output_values( ci::Integer, p::Parameters, funcs::Vector{Func} )
   output_values(instruction_ints_to_instruction_vects(circuit_int_to_instruction_ints(ci,p,funcs),p,funcs),p,funcs)
 end
 
@@ -165,35 +184,25 @@ end
 # Removes the inactive instructions from circ
 function remove_inactive( circ::LinCircuit, active::Vector{Bool} )
   active_indices = filter( x->x!=0, [ active[i] ? i : 0 for i = 1:length(active) ] )
-  circ.params.numinteriors = length(active_indices)
-  LinCircuit( circ.circuit_vects[active_indices], circ.params )
+  new_params = Parameters( circ.params.numinputs, circ.params.numoutputs, length(active_indices), circ.params.numlevelsback )
+  LinCircuit( circ.circuit_vects[active_indices], new_params )
 end
 
 # Removes the inactive instructions from circ
-function remove_inactive( circ::LinCircuit  )
+function remove_inactive( circ::LinCircuit )
   (num_active, reg_active, active ) = number_active( circ, return_inst_active=true )
   remove_inactive( circ, active )
 end
 
 # Returns nothing if successful
-function test_remove_inactive( p::Parameters, funcs::Vector{Func}; goal::MyInt=MyInt(0) )
-  circ = rand_lcircuit( p, funcs )
-  if goal != MyInt(0)
-    (circ,step) = neutral_evolution( circ, funcs, [goal], 200_000 )
-  end
+function test_remove_inactive( circ::LinCircuit )
   @assert output_values(circ) == output_values( remove_inactive( circ ) )
 end
+
+function validate_lcircuit( circ::LinCircuit )
+  @assert length(circ.circuit_vects) == circ.params.numinteriors
+end
   
-      
-function degeneracy( circuit::LinCircuit )  # Dummy function for now 10/16/21
-  return 0
-end
-
-function recover_phenotype( circuit::LinCircuit, max_steps_recover, maxtrials_recover, maxtries_recover )  # Dummy function for now 10/16/21
-  return (0,0)
-end
-
-
 # Convert a vectors of integers to a unique integer.
 # The components of the vector are 1-based rather than 0-based.
 # Example 1:  
@@ -314,14 +323,14 @@ function instruction_ints_to_circuit_int( c_ints::Vector{Int64}, p::Parameters, 
   vect_to_int( c_ints, fill(multiplier,length(c_ints)))
 end
 
-function circuit_int_to_instruction_ints( c_int::Int128, p::Parameters, funcs::Vector{Func} ) 
+function circuit_int_to_instruction_ints( c_int::Integer, p::Parameters, funcs::Vector{Func} ) 
   numinstructions = p.numinteriors
   multiplier = num_instructions( p, funcs )
   #println("multiplier: ",multiplier)
   int_to_vect( c_int, fill( multiplier, numinstructions ))
 end
 
-function circuit_int_to_instruction_ints( c_int::Int64, p::Parameters, funcs::Vector{Func} ) 
+function circuit_int_to_instruction_ints( c_int::Integer, p::Parameters, funcs::Vector{Func} ) 
   numinstructions = p.numinteriors
   multiplier = num_instructions( p, funcs )
   #println("multiplier: ",multiplier)
@@ -332,12 +341,12 @@ function circuit_to_circuit_int( circ::LinCircuit, funcs::Vector{Func} )
   instruction_ints_to_circuit_int( instruction_vects_to_instruction_ints( circ, funcs ), circ.params, funcs )
 end
 
-function circuit_int_to_circuit( c_int::Int128, p::Parameters, funcs::Vector{Func} )
+function Lincircuit_int_to_circuit( c_int::Integer, p::Parameters, funcs::Vector{Func} )
   i_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( c_int, p, funcs), p, funcs )
   LinCircuit( i_vects, p )
 end
 
-function circuit_int_to_circuit( c_int::Int64, p::Parameters, funcs::Vector{Func} )
+function circuit_int_to_circuit( c_int::Integer, p::Parameters, funcs::Vector{Func} )
   i_vects = instruction_ints_to_instruction_vects( circuit_int_to_instruction_ints( c_int, p, funcs), p, funcs )
   LinCircuit( i_vects, p )
 end
@@ -366,7 +375,7 @@ end
 # Assumes gates are arity 2
 # p.numinteriors is equivalent to numinstructions
 # p.numlevelsback is equivalent to numregisters
-function rand_lcircuit( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs) )
+function rand_lcircuit( p::Parameters, funcs::Vector{Func}=lin_funcs(p.numinputs) )
   LinCircuit( [ rand_ivect( p.numlevelsback, p.numinputs, funcs ) for _ = 1:p.numinteriors], p )
 end
 
@@ -418,6 +427,7 @@ end
 function mutate_instruction( instruction_vect::Vector{MyInt}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )  
   lfuncs = length(funcs)
   num_mutate_locations = ((lfuncs>1) ? (lfuncs-1) : 0) + (numregisters-1) + nodearity*(numregisters+numinputs-1)
+  #println("num_mutate_locations: ",num_mutate_locations)
   mut_loc = rand(1:num_mutate_locations)
   #println("num_mutate_locations: ",num_mutate_locations,"  mut_loc: ",mut_loc)
   mutate_instruction( instruction_vect, numregisters, numinputs, funcs, mut_loc, nodearity=nodearity )
@@ -427,6 +437,7 @@ function mutate_instruction( instruction_vect::Vector{MyInt}, p::Parameters, fun
   mutate_instruction( instruction_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
+# Returns the vector of all possilbe mutated instructions
 function mutate_instruction_all( instruction_vect::Vector{MyInt}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; 
       nodearity::Int64=2 )  
   lenfuncs = length(funcs)
@@ -439,6 +450,12 @@ function mutate_instruction_all( instruction_vect::Vector{MyInt}, numregisters::
   instructions
 end
 
+# Returns the vector of all possilbe mutated instructions
+function mutate_instruction_all( instruction_vect::Vector{MyInt}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 )  
+  mutate_instruction_all( instruction_vect, p.numlevelsback, p.numinputs, funcs )
+end
+
+# Mutates a random instruction of circuit_vect.
 function mutate_circuit!( circuit_vect::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 )  
   numinstructions = length(circuit_vect)
   ind = rand(1:numinstructions)
@@ -451,17 +468,52 @@ function mutate_circuit!( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, fu
   mutate_circuit!( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
+# Mutates a random instruction of the circuit_vect of circuit.
 function mutate_circuit!( circuit::LinCircuit, funcs::Vector{Func}; nodearity::Int64=2 )
   #LinCircuit( params, mutate_circuit!( circuit.circuit_vects, circuit.params, funcs ) )
   LinCircuit( mutate_circuit!( circuit.circuit_vects, circuit.params, funcs ), circuit.params )
 end
 
+# Do all possible mutations to circuit_vect
 function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, p::Parameters, funcs::Vector{Func}; nodearity::Int64=2 ) 
   mutate_circuit_all( circuit_vect, p.numlevelsback, p.numinputs, funcs, nodearity=p.nodearity )
 end
 
+# Do all possible mutations to the circuit_vect of circuit
 function mutate_circuit_all( circuit::LinCircuit, funcs::Vector{Func}=circuit.params.numinputs; nodearity::Int64=2 ) 
   mutate_circuit_all( circuit.circuit_vects, circuit.params, funcs )
+end
+
+# Do all possible neutral mutations to the circuit_vect of circuit
+function mutate_circuit_neutral_all( circuit::LinCircuit, funcs::Vector{Func}=circuit.params.numinputs; nodearity::Int64=2 ) 
+  ov = output_values( circuit )[1]
+  filter( c->output_values(c)[1]==ov[1], mutate_circuit_all( circuit.circuit_vects, circuit.params, funcs ))
+end
+
+# Do all possible neutral mutations to the circuit_vect of circuit, return the circuit_ints
+function mutate_circuit_neutral_all_ints( circuit::LinCircuit, funcs::Vector{Func}=circuit.params.numinputs; nodearity::Int64=2 ) 
+  map( c->circuit_to_circuit_int(c,funcs), mutate_circuit_neutral_all( circuit, funcs ) )
+end
+
+# The set components is a set of LinCircuits.
+# If this function doesn't stack overflow, it returns the neutral component of the neutral set of circuit.
+# The LinCircuit circuit is added to components along with all mutations of circuit.
+# If this did not increase the size of components, quit.
+# Otherwise, recursively call this function on all of these mutations.
+function neutral_component_ints!( components::Set, circuit::LinCircuit  )
+  size0 = length( components )
+  #println("size0: ",size0)
+  mcn = mutate_circuit_neutral_all( circuit, funcs )
+  mcn_ints = map( c->circuit_to_circuit_int( c, funcs ), mcn )
+  union!( components, Set( mcn_ints ) )
+  new_size = length( components )
+  if size0 == new_size
+    return components
+  else
+    for c in mcn
+      neutral_component_ints!( components, c )
+    end
+  end
 end
 
 function mutate_circuit_all( circuit_vect::Vector{Vector{MyInt}}, numregisters::Int64, numinputs::Int64, funcs::Vector{Func}; nodearity::Int64=2 ) 
@@ -513,7 +565,6 @@ function mutate_all( circuit::LinCircuit, funcs::Vector{Func}=default_funcs(circ
   end
 end
 
-
 function print_circuit( f::IO, circuit::LinCircuit, funcs::Vector{Func} )
   print(f,"(")
   i = 1
@@ -524,7 +575,7 @@ function print_circuit( f::IO, circuit::LinCircuit, funcs::Vector{Func} )
   end
   println(f,")")
 end
-
+ 
 function print_circuit( circuit::LinCircuit, funcs::Vector{Func} )
   print_circuit( Base.stdout, circuit, funcs )
 end
@@ -547,13 +598,53 @@ function circuit_distance( circuit_vect1::Vector{Vector{MyInt}},circuit_vect2::V
   sum_distances
 end  
 
-function count_circuits_lc( p::Parameters; nfuncs::Int64=length(default_funcs(p.numinputs) ) )
+function circuit_distance( circuit1::LinCircuit, circuit2::LinCircuit )
+  circuit_distance( circuit1.circuit_vects, circuit2.circuit_vects )
+end
+
+# Returns the number of genotypes mapping to each phenotype for the parameters/funcs setting.
+# This is for LinCircuits.
+function count_genotypes_lc_mt( p::Parameters, funcs::Vector{Func}=lin_funcs(p.numinputs) )
+  genotype_counts = [ Threads.Atomic{Int64}(0) for i= 1:2^2^p.numinputs ]
+  num_circuits = count_circuits_lc( p )
+  Threads.@threads for i = 1:num_circuits
+    ov = output_values( circuit_int_to_circuit(i,p,funcs))[1]
+    Threads.atomic_add!( genotype_counts[ov+1], 1 )
+  end
+  map( ph->ph[], genotype_counts )
+end
+
+count_genotype_counts_lc_mt = count_genotypes_lc_mt
+
+# Returns the number of genotypes mapping to each phenotype for the parameters/funcs setting.
+# This is for LinCircuits.
+function count_genotypes_lc( p::Parameters, funcs::Vector{Func}=lin_funcs(p.numinputs) )::Vector{Int64}
+  num_circuits = count_circuits_lc( p )
+  genotype_counts = zeros( Int64, 2^2^p.numinputs )
+  for i = 1:num_circuits
+    ov = output_values( circuit_int_to_circuit(i,p,funcs))[1]
+    genotype_counts[ov+1] += 1
+  end
+  genotype_counts
+end
+
+# Number of circuits with the given parameter setting and number of funcs
+# Example:  sp = Parameters( 2, 1, 4, 2)
+# count_circuits_lc( sp, nfuncs=4 ):  268435456 == 2^28 which agrees with Hu, Payne, Banzhaf 2012
+function count_circuits_lc( p::Parameters; nfuncs::Int64=length(lin_funcs(p.numinputs) ) )::Int64
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   numcircuits_per_instruction = nfuncs*p.numlevelsback*(p.numlevelsback+p.numinputs)^2
+  # p.numinteriors is number of instructions
   numcircuits_per_instruction^p.numinteriors^p.numoutputs
 end
 
-function enumerate_circuits_lc( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs))
+# Another version of count_circuits_lc()
+function count_circuits_lc( p::Parameters, funcs::Vector{Func} )::Int64
+  count_circuits_lc( p, nfuncs=length(funcs) )
+end
+
+# 3/1/24:  For sp = Parameters(2,1,2,2), returned 16384 circuit_vects, and count_circuits_lc(sp) == 16384
+function enumerate_circuits_lc( p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs))::Vector{LinCircuit}
   ecl = enumerate_circuits_lc( p, p.numinteriors, funcs )
   map( ec->LinCircuit( ec, p ), ecl )
 end

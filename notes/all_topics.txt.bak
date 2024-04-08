@@ -1,0 +1,532 @@
+All diary topics:
+
+2020:
+Note that all of these files are in the subfolder diary and have a "diary" prefix.
+9/26:  outdated on effects of mutation on complexity.  Examples of get_bits(). Examples of high/low complexity: test_complexity()
+9/27:  gb_complexity meaningless.
+9/28:  Tried to understand integration version of complexity.
+9/30:  build_all_genes()
+10/2:  build_all_genes() didn't work 
+         semi_log scatter plot of counts 
+10/5:  Rewrote run_geno_robustness() and run_geno_complexity() in Evolvability.jl  Excel plots.
+10/6:  run_geno_pheno_evolution() in Genotype_phenotype.jl computes genotypic robustnes and evolvability.
+10/8:  Corrected geno_robust() and geno_complexity() in Evolvability.  Scatter plots complexity/evolvability/robustness.
+10/9:  Evolvability, complexity, robustness plots for Macia gate set.  Count results for Macia gate set.
+        Catalan 2018 claims:  rare phenotypes will not play a central role in evolution: 
+          they are hard to find in a genotype space that is filled with abundant phenotypes [12,14,37]." 
+10/11: Scatter plots of evolvability, robustness, complexity including some 4x2 results
+        A redo of some counts file results to correct ints11_8 and ints11_5.
+10/12: Wrote random_neutral_walk() and run_random_neutral_walk() in evovability.jl.  Bugs remain.
+10/13: Fixed problem with runs of random_neutral_walk() and geno_complexity()
+10/14: Parallelized geno_complexity() in Evolvability.jl
+10/15: Evolvability running for 64000 steps for a common and a rare goal.
+10/18: Determine bias as defined by Greenbury (2014).
+        Goal freq vs goal rank.
+10/19: Scatter plot of counts including 8_5, 11_5, 11_8.
+10/20: Integrated estimates of phenotypic evolvability in run_geno_complexity() and geno_compexity() in Evolvability.jl.
+        Have mostly abandoned this approach.
+10/22: Smoothness of complexity landscape.  neighbor_complexity() in src/neighbor_complexity.jl
+10/23: No results.  See 10/26
+10/26: Objective:  Find the size of the components of the neutral network of a goal by joining components
+        discovered on multiple neutral walks.  Very successful for 3x1 goals, some results for 4x1 8_5, failure for 11_8
+       Also a run of count_outputs.
+10/27: Part 1: relate complexity, frequency, steps or log_steps (difficulty of evolution) Scatter plots
+        functions geno_complexity() in Evolvability.jl.  cce/Complexity_frequency_difficulty_evolution10_30.docx
+        Include plots generated on 12/4 with a larger sample of goals.
+       Part 2:  neutral_walk_complexity() in neutral_walk_connectivity.jl: distribution of complexities on a neutral walk.
+10/30: Additional results for 10/27
+10/31: Distribution of complexities for a list of goals
+11/1:  Distribution of complexities for a list of goals (same as 10_31)
+11/4:  Arrow of complexity
+11/5:  Working on the document "Exploring complexity11_5.docx".
+        Checking whether the values of cumm_unique_goals of over 500 in explore_complexity11_4D.csv are plausible.
+11/7:  Idea for visualization of a random collection goals.  
+       Redoing the counts file for the Raman 4x1 case.
+11/10: Kolmogorov complexity (see 11/11 for details)
+11/11: Kolmogorov complexity for a set of random goals and for all 2^16 4x1 goals (F files).
+11/15: Compute evolvability for a common and rare goal by sampling 65536 circuits.
+11/18: Generating plots of evolvability vs robustness with other parameter settings.
+11_21: Plot of number of unique phenotypes in a cumulatively increasing sample size of 1-mutant neighbors of the given phenotype.
+      Best current idea for explaining the negative relationship between evolvability and robustness:
+      Plot of both genotype and phenotype evolvability vs. robustness.
+11_22: Attempted to determine connectivity of neutral net of a goal g by finding a distance reducing path from chromosome c1.  
+      Not very successful.
+11_27:  Includes plot of evo_count for 3 goals and many steps for 3x1.  Shows that evolvability of common goals eventually catches up with
+           evolvability of rare goals.
+11_28:  sampling.jl  tests my hypothesis on sampling black, white, blue balls.
+11_29:  tests whether increasing gates will effect evolvability vs robustness relationship.
+12_1:   New version of neutral_walk_connectivity.jl.  Determining components by intersection neutral walks.
+12_4:   Generated 10 plots for all combinations of evo_count, robustness, complexity, frequency, difficulty of evolution  
+        See 10_27 for these new plots.
+        Rerunnng determining evolvability by repeated sampling for a large number of goals including new goal [0x6b18]
+12_6:  Plots of evo_count and log_evo_count vs sample size for 4x1
+12_7:  Evolvability count plot for three 3x1 goals and large number of samples
+12_9:  Connected components.  neutral_walk_connectivity. run_neutral_walk().
+12_15: Worked on paper.  Shape space covering property, Kashtan.
+12_16: Unable to replicate Kashtan results.
+12_17: examples.jl to produce examples showing the relationships between robust, cmplx, freq, evo_count, logsteps
+12_18: Density of complexities. Code in Genotype_phenotype.jl run_geno_pheno_evolution().
+       Code also in RecordOutputs.jl  run_circuit_complexities().  Modified on 2/2/21
+12_20: Some large circuit complexity files are in OneDrive/evotech/data/12_20 and 12_18.
+12_21: Evolve.jl neutral_evolution() is a simplified version of mut_evolve() for 1 output.
+       geno_circuits(), geno_properties(), geno_list_properties() compute robust, cmplx,
+       geno_evo_evol, pheno_evo_evol, evo_steps for a list of goals.  More runs on 12/24.
+12_22: mutational_evolvability.jl mutational_evolvability().  
+       Compute unique phenotypes in neighborhoods of increasing size of starting circuit.
+12_24: Start to replicate Hu (2020) results.
+12_26: Discussion of implications of Hu (2020) for our results.
+12_27: random_walk.jl run_random_walks_parallele().  Duplicate Hu (2020) results.
+12_29: Testing hypothesis that complexities of phenotypes by evolution is greater than complexities by sampling.
+        Using circuit_complexities as in 12_18 and 10_27 results.  Strongly significant.
+12_30: Found and corrected a bug in mutate_chromosome!() and mutate_all().  Bias is not large.
+        Also demonstrates that circuit_int() returns unique integers.
+12_31: Parallelized robust_evolvability() in random_walk.jl.  Degree of parallelism to high.
+
+2021:
+These files now have suffix  _21.txt
+1_1:   Found a major bug in run_walks_parallel() in random_walk.jl.
+        union() was used to combine dictionaries rather than merge().
+1_2:   Major revision of robust_evolvability() in random_walk.jl.
+        With enough samples, the degree evolvability of most goals goes to the maximum possible.
+1_3:   Shows that log frequency DOES NOT scale with robustness as is the case when circuits are evolved.
+1_4:   Evolving increasing complexity.  Complexity.jl run_explore_complexity()
+1_8:   Redo plots for evolvability by sampling.  Outputs in data/1_3 with revisions in 9_3_21.
+1_13:  Reran simulations for finding components of neutral networks.  Previous runs were 12_1.
+1_15:  Number components vs complexity.  Maximum complexity does increase with k complexity,
+        but hard to separate from uncertainties in measuring number of components.
+1_17:  Extract component sizes from text files.
+       Drop sections from Paper_preview to save space.
+1_23:  random_neutral_walk.jl.  neighborhood evolvability vs complexity.
+        Shows that nearby (neighborhood) evolvability increases with complexity.
+        Used binned circuit complexities.
+1_25:  Fitting regression line to scatter plot data using GLM package.
+1_26:  regression.jl   Produced a regression properties table.
+1_29:  Double plots using layouts.
+1_30:  Redo neighbor complexity plot.  neighbor_complexity.jl
+1_31:  Redo redundancy vs phenotype rank plot
+2_1:   Redo K complexity vs T complexity plot
+2_2:   Redo circuit density plot as described in 12_18.txt.
+2_4:   Check that every phenotype is mapped to by a genotype for 8 gates, 5 lb.  2 methods.
+2_9:   Summarize and create test functions for random walk functions.
+2_10:  Ideas on evolvability.  The hypothesis that all phenotypes have near maximum evolvability.
+2_11:  Complexity versus evolvability in a mutational neighborhood.  Code:  mutational_evolvability.jl
+2_13:  Complexity and robustness versus evolvability in a mutational neighborhood.  Code:  mutational_evolvability.jl
+2_15_21:  Redoing NN plots
+2_18:  Preliminary ideas on LaBar/Adami replication
+2_18_21: More details on redoing NN plots, replicating x axis labels
+2_21_21: More details on redoing NN plots, replicating x axis labels
+2_22:  Hypotheses to test for LaBar/Adami (2016) simulation:
+3_2:  Initial summary of pop-based evolution and LaBar/Adami hypothesis. Selection rescaling.
+3_3:  pred_phenos_fits() and preds_fit_decreases()
+3_5:  compare_fract_decreases(),  Filtering dataframe by row using @where.
+3_7:  Summary of LaBar/Adami test, code in Pop_evolve.jl
+3_12: Abandoned LaBar/Adami.  Revisions of explore_complexity() with add/delete gates in Complexity.jl
+3_21:  Revised Pop_evolve.jl so that each evolution is to a list of goals rather than a single goal.
+        Recall that Pop_evolve.jl is Population-based evolution to try to approximately replicate Labar & Adami 2016.
+3_24: Overview of Linear GP representation of circuits.
+3_28: Programmed LinChrommosome.jl to implement the linear GP representation of circuits.
+3_29: Do circuit sampling for 3x1 circuits using linear GP representation.
+      Discovered that all 3x1 goals are reachable using 6 gates and 2 register.
+3_31: Gecco reviews summmary
+4_3:  Listing some tasks for Gecco rewrite
+4_6:  Ran evolvability simulation with only NAND gate and 15 gates and 9 levelsback.
+4_8:  Doing a sampling evolvability vs robustness plot using only NAND gate.
+4_13: Checking computation of Tononi complexity
+4_18: Testing neutral_evolution() on lcircuits.  See 4_24.txt: results not valid.
+4_24: Debugged neutral_evolution() (problem: neutral evolution not consistent with mut_evolve()) in Evolve.jl. Fixed bug.
+4_25: Testing neutral_evolution() on lcircuits and chromosomes. 
+4_30: Summarized conclusions on my ability to evolve parity.
+5_3:  Transition to 5x1 goals.  decrease/increase_goal_inputs() in change_goal_inputs.jl
+5_6:  Steps for symbiosis.  change_goal_inputs.jl 
+5_10: function reduce_numactive() in src/evolve_function.jl and test/test_evolve_function.jl
+5_12: effectiveness of test_reduce_numactive() versus run_kolmogorov_complexity() at
+   reducing the number of active gates in a combined goal.  REDO
+5_15: Revised test_reduce_numactive() in evolve_reduce_numactive.jl to report minimum as well as mean. REDO
+5_16: Ran compare_two_vs_one_output() in evolve_reduce_numactive.jl.  REDO
+5_17: Discoverd a bug in number_mutations() in Chromosome.jl on lycosa.
+5_29:  Found bug in mut_evolve() or mutate_chromsome!().  Fixed on 5/29/21.  test/test_mutate.jl.
+6_5:  Tried to get run_env_evolution() in src/Env_evolution.jl and gave up.  
+      Moved Env_evolution.jl and Assignment.jl to stash.
+6_14: Generated a single-curve "Goal frequencey vs. goal rank" plot for GECCO presentation.
+6_17: Redo explore complexity plots for presentation.
+6_20: Repeating evolvability/complexity results of 2020/10/27 (2020/10_27) with computation of degeneracy.
+6_21: Degeneracy increases with number of gates.  Hypothesis:  increased degeneracy increases resiliancy.
+6_25: Rerun core algorithms on evolution evolvability with 3x1 6 gates, 4 lb.
+6_29: Results with K-complexity 6 and 7.  8 phenotypes with K-complexity 6 and zero robustness.
+7_1:  Evolvability dictionary csv file output.
+7_5:  Runs for GECCO presentation.  Data in 6_25_21.  Function scatter3_1()
+7_6:  Hypothesis:  A population of complex organisms will tend to be more evolvable and more complex.
+      Hasn't panned out.
+7_11: Matrix representation of phenotype network computed by evolution Cartesian representation.
+7_13: All 6 instruction 2 register 3x1 LinGP phenotypes have corresponding genotypes
+      Over half of 4x1 8 gates 5 lb Cartesian genotypes do not have phenotypes with sample of 3*10^10
+7_14: Biological innovations never come about during biological great transitions (Shubin)
+7_23: Evolvability of a population.  Hypothesis:  Population evovability increases in a varying environment.
+      Reference to a paper with results on this approach.
+7_24: Testing the hypothesis that evolution under a varying environment increases evolvability.  Function run_run_pop_evolvability(). 
+      Population evolution.
+7_25: Hypothesis:  Population evovability increases in a varying environment. 
+7_26: Hypothesis:  Population evovability increases in a varying environment. 
+8_2:  Revisited the Arthur/Polak 2006 paper on the Evolution of Technology using circuit symbiosis.
+8_11: comp_experiment() results from Composition.jl
+8_14: Revised test/testChromosome.jl
+8_16: Discovered that due to caching reordering the context did not change the outputs of execute_chromosome() and output_values().
+8_19: Examples of traditional "linked lists" in Julia implemented using circular references.
+8_20: Some examples of Compositional circuits.  Replace by the examples in test/testComposition.jl
+8_22: Further refinement and testing of compositional circuits.  See test/testComposition.jl.
+8_23: global caching in comp_experiment().  JLD example.
+8_26: comp_experiment() using given needs_list.
+9_8:  compare Wagner phenotype "sampling" evolvability with a defintion of adaptive evolvability.  
+9_9:  hypothesis that adaptive evolvability is compatible with the Wagner 2008 definition of phenotype evolvability. 
+      Reference to complexity/cce/"Adaptive evolvability9_8_21.docx".
+9_10: Runs testing hypothesis of 9_9.  
+9_12: Added update to notes/9_9_21.txt that shows positive relationship between evolution evolvability and adaptive evolvability.
+      Wrote functions enumerate_circuits, chromosome_int, gate_int in Chromosome.jl
+9_16: Adapting PhenotypeNetwork.jl to LinCircuits
+      Testing mutate_circuit_all(), circuit_vect_to_circuit_ints(), vect_to_int() in LinCircuit.jl
+9_17: Thoughts about consciousness based on Anil Seth's article
+9_20: Got construct_pheno_net() of PhenotypeNetwork.jl to work for both Chromosomes and LinCircuits
+9_24: Description of the algorithm of construct_pheno_net() from PhenotypeNetwork.jl.  Example results.
+9_27: Parallelized construct_pheno_net() in PhenotypeNetwork.jl.  
+      Wrote markov_chain_stationary() in PhenotypeNetwork.
+10_12: Color and size by complexity
+10_13: Compute complexity for LinCircuits in lincomplexity() in LinCircuit.jl
+10_14: Comments and references on Adami complexity.  
+        Data in 10_7_21 and 10_13_21 relationships between CGP and LGP complexity and evolvability
+10_15:  Idea:  Change a phenotype from a bit string to a real-valued vector over bits.
+10_16:  Adapting geno_complexity() in Evolvability.jl for LinCircuits so that I can compute evolution evolvability for LinCircuits.
+10_17:  Scatter plots for evolvabe lincircuit complexity.  Data in 10_16_21.
+10_18:  Bug found in consolidate_dataframe() in the computation of :evo_count.  Making sense of evolution evolvability for LinCircuits.
+10_19:  Changed PhenotypeNetwork.jl to compute evolvabilities and robustness and output as part of the *rowcol.csv file
+10_20:  Scatter plots evolvability, cartesian and linear complexity, robustness.  data/10_20_21/
+10_21:  Fixed bugs in run_random_walks() in random_walk.jl.  All tests in test/test_random_walk.jl run apparently correctly.
+10_22:  Computed d_evolvability, s_evolvability, robustness and complexity using random walks technique of Hu2020 for both Chromosomes and LinCircuits.
+10_25:  Plotting revised evovability values from data/correlation_csvs/evolvable10_24_21.csv
+10_30:  Generated many plots in data/10_28_21 data/10_29_21 data/10_31_21 based on lruns* in data/correlation_csvs/.  Code is in src/correlations.jl
+11_1:  Setting up run files to redo current results for Chromosomes. See 'cce/Comparison of 3 methods of computing evolvability10_31_21.docx'
+11_7:  Comparing LinearGP and CartesianGP results.
+11_9:  Cleanup/simplify code for geno_complexity().  Results on nsuccesses for CGP and LGP.
+11_15: resolving problems with running out of memory in PhenotypeNetwork.jl
+11_16: Thinking about evolvability and the evolution of complexity.  Adami complexity, mutual information.
+11_17: Ideas about Adami complexity.
+11_21: Finished doing all 3 pairs of scatter plots for eevolv, pevolv, and revolv for both CR and LC.
+11_25: Fixed problem in Evolvability.jl
+11_29: Reasons for failure of epochal evolution.  Numbers of failures for up to 5 inputs for CGP
+11_30: Testing the hypothesis that complexity(x) is correlated with entropy(x) for all 1-output phenotypes x. Hypothesis weakly confirmed.
+12_16: Looked into Julia multi-threading and came up with a race example and a method to do synchronization in ~/julia/threading/race_example.jl.
+        Rewrote PhenotypeNetwork.jl to PhenoNet.jl using this technique.
+12_17: Reading Weiss and Ahnert 2020 paper "Using small samples to estimate neutral component size and robustness in the genotype–phenotype map of RNA secondary structure." 
+12_18: Continued development on NCs (neutral components) of the genotype network for a parameter settings
+12_19: Using test_threading.jl to compare multi threads, multi processes, and single threads/processes.  Some results in evotech/complexity/data/12_19_21/test_threading_results.xlsx
+12_22: Rewrote int_to_chromosome() in src/Chromosome.jl.  Test in test/test_chromosome.jl (moved from testChromosome.jl)
+12_25: Wrote a parallel version of fnc.jl (find_neutral_components()).  Since fnc.jl moved to Fnc.jl.
+12_26: Results for pheno_counts (Cartesian) and find_neutral_components.
+12_27: Results for find_neutral_components.
+12_28: Started writing Neutral_components_genotype_network12_28_21.docx.  Succeeded in writing enumerate_circuits_lc() in LinCircuit.jl. 
+12_29: Wrote pheno_counts_ch() and pheno_counts_lc() in fnc.jl.  Included is a keyword argument to save the entire G-P map as a Vector indexed by
+    chromosome_ints/circuit_ints and mapping to single-output phenotypes.
+12_31: Test of find_neutral_comps() for LinCircuits on lycosa.:
+
+2022:
+1_1:  Wrote rand_evo_walk() and rand_evo_walk_mutate_all() in Fnc.jl.  Renamed fnc.jl to Fnc.jl
+1_5:  Worked on Fnc.jl.  How to integrate random_walk() and random_walk_mutate_all() into the statistics about NCs.
+1_8:  Add the average of rand_evo_walk() runs to the output of component_properties() and find_neutral_components() in Fnc.jl.
+2_11: Function num_active_lc() in num_active_lc.jl works for varying numinstructions==numinteriors and numregisters==numlevelsback!!
+2_12: Assessing methods of estimating NC size.  Code is in Fnc.jl.
+2_18: Goal:  replicate Labar & Adami 2016.
+2_22: Hypotheses to test for LaBar/Adami (2016) simulation:
+2_24: Complexity is information.  History of evolution of complexity.
+2_26: Discussion of Adami complexity
+3_11: Message to Anna Prentiss
+3_12: Abandoned Labar Adami.  Plotting cumm_unique_phenotypes
+3_13: Complexity/information ideas:  Mutual information between goal and output of evolving circuit
+3_21: Idea for relating Adami complexity to digital circuits.
+3_23: Ideas on mutual information and populations
+3_25: Ideas:  Entropy decreases and complexity increases with learning as well as with evolution.
+        Multiple evolving populations should learn different information about the same environment.
+3_26: Found papers on information theory and evolution.  cce/Information_theory_complexity3_27_22.docx
+3_30: Problems with mutual information between a genotype space and a phenotype space,
+4_4:  Evolution of Adami complexity
+4_20: 5 input run_geno_complexity() results
+4_22: 5 input plots
+5_8:  Zenil's hypothesis the choosing mutations with larger complexity speeds evolution to a complex phenotyp.
+5_9:  Preliminary runs of run_geno_complexity() in data/5_9_22.  Concluded that 10 instructions 2 registers is good for 4 inputs.
+5_10:  Results for LinCircuit count_outputs with 10^11 samples.  Verifies that all 3-input goals were sampled approximately 10 times.
+5_11:  Results for run_geno_complexity() with both 3 and 4 inputs in data5/9/22.  Plus investigation of how iter_maxreps and iter_maxtries work.
+5_12:  functions  robust_evolution_parallel(), robust_evolution(), and robust_evolution_pop() in robust_evolution.jl.
+5_13:  Counts results (mostly LC) with complexities for both 3 inputs 6 and 7 instructions, and 4 inputs 9, 10, 11 instructions
+5_17:  Runs of count_outputs_parallel() with output_complex=true.  Cleanup of function build_dataframe() in RecordOutputs.jl
+5_18:  Refer back to 5_13 for 3x1 runs with 7 instructions 2 registers
+5_22:  Redoing run_geno_complexity() in Complexity.jl with 5 funcs.
+5_25:  Procedure for adding redundancy counts to geno_complexity dataframes
+5_26:  Complexity density results
+5_27:  Redo of log redundancy vs rank
+5_28:  Redo of log redundancy vs rank
+5_29:  Redo of log redundancy vs rank.  4 gates vs 5 gates
+5_31:  Redoing CGP and LGP log redundancy vs rank plots
+6_2:   Counts plot for 4 gates.  Replaced by plot described in notes/6_6_22.txt
+6_6:   Redo of Plot of log redundancy vs rank for CGP for GPTP paper
+6_7:   Text CGP and LGP representations of the simple circuit of the GPTP paper.
+6_8:   Redoing Figure 3 of GECCO 2021 with the goal of doing for LGP.  Did not work.
+6_13:  Presample which did not work because it was using random sampling instead of sampling by evolution. 
+6_14:  First results on shape-space evolution.  src/ShapeSpace.jl
+6_16:  Writeup evotech/complexity/cce/Evolvability_and_shape_space_covering6_15_22.docx
+6_18:  High coverage of phenotypes for shape space radius 2 for phenotypes 0x69 and 0x96.
+6_19:  Plot of genotype evolvability vs complexity based on the file data/shape_space_counts6_17_22cntsF.csv.
+       Why does evolving circuits that map to a target phenotype give circuits of higher evolvability than samples of circuits 
+        that map to the target phenotype? 
+6_21:  Trying to show that approximations to Wagner (2008) evolvability are inaccurate.  See more definitive results in 6/23/22.
+6_23:  Showing definitively that sampling approximations to Wagner's 2008 definition of phenotype evolvability are inaccurate.
+        evotech/complexity/cce/'Wagner definition of phenotype evolvability 6_23_22.docx'
+6_25:  Revised comments for Func.jl
+6_26:  Rare and common
+6_27:  Rare and common, minor changes
+6_29:  Very preliminary ideas on the relationship to computational complexity
+7_8:   Total evolvability.  Rare and common, fixed bug in evolvable_evolvability.jl
+7_9:   Rare and common, changing plot labels from "complexity" to "Tononi complexity"
+7_12:  Rare and common vs K complexity
+7_15:  Collaboration initiative, log redund vs k-complexity plot
+7_16:  Total evolvability
+7_18:  Assignment for Cooper
+7_21:  Wrote phenodf_to_submatrix_dataframe() in evolvable_evolvability.jl, average_tcomplexity() in analyze_complexity.jl
+7_22:  Removed funcs keyword argument from neutral_evolution and added funcs as an argument to all calls to neutral_evolution(). 
+       Trying to understand Tononi complexity.  Examples.  Function to_binary_matrix.
+7_23: Reducing number of gates increases T complexity.  Results seem to be inconclusive, but see 9_4_22.txt
+7_25: Version of T complexity that is very intuitive but less efficient.
+7_26: Trying to investigate how Tononi complexity scales with numints.
+7_27: Looking for examples of high and low Tononi complexity.
+7_28: Combining chromosomes:  Combine two single-output chromosomes into a double-output chromosome.
+      Sometimes for c1, c2, tcmpx is substantially greater than tkcmplx, but not always.
+8_2:  Finished editing GPTP paper.  Problems with run_pheno_evolve() in Evolve.jl
+8_4:  Fix a bug in neutral_evolution().  Problem was in the use of deepcopy().
+8_5:  Running tests of run_pheno_evolve() in Evolve.jl after bug fix. Including 5 inputs.  Introduction to paper by paragraph.
+8_7:  Redo the complexity density plot copied from diary/diary12_18.txt
+8_8:  Topics for further research.  
+8_9:  Trying Folds.  Checking accuracy of K complexity computations.  Creating the DataFrame for ones-complement and combining.
+8_12: Statistics for one-step mutation between K complexity levels.  RebasedVector.
+8_13: Two fluda runs of K complexity for 5 input phenotypes.  Used k_complexity_mutate().
+8_15: Redundancy density plots.  K complexity vs log redund.  Setup for heat density plot.
+8_22: Redoing robustness vs log redundancy from GECCO data.   Cooper assignment version 1.
+8_24: Revisiting enumerate_circuits_ch( p,funcs ) and count_circuits_ch( p, nfuncs=4 ) both in Chromosome.jl.
+8_26: CGP and LGP rare common by sampling
+8_27: Multiset evolvability.
+8_28: Multiset and temporal evolvability.  All GECCO phenotypes.
+8_29: Ideas:  Nearly neutral, temporal evolvability.
+8_30: Running evolvable_pheno_df() from evolvable_evolability.jl using circ_int_lists, i. e., using sampling instead of evolution.  
+8_31: Computing redundancies and K complexities.    Examples of submatrix_to_dataframe(): Outdated.
+9_1:  Draft Evolvabilty topics: 
+9_2:  k_complexity_mutate_all() in Complexity.jl:  See comments on function. 
+9_3:  Testing the hypothesis that mutation from common to rare is unusual (sampling).  
+9_4:  Assignment for Cooper
+9_5:  Comparing evolution vs sampling common to rare:  Based on K complexity
+9_6:  Plotting density of K complexity of result of mutations
+9_8:  Cooper assignment revised.
+9_10: Writing up universal properties of GP maps.
+9_12: Log redundancy vs rank and log rank
+9_16: Progress on K complexity for all 4x1 phenos
+9_18: Discovered that my multiset definition is essentially strength as defined in Hu (2020) normalized to the redundancy of the phenotype
+       Testing hypothesis that higher K complexity means more iterations of neutral_evolution()
+9_20: Properties of entropy evolvability in the cases where we know the exact phenotype map
+9_22: Evaluating the results of shape_space_counts() in ShapeSpace.jl as a method of evaluating other methods of computing evolvability
+9_23: heat map density plot
+9_24: Exact phnet matrices.  Multi-threaded pheno_network_matrix_df() in Fnc.jl. Another run of K complexity for all 4x1 phenos. Assignment for Cooper.
+9_30: Results in data/9_29_22 on approximating phenotype network by random walk sampling
+10_2: Main points of current revisions to pheno network paper
+10_6: Shape-space for 4 inputs including for GECCO phenotypes
+10_8: Evolution, sampling, and total evolvability plots.
+10_9: Redo total evolvability results and plot for 8 gates 4 levelsback based on notes/7_16_22.txt and data/7_8_22
+10_10: Testing hypothesis that phenotypes with close to median number of one bits have higher K complexity and lower redundancy
+10_11: Wrote 'Summary of important definitions and concepts.docx' in complexity/cce
+10_12: Testing various versions of shape-space.
+10_13: Computing approximate phenotype network matrix by evolution, and computing entropy evolvability using this matrix.
+10_14: Entropy evolvability plots
+10_16: Evolve from low K complexity to high K complexity, and attempt with T complexity
+10_19: Continuing investigation of using the mutual information between rows of the phenotype matrix as a substitute for Hamming distance in neutral evolution.
+10_20: Accuracy check for computation of K complexity.
+10_21: Testing hypothesis that strength of relationship between K complexity and degree evolvability decreases as number of gates increases.
+10_23: Creating a sampling degree evolvability and an evolution degree evolvabilty vs K complexity plot
+10_28: Function negate_dataframe() in Complexity.jl.
+10_29: Trying to sync all data files to an AWS bucket.
+10_30: Comparing the 5-input K complexity of random phenotypes with the K complexity of random genotypes.
+11_5:  Doing a density plot of log redundancy for genotype sampling and phenotype sampling.
+11_8:  Procedure for plotting exact log robustness vs exact degree evolvability for 3x1 5gts3lb noXOR and XOR.
+11_9:  Running neutral_evolution_record().
+11_10: Accuracy check for another run of run_kolmogorov_complexity() with different parameters for an accuracy check.
+11_11: Looking at the distribution of Hamming distance changes over the result of mutate_all() with and without XOR.
+11_15: Trying to show that probability of mutation from high redundancy to low redundancy decreases exponentially with the difference in log redundancy.
+11_19: Plot of "Change in log redundacy of mutations" 
+11_21: Computing sampling evolvability and comparing to evolution evolvability
+11_23: Test how frequent target node 20 = 0x0014 is in the result of mutate_all applied to a chromsome evolved to ph.
+11_27: Major revision with correctness checks for src/neutral_evolution_record()
+11_28: Testing my method for computing K complexity for LGP.
+12_1:  Preparing overleaf version of evolvability paper.  Evolvability TODO.
+12_2:  Cooper assignment
+12_7:  Navigability for the evolvability paper.
+12_9:  Trying to get fado, guitar, and graphviz packages to work.
+12_12: Working on DFAs (discrete finite automata).
+12_18: Robustness density plots.  Genotype density vs. phenotype density
+12_19: Modified run_to_rand_phenos_mt() in Evolve.jl to add robustness to the output dataframe.
+12_20: Robustness density plots.  Gave up on multithreading.  function run_ph_evolve().
+12_21: Plotting number of genotypes vs number of phenotypes using count_circuits_ch().  Fit of 2.8^n for number of phenotypes.
+12_25: Results on Shape-Space covering.  Data in data/10_6_22.
+12_26: Revisiting shape-space covering in the file ShapeSpace.jl.
+12_29: Worked on shape space covering with code in ShapeSpace.jl and results in data/12_29_22/.
+12_31: Testing "self-adaptation" from Toussaint's 2002 neutrality paper.
+2023:
+1_6_23:  Investigating rebased_vector bugs in redundancy_mutate_all() which is both in Complexity.jl and in redundancy_mutate_all.jl.
+1_8_23:  Fixing rebased_vector errors in redundancy_mutate_all().  
+1_10_23: Outline of circuit int algorithms
+1_11_23: Wrote subsection Circuit to integers mapping in Overleaf.
+1_13_23: Trying to straighten out Introduction section: Now in cce/Evolvability_Introduction_1_13_23.docx
+1_15_23: Running run_random_walks_parallel() for 2_000_000 walks of 10_000 steps each on Mac.
+1_17_23: Redoing Table "Number of genotypes and phenotypes"
+1_23_23: Function that produces the dataframe corresponding to the table in the Navigability subsection of the evolvability paper.
+1_30_23: Finding redundancy, robustness, and evolbability from phenotype network.  See notes/9_24_22.txt. 
+2_1_23:  How can we show why evolution evolvability is greater than sampling evolvability?
+2_4_23: Results on counting phenotypes encountered on long neutral walks.  Lots of results.  data/2_4_23
+2_6_23: Outdated versions of functions geno_component() and geno_components() run_geno_components() newer versions in file Geno_components.jl
+2_10_23: Idea for evolving student proof block solutions to correct solutions.  Very short.
+2_11_23: More on geno_components.
+2_12_23: Finding phenotypes for all chromosome ints for all chromosomes for a parameter/funcs setting.  data/2_12_23/  Verify previous results.
+2_18_23: Reconstructing and outlining complexity paper.  
+            Word version:  OneDrive/evotech/pheno_network/complexity_paper/Comments & outline for complexity paper2_20_23.docx
+2_20_23: Properties of low and high redundancy phenotypes
+2_21_23: What is old and what is new in the evolvability paper.  Detailed review of models described by Ahnert 2017 and Manrubia 2021
+2_22_23: How can we show why evolution genotype evolvability is greater than sampling genotype evolvability? (revisit)
+2_23_23: How can we show why evolution evolvability is greater than sampling evolvability?  (revisit)
+2_24_23: Trying to confirm that evolution evolvability is greater than sampling evolvability for all 3x1 8gts 4lb 4funcs phenotypes.
+2_25_23: Summary of 2022 Greenbury Navigability paper and 2016 Greenbury Genetic Correlations paper
+2_26_23: Wrote redundancy functions in Redundancy.jl and tested in data/2_26_23/pheno_robust2_26_23.ipynb
+2_27_23: Ideas on navigability:
+2_28_23: Population evolution Wright=Fisher model.
+3_5_23: New definition of total evolvability based on symmetrizing the Boolean pheno network adjacency matrix B.
+3_7_23: Why epochal evolution "fails"---actually why it takes an extremely large number of steps.
+3_9_23: Trying to understand the effect of increasing the number of gates on number of epochal evolution steps.
+3_10_23: Revisiting submission to Royal Society Interface.
+3_11_23: Comparing genotype evolvability of the circuits on a long neutral walk with those obtained from the circuit_ints of a counts file.
+3_12_23: Conclusions for the whole paper.
+3_13_23: Infinite population and approximate evolvability phenonet matrix.
+3_14_23: Infinite population and approximate evolvability phenonet matrix.  Eigenvalues.
+3_15_23: Additional "universal" properties
+3_16_23: Algorithms for chromosome_to_int() and int_to_chromosome() based on code in Chromosome.jl
+3_17_23: Issues with infinite population model.  InfPop.jl, jupyter notebooks, Overleaf project Infinite Population model.
+3_18_23: infinite population model.  I realized that I needed to look at the big picture of what I was doing.
+3_19_23: Why epocal evolution doesn't work (when it doesn't).
+3_20_23: The 32 circuits that map to phenotype 0x6 for 2 inputs 3 gates 3 lb no XOR.
+3_21_23: Ideas for conclusions for evolvability paper.
+3_23_23: Revist ideas for continuous G-P map.  Ideas did not seem to pan out:  3/25/23
+3_24_23: Ideas for testing the effect of evolution evolvability being greater than sampling evolvability.
+3_25_23: Estimating the size of the neutral component of a circuit using function simple_walk() in Evolvability.jl.
+3_26_23: Ideas for testing the effect of evolution evolvability being greater than sampling evolvability.
+3_27_23: Redid computation of navigability table for evolvability paper to include robustness.
+3_29_23: Revising redundancy vs sampling evolvability to robustness vs sampling evolvability
+4_6_23:  Evolvability paper. Finished revision of introduction.
+4_7_23:  Plotting Robustness by genotype and phenotype
+4_10_23: Topics for possible lecture for 315E
+4_16_23: Revisiting how Schuster, Fontana, Stadler, Hofacker (1994) derived the shape space covering property.
+4_22_23: Shape Space notes
+4_23_23: Canalization and evolvability (and modularity and hierarchy)
+4_24_23: Canalization.  Sleeping Beauties by A. Wagner
+4_25_23: What would the GP map G look like for a promiscuous GP map?
+4_26_23: Responding to Ting Hu's commonts on Evolvability paper.  TODOs
+5_2_23:  Promiscuous GP maps
+5_4_23:  Promiscuous.  I suspect Garcia-Galindo formula 6 is wrong.
+5_5_23:  Message to Cheyenne
+5_7_23:  Promiscuous robustness according to Garcia-Galindo
+5_13_23: Ideas on robot consciousness
+5_14_23: Comments and TODOs on evolvability paper.
+5_15_23: How increasing the number of gates affects evolution and sampling evolvability
+5_16_23: Computing mean genotype evolvabilities as a function of the number of gates.
+5_17_23: Explaining why evolution evolvability is greater than sampling evolvability for rare phenotypes.
+5_18_23: Manrubia (2021) on artificial life and open questions.
+5_22_23: Revising the universal properties outline and Overleaf project.
+5_24_23: Additional TODOs for Universal properties paper.  Figure list.
+5_25_23: Summary of the effects of increasing gates in Universal Propoerties.
+5_26_23: Compute frequencies and circuit_ints for 3 inputs, 14 gates, 7 lb.  Use rclone to sync one drive to xps
+5_27_23: Redo log freq vs sampling evolvability and exact sampling evol for universal properties paper.
+5_28_23: TODO list from meeting with Cheyenne on 5/27/23
+5_29_23: Plotting robustness by genotype and phenotype for 2 parameter settings: 4x1 10 and 12 gates.  Redo of 4_7_23
+5_30_23: Robustness vs log relative frequency for 3 inputs 8 gates 14 gates.
+6_1_23:  Problems with count_outputs_parallel() in RecordOutputs.jl
+6_4_23:  Comparing genotype evolvability for 3x1 8 gates to 14 gates.
+6_7_23:  Comments on changes to complexity paper.
+6_8_23:  Ideas on genotype-phenotype maps inspired by "Faster sorting algorithms discovered by deep reinforcement learning"
+6_9_23:  Working on assembly interpreter for the paper "Faster sorting algorithms discovered using deep reinforcement learning"
+6_10_23: Rethinking "purpose" of complexity paper.
+6_12_23: Investigating the effect of increasing select_prob on number of evolutiomary steps.
+6_13_23: The redundancy count for 4 inputs, 14 gates, 7 lb finally finished on surt2 after many days.
+6_16_23: robustness versus K complexity  versus log frequency for complexity paper  data in 12_7_22 and 5_22_22
+6_17_23: Lucy and Carlos candidates
+6_20_23: Complexity null model
+6_21_23: Kolmogorov complexity relationship to unitation, and K complexity of neighboring phenotypes.
+6_22_23: Illustrating how Figure 2 of the UP paper 10 gates shows that the distribution is zipfian.
+6_25_23: Exploring using only the NAND gate.
+6_26_23: Relationbship of K complexity to other quantities  3 inputs.
+6_27_23: Relationbship of K complexity to other quantities  4 inputs.
+6_28_23: Robustness methodology for both UP and complexity papers.
+6_30_23: Procedure for going from n-1 input circuits to n input circuits.
+7_1_23: Debugging function interleave_chromosome( c1::Chromosome, c2::Chromosome )  in Chromosome.jl
+7_3_23: Testing interleave_chromosomes
+7_4_23: Does multiplexing work?  So we have successfully defined a 3-input circuit from two 2-input circuits.
+7_14_23: Update on evolving n-input circuits from previously evolved (n-1)-input circuits.
+7_17_23: Update from 7_14_23:  extract_odd_even()
+7_21_23: Evolution of n-input phenotypes from (n-1)-input phenotypes. Prompt engineering.
+7_24_23: Reference the file pheno_network/navigability/navigability_algorithm.txt
+7_25_23: Trying to demonstrate simplicity bias in the digital circuit GP map.
+7_30_23: Navigability by epochal evolution.
+7_31_23: Trying to demonstrate simplicity bias in the digital circuit GP map.
+8_4_23:  Navigability results by evolution with random fitnesses.
+8_5_23:  Testing navigability for 4-input goals.
+8_10_23: Navigability BFS
+8_12_23: Navigability results in data/8_11_23/ and 8_15_23, some on surt2
+8_13_23: Parallelizing navigability.
+8_14_23: Universal properties of an Avida model.  Dropped navigability from UP paper.
+8_15_23: What is the big picture goal for the UP paper?
+8_18_23: Ideas on Complexity
+8_19_23: Neo4j  Louvain
+8_20_23: Degeneracy in the complexity paper.  Summary of Milano results:
+8_21_23: Does epochal evolution to changing goals select for Tononi complexity?
+8_22_23: Testing the hypothesis that evolving in a changing environment increases commplexity. Conclusion:  hypotheses failed.
+8_25_23: Trying to show that a varying environment increases Tononi complexity.  Conclusion:  no confirmation of this hypothesis.
+8_26_23: Complexity measured by information. Walker/Cronin
+8_28_23  Normalizing genotypes.  How much information is contained in a minimal genotype for a phenotype?
+8_29_23: Normalizing genotypes.
+8_30_23: Complexity is related to information.
+9_4_23:  Wrote test/test_interleave_extract.jl
+9_7_23:  Trying to get understandable versions of int_to_circuit() and circuit_to_int()
+9_15_23:  Probability inactive:
+9_17_23:  If we can predict from the parameters whether nodes are active, can we predict robustness?
+9_20_23:  Writing the document 'phenonet/universal_properties/Fitness landscapes GP maps9_20_23.docx'
+9_21_23:  Summary of "Three trends in the history of life: an evolutionary syndrome" \cite{mcshea2016three} by Daniel McShea.
+9_22_23:  Trying to read Zenil paper "Algorithmically probable mutations"
+9_26_23:  Navigability for random fitness. Excellent results.
+9_29_23:  Verifying that function navigate_bfs() does work for 3 inputs.
+10_2_23:  Consistency of multiple runs of run_navigate_epochal() for 4 inputs, 12 gates, 6lb, 5 funcs.
+10_3_23:  Problem:  Widely varying results for random fitness navigability.
+10_8_23:  More 3-input random fitness navigability runs:
+10_12_23: Complexity:  McShea: Three types of complexity.
+10_18_23: Haidle cognigrams as algorithms for algorithmic information theory.
+11_2_23:  Write down entropy and information formulas so I remember them
+11_10_23: Adami complexity and entropy for the digital circuit GP map:
+11_21_23: Adami Entropy and complexity:
+12_4_23:  Robot companions
+
+All plots:
+Goal Frequency vs Goal Rank: PPfig2 data/10_18
+Evolvability vs log freq PPfig3 diary10_11
+Average of Q vs number goals sampled PPfig4  data/9_14/evolvable9_14D.xlxs   Not current
+Evolvability vs robustness PPfig5 data/10_11/geno_robust_evo10_11E.csv
+complexity vs robustness PPfig6 data/10_11/geno_robust_evo10_11E.csv1
+complexity vs evolvability  PPfig7 data/10_11/ geno_robust_evo10_11E.csv
+evolvability vs epi_total PPfig8 data/9_25
+robustness vs log_freq PPfig9 diary10_11
+evolvability vs log_freq PPfig10 diary10_11
+complexity vs log_freq PPfig11 diary10_11
+average complexity of neighbors vs circut complexity PPfig12 data/10_11/geno_robust_evo10_11E.csv
+log steps vs complexity  PPfig13 diary10_27.txt and data/10_27
+log steps vs log frequency PPfig14 diary10_27.txt and data/10_27
+log frequency vs complexity PPfig15 diary10_27.txt and data/10_27/geno_complexity10_27Fncons_logfreq_vs_complexity.png
+
+Note that all plots in Complexity_frequency_difficulty_evolution10_30_20.docx are copies of some of the above plots.
+
+

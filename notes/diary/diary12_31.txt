@@ -1,0 +1,9 @@
+Parallelized robust_evolvability() in random_walk.jl.
+Revised random_walks_parallel() so it returns a dataframe and writes the dataframe to csvfile 
+   if csvfile is given.
+
+On running this function on a 4x1 dataset on surt2, it is obvious that the degree of
+parallelism is too high, i. e., there are too many tasks where each task is not doing
+enough work.  So a revision needs to be made to have each task correspond to a range of
+goals rather than a single goal.  So a task could return a vector robustnesses and
+a vector of evolvabilities.

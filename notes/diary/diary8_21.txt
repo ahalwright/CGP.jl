@@ -1,0 +1,10 @@
+Verified that Robust_evolve works as in the files in data/8_19
+Verified that Pop_evolve works as in the files in data/7_27  (no modification)
+Note:  revisited Pop_evolve on 
+
+Tentatively decided to write code to implement comparison of different functions
+applied to a Chromosome by implementing 1+lambda evolution.  function next_chromosome()
+would generate lambda new chromosomes which would be selected first for fitness
+(match to a goal) and second to a user-specified function from chromosomes to Floats.
+This function might be:  Frenken mutual information, Tononi complexity, Tononi
+degeneracy, and Tononi redundancy.

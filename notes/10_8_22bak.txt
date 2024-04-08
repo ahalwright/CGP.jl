@@ -1,0 +1,40 @@
+Trying to create an evolution evolvability and sampling evolvability vs log redundancy plot.
+Evolution:
+From notes/7_16_22
+pdf = read_dataframe("../data/7_8_22/evolvable_evolvability_3x1_7_4ch_scmplxP.csv")
+insertcols!(pdf,5,:t_evolvability=>total_evol(pdf))
+rename!(pdf,:evolvability=>:e_evolvability) 
+
+Sampling by circuit_int_list
+cidf = read_dataframe("../data/counts/count_outputs_ch_5funcs_3inputs_8gates_4lb_V.csv")  # creates circuit_list   4 funcs
+edf = evolvable_pheno_df( p, funcs, ph_list, cidf.circuits_list )  # Uses the sampling version of evolvable_pheno_df() in evolvable_evolvability.jl
+Appears to give very uniform evolvabilities
+
+Sampling by random walks
+edf = read_dataframe("../data/1_3/robust_evo_by_walks1_3B.csv")   # 4 funcs
+s_evolvability is strength evolvability, d_evolvability is degree evolvability.
+
+10/8/22:
+#pdf = include("../data/7_8_22/run_evolvable_evolvability_allQ.jl")
+pdf = read_dataframe("../data/7_8_22/evolvable_evolvability4x1_8_4_7_8_22Q.csv")
+rename!(pdf,:evolvability=>:e_evolvability)
+insertcols!(pdf,5,:t_evolvability=>total_evol(pdf))
+rwdf = read_dataframe("../data/1_3/robust_evo_by_walks1_3B.csv")
+cntdf = read_dataframe("../data/counts/count_outputs_ch_4funcs_3inputs_8gates_4lb_W.csv")
+
+Plots.scatter(map(lg10,cntdf.ints8_4),[pdf.e_evolvability,rwdf.d_evolvability],smooth=true,labels=["evolution evolvability" "random walk sampling evolvability"],xlabel="log redundancy",ylabel="evolvability count")
+Plots.scatter!(legend=:bottomright,title="evol & sampling evolvability vs lgredund3x1 8gts4lb4funcs")
+savefig("../data/10_8_22/evol_and_sampling_evolvability_vs_lgredund3x1_8gts4lb4funcs.png")
+
+Plots.scatter([pdf.e_evolvability,rwdf.d_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "random walk sampling evolvability"],ylabel="log redundancy",xlabel="evolvability count")
+Plots.scatter!(legend=:topleft,title="lgredund vs evol & sampling evolvability3x1 8gts4lb4funcs")
+savefig("../data/10_8_22/lgredund_vs_evol_and_sampling_evolvability3x1_8gts4lb4funcs.png")
+
+# This is the total evolvability plot in the current phenotype network paper with the order reversed.
+Plots.scatter([pdf.e_evolvability,pdf.t_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["evolution evolvability" "total evolvability"],ylabel="log redundancy",xlabel="evolvability count")
+Plots.scatter!(legend=:bottomleft,title="lgredund vs evol & total evolvability3x1 8gts4lb4funcs")
+savefig("../data/10_8_22/lgredund_vs_evol_&_total_evolvability3x1_8gts4lb4funcs.png")
+
+Plots.scatter([rwdf.d_evolvability,pdf.t_evolvability],map(lg10,cntdf.ints8_4),smooth=true,labels=["random walk sampling  evolvability" "total evolvability"],ylabel="log redundancy",xlabel="evolvability count")
+Plots.scatter!(legend=:topleft,title="lgredund vs rwsampling & total evol8gts4lb4funcs")
+savefig("../data/10_8_22/lgredund_vs_rwsampling_and_total_evolvability3x1_8gts4lb4func.png")

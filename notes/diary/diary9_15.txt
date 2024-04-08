@@ -1,0 +1,99 @@
+# Run of run_geno_robustness() in evolvability.jl
+ ngoals=50;nreps=5;numinputs=4;numoutputs=1;numinteriors=10;numlevelsback=6;max_steps=200000;
+@time (rbvec,evvec)=run_geno_robustness( ngoals, nreps, numinputs, numoutputs, numinteriors, numlevelsback, max_steps ) 
+corspearman( rbvec, evvec )
+-0.8350223341843527 
+
+
+# Runs of run_evolve_g_pairs( ) in evolvability.jl 
+
+# To get spearman_cor() in Analyze.jl I had to copy this function into julia by hand.
+
+#The column :steps is the number of steps to evolve from source_g to dest_g, including those
+#where evolution failed in maxsteps=100000 steps before increasing numints.
+
+julia> df = read_dataframe("../data/consolidate/geno_pheno_raman_df_all_9_13.csv");
+julia> edf = read_dataframe("../data/9_15/evo_pairs_4x1C.csv")
+
+# Found that the columns :hdist and :dst_evolbl were interchanged due a bug (fixed) in run_evolve_g_pairs().
+# Fixed this by:   (one-time fix)
+julia> edf_nms = names(edf)
+julia> edf_nms[10] = :hamming_dist 
+julia> edf_nms[11] = :dst_evolble 
+julia> rename!( edf, edf_nms ) 
+
+julia> spearman_cor(edf,:hamming_dist,:steps)
+(0.007362426007703136, 0.23081650126205222)    # Not what I expected
+
+julia> spearman_cor(edf,:src_count,:steps)
+(-0.1701224330808902, 4.0564224836601704e-66)
+
+julia> spearman_cor(edf,:src_cmplx ,:steps)
+(0.14711437647705333, 8.4806933802582805e-50)
+
+julia> spearman_cor(edf,:src_mrobust ,:steps)
+(-0.13548430115946716, 1.7575136634918353e-42)
+
+julia> spearman_cor(edf,:src_evolble,:steps)
+(0.15181933194448863, 6.188515794328208e-53)
+
+julia> spearman_cor(edf,:dst_count,:steps)
+(-0.4649165117851452, 0.0)
+
+julia> spearman_cor(edf,:dst_cmplx ,:steps)
+(0.3496368294211193, 9.504824922791955e-286)
+
+julia> spearman_cor(edf,:dst_mrobust ,:steps)
+(-0.36279584871087966, 4.459408184656356e-309)
+
+julia> spearman_cor(edf,:dst_evolble,:steps)
+(0.40853442021811315, 0.0)
+
+julia> spearman_cor( edf, :src_mrobust, :src_cmplx )
+(-0.8863158502799786, 0.0)
+
+julia> spearman_cor( edf, :src_evolble, :src_cmplx )
+(0.8838538979887104, 0.0)
+
+julia> spearman_cor( edf, :dst_mrobust, :dst_cmplx )
+(-0.8861861911049749, 0.0)
+
+julia> spearman_cor( edf, :dst_evolble, :dst_cmplx )
+(0.8839675501424007, 0.0)
+
+# compare with dataframe df
+julia> spearman_cor( df, :evolvability, :complex )
+(0.8689927769043664, 0.0)
+
+julia> spearman_cor( df, :evolvability, :mutrobust )
+(-0.894867409848073, 0.0)
+
+# Add epistasis columns to dataframe
+julia> edf.src_2epi=map(x->k_bit_epistasis( W,2,parse(MyInt,x)),edf.source_g); 
+julia> edf.src_3epi=map(x->k_bit_epistasis( W,3,parse(MyInt,x)),edf.source_g);
+julia> edf.src_t_epi=map(x->total_epistasis( W,parse(MyInt,x)),edf.source_g);
+
+julia> edf.dst_2epi=map(x->k_bit_epistasis( W,2,parse(MyInt,x)),edf.dest_g);
+julia> edf.dst_3epi=map(x->k_bit_epistasis( W,3,parse(MyInt,x)),edf.dest_g);
+julia> edf.dst_t_epi=map(x->total_epistasis( W,parse(MyInt,x)),edf.dest_g);
+ 
+julia> spearman_cor(edf,:src_2epi,:steps)
+(0.021189751420193, 0.017047424846593145) 
+
+julia> spearman_cor(edf,:src_3epi,:steps)
+(0.06323045744387373, 1.2370710585298488e-10)
+
+julia> spearman_cor(edf,:src_t_epi,:steps)
+(0.05716858015148308, 5.300491516925791e-9)
+
+julia> spearman_cor(edf,:dst_2epi,:steps)
+(0.028742257671394614, 0.002023593384898649)
+
+julia> spearman_cor(edf,:dst_3epi,:steps)
+(0.19401924536330825, 1.0201210395758444e-85)
+
+julia> spearman_cor(edf,:dst_t_epi,:steps)
+(0.19150544135621966, 1.5831128169187986e-83)
+
+p = Parameters(numinputs=3,numoutputs=1,numinteriors=9,numlevelsback=6)
+gpr = gp_result([[0x00b5]],p,1,true,true,50000,1)

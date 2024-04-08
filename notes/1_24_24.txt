@@ -1,0 +1,31 @@
+Navigability results:  making sense of number of successes and number of failures.
+
+gdf = read_dataframe("../data/9_25_23/navigability_rand_fitness_3x1_8gts_9_25_23G.csv");
+idf = read_dataframe("../data/9_25_23/navigability_rand_fitness_3x1_14gts_9_25_23I.csv");
+#@time idf = include("../data/9_25_23/run_navigabilityI.jl")
+
+size(gdf), size(idf) # ((1000, 12), (1000, 12))
+
+[
+length(findall(x->x>0,gdf.failures)) #   268-element Vector{Int64}
+length(findall(x->x>0,idf.failures)) #   132-element Vector{Int64}:
+length(findall(x->x>1,gdf.failures)) #   148-element Vector{Int64}
+length(findall(x->x>1,idf.failures)) #    50-element Vector{Int64}:
+length(findall(x->x>2,gdf.failures)) #    87-element Vector{Int64}
+length(findall(x->x>2,idf.failures)) #    22-element Vector{Int64}:
+length(findall(x->x>3,gdf.failures)) #    58-element Vector{Int64}
+length(findall(x->x>3,idf.failures)) #    11-element Vector{Int64}:
+]
+[ 268 132 148 50 87 22 58 11 ]
+
+Could make this into a plot.
+
+function count_failures( df::DataFrame, failure_column::Symbol, failure_count_list::Vector{Int} )
+  map(cnt->length(findall(x->x>cnt,df[!,failure_column])), failure_count_list )
+end
+count_failures( idf, :failures, [1,2] )
+2-element Vector{Int64}:
+ 50 22
+julia> count_failures( idf, :failures, collect(1:20) )
+20-element Vector{Int64}:
+ 50 22 11 6 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1

@@ -1,4 +1,4 @@
-Finding phenotypes for all chromosome ints for all chromosomes for a parameter/funcs setting.  data/2_12_23/  Verify previous results.ZZ
+Finding phenotypes for all chromosome ints for all chromosomes for a parameter/funcs setting.  data/2_12_23/  Verify previous results.Z
 Example parameter setting:  3435  means 3 inputs, 4 gates, 3 lb, 5 funcs
 
 Chromosome ints have values from 0 to Int64(count_circuits_ch(p,funcs))-1)

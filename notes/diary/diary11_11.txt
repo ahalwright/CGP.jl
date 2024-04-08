@@ -1,0 +1,51 @@
+Ideas:
+
+Inactive gate nodes are like variation in a population.  This is especially important 
+in our single-individual evolution where we do not have a population.  They provide the 
+variation necessary for evolution to work.  They can be like cryptic genes in biology.  
+The Kashtan results provide a good example.
+
+Maybe degeneracy increases as levelsback increases.
+
+Kolmogorov complexity:
+Functions kolmogorov_complexity, run_kolmogorov_complexity in Complexity.jl
+Function remove_inactive() in Chromosome.jl.  Debugged.
+
+k_complexity11_11F.csv contains the k complexities of all 2^16 goals.
+julia> spearman_cor(kdf,:num_gates,:complexity)
+(0.9397663729101743, 0.0)
+
+run_kolmogorov_complexity() does further evolutions both to correct for the 
+initial determination of num_gates and also to get a more accurate measurement
+of Tononi complexity, robustness, and evolvabilty.
+
+Cases where the run with max_goal_tries=5 with max_goal_tries=20.
+22 cases on non-agreement.  3 with mgt=5 better than mgt=20, 17 with 20 better than 5
+Data on surt2 in 11_11.  Files C and D.
+julia> df5 = read_dataframe("../data/11_11/k_complexity11_11C.csv")
+julia> [(df5.num_gates[i],df5.avg_robustness[i],df20.num_gates[i],df20.avg_robustness[i]) for i in diffs]
+22-element Array{Tuple{Int64,Float64,Int64,Float64},1}:
+ (6, 0.0, 7, 0.01745283018867925)
+ (7, 0.020754716981132078, 6, 0.0)
+ (5, 0.3113207547169811, 6, 0.05175814751286449)
+ (7, 0.0047169811320754715, 6, 0.0)
+ (7, 0.04405051734631771, 6, 0.002840909090909091)
+ (7, 0.09076384662203286, 6, 0.0)
+ (7, 0.09977210091159636, 6, 0.005681818181818182)
+ (7, 0.01509433962264151, 6, 0.0)
+ (5, 0.11405529953917051, 4, 0.0)
+ (6, 0.01818181818181818, 5, 0.0)
+ (6, 0.11927987742594484, 5, 0.0)
+ (6, 0.011363636363636364, 5, 0.02857142857142857)
+ (7, 0.0386488131466829, 6, 0.005681818181818182)
+ (7, 0.08880644477422091, 6, 0.017137096774193547)
+ (5, 0.03142857142857143, 4, 0.0)
+ (7, 0.05213925059792719, 6, 0.0)
+ (7, 0.09105363578545686, 6, 0.004545454545454545)
+ (6, 0.08619210977701544, 5, 0.025000000000000005)
+ (7, 0.03630553864881315, 6, 0.0)
+ (7, 0.07568369726521093, 6, 0.011363636363636364)
+ (6, 0.045325900514579756, 5, 0.014285714285714285)
+ (6, 0.16981132075471697, 7, 0.010023584905660377)
+
+k_complexity11_11F.csv contains the k complexities of all 2^16 goals.

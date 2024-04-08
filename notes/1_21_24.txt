@@ -1,0 +1,12 @@
+Cleaning up my code.
+
+Problems:
+
+1)  Functions that are exported unnecessarily.
+    I should be able to write code to check this.
+
+2)  Given a function call, recursively trace back all function calls.
+    Return the list of functions called and the files containing these functions.
+    https://discourse.julialang.org/t/method-tracing-in-julia/85387
+
+3)  

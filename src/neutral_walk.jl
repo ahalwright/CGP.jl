@@ -6,6 +6,7 @@
 # Assumes a single output goal
 # Returns circuit_code_list of neutral circuits discovered on the neutral walk.
 # Includes both walk circuits and neutral neighbors of walk circuits.
+# There is another neutral_walk() function with the same signature in neutral_walk_connectivity.jl
 function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, maxtries::Int64 )
   n_repeats = 10  # maximum number of tries to find c that maps to g
   res = mut_evolve_repeat(n_repeats, p, [g], funcs, maxsteps )
@@ -14,22 +15,23 @@ function neutral_walk( g::Goal, p::Parameters, steps::Int64, maxsteps::Int64, ma
 end
 
 # neutral walk starting with a given chromosome instead of a given circuit.
-function neutral_walk( c::Chromosome, p::Parameters, steps::Int64, maxsteps::Int64, maxtries::Int64 )
+# steps is the length of the neutral walk unless a walk isn't found
+# maxtries is the number of mutations tried to find a neutral mutation
+# The value of maxtries is not crucial because if a neutral mutation is not found in maxtries attempts,
+#    all mutations are tried.
+# maxsteps is never used so should be removed
+function neutral_walk( c::Chromosome, steps::Int64, maxtries::Int64 )
+  p = c.params
+  g = output_values(c)
   @assert p.numoutputs == 1
   funcs = default_funcs( p.numinputs )
-  circuit_ints = Int64[]
-  n_repeats = 10  # maximum number of tries to find c that maps to g
-  res = mut_evolve_repeat(n_repeats, p, [g], funcs, maxsteps )
-  c = res[1]
-  println("complexity(c): ",complexity5(c))
-  #@assert sort(output_values(c)) == sort(g)
-  @assert output_values(c) == g    # Assumes p.numoutputs==1
-  push!( circuit_ints, circuit_int(c) )
+  walk_ints = Int64[]
   for i = 1:steps 
     (new_c,active) = mutate_chromosome!( deepcopy(c), funcs )
+    new_cint = chromosome_to_int( new_c )
     outputs = output_values(new_c)
     attempts = 1
-    while attempts < maxtries && outputs != g  # try to find a c to extend walk
+    while attempts < maxtries && ((outputs != g) || !(new_cint in walk_ints))   # try to find a c to extend walk
       (new_c,active) = mutate_chromosome!( deepcopy(c), funcs )
       outputs = output_values(new_c)
       #println("attempts: ",attempts,"  outputs: ",outputs,"  goal: ",g)
@@ -37,29 +39,23 @@ function neutral_walk( c::Chromosome, p::Parameters, steps::Int64, maxsteps::Int
     end
     if attempts == maxtries
       # Alternatively, try all mutations of c in our attempt to extend walk
-      all_chromes = map( x->x[2], mutate_all( deepcopy(c), funcs, output_circuits=true )) 
+      #println("alternatively")
+      all_chromes = mutate_all( deepcopy(c), funcs, output_circuits=true, output_outputs=false )
+      #println("all_chromes[1]: ",all_chromes[1])
       filter!( x->output_values(x)==g, all_chromes )  # only chromosomes that map to g
       #println(" attempts == maxtries  len(all_chromes): ",length(all_chromes))
       if length(all_chromes) == 0  
         error("unable to extend random_neutral_walk in function neutral_walk() at step: ",i)
-        #continue
       else
-        @assert output_values(all_chromes[1]) == g
-        c = rand(all_chromes)
+        new_c = rand(all_chromes)
+        @assert output_values(new_c) == g
       end
-    else
-      c = new_c   # neutral walk extended
     end
-    @assert output_values(c) == g
-    # mutate_all() returns a list of pairs where the second element of the pair is the chromosome
-    all_chromes = map( x->x[2], mutate_all( c, funcs, output_circuits=true )) 
-    filter!( x->output_values(c)==g, all_chromes )
-    for ch in all_chromes 
-      push!( circuit_ints, circuit_int(ch) )
-    end
-    circuit_ints = unique(circuit_ints)  
+    @assert output_values(new_c) == g
+    push!( walk_ints, chromosome_to_int(new_d) )
+    #println("i: ",i,"  length(walk_ints): ",length(walk_ints),"  length(unique(walk_ints)): ",length(unique(walk_ints)))
   end # for loop
-  circuit_ints
+  unique(walk_ints)
 end
     
 # Does multiple random walks and combines the returned circuit code lists if they have circuits in common.

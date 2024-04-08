@@ -1,0 +1,103 @@
+Finished debugging neutral_walk_connectivity.jl.
+
+# Objective:  Find the size of the components of the neutral network of a goal.
+# Methodology:  Do multiple neutral random walks starting at a random circuit that maps to the goal.
+# neutral_walk() accumulate all neighbors of all neutral circuits encountered on the random neutral walk.
+# Then run_neutral_walk() combines the circuit lists returned by multiple random walks
+#      if they have a circuit in common.
+# Thus, run_neutral_walk() returns circuit lists that have not been shown to be in the same connected
+#      component.
+
+Comment:  look at circuit_evolve() in Evolve.jl to try evolve from one circuit to another circuit with the same goal.
+
+Comments on results shown below:
+For 3x1 goals:
+Neutral networks of common goals clearly have a single component.
+For the 3 rarest goals, there appears to be one very large component and a small number of very small components.
+
+For the 4x1 goal, as w increases, the program slows down and is using close to the maximum amount of memory on lyocsa.
+
+Conclusion:  I should use dictionaries to implement circuit code lists.  I can parallelize the neutral walks, but I
+don't see how to parallelize the combinination of circuit code lists.  Hopefully, using dictionaries will help.
+
+include("neutral_walk_connectivity.jl")
+Counts from file: data/10_26/count_out_3x1_raman_6ints_4lb_10_26.csv
+Parameters:  3 inputs 1 output 6 ints 4 levsback
+goal:  [0x0049]    count:  53
+julia> run_neutral_walk( g, p, 100, 1200, 50000, 30)
+w: 100  walk_list after add: [1, 11, 21, 25, 29, 44, 89, 96]
+w: 100  length(circuit_code_list) after add: 8  lengths circuit_code_list: [724574, 209, 840, 108, 108, 1173, 205, 39]
+
+Rerun of the above on 11/29:
+w: 100  walk_list after add: [1, 14, 16, 48, 49, 54, 92]
+w: 100  length(circuit_code_list) after add: 7  lengths circuit_code_list: [688442, 445, 138, 5840, 39, 73, 175]
+
+goal:  [0x007a]  count:  191
+w: 100  walk_list after add: [1]
+w: 100  length(circuit_code_list) after add: 1  lengths circuit_code_list: [1402542]
+
+goal:  [0x00ea]  count:  3330
+w: 100  walk_list after add: [1]
+w: 100  length(circuit_code_list) after add: 1  lengths circuit_code_list: [2256464]
+
+goal:  [0x0029]  count:  61
+w: 100  walk_list after add: [1, 3]
+w: 100  length(circuit_code_list) after add: 2  lengths circuit_code_list: [877089, 108]
+1416 seconds
+
+goal:  [0x00d6]  count:  62
+w: 100  walk_list after add: [1, 31, 96]
+w: 100  length(circuit_code_list) after add: 3  lengths circuit_code_list: [843917, 329, 75]
+
+Parameters:  4 inputs, 1 output, 8 ints, 5 levsback
+goal:  [0x0003]  count:  15023171    from counts/count_out_4x1_8ints_10_10dec.csv
+@time run_neutral_walk( g, p, 30, 1200, 150000, 60)
+w: 30  walk_list after add: [1, 2, 4, 5, 6, 7, 8, 10, 12, 22, 23, 25, 26]
+w: 30  length(circuit_code_list) after add: 13  lengths circuit_code_list: [51136, 608645, 53734, 100166, 206337, 50558, 52111, 155075, 53349, 52545, 50249, 51848, 51706]
+1714 seconds
+
+julia> @time run_neutral_walk( g, p, 150, 1200, 150000, 60)   # same goal
+w: 150  walk_list after add: [1, 3, 13, 26, 33, 36, 39, 41, 58, 59, 60, 74, 83, 95, 101, 106, 115, 123, 125, 144]
+w: 150  length(circuit_code_list) after add: 20  lengths circuit_code_list: [6498299, 101310, 49275, 50427, 51811, 104625, 52091, 47588, 51573, 50732, 99950, 54379, 47065, 52257, 104147, 52318, 51599, 52929, 52562, 50387]
+
+Parameters(1, 4, 0.05, 0.0, 4, 1, 2, 8, 5)
+goal:  [0x01f0]  count: 8450  
+w: 150  walk_list after add: [1, 8, 30, 33, 41, 50, 51, 54, 55, 61, 67, 106, 108, 113, 125, 140, 144]
+w: 150  length(circuit_code_list) after add: 17  lengths circuit_code_list: [5569402, 33193, 20352, 44919, 31574, 35638, 11316, 20610, 37519, 4556, 15718, 31787, 43629, 29591, 35301, 14697, 41741]
+13817 seconds lycosa
+
+
+goal:  [0x01e3]   count:  14    (surt2)
+@time run_neutral_walk( g, p, 150, 1200, 300000, 60)
+w: 150  walk_list after add: [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 19, 22, 23, 24, 25, 26, 27, 28, 29, 32, 33, 36, 37, 39, 40, 41, 42, 44, 45, 46, 47, 52, 54, 5
+8, 59, 63, 64, 66, 67, 68, 69, 70, 72, 73, 76, 78, 79, 81, 82, 83, 86, 87, 89, 91, 93, 94, 96, 97, 98, 99, 101, 105, 107, 108, 110, 111, 113, 114, 115, 116, 117, 120, 121, 125
+, 126, 127, 128, 129, 130, 133, 134, 136, 138, 140, 142, 143, 145, 148]
+w: 150  length(circuit_code_list) after add: 93  lengths circuit_code_list: [70332, 10382, 4887, 7411, 17017, 331320, 129, 7868, 129, 15318, 11687, 934, 7557, 17379, 67, 248,
+8645, 480, 311, 304634, 10787, 8510, 190, 19622, 1, 10682, 10125, 190, 2928, 67, 6194, 130, 597, 21487, 597, 825, 51160, 4443, 17514, 1049, 1183, 5354, 2321, 5986, 67, 9009, 1
+4891, 129, 659, 19648, 67, 16818, 1183, 6620, 1882, 8657, 33887, 14551, 311, 597, 369, 1172, 129, 28575, 368, 18082, 2095, 12333, 4362, 129, 1, 1049, 13745, 129, 8961, 373, 24
+8, 32078, 11011, 67, 67, 8439, 7556, 129, 1728, 7051, 129, 8607, 611, 476, 248, 476, 14173]
+11966.670992 seconds (6.99 G allocations: 675.080 GiB, 0.55% gc time)
+
+goal:  [0x01e3]   count:  14    (surt2)
+Parameters(1, 4, 0.05, 0.0, 4, 1, 2, 10, 5)
+w: 150  walk_list after add: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41
+, 42, 43, 44, 45, 46, 47, 48, 49, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 85, 86, 88, 8
+9, 91, 92, 93, 94, 95, 96, 97, 98, 99, 101, 102, 103, 104, 105, 107, 108, 109, 111, 112, 113, 114, 115, 117, 118, 119, 121, 122, 123, 124, 126, 127, 128, 129, 131, 132, 133, 1
+34, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149]
+w: 150  length(circuit_code_list) after add: 134  lengths circuit_code_list: [145299, 42023, 51351, 36669, 54053, 42503, 109671, 26377, 97198, 48447, 50416, 48498, 53837, 3040
+5, 58132, 54167, 42267, 49542, 28235, 25699, 34063, 34674, 112782, 54430, 102886, 33399, 36835, 19507, 114051, 39147, 14309, 161, 55828, 88919, 29172, 114171, 1272, 17065, 113
+192, 55822, 22189, 49119, 42165, 105532, 109587, 29428, 15868, 49261, 57788, 38670, 49168, 56622, 11681, 38461, 44134, 21855, 40400, 49839, 53640, 54513, 51735, 30441, 58312,
+169508, 51365, 86148, 38803, 50238, 35808, 50580, 55997, 60061, 42814, 47816, 56737, 48429, 41543, 102223, 38134, 37259, 51071, 50065, 11807, 54801, 46283, 542, 57828, 54974,
+45179, 23151, 34602, 50987, 54218, 4030, 47423, 17953, 83, 45322, 45643, 46591, 40490, 50006, 36805, 52701, 53534, 57742, 52375, 53553, 29733, 41914, 53681, 35554, 43643, 4555
+6, 60239, 52341, 44426, 56906, 50933, 43407, 51613, 54869, 51190, 757, 50670, 45157, 53163, 47927, 42435, 1134, 7106, 52067, 48122, 39574]
+77528.342751 seconds (6.27 G allocations: 2.507 TiB, 0.13% gc time)
+
+goal:  UInt16[0x01e3]
+Parameters(1, 4, 0.05, 0.0, 4, 1, 2, 11, 8)
+w: 150
+length(circuit_code_list) after add: 150 
+lengths circuit_code_list: [94369, 96428, 101005, 90936, 99378, 104148, 101510, 103089, 104772, 106506, 95107, 108837, 102753, 105045,
+98359, 107561, 102842, 100473, 109225, 104191, 102538, 104750, 108636, 97000, 103409, 105571, 102274, 104211, 113089, 109843, 103484, 100255, 101476, 97483, 108394, 101137, 105731, 100507, 97943, 113692, 105491, 105512, 108820, 103391, 103466, 104839, 103042, 96597, 103846, 97185, 103757, 105550, 104667, 101241, 103733, 102695, 96683, 102910, 110595, 100468, 109556, 97704, 97436, 116781, 100877, 105466, 103264, 106548, 99146, 57747, 105265, 100762, 101644, 98413, 108256, 102248, 106660, 104268, 102470, 105689, 97934, 104982, 103679, 106629, 112707,
+100239, 112009, 101957, 108454, 106215, 102345, 96784, 103682, 110523, 100313, 92482, 105577, 105723, 98551, 100011, 102228, 101354, 99985, 114674, 106976, 105444, 105786, 105033, 73708, 102938, 98892, 98116, 100401, 99544, 104925, 104941, 91583, 98883, 105265, 112143, 106685, 99769, 99967, 102145, 102809, 88743, 96790, 101031, 101252, 99817, 105990, 112988, 105890, 101312, 101676, 96602, 97446, 109633, 103421, 101531, 103862, 106262, 105639, 103426, 104975, 100361, 103372, 107086, 107815, 101711]
+287486.539992 seconds (6.93 G allocations: 5.028 TiB, 0.06% gc time) 
+Tentative conclusion:  Circuit space is so large that one never finds duplicate circuits.

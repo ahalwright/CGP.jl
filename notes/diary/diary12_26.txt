@@ -1,0 +1,42 @@
+The Hu (2020) paper shows a strong postive correlation between evolvability and frequency (which they 
+call redundancy).  See their Figure 5a.  Since robustness and frequency have a strong relationship 
+(PP Figure 11) which is univeral in GP maps, this implies a strong postive relationship between
+robustness and evolvability.  Since the domain of the Hu paper is 3x1 digital ciruits, this needs
+explanation.  The primary difference is that they use Linear Genetic Programming which I used
+a sleight variant of Cartesian Genetic programming.
+
+Why are our results different from theirs?
+
+First hypothesis:  There is a difference between the definitions of evolvabiliy.
+In particular, maybe evolvability involves frequency by definition.
+My definition of evolvability agrees with Greenbury (2015): "phenotypic evolvability, defined as the 
+total number of distinct other phenotypes that are within one mutation of any of the genotypes 
+belonging to the given phenotype."  This definition is derived from Wagner (2008):  "Phenotype 
+(structure) evolvability. The number EP of different structures found in the 1-neighbourhood of a
+structure P."  However, when Wagner approximates evolvability, he talks about ways to normalize
+for sequence length to go from what I call evolvability count to evolvability proportion.
+
+The Hu paper defines a phenotype network and uses this to define degree evolvability.
+In the basic phenenotype network "two nodes (phenotypes) are directly connected by an edge if there 
+exist at least one pair of underlying genotypes, one from each phenotype, that can be transitioned 
+from one to the other through a single point mutation."  The degree evolvability of a phenotype is its 
+degree in this network.  They approximate the network by generating one million 1000-step random walks.
+They also define strenth evolvability which is strongly linked to redundancy (frequency).
+
+Conclusion:  The Hu results are not due to a definition of evolvability that is linked to frequency.
+
+Second hypothesis:  My results are heavily based on using adaptive neutral evolution to reverse
+the GP map.  To test this hypothesis, I can sample random circuits and use this sample to find 
+circuits that map to a given list of phenotypes.  As I sample circuits, I accumulate a list of
+circuits of a given length for each genotype.  For example, I might accumlate 100 or 500 
+circuits for each genotype.  This is definitely feasible for 3x1 phenotypes, but not so feasible for 
+the 4x1 case.  Then I could calculate evolvability based on these circuits.
+
+Third hypothesis:  I can try to duplicate the Hu methodology of generating one million 1000-step random 
+walks to find the properties of the GP map.  Each step of the walk gives a path from one phenotype to
+another.  Since there are only 2^16=65536 pairs of phenotypes, this will give 1 billion edges (including
+self edges) of the phenotype network.  From this matrix I can replicate their figures 5 a, b, and c.
+I have found an old implementation of PageRank on Julia, and so I might be able to use this to replicate
+Figure 5f.  I can use this to generate the samples of circuits that map to a phenotypes as an alternative
+to the method given above under the second hypothesis.
+ 

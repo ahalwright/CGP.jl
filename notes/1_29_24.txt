@@ -1,0 +1,22 @@
+Revisiting how to count failures for navigability
+
+Results from data/9_25_23/
+
+fgrep "count failures:" *.csv   # partial results
+navigability_rand_fitness_3x1_14gts_9_25_23I.csv:14:# count failures: 0
+navigability_rand_fitness_3x1_8gts_9_25_23G.csv:15:# count failures: 0
+navigability_rand_fitness_4x1_12gts_9_25_23R.csv:15:# count failures: 16
+navigability_rand_fitness_4x1_12gts_9_25_23RR.csv:15:# count failures: 3
+navigability_rand_fitness_4x1_14gts_9_25_23M.csv:14:# count failures: 3
+
+For suffix M:  4x1 14gts 7lb 
+# num_circuits: 200
+# ngoals: 10
+# count failures: 3
+run_navigabilityM.jl
+    max_steps = 100_000
+    num_circuits = 200
+    ngoals = 10
+    df = run_navigate_epochal( P, funcs, fitness, ngoals, max_steps, num_circuits, use_pmap=true, csvfile=csvfile )
+    
+    

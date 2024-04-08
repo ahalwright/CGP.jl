@@ -1,7 +1,9 @@
-
+# When Parameters are used, numinteriors specifies numinstructions.
+# When Parameters are used, numlevelsback specifies numregisters.
+# See the start of the file LinCircuit.jl for more details.
 export Parameters, default_parameters, print_parameters
 
-#=
+#=  Defined in aliases.jl
 mutable struct Parameters
     mu::Integer
     lambda::Integer
@@ -48,7 +50,8 @@ function Parameters( ; numinputs=2, numoutputs=1, nodearity=2, numinteriors=4, n
     return Parameters(mu, lambda, mutrate, targetfitness, numinputs, numoutputs, nodearity, numinteriors, numlevelsback)
 end
 
-function print_parameters(f:: IO, p::Parameters; comment::Bool=false )
+#function print_parameters(f:: IO, p::Parameters; comment::Bool=false )
+function print_parameters(f:: IO, p; comment::Bool=false )
   if !comment
     println(f,"MyInt: ",MyInt)
     println(f,"numinputs: ",p.numinputs)
@@ -66,7 +69,8 @@ function print_parameters(f:: IO, p::Parameters; comment::Bool=false )
   end
 end
 
-function print_parameters(p::Parameters; comment::Bool=false  )
+#function print_parameters(p::Parameters; comment::Bool=false  )
+function print_parameters(p; comment::Bool=false  )
   f = Base.stdout
   print_parameters( f, p, comment=comment )
 end

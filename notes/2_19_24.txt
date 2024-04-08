@@ -1,0 +1,7 @@
+LLMs and other deep learning AI models.
+
+The crucial question is how these models evolve.
+
+Full current LLM may have many billions of parameters and are very expensive to create.
+Some are proprietary (GPT-*), others are somewhat open source (ollama), and others
+are truly open source (mistral).

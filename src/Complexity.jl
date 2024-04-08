@@ -843,11 +843,11 @@ function redundancy_dict( p::Parameters, funcs::Vector{Func}=default_funcs(p), c
         if length(funcs) == 4
           csvfile = "../data/counts/count_outputs_ch_4funcs_3inputs_14gate_7lb_O.csv"
         else
-          println("no csv file in function redundancy_dict()")
-          return nothing
+          csvfile = "../data/counts/count_outputs_ch_5funcs_3inputs_14gate_7lb_K.csv" 
         end
       else
         println("no csv file in function redundancy_dict()")
+        println("Parameters: ",p)
         return nothing
       end
     elseif p.numinputs == 4

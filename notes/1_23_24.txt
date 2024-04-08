@@ -1,0 +1,35 @@
+From talking to Cheyenne 1/23/24:
+  Consistent parameters and explanations why these were chosen.
+  Two meanings of "exact", and why.
+  Go through overleaf version and carefully remove all "without XOR" results
+  Table 3: Remove last row.  Explain why we are looking the cases for each row.
+
+
+
+How evolvability works:
+  We use Wagner's definition:  should connect to more general concepts of evolvability.
+  Two versions of phenotype evolvability:  
+    (1)  Degree evolvability:  degree of the phenotype in the unweighted phenotype network.
+    (2)  Strength evolvability:  degree of the phenotype in the weighted phenotype network.
+  We have two techniques for approximation:
+    (1)  Sampling
+    (2)  Evolution
+  
+
+
+p = Parameters(3,1,8,4); funcs=default_funcs(p)
+5-element Vector{Func}:
+ Func(&, 2, "AND")
+ Func(Main.CGP.Or, 2, "OR")
+ Func(Main.CGP.Nand, 2, "NAND")
+ Func(Main.CGP.Nor, 2, "NOR")
+ Func(xor, 2, "XOR")
+
+rdict=redundancy_dict(p,funcs); 
+qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability3x1_8_4_7_8_22Q.csv") # no XOR
+
+Objective: 
+Sampling, evolution, exact evolvability for 3 inputs, 8 gts, 4 lb, with XOR.
+#exact evolvability based on data/1_3/robust_evo_by_walks1_3HX.csv with 2_000_000 walks of 10_000 steps each.
+qpdf = read_dataframe("../data/7_8_22/evolvable_evolvability3x1_8_4_7_8_22Q.csv") # evolution, no XOR ncircuit=2000
+spdf = read_dataframe("../data/7_8_22/evolvable_evolvabilityCGP_3x1_8_4_7_8_22S.csv")  # #evolution, no XOR ncircuits=5000

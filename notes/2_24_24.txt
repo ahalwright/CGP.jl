@@ -1,0 +1,42 @@
+Finding number components of neutral sets: See below.
+Number of phenotypes found for Lincircuit parameters:
+
+llp: Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 2)
+@time cph = count_phenotypes_mt( llp, funcs )
+2451.287052 seconds (98.93 G allocations: 4.809 TiB, 16.99% gc time)
+findall( x->x==0, cph )
+38-element Vector{Int64}:
+
+Managed to get julia -L CGP.jl to work the same on mac and fluda.
+
+mp = Parameters( 2, 1, 3, 2 )
+funcs = lin_funcs(mp.numinputs)
+rch = rand_lcircuit( mp, funcs ); output_values(rch)
+1-element Vector{UInt16}: 0x0008
+
+components = Set([])
+neutral_component_ints!( components, rch ); length(components):  84672
+# agreed with run on 3/1/24, but several stack overflows.  output_values(rch)[1]==0x0007
+
+nch6 = neutral_evolution( rch, funcs, [0x0006], 50_000 )   # different numbers of steps
+
+np = Parameters(3,1,3,2)
+count_circuits_ch( np, nfuncs=4 )  #  4096  Something is wrong with the 3368 values below.
+rch = rand_lcircuit( np, funcs ); output_values(rch)
+nch23 = neutral_evolution( rch, funcs, [0x0023], 50_000 )
+
+cnt_ph=count_phenotypes_mt(np,funcs)  # LGP
+256-element Vector{Int64}:
+cnt_ph[0x0037+1]
+4064    # number of genotypes mapping to [0x0037]
+sum(cnt_ph):   8000000  number of total genotypes
+
+components = Set([])
+neutral_component_ints!( components, nch23[1] ); length(components):   10
+
+nch37 = neutral_evolution( rch, funcs, [0x0037], 50_000 )
+neutral_component_ints!( components, nch37[1] ); length(components):  3378
+
+components = Set([]); nch37 = neutral_evolution( rch, funcs, [0x0037], 50_000 ); neutral_component_ints!( components, nch37[1] ); length(components)
+Results:  104, 3368, 6, 12, 0  on both mac and fluda.   0 appears to mean no neutral mutations
+Rigorous demonstration of multiple components.

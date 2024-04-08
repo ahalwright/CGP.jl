@@ -1,0 +1,9 @@
+Developed another version of a simulation to test the hypothesis that selection for mutational robustness increases complexity.
+File:  src/Robust_evolve.jl
+Functions:  run_robust_evolve() and robust_evolve().  Includes pmap.
+Runs:   on lycosa, surt2, one run on pardosa.
+Data:  data/6_26     Has been moved to lycosa.
+Production runs for 3 inputs 3 outputs and 4 inputs 2 outputs.
+Problem with these runs:  on the robustness runs, fitness is not maintained.  Thus, selection for robustness seems to
+  quickly lose the fitness optimum.
+No sign that the hypothesis is true.

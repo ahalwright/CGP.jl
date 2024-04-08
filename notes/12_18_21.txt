@@ -4,21 +4,29 @@ to describe the motivation and setup.
 
 BELOW:  Comparison of threading, pmap, and single process models.
 
-Code is in the temporary file src/fnc.jl
+Code is in the temporary file src/stash/fnc12_25_21.jl
+
+ec2 = enumerate_circuits_ch( p, funcs); length(ec2)   #  23040000
+
+#  old:  Code is in the temporary file src/fnc.jl
 Examples:  p = Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 5)
-julia> funcs = default_funcs(p.numinputs)
+julia> funcs = default_funcs(p.numinputs)[1:4]
 4-element Vector{Func}:
  Func(&, 2, "AND")
  Func(|, 2, "OR")
  Func(Main.CGP.Nand, 2, "NAND")
  Func(Main.CGP.Nor, 2, "NOR")
 
-0x004f:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  239
-@time S=find_neutral_components(ec2,0x004f); print_lengths(S)  # 92.5 seconds
-sum([length(S[ky]) for ky in keys(S)])   # 13504
-One large single component of size 12400
-length(keys(S))  #  119
-Components of size:  4, 6, 12, 16, 20, 28, 56
+# This section revised 2/25/24:
+0x004f:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  239  
+@time S=find_neutral_components(ec2,0x004f); print_lengths(S)  # 146 seconds  # prev 92.5 seconds
+# prev sum([length(S[ky]) for ky in keys(S)])   # 13504
+sum([length(S[ky]) for ky in keys(S)])    #   1664
+# prev? One large single component of size 12400
+# prev length(keys(S))  #  119
+length(keys(S))         #  138
+# prev Components of size:  4, 6, 12, 16, 20, 28, 56
+Componens of sizes:  4, 6, 8, 16, 20, 24, 28, 56, 72, 80
 
 0x0079:   count from data/counts/count_outputs_3x1_raman_12_7_6gts_4lb.csv:  61
 ERROR: no genotypes that map to the given phenothype UInt16[0x0079]

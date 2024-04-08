@@ -1,5 +1,6 @@
 using JLD, HDF5, Tables, Base.Threads
 
+@everywhere LinCircuit=CGP.LinCircuit
 #  As of 2/20/22, julia -p 4 -L CGP.jl -L Fnc.jl -L num_active_lc.jl -L to_sublists.jl 
 #  Example:  if use_lincircuit==false, let p = Parameters(3,1,4,3)  else let p = Parameters(3,1,3,2) 
 #    For use_lincircuits==true, larger values of numinteriors=numinstructions and numlevelsback=numregisters exceed memory even on surt2
@@ -56,8 +57,9 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
   (df,cdf)
 end
 
-function find_neutral_comps( chp_list::Union{Vector{Tuple{Chromosome,MyInt}},Vector{Tuple{LinCircuit,MyInt}}}, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs) )
-  #D println("find_neutral_comps: chp_list: ",chp_list)
+function find_neutral_comps( chp_list::Union{Vector{Tuple{Chromosome,MyInt}},Vector{Tuple{LinCircuit,MyInt}}}, p::Parameters, 
+      funcs::Vector{Func}=default_funcs(p.numinputs) )::Dict{Int64,Set{Int128}}
+  #D println("find_neutral_comps: chp_list: ",chp_list)   # chp_list is a list of Chromosome/LinCircuit phenotype pairs
   use_lincircuit = (typeof(chp_list)==Vector{Tuple{LinCircuit,MyInt}}) 
   S = Dict{Int64,Set{Int128}}()
   new_key = 1

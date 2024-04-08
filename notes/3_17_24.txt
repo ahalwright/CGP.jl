@@ -1,0 +1,48 @@
+p = p3 = Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 4, 4)
+@time gc = count_genotypes_ch_mt( p3, funcs )
+749.861521 seconds (20.09 G allocations: 1.511 TiB, 19.61% gc time, 0.01% compilation time)
+256×2 DataFrame
+ Row │ phenotype       count
+     │ Array…          Int64
+─────┼─────────────────────────
+   1 │ UInt16[0x0000]  3231192
+   2 │ UInt16[0x0001]   166728
+ 244 │ UInt16[0x00f3]    86368
+ 245 │ UInt16[0x00f4]    12961
+ 246 │ UInt16[0x00f5]   293512
+
+# ch_f3 = neutral_evolution(rch,funcs,[0x0f3],15_000)[1]
+@time nc_f3 = neutral_component( ch_f3, funcs )
+224.877553 seconds (848.03 M allocations: 56.003 GiB, 2.30% gc time)
+Set{Any} with 84752 elements:
+  9957258
+  4492151
+  3613179
+
+julia>  86368-84752 #  1616
+Shows that there are other components with total size 1616
+
+ch_f4 = neutral_evolution(rch,funcs,[0x0f4],15_000)[1]
+nc_f4 = neutral_component( ch_f4, funcs )  # 6, 12, 20, 20, 20, 28 elements
+
+ch_f5 = neutral_evolution(rch,funcs,[0x0f5],15_000)[1]
+
+=========================
+p = Parameters(1, 4, 0.05, 0.0, 2, 1, 2, 4, 4)
+rcha = random_chromosome(p,funcs); output_values(rcha)
+1-element Vector{UInt16}:
+ 0x000a
+nca = neutral_component( rcha, funcs )  # 1976.273674 seconds
+Set{Any} with 626288 elements:
+
+
+Agenda:
+
+Neutral components:  systematically compute neutral components relative to phenotype frequency.
+
+Revise function count_genotypes_ch() and function count_genotypes_ch_mt() in Chromosome.jl
+  to create a table with columns "phenotype" and "count".
+
+Pursue porting current TRM members to stripe and ghost.  https://marketplace.stripe.com/apps/invoice-uploader 
+  Process:  Import members to stripe using the app, then import members to ghost with the corresponding stripe id.
+  Problem:  Make sure stripe subscription ends when membership ends.

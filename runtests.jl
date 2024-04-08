@@ -12,17 +12,17 @@ println("running test/test_Entropy.jl")
 println("running test/test_degen_complexity.jl")
 @everywhere include("test/test_degen_complexity.jl")
 
-println("running test/test_inf_alleles.jl")
-@everywhere include("test/test_inf_alleles.jl")
+#println("running test/test_inf_alleles.jl")
+#@everywhere include("test/test_inf_alleles.jl")
 
 println("running test/test_mut_evolve.jl")
 @everywhere include("test/test_mut_evolve.jl")
 
-println("running test/test_pop_evolve.jl")
-@everywhere include("test/test_pop_evolve.jl")
+#println("running test/test_pop_evolve.jl")
+#@everywhere include("test/test_pop_evolve.jl")
 
-println("running test/test_geno_robust_evolvability.jl")
-@everywhere include("test/test_geno_robust_evolvability.jl")  # no test included
+#println("running test/test_geno_robust_evolvability.jl")
+#@everywhere include("test/test_geno_robust_evolvability.jl")  # no test included
 
 println("running test/test_generate_random_functions.jl")
 @everywhere include("test/test_generate_random_functions.jl")

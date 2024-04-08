@@ -31,6 +31,8 @@ Pkg.add("SciPy")
 Pkg.add("StatsPlots")
 Pkg.add("PlotlyJS")
 Pkg.add("BenchmarkTools")
+Pkg.add("Cassette")
+Pkg.add("TraceFuns")
 #Pkg.add("Revise")
 using Distributed
 using DataFrames

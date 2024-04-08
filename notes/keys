@@ -1,0 +1,26 @@
+Procedure for going from n-1 input circuits to n input circuits.
+
+Given an n-input phenotype which is a 2^n bit string:
+  Generate 2 (n-1)-input phenotypes by either:  
+    Using the odd and even bits.  See function extract_odd( p::Parameters, ph::MyInt ) in Phenotype.jl
+    Using the first 2^(n-1) bits and the last 2^(n-1) bits. (Alternate)
+  Evolve circuits for each of these phenotypes.
+  Concatenate these 2 circuits into an n-input circuit that doesn't use the last bit.
+  Append a 2-input mulitiplexor circuit to the end of this circuit that uses the last bit as the selector bit.
+
+Needed utilities:
+* Concatenate two circuits to produce a circuit with the same number of inputs. Just vcat the lists of interior nodes.
+    
+* Convert an (n-1)-input circuit into an n-input circuit.  Just add an input node.
+
+
+Our main contribution is to explicitly include the phenotype as an intermediate step between genotype and fitness, and therefore implicitly include generic properties such as redundancy and correlations that dramatically increase the navigability of fitness landscapes. We demonstrated for a wide range of evolutionary dynamical regimes that biological systems can be navigable, even when fitness is assumed to be distributed randomly. When fitness correlations based on phenotypic similarity are incorporated, navigability is enhanced even further. Our conclusions, that true fitness valleys are probably rare, should be relevant for a broad scope of issues in biological evolution.
+
+Open questions remain: first, our computational explorations only allow for relatively small systems to be studied. However, there is evidence in our findings to suggest that navigability will hold at larger L too:  (1) we found navigability to be monotonic for increasing L in the RNA we studied;   . . . 
+
+oA9Hqx7P
+
+reCaptcha public and secret keys
+6LfyhvMoAAAAAHceROsRBkr65uL3WXlKDb9hL8hN
+6LfyhvMoAAAAAFWzckv1xGYJOGvDJjVHk6LTTr6w
+

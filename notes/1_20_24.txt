@@ -1,0 +1,38 @@
+Github copilot.
+
+I subscribed to Github copilot, and it is very helpful at simplifying code, at least if the code is fairly generic.
+I am using it in Visual Studio where it is easy to use, but it should be useable in neovim (nvim).
+
+Example:
+
+function frequencies__from_counts( V::Vector{Int64} )
+    sort!(V)
+    #println("V: ",V)
+    freq = Int64[]
+    i = 1
+    while i <= length(V)
+      push!(freq,1)
+      while i < length(V) && V[i+1] == V[i]
+        freq[end] += 1
+        i += 1
+      end
+      i += 1
+    end
+    #println("sum(freq): ",sum(freq),"  freq: ",freq)
+    # Two assertions to check correctness
+    @assert sum(freq) == length(V)
+    @assert length(freq) == length(unique(V))
+    freq
+  end
+
+Request:  Simplify this function:
+
+using Statistics
+function frequencies__from_counts(V::Vector{Int64})
+    freq = countmap(V)
+    sort!(freq)
+    values(freq)
+end
+
+I replaced this function in Analyze.jl.
+

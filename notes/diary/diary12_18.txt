@@ -1,0 +1,73 @@
+Human cancer cells become polyploid and sexual.  Page 237 of "Rebel Cell" by Kat Arney.
+
+Revisions to plot construction in notes/2_2.txt.
+
+@time db = include("../data/12_18/run_geno_phenoC.jl")
+27257 seconds
+
+A limitation is that when mut evolve fails, the numinteriors and numlevelsback parameters are increased.
+
+Will write a parallel version of circuit_complexities() in RecordOutputs.jl.
+
+
+Revised run_circuit_complexities.jl in RecordOutputs.jl to use pmap().
+
+Procedures for 8 gates, 5 lb:
+surt2:
+julia> gpdf = include("../data/12_18/run_geno_phenoC.jl")
+@time include("../data/12_18/run_circuit_complexitiesC.jl")
+julia> round2(x) = round(100*x)/100  # Reduces size of CSV file
+julia> cmplx = map(round2,db.complexities)
+julia> scdb = sort(db,[:complexities],rev=true)
+
+Windows:
+julia>scdb = read_dataframe("../../../../OneDrive\\evotech\\data\\12_18/circuit_complexities12_18CR.csv")
+julia> gpdf = read_dataframe("12_18/geno_pheno12_18C.csv")
+julia> density([scdb.complexities,gpdf.complex],xlabel="complexity",ylabel="relative_requency",title="Density of complexities in circuit and goal function space",labels=["complexities of random circuits" "complexities of random goals"])
+julia> savefig("12_18/density_of_complexities_circuit_space_8gts_5lb.png")  
+
+Procedures for 11 gates, 8 lb:   
+surt2:
+@time cdf=include("../data/12_20/run_circuit_complexitiesD.jl")
+cmplx = map(round2, cdf.complexities )
+cdf.complexities = cmplx
+scdf = sort(cdf, [:complexities], rev=true )
+write_dataframe_wa -p 4 -L CGP.jl
+write_dataframe_with_comments( scdf, "../data/12_20/circuit_complexities12_20D.csv","../data/12_20/circuit_complexities12_20DR.csv")
+@time gdf =  include("../data/12_20/run_geno_phenoD.jl")
+
+Windows: (See below for redo on 2/2/21.)
+julia> density([scdb.complexities,gpdf.complex],xlabel="complexity",ylabel="relative_requency",title="Density of complexities in circuit and goal function space",labels=["complexities of random circuits" "complexities of random goals"])
+julia> savefig("12_18/density_of_complexities_circuit_space_11gts_8lb.png")
+
+circuit_complexities12_20D.csv and  circuit_complexities12_20DR.csv are on surt2 but not on lycosa.
+These are the 11_5 circuit complexities files.
+
+An additional 8_5 file in 12_29.
+================================================
+Redo 11 gts 8 lb on 2/2/21:
+using StatsPlots
+homedir()
+scdb = read_dataframe("OneDrive\\evotech\\data\\12_20\\circuit_complexities12_20DR.csv")
+gpdf = read_dataframe("OneDrive\\evotech\\data\\12_20\\geno_pheno12_20D.csv")
+p1=density([scdb.complexities,gpdf.complex],labels=["complexities of random circuits" "complexities of random phenotypes"])
+plot!(p1,size=(1024,512),tickfontsize=14,guidefontsize=14,legendfontsize=14)
+plot!(p1,bottom_margin=Measures.Length(:mm,4),left_margin=Measures.Length(:mm,1))
+plot!(p1,ylims=[0.0,0.34])
+cd("../Dropbox\\evotech\\complexity\\data")
+
+
+Redo 11 gts 8 lb on 7/9/22 for GPTP paper
+Moved files from OneDrive to Dropbox CGP.jl/data/2020/12_20/.
+Assume cwd is Dropbox\\evotech\CGP.jl\\src
+using StatsPlots
+using Measures
+gr()
+scdb = read_dataframe("..\\data\\2020\\12_20\\circuit_complexities12_20DR.csv")
+gpdf = read_dataframe("..\\data\\2020\\12_20\\geno_pheno12_20D.csv")
+p1=density([scdb.complexities,gpdf.complex],labels=["Tononi complexities of random circuits" "Tononi complexities of random phenotypes"])
+plot!(p1,size=(1024,512),tickfontsize=14,guidefontsize=14,legendfontsize=14)
+plot!(p1,bottom_margin=Measures.Length(:mm,4),left_margin=Measures.Length(:mm,4))
+plot!(p1,ylims=[0.0,0.34])
+plot!(p1,ylabel="Tononi complexity")
+savefig("../data/7_9_22/density_of_complexities_circuit_space_11gts_8lb.png")

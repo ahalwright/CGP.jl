@@ -1,0 +1,43 @@
+Did an evolvability run of run_ueno_complexity() for goal [0x0603] for 768000 steps with an increment of 400.
+File:  data/12_6/run_geno_complexityC.jl  on surt2.  
+Moved data file to lycosa data/12_6, and copied geno_complexity12_4E.csv from 12_4 to 12_6.
+
+On lycosa, 
+julia> ncdf = read_dataframe("../data/12_6/geno_complexity12_6C.csv")
+1920×16 DataFrames.DataFrame. Omitted printing of 5 columns 
+julia> insertcols!(ncdf,1,:step=>collect(0:400:767600))
+julia> nedf = read_dataframe("../data/12_6/geno_complexity12_4E.csv")
+julia> insertcols!(nedf,1,:step=>collect(0:100:(256000-100)))
+julia> redf = nedf[(nedf.step.%400).==0,:]
+640×17 DataFrame. Omitted printing of 6 columns 
+julia> write_dataframe_with_comments(redf,"../data/12_6/geno_complexity12_4E.csv","../data/12_6/geno_complexity_inc400_12_6E.csv")
+IOStream(<file ../data/12_6/geno_complexity_inc400_12_6E.csv>)
+julia> write_dataframe_with_comments(ncdf,"../data/12_6/geno_complexity12_6C.csv","../data/12_6/geno_complexity_steps_12_6C.csv")
+IOStream(<file ../data/12_6/geno_complexity_steps_12_6C.csv>)
+
+On Windows:
+julia> ncdf=read_dataframe("12_6/geno_complexity_steps_12_6C.csv")
+1920×17 DataFrame. Omitted printing of 5 columns
+julia> nedf=read_dataframe("12_6/geno_complexity_inc400_12_6E.csv")
+640×17 DataFrame. Omitted printing of 5 columns
+
+Scripts:
+
+p1=scatter(nedf.step,nedf.evo_count,labels="goal function [0x6b18] frequency 3",markerstrokecolor=:blue);
+scatter!(p1,ncdf.step,ncdf.evo_count,labels="goal function [0x0603] frequency 64524",markerstrokecolor=:orange);
+xlabel!(p1,"sample size");
+ylabel!(p1,"evolvability count");
+title!(p1,"evolvability count vs sample size for two goals 11 gates 8lb");
+scatter!(p1,legend=:bottomright);
+display(p1)
+savefig("12_6/evolvability_count vs sample size for rare common goal 11gts 8 lb.png")
+
+p1=scatter(map(log10,nedf.step),map(log10,nedf.evo_count),labels="goal function [0x6b18] frequency 3",markerstrokecolor=:blue);
+scatter!(p1,map(log10,ncdf.step),map(log10,ncdf.evo_count),labels="goal function [0x0603] frequency 64524",markerstrokecolor=:orange);
+xlabel!(p1,"log(sample size)");
+ylabel!(p1,"log(evolvability count)");
+title!(p1,"log evocount vs log sample size for two goals 11 gates 8lb");
+scatter!(p1,legend=:bottomright);
+display(p1)
+savefig("12_6/log_ev_count vs log sample size for rare common goal 11gts 8 lb.png")
+

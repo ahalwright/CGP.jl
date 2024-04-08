@@ -42,5 +42,11 @@ scatter(evo,rbst,smooth=true,xlabel="exact evolvability",ylabel="robustness", le
 # hockey-stick plot due to high robustness of 0x00 and 0xff
 spearman_cor(evo,rbst) # (0.7544368655728784, 1.189553368355556e-48)
 savefig("../data/9_24_22/robustness_vs_evolvability_exact_5gts_3lb_XOR")   # Replaced figure 9 in UP paper
+# log redundancy vs evolvability with XOR gate
+#scatter(evo,map(lg10,phdfQ.redund[bv]),smooth=true,xlabel="exact evolvability",ylabel="log redundancy",title="log redund vs evolvability exact 5gts 3lb XOR",legend=:none)
+#scatter(evo,map(lg10,phdfQ.redund[bv]),smooth=true,xlabel="exact evolvability",ylabel="log redundancy",legend=:none)
+scatter(evo,map(lg10,phdfQ.redund[bv]),smooth=true,xlabel="exact evolvability",ylabel="log frequency",legend=:none)
+savefig("../data/9_24_22/log_freq_vs_evolvability_exact_5gts_3lb_XOR")  # Used in universal properties paper
+spearman_cor(evo,map(lg10,phdfQ.redund[bv]))  (0.7936641331541875, 4.715751344121061e-57)
 
 

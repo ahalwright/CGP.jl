@@ -1,0 +1,33 @@
+Outline of lecture for CSCI 315.
+
+The history of the CS department and programming languages.
+
+Catalogs:
+dept/UM1965-1970catalogs_CS.txt
+
+UM 1967-68 catalog:
+BANAUGH, ROBERT P., Ph.D., University of California; Director of the
+Computer Center; Chairman and Professor of Computer Science
+
+UM 1968-69 catalog:
+BANUGH, ROBERT P .ï Ph.D .ï ∑university of California: Director of the  Computer Center; Chaii'man and Professo1' of Computer Science 
+
+MANLOVE, SPENCER, M.S,, San Jose State College; Associate Professor of Computer Science
+
+No catalog listing for Computer Science.  Not listed as a major in College of Arts and Sciences.
+
+Math 
+370 computer methods
+471-472-473 numerical analysis
+
+1969-70 catalog:
+
+
+Languages:
+Unclear.  But clearly Banaugh used FORTRAN (and possibly BASIC) and Manlove used COBOL.  Much later, I used Pascal and Lisp.
+
+FORTRAN dates to 1958, COBOL to 1959.  Scientific programming was done in FORTRAN and business programming was done in COBOL.
+
+FORTRAN and COBOL are (AOT) compiled.  In the 1980s and before, this meant that you first compiled your program.  You would
+be notified of syntax errors.  In some cases you would load the program, and then run it.  Loading would link your program
+with libraries.

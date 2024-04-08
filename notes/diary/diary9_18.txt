@@ -1,0 +1,18 @@
+See data/9_18/simple_complex_pairs4x19_18B.csv  on lycosa
+
+Run of run_sample_g_pairs( df, nreps, sample_size, :complex, p, maxsteps, hamming=true)
+
+Sample size:  50
+nreps: 100
+raman funcs
+
+reducing sample of goals to be those closer together.  (hamming=true)
+
+option
+1   121237.87  simple -> simple
+2   176701.18  simple -> complex
+3   154078.66  complex -> simple
+4   136431.56  complex -> complex
+
+First test:  1 versus 3   1.1e-6
+Second test: 2 versus 4   1.7e-7

@@ -1,0 +1,41 @@
+Tested whether I can replicate the Kashtan 2005 results using neutral evolution.
+Code is in src/modularity.jl
+
+Used the goals given in diary12_15.txt.
+julia> test_switching_goals( 400, 10, 16, 8, 50000, 6000 )
+mut_evolve finished in 14587 steps for goal UInt16[0x0660] with fitness: 1.0
+ov: UInt16[0x0660]
+build_chromosome((1,2,3,4), ((NAND,Integer[2, 1]),(NAND,Integer[5, 4]),(NAND,Integer[1, 1]),(NAND,Integer[5, 3]),(NAND,Integer[5, 4]),(NAND,Integer[5, 2]),(NAND,Integer[9, 8]),(NAND,Integer[11, 9]),(NAND,Integer[9, 7]),(NAND,Integer[13, 10]),(NAND,Integer[10, 7]),(NAND,Integer[8, 11]),(NAND,Integer[16, 12]),(NAND,Integer[17, 15]),(NAND,Integer[12, 15]),(NAND,Integer[18, 18])), (20,))
+gen: 1  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 2  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 3  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 4  mut_evolve finished in 1163 steps for goal UInt16[0x0660] with fitness: 1.0
+gen: 5  mut_evolve finished at step limit 6000 with fitness: 0.9375
+gen: 6  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 7  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 8  mut_evolve finished in 5787 steps for goal UInt16[0x0660] with fitness: 1.0
+gen: 9  mut_evolve finished in 5439 steps for goal UInt16[0x6ff6] with fitness: 1.0
+gen: 10  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 11  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 12  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 13  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 14  mut_evolve finished in 1354 steps for goal UInt16[0x0660] with fitness: 1.0
+gen: 15  mut_evolve finished in 2010 steps for goal UInt16[0x6ff6] with fitness: 1.0
+gen: 16  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 17  mut_evolve finished in 4904 steps for goal UInt16[0x6ff6] with fitness: 1.0
+gen: 18  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 19  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 20  mut_evolve finished in 5004 steps for goal UInt16[0x0660] with fitness: 1.0
+gen: 21  mut_evolve finished in 5612 steps for goal UInt16[0x6ff6] with fitness: 1.0
+gen: 22  mut_evolve finished at step limit 6000 with fitness: 0.9375
+gen: 23  mut_evolve finished at step limit 6000 with fitness: 0.875
+gen: 24  mut_evolve finished at step limit 6000 with fitness: 0.9375
+gen: 25  mut_evolve finished in 5977 steps for goal UInt16[0x6ff6] with fitness: 1.0
+gen: 26  mut_evolve finished in 1919 steps for goal UInt16[0x0660] with fitness: 1.0
+gen: 27  mut_evolve finished in 1248 steps for goal UInt16[0x6ff6] with fitness: 1.0
+
+Sometimes there are clusters in time of rapid switching between goals, but this never persistss.
+Conclusion:  I was unable to replicate the Kashtan results.
+
+I verified that their distance between goals is the same as mine.  They use a population-based GA,
+so maybe it is the population that matters.

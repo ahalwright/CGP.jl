@@ -1,9 +1,10 @@
 # Test the 3-input 1-output case of Hu (2020)
 # To run:  from evotech/CGP.jl/src:
-# julia -L CGP.jl -L LinChromosome.jl ../test/testLinChromosome.jl
+# julia -L CGP.jl -L LinChromosome.jl ../test/test_LinChromosome.jl
 using Random
 using Test
 using Main.CGP
+include("../src/LinChromosome.jl")
 @testset "Testing functions of LinChromosome.jl in the 3-input 1-output 2-registers 6-instructions case." begin
 
 numinputs=3
@@ -18,9 +19,9 @@ end
 # Test of the circuit of Hu (2012, 309)
 # See testComposition.jl for another version of this example.
 numinputs=2
-numinstructions=4
+n_instructions=4
 numregisters=2 
-p = Parameters(numinputs,1,numinstructions,numregisters)
+p = Parameters(numinputs,1,n_instructions,numregisters)
 lfuncs = lin_funcs(numinputs)  # Note that lin_funcs() needs to be set to the Hu gate set
 @test num_instructions(numregisters,numinputs,lfuncs) == 128 
 # array of circuit vects corresponding to the circuit of Hu (2012, 309)
@@ -111,14 +112,15 @@ ctx = construct_context(3)
 R0=0x0000; R1=ctx[1]; R2=ctx[2]; R3=ctx[3]; R4=0x0000;
 R4 = R2 & R3
 R0 = R1 | R4
-R4 = Nand( R4, R0 )
+R4 = CGP.Nand( R4, R0 )
 R4 = R3 & R2
-R0 = Nor( R1, R1 )
+R0 = CGP.Nor( R1, R1 )
 R0 = R3 & R0
 @test [R0,R4,R1,R2,R3] == execute_lcircuit( i_ints, numregisters, numinputs, lfuncs )
 
 # Test of functions with parameter arguments.
 p = Parameters(numinputs,1,length(lcv),numregisters)
+funcs = lin_funcs(p.numinputs)
 @test execute_lcircuit( lcv, numregisters, numinputs, lfuncs ) ==  execute_lcircuit( LinCircuit(lcv,p), lfuncs )
 @test num_instructions( p.numlevelsback, p.numinputs, lfuncs ) == num_instructions( p, lfuncs )
 Random.seed!(1); riv0 = rand_ivect( p.numlevelsback, p.numinputs, lfuncs )
@@ -146,32 +148,25 @@ Random.seed!(1); mc1=Main.CGP.mutate_circuit!(deepcopy(lcv),p.numlevelsback,p.nu
 Random.seed!(1); mc0 = Main.CGP.mutate_circuit!( deepcopy(lcv), p.numlevelsback, p.numinputs, lfuncs )
 Random.seed!(1); mc1 = Main.CGP.mutate_circuit!( deepcopy(lcv), p, lfuncs )
 @test mc0 == mc1
-@test Main.CGP.mutate_circuit_all( lcv, p.numlevelsback, p.numinputs, lfuncs ) == Main.CGP.mutate_circuit_all( lcv, p, lfuncs )
+mca0 = Main.CGP.mutate_circuit_all( lcv, p.numlevelsback, p.numinputs, lfuncs ); 
+mca1 = Main.CGP.mutate_circuit_all( lcv, p, lfuncs );
+la0 = map( c->circuit_to_circuit_int(c,funcs), mca0 );
+la1 = map( c->circuit_to_circuit_int(c,funcs), mca1 );
+@test la0 == la1
 
-# Iterate through all of genotype space in the special case of 3-instruction circuits
-# Return all circuits that are circuit_distance 1 from circuit rlc.
-nr =  numregisters
-function test_mutate(rlc::LinCircuit, numinputs::Int64, nr::Int64, funcs::Vector{Func} )
-  n_instructions = num_instructions( nr, numinputs, funcs )
-  nbrs = []
-  for i = 1:n_instructions
-    for j = 1:n_instructions
-      for k = 1:n_instructions
-        rcirc =[ 
-            instruction_int_to_instruction_vect( i, nr, numinputs, funcs ), 
-            instruction_int_to_instruction_vect( j, nr, numinputs, funcs ),
-            instruction_int_to_instruction_vect( k, nr, numinputs, funcs )];
-        if circuit_distance(rcirc, rlc.circuit_vects) == 1
-          push!(nbrs,rcirc)
-       end
-      end
-    end
-  end
-  nbrs
-end    
-p = Parameters(2,1,3,nr)
+numinstructions = 3
+numregisters = 2
+p = Parameters(2,1,numinstructions,numregisters)
 funcs = lin_funcs(p.numinputs)
-rlc=rand_lcircuit(p)
-@test sort(CGP.mutate_circuit_all( rlc.circuit_vects, p, funcs )) == sort(test_mutate(rlc,p.numinputs,nr,funcs))
+rlc=rand_lcircuit(p,funcs)
+println("rlc: ")
+print_lcircuit(rlc)
+#test_remove_inactive(rlc)
+@test output_values(rlc) == output_values( remove_inactive( rlc ) )
+mca = CGP.mutate_circuit_all( rlc.circuit_vects, p, funcs );
+println("mca[1]: ")
+print_lcircuit(mca[1])
+@test unique(map( mc->circuit_distance( rlc, mc ), mca )) == Int64[1]
+@test count_circuits_lc( p, funcs ) == length(enumerate_circuits_lc( p, funcs ))  # 16384
 
 end #testset

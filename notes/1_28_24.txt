@@ -1,0 +1,29 @@
+Robustness versus log frequency for universal properties paper.  Attempting 3 inputs.
+Extends 12_7_22.
+
+idf = read_dataframe("../data/12_7_22/ph_evolve_12_7_22I.csv");   # 3 inputs  8 gates
+kdf = read_dataframe("../data/12_7_22/ph_evolve_12_7_22K.csv");   # 3 inputs 14 gates
+phlist = Vector{MyInt}(map(x->string_to_expression(x)[1],idf.phlist));
+  256-element Vector{UInt16}:
+   0x0000
+   0x0001
+mean(idf.mean_steps), mean(kdf.mean_steps) #  (506.4981054687499, 351.7923046875)
+mean(idf.lg_redund), mean(kdf.lg_redund)   #  (5.130040475851062, 5.0695798292359004)
+irdict = redundancy_dict(ip);
+krdict = redundancy_dict(kp);   
+isum = sum( irdict[ph] for ph in phlist ) ##  208333325
+ksum = sum( krdict[ph] for ph in phlist ) ##  112500000  # different numbers of samples
+
+Topics for discussion with Cheyenne:
+
+Parameter settings for UP paper:
+3x1 5gts 3lb   exact
+3x1 8gts 4lb
+3x1 14gts 7lb
+4x1 10gts 5lb
+4x1 12gts 6lb
+
+Do we need all of them?  Which should go in supplementary info
+
+Example:  ../data/9_12_22/log_redund_vs_rank_3x1_8_14gts.png (3x1 8gts 4lb and 3x1 14gts 7lb)
+   is the equivalent of Figure 2 in the UP paper, but for 3 inputs instead of 4.

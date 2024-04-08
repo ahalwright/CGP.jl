@@ -1,0 +1,6 @@
+    numinputs	 gates	 levelsback 	 maxsteps	 numcircuits	 phenotype pairs	 successes	 failures	suffixes
+3	8	4	"20,000"	1000	800	800	0	G
+3	14	7	"20,000"	1000	800	800	0	 I
+4	10	5	"50,000"	1000	400	277	123	U  UU  etc.
+4	12	6	"50,000"	1000	800	709	91	R  RR  etc.
+4	14	7	"50,000"	1000	800	733	67	S  SS  etc.

@@ -1,0 +1,30 @@
+Revisiting neutral components.   See 2_24_24.txt
+
+Objectives:  
+1)  Compute neutral components for both CGP and LGP in cases where genotypes can be enumerated.
+2)  Test amd debug the circuit_int functions in Chromosome.jl and LinCircuit.jl.
+
+Incorrect results below says we need tests and verification.
+Tests for circuit_int_to_circuit() and count_phenotypes_mt()
+I have a file test/test_LinChromosome.jl that can be revised.
+
+p = Parameters(3,1,3,2)    # for LGP: 3 instructions 2 registers
+lch = CGP.rand_lcircuit( p, funcs ); output_values(lch)
+lch23 = neutral_evolution( lch, funcs, [0x0023], 50_000 ) # neutral evolution succeeded at step 5348 for goal: UInt16[0x0023]
+components = Set([])
+nci23 = neutral_component_ints!( components, nch23[1] )
+Set{Any} with 10 elements:
+  6110953
+  6430953
+  6590953
+
+output_values( circuit_int_to_circuit( 6430953, p, funcs ))
+1-element Vector{UInt16}: 0x0023
+  
+ec2 = enumerate_circuits_lc(p,funcs)  # 8000000-element Vector{LinCircuit}:
+
+lc23 = filter(x->output_values(x)[1]==0x0023,ec2)  # 320-element Vector{LinCircuit}:
+
+
+count_phenotypes = count_phenotypes_mt( p, funcs )
+count_phenotypes[21:27] # 7-element Vector{Int64}:      0 4064 0 0 0 0 0   # Not correct

@@ -1,5 +1,6 @@
 # Simple test of function run_geno_pheno_evolution()
 # include("../src/CGP.jl") # Assumes that CGP.jl is loaded
+include("Genotype_phenotype.jl")
 # The following lines allow this file to included from CGP.jl, CGP.jl/test, or CGP.jl/src.
 cwd = pwd()
 if cwd[end-5:end] == "CGP.jl"

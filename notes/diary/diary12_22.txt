@@ -1,0 +1,57 @@
+Wrote neutral_evolution() in Evolve.jl to evolve a circuit that maps to a given goal.
+    Similar to mut_evolve() but only for a single goal and fewer options.
+Wrote geno_list_properties() in Evolve.jl to compute the following properties of a list of goals:
+  * robustness
+  * complexity
+  * g_evolvability
+  * p_evolvability
+  * steps
+
+Tried geno_list_properties() on random 4x1 8gts 5lb goals.  See data/12_22/geno_properties12_22A.csv.
+Required many attempts on several goals:  num_circuits=6, max_attempts=80, max_steps=400000.
+Note:  max_steps=300000 is sufficient.
+
+
+"Moreover, abundant phenotypes are typically found just a few mutations away from a random genotype [5,9,30]—i.e. they are highly evolvable. This means that these phenotypes are easily accessible from any other phenotype, so that the search for new phenotypes among abundant ones is a fast evolutionary process.” [This property is not going to be true for the circuit GP map for complex phenotypes when tend to be rare.  It might be true for abundant phenotypes.]  (Catalán, Wagner et al. 2018)  
+
+Idea:  Plot the number of unique phenotypes in neighborhoods of increasing mutational size of a given genotype.
+   Hypothesis:  This increases more rapidly for complex genotypes than simple genotypes. 
+   If one has these genotype neighborhoods, one can test the shape-space covering property.
+See mutational_evolvability.jl
+Example 1:  
+include("mutational_evolvability.jl")
+p = Parameters(3,1,6,4) 
+c = random_chromosome(p,default_funcs(p.numinputs))
+@time mutational_evolvability(c,3)
+length(circuit_list): 58
+length(goal_set): 12
+length(circuit_list): 3364
+length(goal_set): 34
+i: 2  length(goal_sets[i]): 34
+length(circuit_list): 195112
+length(goal_set): 75
+i: 3  length(goal_sets[i]): 75
+ 47.429999 seconds (13.86 M allocations: 19.269 GiB, 2.72% gc time)
+3-element Array{Set{Array{UInt16,1}},1}:
+ Set([[0x00a0], [0x00fa], [0x007f], [0x003f], [0x00a5], [0x005f], [0x0005], [0x000f], [0x0055], [0x0077], [0x00ff], [0x0000]])
+ Set([[0x0080], [0x005a], [0x00aa], [0x0037], [0x00ee], [0x0033], [0x00a0], [0x00fa], [0x00f5], [0x00af]  …  [0x00f0], [0x0011], [0x0077], [0x00b3], [0x00ec], [0x00ff], [0x0093], [0x00c0], [0x0000], [0x0099]])
+ Set([[0x005a], [0x0080], [0x00ee], [0x0033], [0x00df], [0x0095], [0x0020], [0x00ef], [0x00bb], [0x00f5]  …  [0x0032], [0x00c9], [0x000a], [0x009f], [0x0077], [0x00c8], [0x00f8], [0x00aa], [0x0099], [0x00cd]])
+
+
+Example 2:  
+p = Parameters(4,1,8,5)
+c = random_chromosome(p,default_funcs(p.numinputs))
+julia> @time mutational_evolvability(c,3)
+length(circuit_list): 94
+length(goal_set): 11
+length(circuit_list): 8836
+length(goal_set): 94
+i: 2  length(goal_sets[i]): 94
+length(circuit_list): 830584
+length(goal_set): 574
+i: 3  length(goal_sets[i]): 574
+672.958727 seconds (99.20 M allocations: 206.947 GiB, 1.98% gc time)
+3-element Array{Set{Array{UInt16,1}},1}:
+ Set([[0xaaaa], [0xa080], [0x0000], [0x8888], [0x5f5f], [0x0a0a], [0xaaa0], [0x5555], [0x2020], [0xa0a0], [0x8080]])
+ Set([[0xaaaa], [0xecec], [0xffff], [0x0020], [0x0400], [0x8000], [0xf5f5], [0x0101], [0x8880], [0x1313]  …  [0xfff0], [0xeee0], [0xc8c8], [0x6a6a], [0x5757], [0x2a2a], [0x5555], [0xa4a4], [0x2020], [0x0a08]])
+ Set([[0xffcc], [0xecec], [0x0e0e], [0xa584], [0xc4c4], [0xaa0a], [0xe6e0], [0x5f70], [0xffff], [0x4e4c]  …  [0xebe5], [0x1155], [0xffee], [0x5a58], [0xaff0], [0xeeea], [0x0a08], [0x6660], [0x2228], [0x5d57]])

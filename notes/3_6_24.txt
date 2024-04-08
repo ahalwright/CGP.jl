@@ -1,0 +1,12 @@
+Checking functions of Chromosome.jl
+
+julia> include("Chromosome.jl")
+julia> include("../test/test_chromosome.jl")
+Test Summary:                                 | Pass  Total  Time
+chromosome_to_int() and enumerate_circuits()  |    3      3  7.6s
+Test.DefaultTestSet("chromosome_to_int() and enumerate_circuits() ", Any[], 3, false, false, true, 1.709767327094145e9, 1.709767334705062e9, false, "/Users/oldmtnbiker/Library/CloudStorage/OneDrive-Personal/evotech/CGP.jl/test/test_chromosome.jl")
+
+Also determined that Avg_mut_robustness.jl and Mutational_robustness.jl are never used,
+and moved them to src/old/.  A README.txt file explains this.  
+
+There is a file Robustness.jl with other robustness functions.  However there is no test file.

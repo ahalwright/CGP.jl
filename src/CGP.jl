@@ -78,5 +78,5 @@ include("Fnc_mt.jl")
 include("random_walk.jl")
 include("evolvable_evolvability.jl")
 end
-using Main.CGP
+using .CGP
 MyInt=Main.CGP.MyInt

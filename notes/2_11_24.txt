@@ -1,0 +1,7 @@
+Hypothesis:  Assume a random fitness function. 
+From this fitness, define a phenotype to fitness rank function.
+If phenotype ph has the second highest fitness, ph maps to 2.
+
+Assume parameters P.  Do many hill climbs starting from random genotypes.
+The average fitness rank of the results is a measure of the ruggedness of the landscape.
+Thus, as the number of gates increases, the average fitness rank decreases.

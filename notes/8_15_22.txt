@@ -1,3 +1,10 @@
+1/25/24:
+Ran run_count_outputs_ch_V.jl and run_count_outputs_ch_W.jl to produce 
+data/8_15_22/count_outputs_ch_5funcs_3inputs_8gate_4lb_V.csv and count_outputs_ch_5funcs_3inputs_14gate_7lb_W.csv
+vdf = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_3inputs_8gate_4lb_V.csv");
+wdf = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_3inputs_14gate_7lb_W.csv");
+
+8/15/22:
 Combining fluda and surt2 runs for sampling 4x1 10 gates 5 lb chromosomes.
 
 edf = read_dataframe("../data/8_15_22/count_outputs_ch_5funcs_4inputs_10gates_5lb_E.csv")

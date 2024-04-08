@@ -1,3 +1,4 @@
+data/9_25_23 
 More 3-input random fitness navigability runs:
 
 suffix I fluda 3 inputs 14 gates 7 lb 400 goals 0 failures

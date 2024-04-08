@@ -1,5 +1,6 @@
 Worked on shape space covering with code in ShapeSpace.jl and results in data/12_29_22/.
 Revised 5/30/23
+Revised 1/20/24
 
 Wrote code to find shape-space coverage for evolution and sampling techniques, for different criteria for the log redundancy of phenotype,
   for different number of mutations.  Used num_mutates=2 for 3 inputs, num_mutates=3 for 4 inputs.
@@ -14,8 +15,33 @@ Sampling shape-space:
   function shape_space_fract_successes( )
   function shape_space_sampling_successes( )  combines the two previous fumctions
 
+3 inputs 8 gates results (1/18/24)
+fdf = read_dataframe("../data/12_29_22/shape_space_counts_sampling_12_29_22F.csv");  # Rewrote F to use XOR  1/18/24
+fmeans = map( i->mean( fdf[:,i] ), 3:7 )
+  #  5-element Vector{Float64}: 0.72509765625 0.7578876201923079 0.7890624999999999 0.8180588942307692 0.8659855769230766
+
+With XOR results
+3-inputs 8 gates results (1/19/24)
+mdf = read_dataframe("../data/12_29_22/shape_space_counts_sampling_12_29_22M.csv")
+mmeans = map( i->mean( mdf[:,i] ), 3:7 )
+5-element Vector{Float64}: 0.75738525390625 0.7889873798076923 0.8139022435897434 0.8257211538461536 0.8707932692307688
+plot( names(mdf)[3:7], [mmeans], labels="sampling", legend=:topleft )
+plot!(xlabel="fraction of all phenotypes that are common",ylabel="fraction of common phenotypes that are observed",guidefont=font(9))
+
+3-inputs 14 gates results (1/19/24) 
+ldf = read_dataframe("../data/12_29_22/shape_space_counts_sampling_12_29_22L.csv");  
+lmeans = map( i->mean( ldf[:,i] ), 3:7 )
+5-element Vector{Float64}: 0.8505859375 0.8768028846153844 0.8858173076923074 0.900991586538461 0.9230769230769227
+plot( names(ldf)[3:7], [lmeans], labels="sampling", legend=:topleft )
+plot!(xlabel="fraction of all phenotypes that are common",ylabel="fraction of common phenotypes that are observed",guidefont=font(9))
+
+plot( names(ldf)[3:7], [lmeans,mmeans], labels=["14 gates" "8 gates"], legend=:topleft )
+plot!(xlabel="fraction of all phenotypes that are common",ylabel="fraction of common phenotypes that are observed",guidefont=font(9))
+savefig("../data/12_29_22/fraction_of_common_phenotypes_that_are_observed3x1_8gts4lb_XOR.png")
+
+Without XOR results
 3-inputs 8 gates results (1/22/23) 
-fdf = read_dataframe("../data/12_29_22/shape_space_counts_sampling_12_29_22F.csv");
+fdf = read_dataframe("../data/12_29_22/shape_space_counts_sampling_12_29_22F.csv");  
 #rdf = read_dataframe("../data/12_29_22/shape_space_counts_evolution_12_29_22R.csv");
 fmeans = map( i->mean( fdf[:,i] ), 3:7 )
   #  5-element Vector{Float64}: 0.8770751953125 0.9100060096153847 0.9413060897435891 0.9658954326923073 0.9924879807692306

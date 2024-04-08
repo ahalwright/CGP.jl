@@ -1,0 +1,10 @@
+Results on random fitness naviagability
+
+Here is the current table of results for random fitness navigability:
+
+numinputs,gates,levelsback,max_steps,numcircuits,phenotype,pairs,successes,failures
+3, 8,4,20_000,1000,800,800,  0
+3,14,7,20_000,1000,800,800,  0
+4,10,5,50_000,1000,800,  0,800
+4,12,6,50_000,1000,800,709, 91
+4,14,7,50_000,1000,800,733, 67

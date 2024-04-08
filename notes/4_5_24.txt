@@ -1,0 +1,5 @@
+Objective:  compute all neutral components of a phenotype.
+
+Use count_genotypes_ch_mt() and count_genotypes_lc_mt() to compute the total number of genotypes that map to a given phenotype.
+
+

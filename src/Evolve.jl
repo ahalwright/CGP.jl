@@ -1006,6 +1006,7 @@ function findminrand( A::AbstractVector )
 end
 
 # The name of the function neutral_evolution() is a misnomer since it actually implements what we call epochal evolution.
+# Hu and Banzhaf call this an adaptive walk.
 # Evolves a Chromsome or LinCircuit that maps to g starting with chromosome c.
 # max_steps is the maximum number of evolutionary steps.
 # If evolution hasn't succeeeded in max_steps, return nothing.

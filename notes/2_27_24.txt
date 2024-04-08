@@ -1,0 +1,21 @@
+TODO today:
+
+Prepare for Dr. Smith  DONE
+Charitable check from TIAA
+Jackson tuition check
+K complexity paper
+Connected components hypothesis
+
+
+Meeting with Cheyenne
+  Questions for connected components paper:
+    What is the paper?  What is the research question to be answered?
+    What are the specific questions to be answered?
+    Preliminary statement of background?
+    Cheyenne will do literature review.
+
+  Revise hypotheses:
+    pheno_network/neutral_components/Neutral components research2_26_24.docx
+    Hypotheses are OK.
+    Intuitive justification discussing active gates does not seem to be relevant.
+

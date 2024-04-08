@@ -1,4 +1,6 @@
 Robustness versus log frequency for universal properties paper
+Extended in notes/1_28_24.txt
+
 Moved function robustness() from Chromosome.jl to Robustness.jl, and wrote a function
 genotype_robustness( ni_ng_lb_triples::Vector{Tuple{Int64,Int64,Int64}}, nreps::Int64 )
 in Robustness.jl.  Note that there is another function genotype_robustness() in ShapeSpace.jl.
@@ -10,7 +12,7 @@ Robustness was computed foer only 1 circuit, and it should have been average of 
 #df8 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22E.csv");  # 16 gts 8 lb Not used no redundancies
 df5 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22G.csv");   # 10 gts 5 lb
 df6 = read_dataframe("../data/12_7_22/ph_evolve_12_7_22F.csv");   # 12 gts 6 lb
-mean(df5.mean_steps), mean(df6.mean_steps), mean(df8.mean_steps)
+mean(df5.mean_steps), mean(df6.mean_steps), # mean(df8.mean_steps)
 (36373.86827, 9682.37749, 10546.20 )
 mean(df5.lg_redund), mean(df6.lg_redund), mean(df8.lg_redund)
 (2.8897894374972926, 3.3296421144161563, 3.160158467492447)
@@ -31,7 +33,7 @@ deleteat!(freq5,354)
 freq6 = map( ph->rdict6[ph[1]]/sum6, phlist6 )
 lgfreq5 = map(x->lg10(x),freq5)
 #lgfreq5 = filter(x->!iszero(x),map(x->lg10(x),freq5))
-lgfreq6 = map(x->lg10(x),freq5)
+lgfreq6 = map(x->lg10(x),freq6)   # mistake corrected 1/30/24
 #insertcols!(df5,:freq=>freq5);   # adds as last column
 #insertcols!(df6,:freq=>freq6);
 
@@ -45,10 +47,10 @@ rd6 = map(r->r/nsamples,Vector{Float64}(df6.lg_redund));
 #rd6 = Vector{Float64}(df6.lg_redund);
 rbl5 = Vector{Float64}(map(x->lg10(x),rd5));
 rbl6 = Vector{Float64}(map(x->lg10(x),rd6));
-scatter(lgfreq5,rb5,smooth=true,labels="10 gates 5 levelsback")
-scatter!(lgfreq6,rb6,smooth=true,labels="12 gates 6 levelsback")
+scatter(lgfreq5,rb5,smooth=true,labels="10 gates 5 levelsback");
+scatter!(lgfreq6,rb6,smooth=true,labels="12 gates 6 levelsback");
 #scatter!( lgfreq5,freq5,labels="null model 10 gates",legend=:topleft)  # one null model is enough
-scatter!( lgfreq6,freq6,labels="null model 12 gates",legend=:topleft)
+scatter!( lgfreq6,freq6,labels="null model 12 gates",legend=:topleft);
 #scatter!(legend=:topleft,ylabel="robustness",xlabel="log redundancy")
 scatter!(legend=:topleft,ylabel="robustness",xlabel="log frequency")   # Used in Univeral properties paper
 savefig("../data/12_7_22/robustness_vs_lg_freq_null_model_10_12gates.png")

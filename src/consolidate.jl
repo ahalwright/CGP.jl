@@ -1,4 +1,5 @@
 # Consolidates a dataframe with the columns specified below by averaging columns with the same parameter values
+# Looks like replaced by the corresponding function in Analyze.jl   3/7/24
 # Revised 10/27/20
 # Similar to R aggregate function.
 function consolidate_dataframe( in_filename::String, out_filename::String; consolidate::Bool=true )

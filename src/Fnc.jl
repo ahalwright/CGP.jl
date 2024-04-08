@@ -1,16 +1,25 @@
 using JLD, HDF5, Tables, Base.Threads
 
-#  As of 2/20/22, julia -p 4 -L CGP.jl -L Fnc.jl -L num_active_lc.jl -L to_sublists.jl 
-#  Example:  if use_lincircuit==false, let p = Parameters(3,1,4,3)  else let p = Parameters(3,1,3,2) 
+# Had to do LinCircuit = CGP.LinCircuit to get this file to load.  4/5/24
+LinCircuit = CGP.LinCircuit
+# notes/12_28_21.txt has examples.
+# notes/4_6_24.txt has more examples.
+#  p = Parameters(2,1,3,2)
 #    For use_lincircuits==true, larger values of numinteriors=numinstructions and numlevelsback=numregisters exceed memory even on surt2
-#  phenotype = 0x0015   # count=6848 from data/12_26_21/pheno_counts_12_26_21_F.csv (Cartesian)
-#  funcs = default_funcs(p);  
-#  for Chromosomes:  ecl = enumerate_circuits_ch( p, funcs); length(ecl) 
-#  for LinCircuits:  ecl = enumerate_circuits_lc( p, funcs); length(ecl) 
-#  phl = [0x0015,0x005a]
-#  df = component_properties( pp, phl, use_lincircuit=false );
+#  include("LinCircuit.jl")
+#  funcs = default_funcs(p);  # 5 funcs
+#  for Chromosomes:  ecl = enumerate_circuits_ch( p, funcs); length(ecl) # 8000
+#  for LinCircuits:  ecl = enumerate_circuits_lc( p, funcs); length(ecl) # 4096000
+#  p = Parameters(1, 4, 0.05, 0.0, 2, 1, 2, 3, 2)
+#  phl = [0x0004]
+#  (df,cdf) = component_properties( p, phl, use_lincircuit=false );
+#   length(chp_list): 208   # Number of neutral components
+#   ordered_keys: [2, 8, 16, 72, 80]   # sizes of neutral components
+#  df has a row for each size of neutral component
+#  cdf summarizes df but only for the first phenotype in phl.  (Recommend that phl include only 1 phenotype.)
 function component_properties( p::Parameters, pheno_list::Vector{MyInt}, 
       nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10,
+      #funcs::Vector{Func}=default_funcs(p.numinputs); use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )::Tuple{DataFrame,DataFrame}
       funcs::Vector{Func}=default_funcs(p.numinputs); use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
   function chp_list_to_rdf( chp_list, p::Parameters )
     S = find_neutral_comps( chp_list, p, funcs )
@@ -633,8 +642,8 @@ function scorrelations( rdf::DataFrame )
   df.rbstp = [spearman_cor(rdf,:len,:avg_robust)[2]]
   df.evo = [spearman_cor(rdf,:len,:avg_evo)[1]]
   df.evop = [spearman_cor(rdf,:len,:avg_evo)[2]]
-  df.cplx = [spearman_cor(rdf,:len,:avg_cmplx)[1]]
-  df.cplxp = [spearman_cor(rdf,:len,:avg_cmplx)[2]]
+  df.cplx = "avg_cmplx" in names(rdf) ? [spearman_cor(rdf,:len,:avg_cmplx)[1]] : [0.0]
+  df.cplxp = "avg_cmplx" in names(rdf) ? [spearman_cor(rdf,:len,:avg_cmplx)[2]] : [0.0]
   df.walk = [spearman_cor(rdf,:len,:avg_walk)[1]]
   df.walkp = [spearman_cor(rdf,:len,:avg_walk)[2]]
   df.mawlk = [spearman_cor(rdf,:len,:sum_ma_walk)[1]]
@@ -684,7 +693,7 @@ using Test
 
 function pairs_to_sublists( ecl::Union{Vector{Chromosome},Vector{LinCircuit}}, pheno_list::Vector{MyInt}, funcs::Vector{Func} )
   sort!(pheno_list)
-  chp_list = [ (ec,output_values(ec,funcs)[1]) for ec in ecl ] 
+  chp_list = [ (ec,output_values(ec)[1]) for ec in ecl ] 
   sort!( chp_list, by=x->x[2] )  
   if typeof(ecl) == Vector{Chromosome}
     ch_pheno_lists = Vector{Tuple{Chromosome,MyInt}}[]

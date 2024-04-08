@@ -1,0 +1,22 @@
+One run of run_hill_climb()
+
+julia> fitness = map(_->rand(),1:2^2^4);
+julia> P45 = Parameters(4,1,10,5)
+Parameters(1, 4, 0.05, 0.0, 4, 1, 2, 10, 5)
+julia> P44 = Parameters(4,1,8,4)
+Parameters(1, 4, 0.05, 0.0, 4, 1, 2, 8, 4)
+
+
+julia> run_hill_climb( fitness, random_chromosome(P44,funcs), funcs, 10, 3 )
+i: 1  best_fitness: 0.9591989075014191
+i: 2  best_fitness: 0.9636791790920366
+i: 3  best_fitness: 0.9921680797002764
+i: 1  best_fitness: 0.7134408411899993
+i: 2  best_fitness: 0.9591989075014191
+i: 3  best_fitness: 0.9840063471007863
+i: 4  best_fitness: 0.9993185479594288
+i: 1  best_fitness: 0.9591989075014191
+3-element Vector{Tuple{Float64, Vector{UInt16}}}:
+ (0.9921680797002764, [0x5f5f])
+ (0.9993185479594288, [0xcaca])
+ (0.9591989075014191, [0xffff])

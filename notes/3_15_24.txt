@@ -1,0 +1,73 @@
+Neutral components computed and tested.
+
+function neutral_component( circuit::Chromosome, funcs::Vector{Func} )::Set  in Chromosome.jl
+
+file test/test_neutral_component.jl 
+
+Example:
+p = Parameters(2,1,4,4)
+funcs = default_funcs(p)  # 5 funcs
+rch = random_chromosome(p,funcs);
+ov = output_values( rch )
+ [ 0x0004 ]
+@time nc0 = neutral_component( rch, funcs ) # 595.763094 seconds
+#  Set{Any} with 226760 elements: 2956278 4899155 ... 
+#  Slightly less than genotype count below signifying one or more very small components
+
+Example:
+rch = random_chromosome(p,funcs)  # output_values:  0x0007
+@time nc2 = neutral_component( rch, funcs )
+793.815123 seconds (2.94 G allocations: 194.466 GiB, 2.11% gc time)
+# Set{Any} with 285304 elements:
+# Equal to genotype count
+
+rch = random_chromosome(p,funcs)  # output_values:  0x000d
+@time nc3 = neutral_component( rch, funcs )
+
+Count genotypes:
+16-element Vector{Tuple{UInt16, Int64}}:
+ (0x0000, 1012768)
+ (0x0001, 330624)
+ (0x0002, 246368)
+ (0x0003, 181504)
+ (0x0004, 227016)
+ (0x0005, 581352)
+ (0x0006, 124312)
+ (0x0007, 285304)
+ (0x0008, 285304)
+ (0x0009, 117352)
+ (0x000a, 626544)
+ (0x000b, 227016)
+ (0x000c, 219896)
+ (0x000d, 246368)
+ (0x000e, 330624)
+ (0x000f, 717648)
+
+p = Parameters( 2, 1, 4, 4 )
+rch6 = random_chromosome(p,funcs); output_values(rch6)  # 0x000a
+@time nc6 = neutral_component( rch6, funcs )  # 1976.273674 seconds 
+ # Set{Any} with 626288 elements:
+
+p = Parameters( 3, 1, 4, 4); funcs=default_funcs(p)
+rch = random_chromosome(p,funcs); output_values(rch) #  0x00f3
+@time nc_f3 = neutral_component( rch, funcs ) # 224.349091 seconds 
+ # Set{Any} with 84752 elements:
+ch_f3 = neutral_evolution(rch,funcs,[0x0f3],15_000)[1]
+@time nc_f3 = neutral_component( ch_f3, funcs ) # 225.504082 seconds 
+ # Set{Any} with 84752 elements: 9957258 4492151 3613179
+
+# The following demonstrates multiple neutral components for a rare phenotype
+rch = random_chromosome(p,funcs)
+ch69 = neutral_evolution(rch,funcs,[0x069],15_000)[1]
+nc69 = neutral_component( ch69, funcs )
+#  Set{Any} with 944 elements: 1195139 22542339 2017139
+rch0 = random_chromosome(p,funcs); output_values(rch0)  # [0x005f]
+ch69a = neutral_evolution(rch0,funcs,[0x069],15_000)[1]
+nc69a = neutral_component( ch69a, funcs )
+#  Set{Any} with 2112 elements: 9807597 10076393 10206533
+intersect(nc69,nc69a) #  Set{Any}()
+rch1 = random_chromosome(p,funcs); output_values(rch1)
+ch69b = neutral_evolution(rch1,funcs,[0x069],15_000)[1]
+nc69b = neutral_component( ch69b, funcs )
+# Set{Any} with 4 elements: 10073196 10066795 10066796 10073195
+intersect(nc69,nc69a,nc69b) #  Set{Any}()
