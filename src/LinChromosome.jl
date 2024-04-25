@@ -37,7 +37,7 @@ export count_genotypes_lc, count_genotypes_lc_mt
 export number_active, remove_inactive
 =#
 OutputType = Int64
-LinCircuit = CGP.LinCircuit
+#LinCircuit = CGP.LinCircuit
 
 #=
 mutable struct LinCircuit
@@ -611,7 +611,8 @@ function count_genotypes_lc_mt( p::Parameters, funcs::Vector{Func}=lin_funcs(p.n
     ov = output_values( circuit_int_to_circuit(i,p,funcs))[1]
     Threads.atomic_add!( genotype_counts[ov+1], 1 )
   end
-  map( ph->ph[], genotype_counts )
+  genotype_counts = map( ph->ph[], genotype_counts )
+  count_genotypes_table( p, funcs, genotype_counts )   # defined in Chromosome.jl
 end
 
 count_genotype_counts_lc_mt = count_genotypes_lc_mt
@@ -626,6 +627,7 @@ function count_genotypes_lc( p::Parameters, funcs::Vector{Func}=lin_funcs(p.numi
     genotype_counts[ov+1] += 1
   end
   genotype_counts
+  count_genotypes_table( p, funcs, genotype_counts )
 end
 
 # Number of circuits with the given parameter setting and number of funcs

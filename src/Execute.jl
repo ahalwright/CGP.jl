@@ -61,6 +61,7 @@ end
 
 # Evaluate an interior node in isolation using context as the input
 # context should be the context for numinputs.
+# Not currently used.  4/22/24
 function eval_interior( node::InteriorNode, context::Vector )
     println("ei eval interior node: ",node)
     func = node.func
@@ -80,6 +81,7 @@ end
 
 # Execute chromosme c using context for the inputs and return outputs
 # c is modified in that the active and cache fields are set
+# This is the function used by the output_values() function
 function execute_chromosome(c::Chromosome, context::Vector; permute_context::Bool=false )
     #println("Executing chromosome")
     #print_chromosome(c)
@@ -87,6 +89,7 @@ function execute_chromosome(c::Chromosome, context::Vector; permute_context::Boo
     return [evaluate_node(c, node, context) for node = c.outputs]
 end
 
+# ft means fault_tolerance.  Not currently used, might be deleted
 function evaluate_node_ft(c::Chromosome, node::OutputNode, context::Vector, perturb_index::Int64 )
     index = node.input
     #println("ft eval output node: ",node,"  index: ",index)
@@ -134,6 +137,7 @@ function execute_chromosome_ft(c::Chromosome, context::Vector, perturb_index::In
 end
 
 # Executes chromosome c by evaluating interior nodes in the order of the chromosome
+# The default is to recursively execute notes starting with the output node(s)
 function execute_chromosome_fwd(c::Chromosome, context::Vector )
   values = MyInt[]
   for i = 1:(c.params.numinputs + c.params.numinteriors + c.params.numoutputs)

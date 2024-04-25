@@ -33,6 +33,7 @@ Pkg.add("PlotlyJS")
 Pkg.add("BenchmarkTools")
 Pkg.add("Cassette")
 Pkg.add("TraceFuns")
+Pkg.add("GLM")
 #Pkg.add("Revise")
 using Distributed
 using DataFrames
@@ -50,5 +51,6 @@ using QuadGK
 using Measures
 using Test
 using Permutations
+using GLM
 #using Revise
 

@@ -1,0 +1,55 @@
+Outline for julia talk at research computing workshop.
+
+1.  How I got started.  Cheyenne Laue and George Lessica
+
+2.  Programming is fun, especially in Julia!!
+
+3.  Interactive (like Python and Lisp)
+
+4.  Fast (like C and Fortran) without any special optimization
+
+5.  Powerful, especially for scientific programming.  Linear algebra and statistics.
+
+6.  Flexible:  multiprocessing---easily uses the resouces of a cluster
+
+7.  Flexible:  multithreading---takes advantage of multiple core processors
+
+8.
+
+
+Notes for julia talk at research computing workshop.
+
+1. https://www.sas.upenn.edu/~jesusfv/Chapter_HPC_8_Julia.pdf
+
+2. https://julialang.org/learning/tutorials/
+
+3. https://www.slideshare.net/DiegoMarinhodeOlivei/introduction-to-julia-language-65586235
+
+4. https://www.youtube.com/watch?v=uiQpwMQZBTA
+
+5. https://ucidatascienceinitiative.github.io/IntroToJulia/
+
+6. https://www.matecdev.com/posts/julia-tutorial-science-engineering.html
+
+7. https://en.wikibooks.org/wiki/Introducing_Julia
+
+
+Julia is fast because it is JIT compiled.  And all of the code that you are using has been pre-compiled
+
+Julia delivers its swift numerical speed thanks to the reliance on a LLVM (Low Level Virtual Machine)-based JIT 
+(just-in-time) compiler.  [1]
+
+–such as a superb support for parallelization or practical functional programming
+orientation– that were not fully fleshed out when other languages for scientific computation
+were developed a few decades ago/  [1]  
+
+Julia is faster and easier to write than Numpy’s vectorized code, and it’s significantly faster than F2PY-wrapped Fortran code.
+https://www.matecdev.com/posts/numpy-julia-fortran.html
+
+The key capability in Julia is "you can define methods on types after the type is defined aka "external dispatch" (c.f. external
+but static functions).  And this can be done in a separate package which can be loaded or not.  
+* generic functions are properly name spaces unlike methods in CBOO.
+https://discourse.julialang.org/t/understanding-multiple-dispatch/76601/5
+
+https://github.com/genkuroki/public/blob/main/0015/lorenz4.gif  # animation demo
+https://www.juliafordatascience.com/animations-with-plots-jl/

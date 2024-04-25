@@ -1,7 +1,10 @@
 Trying to make sense of Fnc.jl:
 
+component_properties() gives the lengths of all connected components, and the number (count) with each length.
+
 p = Parameters(1, 4, 0.05, 0.0, 2, 1, 2, 3, 2)
 # 5 funcs
+# Chromosomes
 ecc = enumerate_circuits_ch( p, funcs )
 # 8000-element Vector{Chromosome}   # 8000 chromosomes 
 ecc_4 = filter(x->output_values(x)==[0x0004],ecc)
@@ -32,12 +35,35 @@ cdf:
 ─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    1 │ 0x0004    208.0       5      5.0      1.0      10.0      0.8  0.052044     -0.5  0.195501     -0.1  0.436444  0.974679  0.00240912      0.0      0.5      NaN       NaN
 
-
 ecc = enumerate_circuits_ch( p, funcs )
+#  8000-element Vector{Chromosome}:
+ecc_4 = filter(x->output_values(x)==[0x0004],ecc)
+length(ecc_4)   # 208
 
+ncl4 = map( ch->length(neutral_component(ch,funcs)), ecc_4 );  length(ncl4) # 208
+findall(x->x==16,ncl4) #  32-element Vector{Int64}:
+findall(x->x==2,ncl4)  #   8-element Vector{Int64}:
 
-
-neutral_component(ecc_4[1],funcs)
-Set{Int128} with 80 elements:
-
+========================
+LinCircuits:
+@time (df,cdf) = component_properties( p, [0x0004], use_lincircuit=true ); #  41.720541 second
+walk params: (1, 5, 10)
+length(ecl): 4096000
+length(chp_list): 36608
+ordered_keys: [4, 6, 8, 36352]
+df
+4×14 DataFrame
+ Row │ len      count    pheno   numinputs  ninstr   nregs    nwalks_set  walk_length  nwalks_circ  avg_robust  avg_evo   avg_walk  sum_ma_walk  avg_nactive
+     │ Float64  Float64  String  Float64    Float64  Float64  Float64     Float64      Float64      Float64     Float64   Float64   Float64      Float64
+─────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │     4.0      8.0  0x0004        2.0      3.0      2.0         1.0          5.0         10.0   0.0454545  0.393939   0.2375      0.32125       3.0
+   2 │     6.0     16.0  0x0004        2.0      3.0      2.0         1.0          5.0         10.0   0.0707071  0.424242   0.28125     0.231875      3.0
+   3 │     8.0     16.0  0x0004        2.0      3.0      2.0         1.0          5.0         10.0   0.0606061  0.386364   0.3125      0.16625       3.0
+   4 │ 36352.0      1.0  0x0004        2.0      3.0      2.0         1.0          5.0         10.0   0.339442   0.294424   1.9         0.39          2.29577
+cdf
+1×18 DataFrame
+ Row │ pheno   count    ncomps  walklen  nwlkset  nwlkcirc  rbst     rbstp    evo      evop     cplx     cplxp    walk     walkp    mawlk    mawlkp   nactive    nactivep
+     │ String  Float64  Int64   Float64  Float64  Float64   Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64    Float64
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ 0x0004  36608.0       4      5.0      1.0      10.0      0.8      0.1     -0.8      0.1      0.0      0.0      1.0      0.0      0.2      0.4  -0.774597  0.112702
 

@@ -3,7 +3,7 @@
 # VERY IMPORTANT:  Ones is set up as a global variable when default_funcs() or lin_funcs() is called.
 # Common situation:  MyInt is UInt16 and numinputs = 3.  Then Ones=0x00ff is used as a mask in the computation of Nand() and Nor().
 export Func, default_funcs, eval_func, lin_funcs
-using Main.CGP
+#using Main.CGP
 
 mutable struct Func
     func::Function
@@ -41,7 +41,7 @@ Zero() = MyInt(0)
 const ZERO = Func(Zero, 0, "0")
 One() = Ones
 const ONE = Func(One, 0, "1")
-AND = CGP.AND
+#AND = CGP.AND
 #One() = Ones
 
 global Ones
@@ -51,12 +51,13 @@ function setup_funcs( numinputs::Int64 )
   ONE = Func(One, 0, "1")
 end
 
-function default_funcs( p::Parameters )
+function default_funcs( p::Parameters )::Vector{Func}
   default_funcs( p.numinputs )
 end
 
-function default_funcs( numinputs::Int64 )
-  Ones = Main.CGP.construct_ones(numinputs)[numinputs]
+function default_funcs( numinputs::Int64 )::Vector{Func}
+  #Ones = Main.CGP.construct_ones(numinputs)[numinputs]
+  Ones = Main.construct_ones(numinputs)[numinputs]
   ONE = Func(One, 0, "1")
   global Ones
 #    return [NAND ]   # Macia's gate set
@@ -71,7 +72,8 @@ function default_funcs( numinputs::Int64 )
 end
 
 function lin_funcs( numinputs::Int64 )
-  Ones = Main.CGP.construct_ones(numinputs)[numinputs]
+  #Ones = Main.CGP.construct_ones(numinputs)[numinputs]
+  Ones = Main.construct_ones(numinputs)[numinputs]
   ONE = Func(One, 0, "1")
   global Ones
 #     return [NAND ]   # Macia's gate set
@@ -89,7 +91,8 @@ end
 # Example:  eval_func(XOR)
 function eval_func( f::Func )
     context = f.arity > 0 ? construct_contexts(f.arity)[f.arity] : []
-    Main.CGP.apply( f.func, [context[i] for i = 1:f.arity ] )
+    #Main.CGP.apply( f.func, [context[i] for i = 1:f.arity ] )
+    Main.apply( f.func, [context[i] for i = 1:f.arity ] )
 end
 
 function func_names( funcs::Vector{Func} )

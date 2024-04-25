@@ -1,0 +1,22 @@
+Counting LGP genotypes
+
+4 funcs means not all phenotypes represented for LGP 4 instructions, 2 registers.
+
+p = Parameters(3,1,4,2)  # 4 instructions, 2 registers
+funcs=default_funcs(p) # 5 funcs
+@time clc = count_genotypes_lc_mt(p,funcs) # 1368.056340 seconds
+findall(x->iszero(x),clc.count) # Int64[]   # all genotypes represented.
+sum(clc.count) # 1600000000 = 1_600_000_000
+julia> findmin( clc.count ) #  (128, 44)
+clc[44,:]
+DataFrameRow
+ Row │ phenotype       count
+─────┼───────────────────────
+  44 │ UInt16[0x002b]    128
+
+funcs = funcs[1:4]
+@time clc4 = count_genotypes_lc_mt(p,funcs) # 1321.168871 seconds
+sum(clc4.count) # 1600000000 = 1_600_000_000
+findall(x->x<=256,clc4.count)    # 98-element Vector{Int64}:
+findall(x->x<=64,clc4.count)     # 38-element Vector{Int64}:
+findall(x->iszero(x),clc4.count) # 38-element Vector{Int64}:   38 phenotypes not represented.

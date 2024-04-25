@@ -1,0 +1,53 @@
+Current and possilbe representations for circuits (genotypes) in the UP paper.
+
+Current:
+--------
+mutable struct Func
+    func::Function
+    arity::Integer
+    name::AbstractString
+end
+
+mutable struct InteriorNode <: Node    # gate
+    func::Func
+    inputs::Vector{Integer}
+    active::Bool
+    cache::MyInt
+end
+
+mutable struct Chromosome
+  params::Parameters
+  inputs::Vector{InputNode}
+  interiors::Vector{InteriorNode}
+  outputs::Vector{OutputNode}
+  fitness::Float64
+  robustness::Union{Float64,PredType}
+end
+
+mutable struct InputNode <: Node
+    index::Integer
+    active::Bool
+    cache::MyInt
+end
+
+Possible:
+---------
+Func:  integer from 1:4 or 1:5
+Interior: Tuple
+  Func
+  input[1]
+  input[2]
+Circuit
+  Parameters
+  Tuple of Interior Tuples
+
+Functions on circuits
+---------------------
+  mutate_chromosome!, mutate_all, mutate_all_neutral
+  random
+  circuit, print_circuit
+  chromosome_to_int, int_to_chromosome
+  count_circuits_ch, 
+  count_genotypes_ch, count_genotypes_ch_mt
+  enumerate_circuits_ch
+  inputs_list, gate_int

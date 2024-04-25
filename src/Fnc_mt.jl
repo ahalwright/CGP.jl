@@ -1,6 +1,14 @@
-using JLD, HDF5, Tables, Base.Threads
+using JLD, HDF5, Tables, Base.Threads, Printf, DataFrames
 
-@everywhere LinCircuit=CGP.LinCircuit
+function chp_list_to_rdf( chp_list, p::Parameters, funcs::Vector{Func}; nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10, use_lincircuit::Bool=false )
+    println("function chp_list_to_rdf  nwalks_per_set: ",nwalks_per_set)
+    S = find_neutral_comps( chp_list, p, funcs )
+    #df = dict_to_csv(S,p,chp_list[1][2],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit)
+    df = dict_to_csv(S,p,chp_list[1][2],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit)
+    rdf = consolidate_df(df,p,funcs)
+end
+
+#@everywhere LinCircuit=CGP.LinCircuit
 #  As of 2/20/22, julia -p 4 -L CGP.jl -L Fnc.jl -L num_active_lc.jl -L to_sublists.jl 
 #  Example:  if use_lincircuit==false, let p = Parameters(3,1,4,3)  else let p = Parameters(3,1,3,2) 
 #    For use_lincircuits==true, larger values of numinteriors=numinstructions and numlevelsback=numregisters exceed memory even on surt2
@@ -10,14 +18,10 @@ using JLD, HDF5, Tables, Base.Threads
 #  for LinCircuits:  ecl = enumerate_circuits_lc( p, funcs); length(ecl) 
 #  phl = [0x0015,0x005a]
 #  df = component_properties( pp, phl, use_lincircuit=false );
+#function component_properties( p::CGP.Parameters, pheno_list::Vector{MyInt}, 
 function component_properties( p::Parameters, pheno_list::Vector{MyInt}, 
-      nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10,
-      funcs::Vector{Func}=default_funcs(p.numinputs); use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
-  function chp_list_to_rdf( chp_list, p::Parameters )
-    S = find_neutral_comps( chp_list, p, funcs )
-    df = dict_to_csv(S,p,chp_list[1][2],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit) 
-    rdf = consolidate_df(df,p,funcs)
-  end
+      funcs::Vector{Func}=default_funcs(p.numinputs); nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10,
+      use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
   println("walk params: ",(nwalks_per_set,walk_length,nwalks_per_circuit))
   sort!(pheno_list)
   rdf_list = DataFrame[]
@@ -31,8 +35,10 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt},
       push!(chp_nonempty_lists,chp_list)
     end
   end  
-  rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
+  #rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
   #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
+  rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
+  #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
   cdf_list = DataFrame[]
   for rdf in rdf_list
     if size(rdf)[1] >= 4
@@ -423,7 +429,8 @@ function pheno_network_matrix_df( p::Parameters, funcs::Vector{Func}; normalize:
       println(f,"# host: ",hostname," with ",nprocs()-1,"  processes: " )
       print_parameters(f,p,comment=true)
       prihtln(f,"not multithreaded")
-      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      #println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# funcs: ", default_funcs(p))
       CSV.write( f, phdf, append=true, writeheader=true )
     end
   end
@@ -526,7 +533,8 @@ function pheno_network_matrix_mt_df( p::Parameters, funcs::Vector{Func}; normali
       println(f,"# host: ",hostname," with ",nthreads()-1,"  threads: " )
       print_parameters(f,p,comment=true)
       println(f,"multithreaded")
-      println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      #println(f,"# funcs: ", Main.CGP.default_funcs(p))
+      println(f,"# funcs: ", default_funcs(p))
       CSV.write( f, phdf, append=true, writeheader=true )
     end
   end
@@ -596,7 +604,8 @@ function entropy_evolvability( phmatrix::Matrix; include_self_edges::Bool=true )
   Threads.@threads for i = 1:nphenos
     row = strength_list[i] > 0.0 ? phmatrix[i,:]/strength_list[i] : zeros(Float64,nphenos)
     row[i] = 0.0
-    Threads.atomic_add!( evolvability_list[i], CGP.entropy( row ) )  # Note that StatsBase.entropy doesn't work 
+    #Threads.atomic_add!( evolvability_list[i], CGP.entropy( row ) )  # Note that StatsBase.entropy doesn't work 
+    Threads.atomic_add!( evolvability_list[i], entropy( row ) )  # Note that StatsBase.entropy doesn't work 
   end
   map( i->evolvability_list[i][], 1:nphenos )
 end
@@ -1055,3 +1064,11 @@ function test_num_active_lc( p::Parameters, funcs::Vector{Func}, numtries::Int64
   println("numactive_counts: ",numactive_counts')
 end 
 
+function fract_max( df::DataFrame )
+  @assert "len" in names(df)
+  @assert "count" in names(df)
+  len_count = [ df.len[i]*df.count[i] for i = 1:size(df)[1] ]
+  max_index = findmax(len_count)[2]
+  len_count[max_index]/sum(len_count)
+end
+  

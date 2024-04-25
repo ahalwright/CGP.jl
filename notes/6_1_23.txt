@@ -6,3 +6,5 @@ default_funcs() be set to use or not use XOR when calling these functions.
 
 Running "../data/8_15_22/run_count_outputs_ch_K.jl" on Mac with default_funcs() set to not use XOR.
 
+4/2024:  default_funcs() includes XOR
+

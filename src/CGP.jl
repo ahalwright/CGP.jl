@@ -79,4 +79,16 @@ include("random_walk.jl")
 include("evolvable_evolvability.jl")
 end
 using .CGP
-MyInt=Main.CGP.MyInt
+include("Evolvability.jl")
+include("evolvable_evolvability.jl")
+#include("Build_chromosome.jl")
+#include("epistasis.jl")
+include("Complexity.jl")
+include("Degeneracy.jl")
+include("Evo_dict.jl")
+include("Composition.jl")
+include("Robustness.jl")
+include("Phenotype.jl")
+include("Utilities.jl")
+include("random_walk.jl")
+include("Evo_dict.jl")MyInt=Main.CGP.MyInt

@@ -13,7 +13,7 @@ export circuit_distance, remove_inactive, count_circuits_ch
 export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes, interleave_chromosomes
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
 export chromosome_add_input, chromsome_add_multiplexer
-export normalize_chromosome, normalize_chromosome!, count_circuits_ch_normalize
+export normalize_chromosome, normalize_chromosome!, count_circuits_ch_normalize, count_genotypes_table
 export inputs_list
 #export neutral_component_ints!
   
@@ -1103,31 +1103,33 @@ end
 
 # Return the number of circuits for parameters p and funcs 
 function count_circuits_ch( p::Parameters, funcs::Vector{Func} )
-  count_circuits_ch( p, nfuncs=length(funcs) )
+  gc = count_circuits_ch( p, nfuncs=length(funcs) )
+  count_genotypes_table( p, funcs, gc )
 end
 
 # Return the number of circuits for parameters p and number of funcs nfuncs 
 function count_circuits_ch( p::Parameters, nfuncs::Int64 )
-  count_circuits_ch( p, nfuncs=nfuncs )
+  gc = count_circuits_ch( p, nfuncs=nfuncs )
 end
 
-# Return the number of circuits for parameters p and number of funcs nfuncs if nfuncs>0
+# Return the number of chromosomes for parameters p and number of funcs nfuncs if nfuncs>0
 # If nfuncs==0, nfuncs is reset to be length(default_funcs(p.numinputs))
 # There is a multithreaded version
 function count_circuits_ch( p::Parameters; nfuncs::Int64=5 )
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
   multiplier = BigFloat(1)
-  mij = 0
+  k = 0
   for i = 1:p.numinteriors
-    mf = nfuncs
-    multiplier *= mf
+    println("i: ",i,"  multiplier: ",multiplier,"  k: ",k)
+    multiplier *= nfuncs
     for j = 1:p.nodearity
-      mij = min(p.numlevelsback,i-1+p.numinputs)
-      multiplier *= mij
+      k = min(p.numlevelsback,i-1+p.numinputs)
+      multiplier *= k
+      println("i: ",i,"  j: ",j,"  multiplier: ",multiplier,"  k: ",k)
     end
-    #println("i: ",i,"  mf: ",mf,"  mij: ",mij,"  multiplier: ",multiplier)
-    #println("i: ",i,"  mf: ",mf,"  mij: ",mij,"  log multiplier: ",log10(multiplier))
+    #println("i: ",i,"  nfuncs: ",nfuncs,"  k: ",k,"  multiplier: ",multiplier)
+    #println("i: ",i,"  nfuncs: ",nfuncs,"  k: ",k,"  log multiplier: ",log10(multiplier))
     exp = trunc(log10(multiplier))
     fract = 10^(log10(multiplier)-exp)
     #=

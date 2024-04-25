@@ -1,0 +1,80 @@
+Algorithm for count_circuits_ch( p::Parameters, nfuncs::Int64 ) from Chromosome.jl  See below:
+Steps to get Fnc_mt.jl to run:
+
+LinCircuit=CGP.LinCircuit
+p = Parameters( 3,1,3,3)
+Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 3, 3)
+
+julia> funcs = default_funcs(p)
+5-element Vector{Func}:
+
+LinCircuit=CGP.LinCircuit
+scorrelations=CGP.scorrelations
+
+component_properties(p, [0x0055], funcs )
+31.531045 seconds
+
+Editing universal properties paper.
+
+Line 294:  Where is algorithm to count number of phenotypes?
+  No algorithm needed, just a formula.
+
+Line 298:  Where is algorithm to count number of genotypes?
+  count_circuits_ch() in Chromosome.jl
+
+Algorithm for count_circuits_ch( p::Parameters, nfuncs::Int64 ) from Chromosome.jl
+
+nfuncs = length(default_funcs(p))
+multiplier = 1
+mij = 0
+for i = 1:p.numinteriors
+    multiplier *= nfuncs
+    for j = 1:p.nodearity   # nodearity is always 2
+      mij = min(p.numlevelsback,i-1+p.numinputs)
+      multiplier *= mij
+    end
+    exp = trunc(log10(multiplier))
+    fract = 10^(log10(multiplier)-exp)
+end
+
+Example:  p = Parameters(2,1,3,2), 5 funcs
+  nfuncs = 5
+  multiplier = 1
+  k = 0
+  i = 1
+    multiplier = 5
+    j = 1
+      k = min(2,i-1+2) = 2
+      multiplier = 5*2 = 10
+    j = 2
+      k = min(2,i-1+2) = 2
+      multiplier = 10*2 = 20
+  i = 2
+    multiplier = 20*5 = 100
+    j = 1
+      k = min(2,i-1+2) = 2
+      multiplier = 100*2 = 200
+    j = 2
+      k = min(2,i-1+2) = 2
+      multiplier = 200*2 = 400
+  i = 3
+    multiplier = 400*5 = 2000
+    j = 1
+      k = min(2,i-1+2) = 2
+      multiplier = 2000*2 =4000
+    j = 2
+      k = min(2,i-1+2) = 2
+      multiplier = 4000*2 = 8000
+        
+
+Contents of supplementary info:
+
+Exact methods and exact results
+  Exact phenotype network
+  Exact phenotype evolvability methods
+  Exact phenotype network results
+  Exact evolvability 
+  
+  
+
+
