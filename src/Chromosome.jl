@@ -1,5 +1,6 @@
 using DataFrames
 using CSV
+using Printf
 import Base.getindex
 export PredType   # defined below to be Int64
 export Chromosome, print_chromosome, getindex, random_chromosome, mutate_chromosome!, mutate_all, mutate_all_neutral
@@ -9,7 +10,7 @@ export hamming_distance, ihamming_distance, hamming
 export copy_chromosome!, mutational_robustness, fault_tolerance_fitness, number_active_old, append_chromosome
 export build_chromosome, Input_node, Int_node, Output_node, print_build_chromosome, circuit_code 
 export circuit, print_circuit, geno_distance
-export circuit_distance, remove_inactive, count_circuits_ch
+export circuit_distance, remove_inactive, count_circuits_ch, count_genotypes_ch, count_genotypes_ch_mt
 export insert_gate!, delete_gate!, test_combine_complexity, combine_chromosomes, interleave_chromosomes
 export enumerate_circuits_ch, chromosome_to_int, gate_int, gate_int_list, int_to_gate, int_to_chromosome
 export chromosome_add_input, chromsome_add_multiplexer
@@ -997,7 +998,7 @@ end
 
 # Recursive helper function
 function enumerate_circuits_ch( p::Parameters, numints::Int64, funcs::Vector{Func}; maxarity::Int64=2 )
-  println("ec: numints: ",numints)
+  #println("ec: numints: ",numints)
   if numints == 0
     result = [Chromosome( p, map(i->InputNode(i),collect(1:p.numinputs)), InteriorNode[], [OutputNode(p.numinputs)], 0.0, 0.0 )]
     return result
@@ -1074,7 +1075,7 @@ end
 
 # Returns the number of genotypes mapping to each phenotype for the parameters/funcs setting.
 # This is for Chromosomes.
-function count_genotypes_ch( p::Parameters, funcs::Vector{Func}=default_funcs(p) )
+function count_genotypes_ch( p::Parameters, funcs::Vector{Func}=default_funcs(p) )::DataFrame
   num_circuits = Int(count_circuits_ch( p ))
   genotype_counts = zeros( Int64, 2^2^p.numinputs )
   for i = 1:num_circuits
@@ -1090,7 +1091,7 @@ end
 
 # Returns the number of genotypes mapping to each phenotype for the parameters/funcs setting.
 # This is for Chromosomes.
-function count_genotypes_ch_mt( p::Parameters, funcs::Vector{Func}=default_funcs(p) )
+function count_genotypes_ch_mt( p::Parameters, funcs::Vector{Func}=default_funcs(p) )::DataFrame
   genotype_counts = [ Threads.Atomic{Int64}(0) for i= 1:2^2^p.numinputs ]
   num_circuits = Int(count_circuits_ch( p ))
   Threads.@threads for i = 1:num_circuits
@@ -1101,51 +1102,36 @@ function count_genotypes_ch_mt( p::Parameters, funcs::Vector{Func}=default_funcs
   count_genotypes_table( p, funcs, gc )
 end
 
-# Return the number of circuits for parameters p and funcs 
-function count_circuits_ch( p::Parameters, funcs::Vector{Func} )
-  gc = count_circuits_ch( p, nfuncs=length(funcs) )
-  count_genotypes_table( p, funcs, gc )
-end
-
 # Return the number of circuits for parameters p and number of funcs nfuncs 
-function count_circuits_ch( p::Parameters, nfuncs::Int64 )
-  gc = count_circuits_ch( p, nfuncs=nfuncs )
+function count_circuits_ch( p::Parameters, funcs::Vector{Func} )::BigFloat
+  gc = count_circuits_ch( p, nfuncs=length(funcs) )
 end
 
 # Return the number of chromosomes for parameters p and number of funcs nfuncs if nfuncs>0
 # If nfuncs==0, nfuncs is reset to be length(default_funcs(p.numinputs))
-# There is a multithreaded version
-function count_circuits_ch( p::Parameters; nfuncs::Int64=5 )
+function count_circuits_ch( p::Parameters; nfuncs::Int64=5 )::BigFloat
   @assert p.numoutputs == 1   # Not tested for more than 1 output, but probably works in this case.
   nfuncs = nfuncs==0 ? length(default_funcs(p.numinputs)) : nfuncs
   multiplier = BigFloat(1)
   k = 0
   for i = 1:p.numinteriors
-    println("i: ",i,"  multiplier: ",multiplier,"  k: ",k)
+    # uncomment for debugging
+    #println("i: ",i,"  multiplier: ",multiplier,"  k: ",k)
     multiplier *= nfuncs
     for j = 1:p.nodearity
       k = min(p.numlevelsback,i-1+p.numinputs)
       multiplier *= k
-      println("i: ",i,"  j: ",j,"  multiplier: ",multiplier,"  k: ",k)
+      #println("i: ",i,"  j: ",j,"  multiplier: ",multiplier,"  k: ",k)
     end
     #println("i: ",i,"  nfuncs: ",nfuncs,"  k: ",k,"  multiplier: ",multiplier)
     #println("i: ",i,"  nfuncs: ",nfuncs,"  k: ",k,"  log multiplier: ",log10(multiplier))
-    exp = trunc(log10(multiplier))
-    fract = 10^(log10(multiplier)-exp)
-    #=
-    println("  exp: ",exp,"  fract: ",fract)
-    @printf("  multiplier: %4.2f",fract)
-    @printf("e+%2i\n",exp)
-    try
-      @printf("  multiplier:  %8.2e\n",multiplier)
-    catch
-    end
-    =#
   end
   multiplier^p.numoutputs
 end
 
-function count_genotypes_table( p::Parameters, funcs::Vector{Func}, genotype_counts::Vector )
+# 
+function count_genotypes_table( p::Parameters, funcs::Vector{Func}, genotype_counts::Vector{Int64} )::DataFrame
+  @assert length(genotype_counts) == 2^2^p.numinputs
   df = DataFrame(
     :phenotype=>map( ph->[MyInt(ph)], 0:(2^2^p.numinputs-1)),
     :count=>genotype_counts

@@ -1,25 +1,3 @@
-#=
-CGP.jl is a library for using
-[Cartesian Genetic Programming](http://www.cartesiangp.co.uk/) in
-Julia. It is being developed at the University of Montana in Missoula,
-MT for use in simulating the evolution of technology, though there is
-nothing specific to that application in the library so it is (will be)
-perfectly suitable for other applications as well.
-=#
-
-using Distributed
-using DataFrames
-#using DataFramesMeta
-using StatsBase
-using Combinatorics
-using Printf
-using Dates
-using CSV
-using Statistics
-using Folds
-#using Revise
-using Random
-
 module CGP
 using Distributed
 using DataFrames
@@ -38,6 +16,24 @@ const MyInt = UInt16     # Type of bit string integers used in bit functions
 #const MyInt = BigInt      # Type of bit string integers used in bit functions
 const MyFunc = UInt128  # Type of concatenated output representation of functions
 const maxints_for_degen = 20
+
+struct Parameters
+    mu::Integer
+    lambda::Integer
+    mutrate::Real
+    targetfitness::Real
+    numinputs::Integer
+    numoutputs::Integer
+    nodearity::Integer
+    numinteriors::Integer   # Number of gates
+    numlevelsback::Integer  # For LinCircuits, number of registers
+end
+mutable struct LinCircuit
+    # Here, numinteriors represents number of gates, numlevelsback represents number of computational registers
+    # the First numoutputs registers are the output registers
+    circuit_vects::Vector{Vector{MyInt}}
+    params::Parameters
+end
 include("aliases.jl")
 include("Contexts.jl")
 include("Parameters.jl")
@@ -75,21 +71,8 @@ include("Utilities.jl")
 include("random_walk.jl")
 include("Evo_dict.jl")
 include("Fnc_mt.jl")
-include("LinChromosome.jl")
 include("random_walk.jl")
 include("evolvable_evolvability.jl")
 end
+LinCircuit = CGP.LinCircuit
 using .CGP
-include("Evolvability.jl")
-include("evolvable_evolvability.jl")
-#include("Build_chromosome.jl")
-#include("epistasis.jl")
-include("Complexity.jl")
-include("Degeneracy.jl")
-include("Evo_dict.jl")
-include("Composition.jl")
-include("Robustness.jl")
-include("Phenotype.jl")
-include("Utilities.jl")
-include("random_walk.jl")
-include("Evo_dict.jl")MyInt=Main.CGP.MyInt

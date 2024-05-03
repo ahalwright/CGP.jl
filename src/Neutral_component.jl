@@ -1,3 +1,4 @@
+using DataFrames
 # returns the component of the neutral set of the phenotype output_values(circuit) that contains circuit.
 # If the evolvability keyword argument is true, also returns a list of the phenotypes seen.
 # Tested by the function test_neutral_components() in test/test_neutral_componemts.jl
@@ -5,8 +6,8 @@
 # ch = int_to_chromosome( 39403, p, funcs )
 # nc0 = neutral_component( ch, funcs )
 # Set{Int128} with 4332 elements
+# Consistent with the results of component_properties() from Fnc_mt.jl on 4/28/24
 function neutral_component( ch::Chromosome, funcs::Vector{Func}, evolvability::Bool=false )::Union{Set,Tuple{Set,Vector{Goal}}}
-#function neutral_component( ch::Chromosome, funcs::Vector{Func}, evolvability::Bool=false )
   p = ch.params
   ov = output_values(ch)
   nc = Set([chromosome_to_int(ch,funcs)])
@@ -41,7 +42,7 @@ function neutral_component( ch::LinCircuit, funcs::Vector{Func}, evolvability::B
   stack = [circuit_to_circuit_int(ch,funcs)]
   cnt = 70
   while length(stack) > 0 && cnt > 0
-    println("length(stack): ",length(stack))
+    #println("length(stack): ",length(stack))
     circ = circuit_int_to_circuit( pop!(stack), p, funcs )
     circs = filter(cch->ov==output_values(cch), mutate_all( circ, funcs, output_outputs=false, output_circuits=true ))
     for c in circs

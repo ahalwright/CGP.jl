@@ -1,0 +1,7 @@
+Depreciated
+
+Problems with Fnc_mt.jl and Neutral_component.jl. 
+
+Example:  p = Parameters(1, 4, 0.05, 0.0, 3, 1, 2, 3s, 3)  # 5 funcs
+
+

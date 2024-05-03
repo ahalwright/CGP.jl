@@ -37,7 +37,7 @@ export count_genotypes_lc, count_genotypes_lc_mt
 export number_active, remove_inactive
 =#
 OutputType = Int64
-#LinCircuit = CGP.LinCircuit
+LinCircuit = CGP.LinCircuit
 
 #=
 mutable struct LinCircuit

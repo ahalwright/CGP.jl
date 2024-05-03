@@ -1,7 +1,7 @@
 # Recreated 1/13/23, works 9/9/23
 
 # Tests only arity 2 gates and with maxarity=2
-using Test
+using Test, Random
 @testset "chromosome_to_int() and enumerate_circuits() " begin
 p = Parameters(3,1,3,3)  # Any legal parameters should work, except that computation of il may take too long.
 @assert p.numoutputs==1  # chromosome_to_int and int_to_chromosome assume 1 output

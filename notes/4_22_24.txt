@@ -48,6 +48,6 @@ Functions on circuits
   circuit, print_circuit
   chromosome_to_int, int_to_chromosome
   count_circuits_ch, 
-  count_genotypes_ch, count_genotypes_ch_mt
+  count_genotypes_ch,  count_genotypes_ch_mt
   enumerate_circuits_ch
   inputs_list, gate_int

@@ -1,0 +1,39 @@
+Picotech ADC-24 data logger.
+
+Since the data logger has no memory, it looks like the data logger will need to 
+be attached to a computer while there is any data logging.  Do you plan to do 
+data logging over long periods of time?
+
+I have 3 different Linux computers that could be used for this purpose.  We will 
+want to add a Linux compatible wifi adapter so that the computer can be accessed 
+remotely---these are cheap.  What is more complicated is to set it up so that I 
+can access the computer remotely---assuming that it is in your house.  This 
+means reconfiguring your wifi router which I have done for my router.
+
+We might also want to set up the Linux computer with a monitor and keyboard.
+I have an unused monitor and keyboard.
+
+Downloaded the picolog software from https://www.picotech.com/downloads (Mac version).
+I now have a PicoLab app on my mac.
+
+Plugged the terminal board into the data logger using the 28-pin connector.
+The terminal board has connection ports.  
+
+One port is labeled +2v5, and when I connect my multimeter to this port and
+AG (analog ground), I read 2.5 V.
+
+Opened the transcutaneous nerve simulator and am understanding what it does.
+I deduce that this is what will be used to stimulate the mushrooms.
+
+Sally has "stiff knees"---non-serious pain in her knees when she bicycles.
+It occurs to me that we might try this on her knees.
+
+===================
+I am running the picolog software on my mac.
+
+ADC-24 KP366/090 is shown as a device.
+
+So far I have not gotten it to log any data.  I apply battery voltages to 
+pairs of inputs but nothing shows up.  We may need to meet to try to 
+resolve this problem.
+

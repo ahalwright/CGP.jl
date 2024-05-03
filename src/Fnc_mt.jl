@@ -1,11 +1,16 @@
-using JLD, HDF5, Tables, Base.Threads, Printf, DataFrames
+using JLD, HDF5, Tables, Base.Threads, Printf, DataFrames, Distributed, Dates, CSV
+LinCircuit=CGP.LinCircuit
 
 function chp_list_to_rdf( chp_list, p::Parameters, funcs::Vector{Func}; nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10, use_lincircuit::Bool=false )
-    println("function chp_list_to_rdf  nwalks_per_set: ",nwalks_per_set)
+    #println("function chp_list_to_rdf  nwalks_per_set: ",nwalks_per_set)
+    println("function chp_list_to_rdf  chp_list: ",chp_list[1])
     S = find_neutral_comps( chp_list, p, funcs )
     #df = dict_to_csv(S,p,chp_list[1][2],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit)
     df = dict_to_csv(S,p,chp_list[1][2],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit)
     rdf = consolidate_df(df,p,funcs)
+end
+
+function run_component_properties( )
 end
 
 #@everywhere LinCircuit=CGP.LinCircuit
@@ -18,54 +23,69 @@ end
 #  for LinCircuits:  ecl = enumerate_circuits_lc( p, funcs); length(ecl) 
 #  phl = [0x0015,0x005a]
 #  df = component_properties( pp, phl, use_lincircuit=false );
-#function component_properties( p::CGP.Parameters, pheno_list::Vector{MyInt}, 
-function component_properties( p::Parameters, pheno_list::Vector{MyInt}, 
-      funcs::Vector{Func}=default_funcs(p.numinputs); nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10,
+function component_properties( p::Parameters, pheno_list::Vector{MyInt}, funcs::Vector{Func}=default_funcs(p.numinputs); 
+      nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10, return_df::Bool=true, return_cdf::Bool=false,
       use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
   println("walk params: ",(nwalks_per_set,walk_length,nwalks_per_circuit))
   sort!(pheno_list)
-  rdf_list = DataFrame[]
   ecl = use_lincircuit ? enumerate_circuits_lc( p, funcs ) : enumerate_circuits_ch( p, funcs )
   println("length(ecl): ",length(ecl))
   chp_lists = pairs_to_sublists( ecl, pheno_list, funcs ) 
   chp_nonempty_lists = use_lincircuit ? Vector{Tuple{LinCircuit,MyInt}}[] : Vector{Tuple{Chromosome,MyInt}}[]
   for chp_list in chp_lists
-    println("length(chp_list): ",length(chp_list))
+    #println("length(chp_list): ",length(chp_list))
     if length(chp_list) > 0
       push!(chp_nonempty_lists,chp_list)
     end
   end  
+  rdf_list = DataFrame[]
   #rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
   #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
-  rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
-  #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
+  #rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
+  rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
   cdf_list = DataFrame[]
   for rdf in rdf_list
-    if size(rdf)[1] >= 4
-      ccdf = scorrelations(rdf)
-      push!(cdf_list,ccdf)
-    end
-  end  
-  cdf = vcat(cdf_list...)
+    ccdf = scorrelations(rdf)
+    push!(cdf_list,ccdf)
+  end
+  println("length(rdf_list): ",length(rdf_list))
+  println("length(cdf_list): ",length(cdf_list))
   df = vcat(rdf_list...)
+  cdf = vcat(cdf_list...)
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
-      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      hostname = readchomp(`hostname`)
+      #hostname = chomp(open("/etc/hostname") do f read(f,String) end)
       println(f,"# date and time: ",Dates.now())
       numprocs = nprocs()==1 ? 1 : nprocs()-1
       println(f,"# host: ",hostname," with ",numprocs,"  processes: " )
       println(f,"# funcs: ",funcs)
       println(f,"# use_lincircuit: ",use_lincircuit)
-      CSV.write( f, df, append=true, writeheader=true )
-      #CSV.write( f, cdf, append=true, writeheader=true )
+      if return_df
+        CSV.write( f, df, append=true, writeheader=true )
+      end
+      if return_cdf
+        CSV.write( f, cdf, append=true, writeheader=true )
+      end
     end
   end
-  (df,cdf)
+  if return_df && return_cdf
+    (df,cdf)
+  elseif return_df
+    df
+  elseif return_cdf
+    cdf
+  end
 end
 
+# component_properties() uses this function.
+# This is an internal function not used outside of this file  
 function find_neutral_comps( chp_list::Union{Vector{Tuple{Chromosome,MyInt}},Vector{Tuple{LinCircuit,MyInt}}}, p::Parameters, 
       funcs::Vector{Func}=default_funcs(p.numinputs) )::Dict{Int64,Set{Int128}}
-  #D println("find_neutral_comps: chp_list: ",chp_list)   # chp_list is a list of Chromosome/LinCircuit phenotype pairs
+  #println("find_neutral_comps: chp_list: ",chp_list)   # chp_list is a list of Chromosome/LinCircuit phenotype pairs
+  for (circ,val) in chp_list
+    @assert output_values(circ)[1] == val
+  end
   use_lincircuit = (typeof(chp_list)==Vector{Tuple{LinCircuit,MyInt}}) 
   S = Dict{Int64,Set{Int128}}()
   new_key = 1
@@ -177,6 +197,7 @@ function dict_to_csv( S::Dict{Int64,Set{Int128}}, p::Parameters, pheno::MyInt, f
   for ky in keys(S)
     push!(key_list,ky)
     push!(length_list,length(S[ky]))
+    #println( "length_list: ",length_list )
     if !use_lincircuit 
       (avg_robust, std_robust, rng_robust, avg_evo, std_evo, rng_evo, avg_cmplx, std_cmplx, rng_cmplx, avg_walk, sum_ma_walk, avg_numactive ) = 
         robust_evo_cmplx( S[ky], p, funcs, use_lincircuit=use_lincircuit, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit )
@@ -232,6 +253,7 @@ function dict_to_csv( S::Dict{Int64,Set{Int128}}, p::Parameters, pheno::MyInt, f
   df.avg_walk = avg_walk_list
   df.sum_ma_walk = sum_ma_walk_list
   df.avg_nactive = avg_numactive_list
+  #println("df.length: ",df.length)
   df
 end   # dict_to_csv
 
@@ -298,13 +320,15 @@ sqrtn( x::Float64 ) = x >= 0.0 ? sqrt(x) : 0.0
 # Consolidates df by averaging dataframe rows that correspond to rows of the same value of len
 # Also, converts the pheno column which is Float64 to string by using the prhex() function
 function consolidate_df( df::DataFrame, p::Parameters, funcs::Vector{Func}=default_funcs(p.numinputs) )
+  println("consolidate_df: names(df)[1:4]: ",names(df)[1:4])
   ssum = zeros(Float64,size(df)[2]-1)
   df_matrix = Tables.matrix(df[:,3:end])
   dict = Dict{Int64,Vector{Float64}}()
   default_value = fill(-1.0,size(df)[2]-1)
   for i = 1:size(df)[1]
     len = df[i,2]
-    row = vcat(Float64(len),1.0,df_matrix[i,:])  # Second element accumulates the count for this len
+    #row = vcat(Float64(len),1.0,df_matrix[i,:])  # Second element accumulates the count for this len
+    row = vcat(len,1,df_matrix[i,:])  # Second element accumulates the count for this len
     prevval = get(dict,len,default_value)
     if prevval != default_value
       newval = prevval + row
@@ -318,7 +342,7 @@ function consolidate_df( df::DataFrame, p::Parameters, funcs::Vector{Func}=defau
   end
   ordered_keys = sort([ky for ky in keys(dict)])
   println("ordered_keys: ",ordered_keys)
-  rdf = DataFrame( vcat([:len=>Float64[],:count=>Float64[]],[ Symbol(nm)=>Float64[] for nm in names(df)[3:end] ] ))
+  rdf = DataFrame( vcat([:len=>Int64[],:count=>Int64[]],[ Symbol(nm)=>Float64[] for nm in names(df)[3:end] ] ))
   #println("names(rdf): ",names(rdf))
   for ky in ordered_keys
     #println("ky: ",ky,"  dict[ky]: ",dict[ky])
@@ -328,6 +352,7 @@ function consolidate_df( df::DataFrame, p::Parameters, funcs::Vector{Func}=defau
     push!(rdf,ssum)
   end
   rdf.pheno = map(x->prhex(MyInt(Int(x))),rdf.pheno)
+  #println("consolidate_df: names(rdf)[1:4]: ",names(rdf)[1:4])
   rdf
 end 
 
@@ -381,7 +406,8 @@ function pheno_counts_ch( p::Parameters, funcs::Vector{Func}; csvfile::String=""
   df.counts = counts
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
-      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      hostname = readchomp(`hostname`)
+      #hostname = chomp(open("/etc/hostname") do f read(f,String) end)
       println(f,"# date and time: ",Dates.now())
       numprocs = nprocs()==1 ? 1 : nprocs()-1
       println(f,"# host: ",hostname," with ",numprocs,"  processes: " )
@@ -463,7 +489,8 @@ function pheno_counts_lc( p::Parameters, funcs::Vector{Func}; csvfile::String=""
   df.counts = counts
   if length(csvfile) > 0
     open( csvfile, "w" ) do f
-      hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      #hostname = chomp(open("/etc/hostname") do f read(f,String) end)
+      hostname = readchcomp(`hostname`)
       println(f,"# date and time: ",Dates.now())
       numprocs = nprocs()==1 ? 1 : nprocs()-1
       println(f,"# host: ",hostname," with ",numprocs,"  processes: " )
@@ -812,26 +839,28 @@ prhex( x::MyInt ) = @sprintf("0x%04x",x)
 function scorrelations( rdf::DataFrame )
   df = DataFrame()
   df.pheno = [rdf.pheno[1]]
-  df.count = [rdf.len'*rdf.count]
-  df.ncomps = [size(rdf)[1]]
+  df.length = [rdf.len]
+  df.count = [rdf.count]
+  #df.count = [rdf.len'*rdf.count]
+  #df.ncomps = [size(rdf)[1]]
   #df.numinputs = [rdf.numinputs[1]]
   #df.ngates = [rdf.ngates[1]]
   #df.levsback = [rdf.levsback[1]]
-  df.walklen = [rdf.walk_length[1]]
-  df.nwlkset = [rdf.nwalks_set[1]]
-  df.nwlkcirc = [rdf.nwalks_circ[1]]
-  df.rbst = [spearman_cor(rdf,:len,:avg_robust)[1]]
-  df.rbstp = [spearman_cor(rdf,:len,:avg_robust)[2]]
-  df.evo = [spearman_cor(rdf,:len,:avg_evo)[1]]
-  df.evop = [spearman_cor(rdf,:len,:avg_evo)[2]]
-  df.cplx = [spearman_cor(rdf,:len,:avg_cmplx)[1]]
-  df.cplxp = [spearman_cor(rdf,:len,:avg_cmplx)[2]]
-  df.walk = [spearman_cor(rdf,:len,:avg_walk)[1]]
-  df.walkp = [spearman_cor(rdf,:len,:avg_walk)[2]]
-  df.mawlk = [spearman_cor(rdf,:len,:sum_ma_walk)[1]]
-  df.mawlkp = [spearman_cor(rdf,:len,:sum_ma_walk)[2]]
-  df.nactive = [spearman_cor(rdf,:len,:avg_nactive)[1]]
-  df.nactivep = [spearman_cor(rdf,:len,:avg_nactive)[2]]
+  #df.walklen = [rdf.walk_length[1]]
+  #df.nwlkset = [rdf.nwalks_set[1]]
+  #df.nwlkcirc = [rdf.nwalks_circ[1]]
+  #df.rbst = [spearman_cor(rdf,:len,:avg_robust)[1]]
+  #df.rbstp = [spearman_cor(rdf,:len,:avg_robust)[2]]
+  #df.evo = [spearman_cor(rdf,:len,:avg_evo)[1]]
+  #df.evop = [spearman_cor(rdf,:len,:avg_evo)[2]]
+  #df.cplx = [spearman_cor(rdf,:len,:avg_cmplx)[1]]
+  #df.cplxp = [spearman_cor(rdf,:len,:avg_cmplx)[2]]
+  #df.walk = [spearman_cor(rdf,:len,:avg_walk)[1]]
+  #df.walkp = [spearman_cor(rdf,:len,:avg_walk)[2]]
+  #df.mawlk = [spearman_cor(rdf,:len,:sum_ma_walk)[1]]
+  #df.mawlkp = [spearman_cor(rdf,:len,:sum_ma_walk)[2]]
+  #df.nactive = [spearman_cor(rdf,:len,:avg_nactive)[1]]
+  #df.nactivep = [spearman_cor(rdf,:len,:avg_nactive)[2]]
   df
 end
 
