@@ -517,6 +517,25 @@ These files now have suffix  _21.txt
 12_28_23:  Constructing a genotype that maps to any given phenotype ph by AND of unit zero bit strings.
 12_29_23:  Found that evolution evolvability is not included in the Overleaf version of the UP paper.
 2_2_24:    Summarizing random fitness navigability results.
+5_1_24:    Do all non-trivial neutral sets have multiple components?  No
+5_3_24:    Inconsistent results from component_properties and neutral_component for lincircuits.
+5_5_24:    the-mystery-of-the-missing-multicellular-prokaryotes. Prokaryotes could not evolve larger genomes.   Quanta article
+5_7_24:    The emergence of consciousness
+5_12_24:   Agenda for today
+5_18_24:   Research agenda
+5_19_24:   Opisthokont
+5_27_24:   Quotes from Sheldrake's "Entangled life"
+6_2_24:    Problems with Schlanger's Light Eaters book
+6_8_24:    Videos explaining current AI:
+6_16_24:   Cheyenne's summer courses
+6_21_24:   Component properties results
+6_27_24:   Topics to discuss with Cheyenne
+6_29_24:   Successful run of test/test_neutral_component.jl
+7_3_24:    Sally and I agree that the beneficiaries for the Trowe Price account which is in Alden's name should be Cheyenne with Jackson as a contingent beneficiary.
+7_16_24:   Fungi: Three-dimensional printing of mycelium hydrogels into living complex materials
+7_30_24:   Initial discussion of sharpness:  Human ingenuity is good at coming up with very specialized sharp solutions which are useful.
+
+
 
 All plots:
 Goal Frequency vs Goal Rank: PPfig2 data/10_18

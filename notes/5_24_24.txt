@@ -1,0 +1,19 @@
+Test component_properties using neutral_components.
+
+@time component_properties( p, [0x0006], funcs, use_lincircuit=true )
+ 59.731425 seconds (367.49 M allocations: 24.038 GiB, 54.45% gc time)
+4×15 DataFrame
+ Row │ len      count    pheno   numinputs  ngates   levsback  nwalks_set  walk_length  nwalks_circ  avg_robust  avg_evo   avg_cmplx  avg_walk  sum_ma_walk  avg_nactive
+     │ Float64  Float64  String  Float64    Float64  Float64   Float64     Float64      Float64      Float64     Float64   Float64    Float64   Float64      Float64
+─────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │     1.0    112.0  0x0006        3.0      3.0       2.0         1.0          5.0         10.0    0.395337  0.330853   0.518938   1.44107     0.824821      2.67857
+   2 │     6.0      8.0  0x0006        3.0      3.0       2.0         1.0          5.0         10.0    0.373843  0.349537   0.664421   1.475       0.69125       2.66667
+   3 │     8.0     40.0  0x0006        3.0      3.0       2.0         1.0          5.0         10.0    0.351042  0.384375   0.584575   1.44        0.65325       2.63125
+   4 │    12.0      8.0  0x0006        3.0      3.0       2.0         1.0          5.0         10.0    0.360532  0.367477   0.545225   1.5625      0.9475        2.58333
+
+
+
+
+length(neutral_component( elc[1], funcs, true ))
+2
+

@@ -1,0 +1,38 @@
+Thinking about mycelial networks of fungi.
+
+Reading "Entangled life: How fungi make our world ... " by Merlin Sheldrake.
+
+Mycelial networks for different fungi:  
+
+“LYNNE BODDY, A professor of microbial ecology at Cardiff University, has spent decades studying the foraging behavior 
+of mycelium. Her elegant studies illustrate the problems that mycelial networks are able to solve. In one experiment, 
+Boddy allowed a wood-rotting fungus to grow within a block of wood. She then placed the block on a dish. Mycelium spread 
+radially outward from the block in all directions, forming a fuzzy white circle. Eventually the growing network 
+encountered a new block of wood. Only a small part of the fungus touched the wood, but the behavior of the entire 
+network changed. The mycelium stopped exploring in all directions. It withdrew the exploratory parts of its network and 
+thickened the connection with the newly discovered block. After a few days, the network was unrecognizable. It had 
+completely remodeled itself.”
+============================
+Olsson decided to measure the response of the fungus to blocks of wood, which is food for this species. Olsson set up 
+the rig and placed a block of wood onto the mycelium several centimeters from the electrodes. What he found was 
+extraordinary. When the wood came into contact with the mycelium, the firing rate of the impulses doubled. When he 
+removed the block of wood, the firing rate returned to normal. To make sure that the fungi weren’t responding to the 
+weight of the wooden block, he placed an inedible plastic block of the same size and weight onto the mycelium. The 
+fungus didn’t respond. B Sheldrake, Merlin. Entangled Life: How Fungi Make Our Worlds, Change Our Minds & Shape Our 
+Futures (pp. 61-62). Random House Publishing Group. Kindle Edition.
+
+We’re some way off. Computing with living network-based organisms is in its infancy and many questions remain 
+unanswered. Olsson and Adamatzky have shown that mycelium can be electrically sensitive, but they haven’t shown that 
+electrical impulses can link a stimulus to a response. It is as if you had stuck a pin in your toe, detected the nerve 
+impulse that traveled through your body, but hadn’t been able to measure your reaction to the pain. This is a challenge 
+for the future. In the twenty-three years between Olsson’s study on mycelium and Adamatzky’s study on oyster mushrooms, 
+no further research was conducted on electrical signaling in fungi. If he had the resources to pursue this line of 
+inquiry, Olsson told me that he would try to demonstrate a clear physiological response to changes in electrical 
+activity and decode the patterns of electrical impulses. His dream is to “hook up a fungus with a computer and 
+communicate with it,” to use electrical signals to get the fungus to change its behavior. “All sorts of weird and 
+wonderful experiments could be done if this turns out to be right.”
+
+Sheldrake, Merlin. Entangled Life: How Fungi Make Our Worlds, Change Our Minds & Shape Our Futures (p. 65). 
+Random House Publishing Group. Kindle Edition. 
+
+https://www.livescience.com/archaeology/neanderthals-could-talk-but-how-sophisticated-was-their-language

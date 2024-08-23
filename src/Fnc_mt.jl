@@ -3,14 +3,18 @@ LinCircuit=CGP.LinCircuit
 
 function chp_list_to_rdf( chp_list, p::Parameters, funcs::Vector{Func}; nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10, use_lincircuit::Bool=false )
     #println("function chp_list_to_rdf  nwalks_per_set: ",nwalks_per_set)
-    println("function chp_list_to_rdf  chp_list: ",chp_list[1])
+    println("function chp_list_to_rdf  use_lincircuit: ",use_lincircuit,"  chp_list: ",chp_list[1])
     S = find_neutral_comps( chp_list, p, funcs )
     #df = dict_to_csv(S,p,chp_list[1][2],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit)
     df = dict_to_csv(S,p,chp_list[1][2],funcs,use_lincircuit=use_lincircuit,nwalks_per_set=nwalks_per_set,walk_length=walk_length,nwalks_per_circuit=nwalks_per_circuit)
     rdf = consolidate_df(df,p,funcs)
 end
 
-function run_component_properties( )
+# Run component_properties on multiple phenotypes returning a single csv file with one line per phenotype
+# This line includes:  number components, the fraction of component length which is the longest component
+function run_component_properties( p::Parameters, pheno_list::Vector{MyInt}, funcs::Vector{Func}=default_funcs(p.numinputs);
+      nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10, return_df::Bool=true, return_cdf::Bool=false,
+      use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
 end
 
 #@everywhere LinCircuit=CGP.LinCircuit
@@ -26,7 +30,7 @@ end
 function component_properties( p::Parameters, pheno_list::Vector{MyInt}, funcs::Vector{Func}=default_funcs(p.numinputs); 
       nwalks_per_set::Int64=1, walk_length::Int64=5, nwalks_per_circuit::Int64=10, return_df::Bool=true, return_cdf::Bool=false,
       use_lincircuit::Bool=false, csvfile::String="", jld_file::String="" )
-  println("walk params: ",(nwalks_per_set,walk_length,nwalks_per_circuit))
+  #println("walk params: ",(nwalks_per_set,walk_length,nwalks_per_circuit))
   sort!(pheno_list)
   ecl = use_lincircuit ? enumerate_circuits_lc( p, funcs ) : enumerate_circuits_ch( p, funcs )
   println("length(ecl): ",length(ecl))
@@ -39,10 +43,12 @@ function component_properties( p::Parameters, pheno_list::Vector{MyInt}, funcs::
     end
   end  
   rdf_list = DataFrame[]
-  #rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
-  #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p ), chp_nonempty_lists )
-  #rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
-  rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
+  rdf_list = pmap( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit, use_lincircuit=use_lincircuit ),
+          chp_nonempty_lists )
+  ### rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
+  #rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit, use_lincircuit=use_lincircuit ),
+  #        chp_nonempty_lists )
+  ###rdf_list = map( chp_list->chp_list_to_rdf( chp_list, p, funcs, nwalks_per_set=nwalks_per_set, walk_length=walk_length, nwalks_per_circuit=nwalks_per_circuit ), chp_nonempty_lists )
   cdf_list = DataFrame[]
   for rdf in rdf_list
     ccdf = scorrelations(rdf)
@@ -173,7 +179,7 @@ end
 function dict_to_csv( S::Dict{Int64,Set{Int128}}, p::Parameters, pheno::MyInt, funcs::Vector{Func}=default_funcs(p.numinputs); 
     use_lincircuit::Bool=false, nwalks_per_set::Int64=20, walk_length::Int64=50, nwalks_per_circuit::Int64=3 )
   #println("dict_to_csv nwalks_per_set: ",nwalks_per_set,"  walk_length: ",walk_length,"  nwalks_per_circuit: ",nwalks_per_circuit)
-  #println("dict_to_csv: use_lincircuit: ",use_lincircuit)
+  println("dict_to_csv: use_lincircuit: ",use_lincircuit)
   #println("S: ",S)
   key_list = Int64[]
   length_list = Int64[]
@@ -904,7 +910,8 @@ using Test
 
 function pairs_to_sublists( ecl::Union{Vector{Chromosome},Vector{LinCircuit}}, pheno_list::Vector{MyInt}, funcs::Vector{Func} )
   sort!(pheno_list)
-  chp_list = [ (ec,output_values(ec,funcs)[1]) for ec in ecl ] 
+  #chp_list = [ (ec,output_values(ec,funcs)[1]) for ec in ecl ] 
+  chp_list = [ (ec,output_values(ec)[1]) for ec in ecl ] 
   sort!( chp_list, by=x->x[2] )  
   if typeof(ecl) == Vector{Chromosome}
     ch_pheno_lists = Vector{Tuple{Chromosome,MyInt}}[]

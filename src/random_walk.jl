@@ -134,7 +134,8 @@ end
 # Outputs a node-edge adjacency matrix unless output_dict==true,
 #      in which case a dictionary indexed on goal pairs whose values the the count of the goal pair
 function random_walk_dict!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,Float64}}, Dict{Tuple{MyInt,MyInt},Int64},Matrix{Int64}},
-    c::Union{Chromosome,LinCircuit}, steps::Int64, funcs::Vector{Func} )
+    c::Union{Chromosome,CGP.LinCircuit}, steps::Int64, funcs::Vector{Func} )
+    #c::Union{Chromosome,CGP.LinCircuit}, steps::Int64, funcs::Vector{Func} )
   #funcs = default_funcs(c.params.numinputs)
   ngoals = 2^(2^c.params.numinputs)
   #addvalues(x,y) = (x[1]+y[1],(x[2]+y[2])/2.0)
@@ -192,7 +193,8 @@ function random_walk_dict!( dict_mat::Union{Dict{Tuple{MyInt,MyInt},Tuple{Int64,
   end
 end
 
-function random_walk_mat!( goal_edge_matrix::Array{Atomic{Int64},2}, c::Union{Chromosome,LinCircuit}, steps::Int64, funcs::Vector{Func} )
+#function random_walk_mat!( goal_edge_matrix::Array{Atomic{Int64},2}, c::Union{Chromosome,LinCircuit}, steps::Int64, funcs::Vector{Func} )
+function random_walk_mat!( goal_edge_matrix::Array{Atomic{Int64},2}, c::Union{Chromosome,CGP.LinCircuit}, steps::Int64, funcs::Vector{Func} )
       #goal_edge_matrix[Int64(prev_goal)+1,Int64(goal)+1] += 1
   #funcs = default_funcs(c.params.numinputs)
   goal = output_values(c)[1]

@@ -92,4 +92,5 @@ include("Robustness.jl")
 include("Phenotype.jl")
 include("Utilities.jl")
 include("random_walk.jl")
-include("Evo_dict.jl")MyInt=Main.CGP.MyInt
+include("Evo_dict.jl")
+#MyInt=Main.CGP.MyInt

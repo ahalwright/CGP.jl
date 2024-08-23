@@ -1,0 +1,13 @@
+test_neutral_components() from the file test/ now works for both Chromosomes and LinCircuits..
+
+@time include("../test/test_neutral_component.jl")
+
+Test Summary:                                                                      | Pass  Total     Time
+test that all neutral mutations of neutral component are in the neutral component  |  200    200  1m46.6s
+106.626458 seconds (1.21 G allocations: 85.377 GiB, 7.53% gc time, 0.06% compilation time)
+
+Test for Chromsomes with Parameters(2,1,3,3)    # 5 funcs
+Test for LinCircuits with Parameters(2,1,3,2)   # 5 funcs
+
+In both cases, processes only 5 elements of the neutral component.
+  for chi in nc_list[1:5]

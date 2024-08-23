@@ -1,0 +1,28 @@
+The following sentence from the Light Eaters book is incorrect.  
+
+Through the same process, plants have made every iota of sugar we have ever consumed. A leaf is the only thing in our known world that can manufacture 
+sugar out of materials—light and air—that have never been alive.
+
+Schlanger, Zoë. The Light Eaters: How the Unseen World of Plant Intelligence Offers a New Understanding of Life on Earth (p. 27). HarperCollins. Kindle Edition. 
+
+Cyanobacteria can also create sugars like glucose.
+
+"In plants, algae, and cyanobacteria, sugars are synthesized by a subsequent sequence of light-independent reactions called the Calvin cycle. 
+In this process, atmospheric carbon dioxide is incorporated into already existing organic carbon compounds, such as ribulose bisphosphate (RuBP).[3] 
+Using the ATP and NADPH produced by the light-dependent reactions, the resulting compounds are then reduced and removed to form further carbohydrates, such as glucose
+
+https://en.wikipedia.org/wiki/Photosynthesis
+
+
+Gemini query:  Can algae produce sugar?
+
+Yes, algae can produce sugar. In fact, they are considered an exciting new feedstock for sugar production due to several advantages:
+
+Gemini query:  Are algae plants?
+
+No, algae are not technically plants. Although they share some similarities, such as being photosynthetic, they lack several key features that define true plants:
+* Specialized organs:  ...
+* Vascularization:  ...
+* Reproductive structures:  ...
+Therefore, while algae and plants share some characteristics, they are distinct groups of organisms.
+

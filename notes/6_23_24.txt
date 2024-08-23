@@ -1,0 +1,56 @@
+Testing neutral component:
+
+Conclusion:  Neutral component works for Chromosomes but not for LinCircuits.
+
+Further update 6/29/24.
+
+p = Parameters( 2, 1, 3, 2 )
+rlc = rand_lcircuit(p,funcs); ov = output_values(rlc)  # [0x000a]
+nc = neutral_component( rlc, funcs ); nc_list = collect(nc);  nc1=nc_list[1]
+2132378
+cic = circuit_int_to_circuit(nc1,p,funcs)
+
+mcic = filter(cch->ov==output_values(cch),mutate_all(cic,funcs,output_outputs=false,output_circuits=true))
+24-element Vector{Main.CGP.LinCircuit}:
+icic = map(c->circuit_to_circuit_int(c,funcs),mcic)
+24-element Vector{Int128}: 493978
+
+findall(x->x==[0x000a],mutate_all(cic,funcs,output_outputs=true,output_circuits=false))
+24-element Vector{Int64}:
+
+for i = 1:length(icic) println("i: ",i," icic[i] in nc: ",icic[i] in nc) end
+i: 1 icic[i] in nc: true
+i: 5 icic[i] in nc: false
+6 values true, 18 values false
+
+p = Parameters( 2, 1, 3, 3 )
+rch = random_chromosome(p,funcs); ov = output_values(rch)  # [0x000e]
+nc = neutral_component( rch, funcs ); nc_list = collect(nc);  nc1=nc_list[1]
+2132378
+length(nc)  # 1664
+
+cic = int_to_chromosome(nc1,p,funcs)
+mcic = filter(cch->ov==output_values(cch),mutate_all(cic,funcs,output_outputs=false,output_circuits=true))
+8-element Vector{Chromosome}:
+icic = map(c->chromosome_to_int(c,funcs),mcic)
+8-element Vector{Int128}: 13356 13491 12861 13086 12636 13986 13281 13296
+
+findall(x->x==ov, mutate_all(cic,funcs,output_outputs=true,output_circuits=false))
+8-element Vector{Int64}:  5 8 15 16 17 18 21 22
+
+for i = 1:length(icic) println("i: ",i," icic[i] in nc: ",icic[i] in nc) end
+#  All values true
+
+p = Parameters( 3, 1, 3, 3 )
+funcs = default_funcs(p)  # 5-element Vector{Func}:
+rch = random_chromosome(p,funcs); ov = output_values(rch)  # [0x0044]
+nc = neutral_component( rch, funcs ); nc_list = collect(nc);  nc1=nc_list[1]  #  60415
+length(nc) # 96
+mcic = filter(cch->ov==output_values(cch),mutate_all(cic,funcs,output_outputs=false,output_circuits=true))
+3-element Vector{Chromosome}:
+icic = map(c->chromosome_to_int(c,funcs),mcic)
+3-element Vector{Int128}: 54340 60505 59740
+findall(x->x==ov, mutate_all(cic,funcs,output_outputs=true,output_circuits=false))
+3-element Vector{Int64}: 2 8 20
+#  All values true
+

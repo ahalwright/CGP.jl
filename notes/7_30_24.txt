@@ -1,0 +1,31 @@
+Sharpness
+
+Reference the paper:  
+@article{bakurov2024sharpness,
+  title={Sharpness-Aware Minimization in Genetic Programming},
+  author={Bakurov, Illya and Haut, Nathan and Banzhaf, Wolfgang},
+  journal={arXiv preprint arXiv:2405.10267},
+  year={2024}
+}
+
+@article{foret2020sharpness,
+  title={Sharpness-aware minimization for efficiently improving generalization},
+  author={Foret, Pierre and Kleiner, Ariel and Mobahi, Hossein and Neyshabur, Behnam},
+  journal={arXiv preprint arXiv:2010.01412},
+  year={2020}
+}
+
+A flat (or wide) fitness minimum has the same fitness value over a wide range of parameter values.
+
+This is in contrast to a sharp minimum where only a small range of fitness values give the minimum value.
+
+Perhaps the opposite of sharpness is robustness.
+
+The emphasis in optimization has been to minimize sharpness as you can see from the titles of the above  papers.
+
+I propose to consider sharpness in cultural evolution.  It is not clear that sharpness is always bad in cultural evolution.
+
+Human ingenuity is good at coming up with very specialized sharp solutions which are useful.
+
+Hypothesis:  Biological seldom finds sharp solutions.
+  Relevant CGP results:  notes/6_30_24.txt

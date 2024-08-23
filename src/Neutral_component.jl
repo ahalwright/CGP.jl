@@ -40,8 +40,8 @@ function neutral_component( ch::LinCircuit, funcs::Vector{Func}, evolvability::B
   nc = Set([circuit_to_circuit_int(ch,funcs)])
   phenos = Goal[ov]  
   stack = [circuit_to_circuit_int(ch,funcs)]
-  cnt = 70
-  while length(stack) > 0 && cnt > 0
+  #cnt = 70
+  while length(stack) > 0 #&& cnt > 0
     #println("length(stack): ",length(stack))
     circ = circuit_int_to_circuit( pop!(stack), p, funcs )
     circs = filter(cch->ov==output_values(cch), mutate_all( circ, funcs, output_outputs=false, output_circuits=true ))
@@ -54,7 +54,7 @@ function neutral_component( ch::LinCircuit, funcs::Vector{Func}, evolvability::B
         end
       end
     end
-    cnt -= 1
+    #cnt -= 1
   end
   if evolvability
     return (nc,unique(phenos))

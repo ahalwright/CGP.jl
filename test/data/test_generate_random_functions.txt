@@ -1,0 +1,65 @@
+num_iterations: 50
+MyInt: UInt16
+numinputs: 2
+numoutputs: 2
+numinteriors: 4
+numlevelsback: 4
+nodearity: 2
+outputs: UInt16[0x000f, 0x000f]   hamming: 0
+outputs: UInt16[0x0008, 0x0002]   hamming: 2
+outputs: UInt16[0x0002, 0x0001]   hamming: 2
+outputs: UInt16[0x0006, 0x000f]   hamming: 2
+outputs: UInt16[0x0002, 0x000d]   hamming: 4
+outputs: UInt16[0x0003, 0x0003]   hamming: 0
+outputs: UInt16[0x0008, 0x0006]   hamming: 3
+outputs: UInt16[0x000c, 0x0000]   hamming: 2
+outputs: UInt16[0x0000, 0x000f]   hamming: 4
+outputs: UInt16[0x000b, 0x000f]   hamming: 1
+outputs: UInt16[0x000c, 0x000c]   hamming: 0
+outputs: UInt16[0x0006, 0x0000]   hamming: 2
+outputs: UInt16[0x0004, 0x0000]   hamming: 1
+outputs: UInt16[0x0001, 0x0005]   hamming: 1
+outputs: UInt16[0x0007, 0x0000]   hamming: 3
+outputs: UInt16[0x0006, 0x000e]   hamming: 1
+outputs: UInt16[0x0008, 0x0005]   hamming: 3
+outputs: UInt16[0x000e, 0x000e]   hamming: 0
+outputs: UInt16[0x0006, 0x000e]   hamming: 1
+outputs: UInt16[0x000d, 0x0002]   hamming: 4
+outputs: UInt16[0x000d, 0x0000]   hamming: 3
+outputs: UInt16[0x0005, 0x0001]   hamming: 1
+outputs: UInt16[0x000e, 0x000e]   hamming: 0
+outputs: UInt16[0x000f, 0x000f]   hamming: 0
+outputs: UInt16[0x0001, 0x000f]   hamming: 3
+outputs: UInt16[0x000b, 0x0002]   hamming: 2
+outputs: UInt16[0x000f, 0x0000]   hamming: 4
+outputs: UInt16[0x000a, 0x000a]   hamming: 0
+outputs: UInt16[0x0001, 0x0004]   hamming: 2
+outputs: UInt16[0x0005, 0x0005]   hamming: 0
+outputs: UInt16[0x000c, 0x0000]   hamming: 2
+outputs: UInt16[0x0003, 0x0006]   hamming: 2
+outputs: UInt16[0x0008, 0x0007]   hamming: 4
+outputs: UInt16[0x000b, 0x0000]   hamming: 3
+outputs: UInt16[0x0005, 0x000a]   hamming: 4
+outputs: UInt16[0x0000, 0x000f]   hamming: 4
+outputs: UInt16[0x0005, 0x000f]   hamming: 2
+outputs: UInt16[0x000e, 0x0008]   hamming: 2
+outputs: UInt16[0x0000, 0x000a]   hamming: 2
+outputs: UInt16[0x0000, 0x000e]   hamming: 3
+outputs: UInt16[0x0000, 0x000f]   hamming: 4
+outputs: UInt16[0x000a, 0x0005]   hamming: 4
+outputs: UInt16[0x000a, 0x0005]   hamming: 4
+outputs: UInt16[0x000d, 0x0000]   hamming: 3
+outputs: UInt16[0x0002, 0x0006]   hamming: 1
+outputs: UInt16[0x000f, 0x000b]   hamming: 1
+outputs: UInt16[0x0003, 0x0009]   hamming: 2
+outputs: UInt16[0x0000, 0x0000]   hamming: 0
+outputs: UInt16[0x0000, 0x000e]   hamming: 3
+outputs: UInt16[0x0008, 0x0008]   hamming: 0
+function count
+length counts list: 41  sum: 50
+count function hash: 
+funct freq  count
+     1:      33
+     2:      7
+     3:      1
+print_count: 2  accum_sum: 50

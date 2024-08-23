@@ -1,0 +1,39 @@
+Idea on cumulative cultural evolution:
+
+Read https://www.quantamagazine.org/the-mystery-of-the-missing-multicellular-prokaryotes-20240502
+
+"As different as these multicellular creatures might be, their bodies are all composed of the same type 
+of cell — eukaryotic cells, which enclose their DNA in a nucleus and possess energy-producing mitochondria. 
+The much older prokaryotic cells, which make up the vast kingdoms of bacteria and archaea and whose cells 
+lack these features, never got complex multicellularity off the ground. They have evolved primitive forms 
+of multicellularity, such as colonies of photosynthetic cyanobacteria. But there they stop. Even with a 
+1.5-billion-year head start on eukaryotes, prokaryotes never evolved this other way of living."
+
+My idea is that cumulative cultural evolution is analogous to eukaryotic cells in biology, and that
+multiple cultural groups is like multicellularity in biology.
+
+From the Quanta article:
+"Emma Bingham and William Ratcliff of the Georgia Institute of Technology put forward a brand new idea, which 
+they tested in a computational model. 
+
+Ratcliff has spent the last 15 years forcing single-celled eukaryotes to evolve multicellularity in the lab. 
+An unavoidable side effect of the evolution of multicellularity is that population size crashes. “Nothing 
+kills effective population size like multicellularity,” Ratcliff said.
+
+"Then, to examine their hypothesis more directly, Ratcliff and Bingham created a highly simplified computational 
+model. In the model, populations of prokaryotes and eukaryotes were under pressure to develop into multicellular 
+organisms of different sizes and accumulate a larger genome. The researchers programmed one group, standing in 
+for eukaryotes, with a tendency to expand its genome; the other, standing in for prokaryotes, shrank it. Even as 
+the organisms grew larger, the eukaryotes were always able to grow their genomes substantially and were rewarded 
+for it. Below a certain size, however, the prokaryotes ran into a wall and couldn’t make their genomes larger, 
+no matter how much they were rewarded."
+
+Translate the previous paragraph to cultural evolution:
+
+We have two populations, one without cumulative cultural evolution and one with cumulative cultural evolution.
+Both populations are under selective pressure to:
+1)  expand their cultural/technolgical repetoire,
+2)  evolve multiple distinct subpopulations.
+The hypothesis would be that the cumulative population would increase both (1) and (2), while the non-cumulative
+population would not be able to increase (1).
+

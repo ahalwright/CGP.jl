@@ -217,7 +217,8 @@ end
 # Compute phenotype evolvability for a phenotype ph by applying mutate_all() to each circuit in circ_int_list.
 #  The vector pheno_count_vect, which is indexed over phenotypes, is modified in place
 # not multithreaded
-function evolvable_pheno_count!( pheno_count_vect::Vector{Int64}, circuit_list::Union{Vector{Chromosome},Vector{LinCircuit}}, funcs::Vector{Func}; 
+#function evolvable_pheno_count!( pheno_count_vect::Vector{Int64}, circuit_list::Union{Vector{Chromosome},Vector{LinCircuit}}, funcs::Vector{Func}; 
+function evolvable_pheno_count!( pheno_count_vect::Vector{Int64}, circuit_list::Union{Vector{Chromosome},Vector{CGP.LinCircuit}}, funcs::Vector{Func}; 
     circ_int_list::Vector{Int128}, use_lincircuit::Bool=false )
   for circ in circuit_list
     (outputs_list,circ_list) = mutate_all( circ, funcs, output_outputs=true, output_circuits=true )

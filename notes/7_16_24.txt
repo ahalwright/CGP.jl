@@ -1,0 +1,20 @@
+Exploring the properties of fungi.
+
+@article{gantenbein2023three,
+  title={Three-dimensional printing of mycelium hydrogels into living complex materials},
+  author={Gantenbein, Silvan and Colucci, Emanuele and K{\"a}ch, Julian and Trachsel, Etienne and Coulter, Fergal B and R{\"u}hs, Patrick A and Masania, Kunal and Studart, Andr{\'e} R},
+  journal={Nature Materials},
+  volume={22},
+  number={1},
+  pages={128--134},
+  year={2023},
+  publisher={Nature Publishing Group UK London}
+}
+
+Summary:  Hydrogels loaded with the fungus Ganoderma lucidum are 3D printed
+into lattice architectures to enable mycelial growth in a balanced exploration and exploitation pattern
+that simultaneously promotes colonization of the gel and bridging of air gaps. 
+
+Objective:  How to grow hyphae in a controled way so that we can sample intra-organism signaling.
+
+Hypothesis:  The fungal language claimed by Adamatsky in 

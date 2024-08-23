@@ -1,0 +1,9 @@
+Agenda for today
+
+* Correctness test for component_properties() in Fnc_mt.jl.
+
+* Systematic test of data logger on Mac, Windows, and possibly Linux.
+
+* Mow lawn.
+
+* Sallly's computers.
